@@ -59,7 +59,7 @@ Some additional window properties that can be used in the music library.
 
 | property 			| description |
 | :----------------------------	| :----------- |
-| Window(Home).Property(ExtraFanArtPath) | will return the extrafanart path for the artist, empty if none is found. This window property is only available when browsing the video library and when the following Skin Bool is true: EnableExtraFanart|
+| Window(Home).Property(ExtraFanArtPath) | will return the extrafanart path for the artist, empty if none is found. This window property is only available when the following Skin Bool is true: EnableExtraFanart|
 | Window(Home).Property(bannerArt) | Will return the Artist's banner image for the current selected item in the list. |
 | Window(Home).Property(logoArt) | Will return the Artist's logo image for the current selected item in the list. |
 | Window(Home).Property(cdArt) | Will return the Album's cd art image for the current selected item in the list. |
