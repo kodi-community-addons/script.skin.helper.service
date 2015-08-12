@@ -25,7 +25,7 @@ Window(Home).Property(skinVersion) --> only the version of your skin
 #### Video library window properties
 Some additional window properties that can be used in the video library. 
 | property 			| description |
-| :---------------------- 	 :----------- |
+| :---------------------- 	| :----------- |
 | Window(Home).Property(ExtraFanArtPath) | will return the extrafanart path for the listitem, empty if none is found. This window property is only available when browsing the video library and when the following Skin Bool is true: EnableExtraFanart|
 | Window(Home).Property(ListItemStudioLogo) | Will return the full image path of the studio logo for the current selected item in a list. |
 | Window(Home).Property(Player.AddonName) | If you want to display the name of the addon in the player |
@@ -34,7 +34,7 @@ Some additional window properties that can be used in the video library.
 #### Movie sets window properties
 If the selected listitem in the videolibrary is a movie set, some additional window properties are provided:
 | property 			| description |
-| :---------------------- 	 :----------- |
+| :---------------------- 	| :----------- |
 | Window(Home).Property(MovieSet.Title) | Title of the movie set |
 | Window(Home).Property(MovieSet.Runtime) | Total runtime (in minutes) of the movie set |
 | Window(Home).Property(MovieSet.Duration) | Total runtime (in hours) of the movie set |
@@ -55,7 +55,7 @@ both ExtraFanArtPath and ListItemStudioLogo will also be provided (if available)
 #### Music library window properties
 Some additional window properties that can be used in the music library. 
 | property 			| description |
-| :---------------------- 	 :----------- |
+| :---------------------- 	| :----------- |
 | Window(Home).Property(ExtraFanArtPath) | will return the extrafanart path for the artist, empty if none is found. This window property is only available when browsing the video library and when the following Skin Bool is true: EnableExtraFanart|
 | Window(Home).Property(bannerArt) | Will return the Artist's banner image for the current selected item in the list. |
 | Window(Home).Property(logoArt) | Will return the Artist's logo image for the current selected item in the list. |
