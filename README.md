@@ -23,7 +23,7 @@ The window properties can be called in your skin like this: $INFO[Window(Home).P
 Window(Home).Property(skinTitle)  --> your skin name including the version
 Window(Home).Property(skinVersion) --> only the version of your skin
 ```
-
+________________________________________________________________________________________________________
 #### Video library window properties
 Some additional window properties that can be used in the video library. 
 
@@ -33,6 +33,8 @@ Some additional window properties that can be used in the video library.
 |Window(Home).Property(ListItemStudioLogo) | Will return the full image path of the studio logo for the current selected item in a list. |
 |Window(Home).Property(Player.AddonName) | If you want to display the name of the addon in the player |
 |Window(Home).Property(Duration) | The duration of the current listitem in hours, for example 1:20 |
+
+________________________________________________________________________________________________________
 
 #### Movie sets window properties
 If the selected listitem in the videolibrary is a movie set, some additional window properties are provided:
@@ -56,6 +58,8 @@ If the selected listitem in the videolibrary is a movie set, some additional win
 | Window(Home).Property(MovieSet.UnWatchedCount) | Total unwatched movies in the set |
 both ExtraFanArtPath and ListItemStudioLogo will also be provided (if available) for the movie set
 
+________________________________________________________________________________________________________
+
 #### Music library window properties
 Some additional window properties that can be used in the music library. 
 
@@ -77,6 +81,8 @@ The script provides several tools and actions which you can use in your skin.
 RunScript(script.skin.helper.service,action=musicsearch)
 ```
 This command will open the default search window for the music library. Might come in handy if you want to create a shortcut to music search from outside the music library window.
+
+________________________________________________________________________________________________________
 
 #### Video library search (extended)
 ```
