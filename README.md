@@ -22,6 +22,8 @@ The window properties can be called in your skin like this: $INFO[Window(Home).P
 
 ________________________________________________________________________________________________________
 
+
+
 #### General window Properties
 The window properties can be called in your skin like this: $INFO[Window(Home).Property(propertyname)]
 ```
@@ -40,6 +42,8 @@ Some additional window properties that can be used in the video library.
 |Window(Home).Property(Duration) | The duration of the current listitem in hours, for example 1:20 |
 
 ________________________________________________________________________________________________________
+
+
 
 #### Movie sets window properties
 If the selected listitem in the videolibrary is a movie set, some additional window properties are provided:
@@ -65,6 +69,8 @@ both ExtraFanArtPath and ListItemStudioLogo will also be provided (if available)
 
 ________________________________________________________________________________________________________
 
+
+
 #### Music library window properties
 Some additional window properties that can be used in the music library. 
 
@@ -75,6 +81,7 @@ Some additional window properties that can be used in the music library.
 | Window(Home).Property(logoArt) | Will return the Artist's logo image for the current selected item in the list. |
 | Window(Home).Property(cdArt) | Will return the Album's cd art image for the current selected item in the list. |
 | Window(Home).Property(songInfo) | Returns the album's description or if empty the artist info. Can be used at both album- and songlevel.  |
+
 
 ________________________________________________________________________________________________________
 ________________________________________________________________________________________________________
@@ -92,6 +99,8 @@ This command will open the default search window for the music library. Might co
 
 ________________________________________________________________________________________________________
 
+
+
 #### Video library search (extended)
 ```
 RunScript(script.skin.helper.service,action=videosearch)
@@ -99,6 +108,8 @@ RunScript(script.skin.helper.service,action=videosearch)
 This command will open the special search window in the script. It has a onscreen keyboard to quickly search for movies, tvshows and episodes. You can customize the look and feel of this search dialog. To do that include the files script-skin_helper_service-CustomSearch.xml and script-skin_helper_service-CustomInfo.xml in your skin and skin it to your needs.
 
 ________________________________________________________________________________________________________
+
+
 
 #### Color Picker
 ```
@@ -114,11 +125,15 @@ If you want to customize the look and feel of the color picker window, make sure
 ________________________________________________________________________________________________________
 
 
+
+
 #### Youtube trailer search
 Shows a dialog with all trailers found by the Youtube plugin, replace [MOVIETITLE] with the movie title (or info label in the skin). To be used for example in DialogVideoInfo.xml to let the user select a trailer instead of playing the default one.
 ```
 RunScript(script.skin.helper.service,action=searchtrailer,title=[MOVIETITLE])             
 ```
+
+
 
 #### Busy spinner selector
 Allows the user to select a busy spinner from some predefined ones in your skin. It supports both multiimage (folder with images) and single image (.gif) spinners. The user can provide his own texture(s) or select from predefined spinners in the skin.
@@ -155,6 +170,7 @@ Make sure that you use a multiimage control in DialogBusy.xml. Example code:
 ________________________________________________________________________________________________________
 
 
+
 #### Views selector
 ```
 RunScript(script.skin.helper.service,action=setview)               
@@ -179,7 +195,10 @@ Supported types are currently: movies,setmovies,tvshows,musicvideos,seasons,sets
 Note: If you want a thumbnail of the view displayed in the select dialog, you need to create some small screenshots of your views and place them in your skin's extras folder:
 - in your skin\extras folder, create a subfolder "viewthumbs"
 - inside that viewthumbs folder save a .JPG file (screenshot) for all your views. Save them as [VIEWID].jpg where [VIEWID] is the numeric ID of the view.
+
 ________________________________________________________________________________________________________
+
+
 
 #### Enable views
 ```
@@ -192,6 +211,8 @@ Example: <include condition="!Skin.HasSetting(View.Disabled.55)">View_55_BannerL
 
 ________________________________________________________________________________________________________
 
+
+
 #### Set Forced views
 ```
 RunScript(script.skin.helper.service,action=setforcedview,contenttype=[TYPE])             
@@ -203,6 +224,8 @@ The value of that skin string is the numeric ID of the selected view.
 Note: It is recommended that you create a Skin toggle to enable/disable the forced views feature.
 
 Note 2: When the user select another view in the normal viewselector, the forcedview setting will also be set to the newly chosen view.
+
+
 
 ##### How to use the forced views feature in your skin?
 
@@ -342,3 +365,20 @@ RunScript(script.skin.helper.service,action=restore)
 ```
 RunScript(script.skin.helper.service,action=reset)             
 ```
+
+
+
+
+________________________________________________________________________________________________________
+________________________________________________________________________________________________________
+
+### Dynamic content provider
+The script also has a plugin entrypoint to provide some dynamic content that can be used for example in widgets.
+use the parameter [LIMIT] to define the number of items to show in the list. defaults to 25 if the parameter is not supplied.
+
+#####Next Episodes
+Provides a list of the nextup episodes. This can be the first episode in progress from a tv show or the next unwatched from a in progress show.
+```
+plugin://script.skin.helper.service/?action=nextepisodes&mode=
+```
+
