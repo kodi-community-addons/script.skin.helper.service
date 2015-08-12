@@ -11,6 +11,8 @@ Important settings:
 |EnableExtraFanart	| Skin.ToggleSetting(EnableExtraFanart)	| enables the extrafanart background scanner |
 |StudioImagesCustompath | Skin.SetString(StudioImagesCustompath)| if you want the user (or yourself as skinner) be able to set a custom path to studio logos. If empty it will use the logos provided by the script (later to be replaced with the new image resource packs in Kodi 16)|
 
+------------------------------------------------------------------------------------------------------
+
 ### Window Properties provided by the script
 The script provides several window properties to provide additional info about your skin and media info.
 The window properties can be called in your skin like this: $INFO[Window(Home).Property(propertyname)]
@@ -63,21 +65,26 @@ Some additional window properties that can be used in the music library.
 | Window(Home).Property(bannerArt) | Will return the Artist's banner image for the current selected item in the list. |
 | Window(Home).Property(logoArt) | Will return the Artist's logo image for the current selected item in the list. |
 | Window(Home).Property(cdArt) | Will return the Album's cd art image for the current selected item in the list. |
-| Window(Home).Property(songInfo) | Returns the album's description or if empty the artist info. Can be used at songlevel.  |
+| Window(Home).Property(songInfo) | Returns the album's description or if empty the artist info. Can be used at both album- and songlevel.  |
 
-### Music library search
+-----------------------------------------------------------------------------------------------------
+
+### Tools and actions provided by the script
+The script provides several tools and actions which you can use in your skin.
+
+#### Music library search
 ```
 RunScript(script.skin.helper.service,action=musicsearch)
 ```
 This command will open the default search window for the music library. Might come in handy if you want to create a shortcut to music search from outside the music library window.
 
-### Video library search (extended)
+#### Video library search (extended)
 ```
 RunScript(script.skin.helper.service,action=videosearch)
 ```
 This command will open the special search window in the script. It has a onscreen keyboard to quickly search for movies, tvshows and episodes. You can customize the look and feel of this search dialog. To do that include the files script-skin_helper_service-CustomSearch.xml and script-skin_helper_service-CustomInfo.xml in your skin and skin it to your needs.
 
-### Color Picker
+#### Color Picker
 ```
 RunScript(script.skin.helper.service,action=colorpicker,skinstringName=XXX,skinstringValue=XXX)
 ```
@@ -89,13 +96,18 @@ In your skin you can just use the skin string to color a control, example: <text
 If you want to customize the look and feel of the color picker window, make sure to include script-skin_helper_service-ColorPicker.xml in your skin and skin in to your needs.
 
 
-### Views selector
-This feature shows the user a select dialog with all the views that are available. This replaces the default "toggle" button in the MyXXNav.xml windows. Note that you must create a views.xml file in your skin's extras folder. The selection dialog is built from that views.xml file and auto checks the visibility conditions so a view will only be shown if it's suitable for the current media content.
+#### Youtube trailer search
+Shows a dialog with all trailers found by the Youtube plugin, replace [MOVIETITLE] with the movie title (or info label in the skin). To be used for example in DialogVideoInfo.xml to let the user select a trailer instead of playing the default one.
+```
+RunScript(script.skin.helper.service,action=searchtrailer,title=[MOVIETITLE])             
+```
 
-*action to call the dialog:*
+#### Views selector
 ```
 RunScript(script.skin.helper.service,action=setview)               
 ```
+This feature shows the user a select dialog with all the views that are available. This replaces the default "toggle" button in the MyXXNav.xml windows. Note that you must create a views.xml file in your skin's extras folder. The selection dialog is built from that views.xml file and auto checks the visibility conditions so a view will only be shown if it's suitable for the current media content.
+
 *example content of the views.xml file (to be placed in extras folder of your skin):*
 ```
 <views>
@@ -111,20 +123,68 @@ type = the type of content the view is suitable for, use "all" to support all ty
 
 Supported types are currently: movies,setmovies,tvshows,musicvideos,seasons,sets,episodes,artists,albums,songs,tvchannels,tvrecordings,programs,pictures
 
-### Youtube trailer search
-Shows a dialog with all trailers found by the Youtube plugin, replace [MOVIETITLE] with the movie title (or info label in the skin). To be used for example in DialogVideoInfo.xml to let the user select a trailer instead of playing the default one.
-```
-RunScript(script.skin.helper.service,action=searchtrailer,title=[MOVIETITLE])             
-```
 
-### Enable views
-This will present a selection dialog to the user to enable (or disable) views. It uses the views.xml file to display the available views (see above). When a view is disabled it will be hidden from the view selection dialog. Also, a Skin String will be set so you can check in your skin if the view has been diable (and not include it or set a visiblity condition).
-The name of the Skin String that will be set by the script is: View.Disabled.[VIEWID] where viewId is the numerical ID of the view.
-Example: <include condition="!Skin.HasSetting(View.Disabled.55)">View_55_BannerList</include>
-
-*the command below can be launched from a button your skin settings window.
+#### Enable views
 ```
 RunScript(script.skin.helper.service,action=enableviews)             
+```
+This will present a selection dialog to the user to enable (or disable) views. It uses the views.xml file to display the available views (see above). When a view is disabled it will be hidden from the view selection dialog. Also, a Skin String will be set so you can check in your skin if the view has been diable (and not include it or set a visiblity condition).
+The name of the Skin String that will be set by the script is: View.Disabled.[VIEWID] where [VIEWID] is the numerical ID of the view.
+Example: <include condition="!Skin.HasSetting(View.Disabled.55)">View_55_BannerList</include>
+
+#### Set Forced views
+```
+RunScript(script.skin.helper.service,action=setforcedview,contenttype=[TYPE])             
+```
+The script can help you to set a forced view for a specific contenttype in your skin. For example if the user wants to set the list view for all tvshow content etc. For [TYPE] you must fill in one of the content types, see above at "Views selector". When a button is pressed with the above command, a select dialog appears and the user can choose on of the available views. Disabled views and views that aren't suitable for the specified type are hidden from the list.
+When the user made a choice from the list a Skin String will be filled by the script: ForcedViews.[TYPE]
+The value of that skin string is the numeric ID of the selected view.
+
+Note: It is recommended that you create a Skin toggle to enable/disable the forced views feature.
+
+Note 2: When the user select another view in the normal viewselector, the forcedview setting will also be set to the newly chosen view.
+
+##### How to use the forced views feature in your skin?
+
+Example code to use in your skin settings:
+
+```xml
+<control type="radiobutton" id="6009">
+	<label>Enable forced views</label>
+	<onclick>Skin.ToggleSetting(ForcedViews.Enabled)</onclick>
+	<selected>Skin.HasSetting(ForcedViews.Enabled)</selected>
+</control>
+<control type="button" id="6010">
+	<onclick>RunScript(script.skin.helper.service,SETFORCEDVIEW,movies)</onclick>
+	<visible>Skin.HasSetting(ForcedViews.Enabled)</visible>
+	<label>Forced view for movies: $INFO[Skin.String(ForcedViews.movies)]</label>
+</control>
+<control type="button" id="6011">
+	<onclick>RunScript(script.skin.helper.service,SETFORCEDVIEW,tvshows)</onclick>
+	<visible>Skin.HasSetting(ForcedViews.Enabled)</visible>
+	<label>Forced view for tv shows:  $INFO[Skin.String(ForcedViews.tvshows)]</label>
+</control>
+<control type="button" id="6012">
+	<onclick>RunScript(script.skin.helper.service,SETFORCEDVIEW,seasons)</onclick>
+	<visible>Skin.HasSetting(ForcedViews.Enabled)</visible>
+	<label>Forced view for seasons:  $INFO[Skin.String(ForcedViews.seasons)]</label>
+</control>
+<control type="button" id="6013">
+	<onclick>RunScript(script.skin.helper.service,SETFORCEDVIEW,episodes)</onclick>
+	<visible>Skin.HasSetting(ForcedViews.Enabled)</visible>
+	<label>Forced view for episodes: $INFO[Skin.String(ForcedViews.episodes)]</label>
+	<font>Reg28</font>
+</control>
+<control type="button" id="6014">
+	<onclick>RunScript(script.skin.helper.service,SETFORCEDVIEW,sets)</onclick>
+	<visible>Skin.HasSetting(ForcedViews.Enabled)</visible>
+	<label>Forced view for movie sets: $INFO[Skin.String(ForcedViews.sets)]</label>
+</control>
+<control type="button" id="6015">
+	<onclick>RunScript(script.skin.helper.service,SETFORCEDVIEW,setmovies)</onclick>
+	<visible>Skin.HasSetting(ForcedViews.Enabled)</visible>
+	<label>Forced view for movies inside set: $INFO[Skin.String(ForcedViews.setmovies)]</label>
+</control>
 ```
 
 
