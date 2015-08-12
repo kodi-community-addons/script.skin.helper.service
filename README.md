@@ -267,14 +267,14 @@ RunScript(script.skin.helper.service,action=restorecolortheme)
 #####Provide color themes with your skin
 It is possible to deliver skin provided color themes. Those colorthemes are stored in the skin's extras\skinthemes folder.
 If you want to create one or more skinprovided color themes (for example the defaults):
-1. Create a folder "skinthemes" in your skin's "extras" folder. 
-2. Make all color modifications in your skin to represent the colortheme
-3. Hit the button to save your colortheme (createcolortheme command)
-4. Name it and select the correct screenshot
-5. On the filesystem navigate to Kodi userdata\addon_data\[YOURSKIN]\themes
-6. Copy both the themename.theme and the themename.jpg file to your above created skinthemes directory
-7. Do this action for every theme you want to include in your skin.
-8. It is possible to change the description of the theme, just open the .themes file in a texteditor. You can change both the THEMENAME and the DESCRIPTION values to your needs.
+- Create a folder "skinthemes" in your skin's "extras" folder. 
+- Make all color modifications in your skin to represent the colortheme
+- Hit the button to save your colortheme (createcolortheme command)
+- Name it and select the correct screenshot
+- On the filesystem navigate to Kodi userdata\addon_data\[YOURSKIN]\themes
+- Copy both the themename.theme and the themename.jpg file to your above created skinthemes directory
+- Do this action for every theme you want to include in your skin.
+- It is possible to change the description of the theme, just open the .themes file in a texteditor. You can change both the THEMENAME and the DESCRIPTION values to your needs.
 
 #####What settings are stored in the theme file ?
 All Skin Settings settings that contain one of these words: color, opacity, texture.
