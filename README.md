@@ -13,14 +13,14 @@ EnableExtraFanart	Skin.ToggleSetting(EnableExtraFanart)	enables the extrafanart 
 The script provides several window properties to provide additional info about your skin and media info.
 The window properties can be called in your skin like this: $INFO[Window(Home).Property(propertyname)]
 
-# General window Properties
+#### General window Properties
 The window properties can be called in your skin like this: $INFO[Window(Home).Property(propertyname)]
 ```
 Window(Home).Property(skinTitle)  --> your skin name including the version
 Window(Home).Property(skinVersion) --> only the version of your skin
 ```
 
-# Extra fanart window property
+#### Extra fanart window property
 This window property is only available when browsing the video library and when the following Skin Bool is true: EnableExtraFanart. 
 
 The window properties can be called in your skin like this: $INFO[Window(Home).Property(propertyname)]
