@@ -8,17 +8,16 @@ The window properties can be called in your skin like this: $INFO[Window(Home).(
 
 ### Music library search
 ```
-*RunScript(script.skin.helper.service,action=musicsearch)*
+RunScript(script.skin.helper.service,action=musicsearch)
 ```
 This command will open the search window for the music library. Might come in handy if you want to create a shortcut to music search from outside the music library window.
 
-### View selector
+### Views selector
 This feature shows the user a select dialog with all the views that are available. This replaces the default "toggle" button in the MyXXNav.xml windows. Note that you must create a views.xml file in your skin's extras folder. The selection dialog is built from that views.xml file and auto checks the visibility conditions so a view will only be shown if it's suitable for the current media content.
 
 *action to call the dialog:*
 ```
-*RunScript(script.skin.helper.service,action=setview)*               
--> Opens the View selection dialog. To be used in MyXXXNav.xml windows instead of default view selection button.
+RunScript(script.skin.helper.service,action=setview)               
 ```
 *example content of the views.xml file (to be placed in extras folder of your skin):*
 ```
@@ -33,15 +32,20 @@ value = the skin view ID
 languageid = localized label ID
 type = the type of content the view is suitable for, use "all" to support all types. Supported types are currently: movies,setmovies,tvshows,musicvideos,seasons,sets,episodes,artists,albums,songs,tvchannels,tvrecordings,programs,pictures
 
+### Youtube trailer search
+Shows a dialog with all trailers found by the Youtube plugin, replace [MOVIETITLE] with the movie title (or info label in the skin). To be used for example in DialogVideoInfo.xml to let the user select a trailer instead of playing the default one.
+```
+RunScript(script.skin.helper.service,action=searchtrailer,title=[MOVIETITLE])             
+```
 
-```
-*RunScript(script.skin.helper.service,action=searchtrailer,title=[MOVIETITLE])*             
---> Shows a dialog with all trailers found by the Youtube plugin, replace [MOVIETITLE] with the movie title (or info label in the skin)
-```
+### Enable views
+This will present a selection dialog to the user to enable (or disable) views. It uses the views.xml file to display the available views (see above). When a view is disabled it will be hidden from the view selection dialog. Also, a Skin String will be set so you can check in your skin if the view has been diable (and not include it or set a visiblity condition).
+The name of the Skin String that will be set by the script is: View.Disabled.[VIEWID] where viewId is the numerical ID of the view.
+Example: <include condition="!Skin.HasSetting(View.Disabled.55)">View_55_BannerList</include>
 
+*the command below can be launched from a button your skin settings window.
 ```
-*RunScript(script.skin.helper.service,action=setview)*               
--> Opens the View selection dialog. To be used in MyXXXNav.xml windows instead of default view selection button.
+RunScript(script.skin.helper.service,action=enableviews)             
 ```
 
 
