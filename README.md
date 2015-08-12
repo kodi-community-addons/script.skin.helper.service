@@ -20,8 +20,15 @@ This command will open the special search window in the script. It has a onscree
 
 ### Color Picker
 ```
-RunScript(script.skin.helper.service,action=videosearch)
+RunScript(script.skin.helper.service,action=colorpicker,skinstringName=XXX,skinstringValue=XXX)
 ```
+This command will open the color picker of the script. After the user selected a color, the color will be stored in the skin string. Required parameters:
+- skinstringName: Skin String in which the color name will be stored (like blue or magenta)
+- skinstringValue: Skin String in which the value of the color (ARGB) will be stored.
+In your skin you can just use the skin string to color a control, example: <textcolor>$INFO[Skin.String(defaultLabelColor)]</textcolor>
+
+If you want to customize the look and feel of the color picker window, make sure to include script-skin_helper_service-ColorPicker.xml in your skin and skin in to your needs.
+
 
 ### Views selector
 This feature shows the user a select dialog with all the views that are available. This replaces the default "toggle" button in the MyXXNav.xml windows. Note that you must create a views.xml file in your skin's extras folder. The selection dialog is built from that views.xml file and auto checks the visibility conditions so a view will only be shown if it's suitable for the current media content.
