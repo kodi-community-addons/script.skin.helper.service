@@ -179,33 +179,33 @@ Example code to use in your skin settings:
 	<selected>Skin.HasSetting(ForcedViews.Enabled)</selected>
 </control>
 <control type="button" id="6010">
-	<onclick>RunScript(script.skin.helper.service,SETFORCEDVIEW,movies)</onclick>
+	<onclick>RunScript(script.skin.helper.service,action=setforcedview,contenttype=movies)</onclick>
 	<visible>Skin.HasSetting(ForcedViews.Enabled)</visible>
 	<label>Forced view for movies: $INFO[Skin.String(ForcedViews.movies)]</label>
 </control>
 <control type="button" id="6011">
-	<onclick>RunScript(script.skin.helper.service,SETFORCEDVIEW,tvshows)</onclick>
+	<onclick>RunScript(script.skin.helper.service,action=setforcedview,contenttype=tvshows)</onclick>
 	<visible>Skin.HasSetting(ForcedViews.Enabled)</visible>
 	<label>Forced view for tv shows:  $INFO[Skin.String(ForcedViews.tvshows)]</label>
 </control>
 <control type="button" id="6012">
-	<onclick>RunScript(script.skin.helper.service,SETFORCEDVIEW,seasons)</onclick>
+	<onclick>RunScript(script.skin.helper.service,action=setforcedview,contenttype=seasons)</onclick>
 	<visible>Skin.HasSetting(ForcedViews.Enabled)</visible>
 	<label>Forced view for seasons:  $INFO[Skin.String(ForcedViews.seasons)]</label>
 </control>
 <control type="button" id="6013">
-	<onclick>RunScript(script.skin.helper.service,SETFORCEDVIEW,episodes)</onclick>
+	<onclick>RunScript(script.skin.helper.service,action=setforcedview,contenttype=episodes)</onclick>
 	<visible>Skin.HasSetting(ForcedViews.Enabled)</visible>
 	<label>Forced view for episodes: $INFO[Skin.String(ForcedViews.episodes)]</label>
 	<font>Reg28</font>
 </control>
 <control type="button" id="6014">
-	<onclick>RunScript(script.skin.helper.service,SETFORCEDVIEW,sets)</onclick>
+	<onclick>RunScript(script.skin.helper.service,action=setforcedview,contenttype=sets)</onclick>
 	<visible>Skin.HasSetting(ForcedViews.Enabled)</visible>
 	<label>Forced view for movie sets: $INFO[Skin.String(ForcedViews.sets)]</label>
 </control>
 <control type="button" id="6015">
-	<onclick>RunScript(script.skin.helper.service,SETFORCEDVIEW,setmovies)</onclick>
+	<onclick>RunScript(script.skin.helper.service,action=setforcedview,contenttype=setmovies)</onclick>
 	<visible>Skin.HasSetting(ForcedViews.Enabled)</visible>
 	<label>Forced view for movies inside set: $INFO[Skin.String(ForcedViews.setmovies)]</label>
 </control>
@@ -234,3 +234,48 @@ Example code to use for your views visibility conditions:
 </control>
 ```
 Note: The forced view code has to be added to all view controls in order to work properly.
+
+
+________________________________________________________________________________________________________
+________________________________________________________________________________________________________
+
+### Color themes feature
+The script comes with a color theme feature. Basically it's just a simplified version of the skin backup/restore feature but it only backs up the colorsettings. Color Themes has the following features:
+
+- Present a list of skin provided color themes including screenshots.
+- Let's the user save his custom settings to a color theme.
+- Let's the user export his custom color theme to file.
+- Let's the user import a custom color theme from file.
+
+#####To present the dialog with all available color themes:
+```
+RunScript(script.skin.helper.service,action=colorthemes)             
+```
+If you want to customize the look and feel of the colorthemes dialog, you can include theme file script-skin_helper_service-ColorThemes.xml in your skin and skin it to your needs.
+
+
+#####Save the user's current customizations to a custom colortheme:
+```
+RunScript(script.skin.helper.service,action=createcolortheme)             
+```
+
+#####Import a custom colortheme from file:
+```
+RunScript(script.skin.helper.service,action=restorecolortheme)             
+```
+
+#####Provide color themes with your skin
+It is possible to deliver skin provided color themes. Those colorthemes are stored in the skin's extras\skinthemes folder.
+If you want to create one or more skinprovided color themes (for example the defaults):
+1. Create a folder "skinthemes" in your skin's "extras" folder. 
+2. Make all color modifications in your skin to represent the colortheme
+3. Hit the button to save your colortheme (createcolortheme command)
+4. Name it and select the correct screenshot
+5. On the filesystem navigate to Kodi userdata\addon_data\[YOURSKIN]\themes
+6. Copy both the themename.theme and the themename.jpg file to your above created skinthemes directory
+7. Do this action for every theme you want to include in your skin.
+8. It is possible to change the description of the theme, just open the .themes file in a texteditor. You can change both the THEMENAME and the DESCRIPTION values to your needs.
+
+#####What settings are stored in the theme file ?
+All Skin Settings settings that contain one of these words: color, opacity, texture.
+Also the skin's theme will be saved (if any). So, to make sure the skin themes feature works properly you must be sure that all of your color-settings contain the word color. If any more words should be supported, please ask.
