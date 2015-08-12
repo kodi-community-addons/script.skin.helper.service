@@ -9,6 +9,7 @@ Important settings:
 | setting name 		| how to set 				| description |
 |:---------------------- | :------------------------------------- | :----------- |
 |EnableExtraFanart	| Skin.ToggleSetting(EnableExtraFanart)	| enables the extrafanart background scanner |
+|StudioImagesCustompath | Skin.SetString(StudioImagesCustompath)| if you want the user (or yourself as skinner) be able to set a custom path to studio logos. If empty it will use the logos provided by the script (later to be replaced with the new image resource packs in Kodi 16)|
 
 ### Window Properties provided by the script
 The script provides several window properties to provide additional info about your skin and media info.
@@ -21,13 +22,45 @@ Window(Home).Property(skinTitle)  --> your skin name including the version
 Window(Home).Property(skinVersion) --> only the version of your skin
 ```
 
-#### Extra fanart window property
-This window property is only available when browsing the video library and when the following Skin Bool is true: EnableExtraFanart. 
+#### Video library window properties
+Some additional window properties that can be used in the video library. 
+| property 			| description |
+| :---------------------- 	 :----------- |
+| Window(Home).Property(ExtraFanArtPath) | will return the extrafanart path for the listitem, empty if none is found. This window property is only available when browsing the video library and when the following Skin Bool is true: EnableExtraFanart|
+| Window(Home).Property(ListItemStudioLogo) | Will return the full image path of the studio logo for the current selected item in a list. |
+| Window(Home).Property(Player.AddonName) | If you want to display the name of the addon in the player |
+| Window(Home).Property(Duration) | The duration of the current listitem in hours, for example 1:20 |
 
-The window properties can be called in your skin like this: $INFO[Window(Home).Property(propertyname)]
-```
-Window(Home).Property(ExtraFanArtPath)  --> will return the extrafanart path for the listitem, empty if none is found.
-```
+#### Movie sets window properties
+If the selected listitem in the videolibrary is a movie set, some additional window properties are provided:
+| property 			| description |
+| :---------------------- 	 :----------- |
+| Window(Home).Property(MovieSet.Title) | Title of the movie set |
+| Window(Home).Property(MovieSet.Runtime) | Total runtime (in minutes) of the movie set |
+| Window(Home).Property(MovieSet.Duration) | Total runtime (in hours) of the movie set |
+| Window(Home).Property(MovieSet.Writer) | All writers of the movies in the set |
+| Window(Home).Property(MovieSet.Director) | All directors of the movies in the set |
+| Window(Home).Property(MovieSet.Genre) | All genres of the movies in the set |
+| Window(Home).Property(MovieSet.Country) | All countries of the movies in the set |
+| Window(Home).Property(MovieSet.Studio) | All studios of the movies in the set |
+| Window(Home).Property(MovieSet.Years) | All years of the movies in the set |
+| Window(Home).Property(MovieSet.Year) | Year of first movie - Year of last movie |
+| Window(Home).Property(MovieSet.Plot) | All plots of the movies in the set |
+| Window(Home).Property(MovieSet.ExtendedPlot) | Plots combined with movie title info |
+| Window(Home).Property(MovieSet.Count) | Total movies in the set |
+| Window(Home).Property(MovieSet.WatchedCount) | Total watched movies in the set |
+| Window(Home).Property(MovieSet.UnWatchedCount) | Total unwatched movies in the set |
+both ExtraFanArtPath and ListItemStudioLogo will also be provided (if available) for the movie set
+
+#### Music library window properties
+Some additional window properties that can be used in the music library. 
+| property 			| description |
+| :---------------------- 	 :----------- |
+| Window(Home).Property(ExtraFanArtPath) | will return the extrafanart path for the artist, empty if none is found. This window property is only available when browsing the video library and when the following Skin Bool is true: EnableExtraFanart|
+| Window(Home).Property(bannerArt) | Will return the Artist's banner image for the current selected item in the list. |
+| Window(Home).Property(logoArt) | Will return the Artist's logo image for the current selected item in the list. |
+| Window(Home).Property(cdArt) | Will return the Album's cd art image for the current selected item in the list. |
+| Window(Home).Property(songInfo) | Returns the album's description or if empty the artist info. Can be used at songlevel.  |
 
 ### Music library search
 ```
