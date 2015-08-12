@@ -377,8 +377,58 @@ The script also has a plugin entrypoint to provide some dynamic content that can
 use the parameter [LIMIT] to define the number of items to show in the list. defaults to 25 if the parameter is not supplied.
 
 #####Next Episodes
+```
+plugin://script.skin.helper.service/?action=nextepisodes&limit=[LIMIT]
+```
 Provides a list of the nextup episodes. This can be the first episode in progress from a tv show or the next unwatched from a in progress show.
-```
-plugin://script.skin.helper.service/?action=nextepisodes&mode=
-```
 
+#####Recommended Movies
+```
+plugin://script.skin.helper.service/?action=recommendedmovies&limit=[LIMIT]
+```
+Provides a list of the in progress movies AND recommended movies based on rating.
+
+#####Recommended Media
+```
+plugin://script.skin.helper.service/?action=recommendedmedia&limit=[LIMIT]
+```
+Provides a list of recommended media (movies, tv shows, music)
+
+
+#####Recent Media
+```
+plugin://script.skin.helper.service/?action=recentmedia&limit=[LIMIT]
+```
+Provides a list of recently added media (movies, tv shows, music, tv recordings, musicvideos)
+
+#####Similar Movies (because you watched...)
+```
+plugin://script.skin.helper.service/?action=similarmovies&limit=[LIMIT]
+```
+This will provide a list with movies that are similar to a random watched movie from the library.
+TIP: The listitem provided by this list will have a property "originaltitle" which contains the movie from which this list is generated. That way you can create a "Because you watched $INFO[Container.ListItem.Property(originaltitle)]" label....
+
+#####In progress Media
+```
+plugin://script.skin.helper.service/?action=inprogressmedia&limit=[LIMIT]
+```
+Provides a list of all in progress media (movies, tv shows, music, musicvideos)
+
+#####In progress and Recommended Media
+```
+plugin://script.skin.helper.service/?action=inprogressandrecommendedmedia&limit=[LIMIT]
+```
+This combines in progress media and recommended media, usefull to prevent an empty widget when no items are in progress.
+
+#####Favourite Media
+```
+plugin://script.skin.helper.service/?action=favouritemedia&limit=[LIMIT]
+```
+Provides a list of all media items that are added as favourite (movies, tv shows, songs, musicvideos)
+
+
+#####Favourites
+```
+plugin://script.skin.helper.service/?action=favourites&limit=[LIMIT]
+```
+Provides the Kodi favourites as list content
