@@ -381,12 +381,14 @@ use the parameter [LIMIT] to define the number of items to show in the list. def
 plugin://script.skin.helper.service/?action=nextepisodes&limit=[LIMIT]
 ```
 Provides a list of the nextup episodes. This can be the first episode in progress from a tv show or the next unwatched from a in progress show.
+________________________________________________________________________________________________________
 
 #####Recommended Movies
 ```
 plugin://script.skin.helper.service/?action=recommendedmovies&limit=[LIMIT]
 ```
 Provides a list of the in progress movies AND recommended movies based on rating.
+________________________________________________________________________________________________________
 
 #####Recommended Media
 ```
@@ -394,12 +396,15 @@ plugin://script.skin.helper.service/?action=recommendedmedia&limit=[LIMIT]
 ```
 Provides a list of recommended media (movies, tv shows, music)
 
+________________________________________________________________________________________________________
 
 #####Recent Media
 ```
 plugin://script.skin.helper.service/?action=recentmedia&limit=[LIMIT]
 ```
 Provides a list of recently added media (movies, tv shows, music, tv recordings, musicvideos)
+
+________________________________________________________________________________________________________
 
 #####Similar Movies (because you watched...)
 ```
@@ -408,11 +413,15 @@ plugin://script.skin.helper.service/?action=similarmovies&limit=[LIMIT]
 This will provide a list with movies that are similar to a random watched movie from the library.
 TIP: The listitem provided by this list will have a property "originaltitle" which contains the movie from which this list is generated. That way you can create a "Because you watched $INFO[Container.ListItem.Property(originaltitle)]" label....
 
+________________________________________________________________________________________________________
+
 #####In progress Media
 ```
 plugin://script.skin.helper.service/?action=inprogressmedia&limit=[LIMIT]
 ```
 Provides a list of all in progress media (movies, tv shows, music, musicvideos)
+
+________________________________________________________________________________________________________
 
 #####In progress and Recommended Media
 ```
@@ -420,12 +429,15 @@ plugin://script.skin.helper.service/?action=inprogressandrecommendedmedia&limit=
 ```
 This combines in progress media and recommended media, usefull to prevent an empty widget when no items are in progress.
 
+________________________________________________________________________________________________________
+
 #####Favourite Media
 ```
 plugin://script.skin.helper.service/?action=favouritemedia&limit=[LIMIT]
 ```
 Provides a list of all media items that are added as favourite (movies, tv shows, songs, musicvideos)
 
+________________________________________________________________________________________________________
 
 #####Favourites
 ```
