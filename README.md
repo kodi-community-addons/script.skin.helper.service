@@ -120,6 +120,38 @@ Shows a dialog with all trailers found by the Youtube plugin, replace [MOVIETITL
 RunScript(script.skin.helper.service,action=searchtrailer,title=[MOVIETITLE])             
 ```
 
+#### Busy spinner selector
+Allows the user to select a busy spinner from some predefined ones in your skin. It supports both multiimage (folder with images) and single image (.gif) spinners. The user can provide his own texture(s) or select from predefined spinners in the skin.
+
+```
+RunScript(script.skin.helper.service,action=busytexture)             
+```
+The script fills this Skin Strings after selection: 
+SpinnerTexture --> the name of the selected busy texture
+SpinnerTexturePath --> The full path of the selected busy texture
+
+#####To provide busy spinners with your skin:
+- Make sure to create a directory "busy_spinners" in your skin's extras folder.
+- Inside that directory you can put subdirectories for multimage spinners or just gif files in the root.
+
+#####To use the busy texture
+Make sure that you use a multiimage control in DialogBusy.xml. Example code:
+```xml
+<control type="multiimage">
+	<width>150</width>
+	<height>150</height>
+	<aspectratio>keep</aspectratio>
+	<imagepath>$INFO[Skin.String(SpinnerTexturePath)]</imagepath>
+	<timeperimage>100</timeperimage>
+	<colordiffuse>$INFO[Skin.String(SpinnerTextureColor)]</colordiffuse>
+	<fadetime>0</fadetime>
+	<visible>!Skin.String(SpinnerTexturePath,None)</visible>
+</control>
+```
+
+
+
+
 ________________________________________________________________________________________________________
 
 
@@ -144,6 +176,9 @@ type = the type of content the view is suitable for, use "all" to support all ty
 
 Supported types are currently: movies,setmovies,tvshows,musicvideos,seasons,sets,episodes,artists,albums,songs,tvchannels,tvrecordings,programs,pictures
 
+Note: If you want a thumbnail of the view displayed in the select dialog, you need to create some small screenshots of your views and place them in your skin's extras folder:
+- in your skin\extras folder, create a subfolder "viewthumbs"
+- inside that viewthumbs folder save a .JPG file (screenshot) for all your views. Save them as [VIEWID].jpg where [VIEWID] is the numeric ID of the view.
 ________________________________________________________________________________________________________
 
 #### Enable views
@@ -152,6 +187,7 @@ RunScript(script.skin.helper.service,action=enableviews)
 ```
 This will present a selection dialog to the user to enable (or disable) views. It uses the views.xml file to display the available views (see above). When a view is disabled it will be hidden from the view selection dialog. Also, a Skin String will be set so you can check in your skin if the view has been diable (and not include it or set a visiblity condition).
 The name of the Skin String that will be set by the script is: View.Disabled.[VIEWID] where [VIEWID] is the numerical ID of the view.
+
 Example: <include condition="!Skin.HasSetting(View.Disabled.55)">View_55_BannerList</include>
 
 ________________________________________________________________________________________________________
@@ -279,3 +315,30 @@ If you want to create one or more skinprovided color themes (for example the def
 #####What settings are stored in the theme file ?
 All Skin Settings settings that contain one of these words: color, opacity, texture.
 Also the skin's theme will be saved (if any). So, to make sure the skin themes feature works properly you must be sure that all of your color-settings contain the word color. If any more words should be supported, please ask.
+
+
+
+________________________________________________________________________________________________________
+________________________________________________________________________________________________________
+
+### Skin backup feature
+The script comes with a backup/restore feature. It supports backup of ALL skin settings including skin shortcuts (when script.skinshortcuts is used). 
+
+- Backup all settings to file
+- Restore all settings from file
+- Reset the skin to default settings (wipe all settings)
+
+#####To backup the skin settings:
+```
+RunScript(script.skin.helper.service,action=backup)             
+```
+
+#####To restore the skin settings:
+```
+RunScript(script.skin.helper.service,action=restore)             
+```
+
+#####To reset the skin to defaults:
+```
+RunScript(script.skin.helper.service,action=reset)             
+```
