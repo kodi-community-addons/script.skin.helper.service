@@ -6,8 +6,9 @@ The script does not have it's own settings dialog. The script is controlled by t
 
 Important settings:
 
-*setting name 		how to set 				description*
-EnableExtraFanart	Skin.ToggleSetting(EnableExtraFanart)	enables the extrafanart background scanner
+| setting name 		| how to set 				| description |
+|---------------------- | ------------------------------------- | ----------- |
+|EnableExtraFanart	| Skin.ToggleSetting(EnableExtraFanart)	| enables the extrafanart background scanner |
 
 ### Window Properties provided by the script
 The script provides several window properties to provide additional info about your skin and media info.
