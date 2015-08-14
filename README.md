@@ -11,8 +11,8 @@ Important settings:
 | setting name 		| how to set 				| description |
 |:---------------------- | :------------------------------------- | :----------- |
 |EnableExtraFanart	| Skin.ToggleSetting(EnableExtraFanart)	| enables the extrafanart background scanner |
-|StudioImagesCustompath | Skin.SetString(StudioImagesCustompath)| if you want the user (or yourself as skinner) be able to set a custom path to studio logos. If empty it will use the logos provided by the script (later to be replaced with the new image resource packs in Kodi 16)|
-
+|StudioImagesCustompath | Skin.SetString(StudioImagesCustompath,[PATH])| if you want the user (or yourself as skinner) be able to set a custom path to studio logos. If empty it will use the logos provided by the script (later to be replaced with the new image resource packs in Kodi 16)|
+|ShowInfoAtPlaybackStart	| Skin.SetNumeric(ShowInfoAtPlaybackStart)	| Show OSD info panel at playback start for number of seconds (0 disables this) |
 ________________________________________________________________________________________________________
 ________________________________________________________________________________________________________
 
@@ -113,12 +113,15 @@ ________________________________________________________________________________
 
 #### Color Picker
 ```
-RunScript(script.skin.helper.service,action=colorpicker,skinstringName=XXX,skinstringValue=XXX)
+RunScript(script.skin.helper.service,action=colorpicker,skinstring=XXX)
 ```
 This command will open the color picker of the script. After the user selected a color, the color will be stored in the skin string. Required parameters:
-- skinstringName: Skin String in which the color name will be stored (like blue or magenta)
-- skinstringValue: Skin String in which the value of the color (ARGB) will be stored.
+- skinstring: Skin String inwhich the value of the color (ARGB) will be stored.
+
 In your skin you can just use the skin string to color a control, example: <textcolor>$INFO[Skin.String(defaultLabelColor)]</textcolor>
+
+Note: If you want to display the name of the selected color, add a prefix .name to your skin string.
+For example: <label>Default color for labels: $INFO[Skin.String(defaultLabelColor.name)]</label>
 
 If you want to customize the look and feel of the color picker window, make sure to include script-skin_helper_service-ColorPicker.xml in your skin and skin in to your needs.
 
@@ -310,7 +313,6 @@ The script comes with a color theme feature. Basically it's just a simplified ve
 ```
 RunScript(script.skin.helper.service,action=colorthemes)             
 ```
-If you want to customize the look and feel of the colorthemes dialog, you can include theme file script-skin_helper_service-ColorThemes.xml in your skin and skin it to your needs.
 
 
 #####Save the user's current customizations to a custom colortheme:
