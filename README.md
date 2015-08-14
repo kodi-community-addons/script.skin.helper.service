@@ -14,7 +14,7 @@ Important settings:
 |StudioImagesCustompath | Skin.SetString(StudioImagesCustompath,[PATH])| if you want the user (or yourself as skinner) be able to set a custom path to studio logos. If empty it will use the logos provided by the script (later to be replaced with the new image resource packs in Kodi 16)|
 |ShowInfoAtPlaybackStart	| Skin.SetNumeric(ShowInfoAtPlaybackStart)	| Show OSD info panel at playback start for number of seconds (0 disables this) |
 |RandomFanartDelay	| Skin.SetNumeric(RandomFanartDelay)	| Sets the time in seconds for the interval of the rotating backgrounds provided by the script (0 disables this) |
-|RandomFanartDelay	| Skin.SetPath(CustomPicturesBackgroundPath)	| Sets a custom path from which the global pictures background should be pulled from. (empty uses all picture sources) |
+|CustomPicturesBackgroundPath	| Skin.SetPath(CustomPicturesBackgroundPath)	| Sets a custom path from which the global pictures background should be pulled from. (empty uses all picture sources) |
 ________________________________________________________________________________________________________
 ________________________________________________________________________________________________________
 
@@ -470,3 +470,59 @@ ________________________________________________________________________________
 plugin://script.skin.helper.service/?action=favourites&limit=[LIMIT]
 ```
 Provides the Kodi favourites as list content
+
+
+
+
+
+
+________________________________________________________________________________________________________
+________________________________________________________________________________________________________
+
+### Smart shortcuts feature
+This feature is introduced to be able to provide quick-access shortcuts to specific sections of Kodi, such as user created playlists and favourites and entry points of some 3th party addons such as Emby and Plex. What it does is provide some Window properties about the shortcut. It is most convenient used with the skin shortcuts script but can offcourse be used in any part of your skin. The most important behaviour of the smart shortcuts feature is that is pulls images from the library path so you can have content based backgrounds.
+
+##### Smart shortcuts for playlists
+Will only be available if this Skin Bool is true --> SmartShortcuts.playlists
+
+| property 			| description |
+| :----------------------------	| :----------- |
+| Window(Home).Property(playlist.X.label) | Title of the playlist|
+| Window(Home).Property(playlist.X.action) | Path of the playlist|
+| Window(Home).Property(playlist.X.content) | Contentpath (without activatewindow) of the playlist, to display it's content in widgets.|
+| Window(Home).Property(playlist.X.image) | Rotating fanart of the playlist|
+--> replace X with the item count, starting at 0.
+
+##### Smart shortcuts for Kodi Favourites
+Will only be available if this Skin Bool is true --> SmartShortcuts.favorites
+Note that only favourites will be processed that actually contain video/audio content.
+
+| property 			| description |
+| :----------------------------	| :----------- |
+| Window(Home).Property(favorite.X.label) | Title of the favourite|
+| Window(Home).Property(favorite.X.action) | Path of the favourite|
+| Window(Home).Property(favorite.X.content) | Contentpath (without activatewindow) of the favourite, to display it's content in widgets.|
+| Window(Home).Property(favorite.X.image) | Rotating fanart of the favourite|
+--> replace X with the item count, starting at 0.
+
+
+##### Smart shortcuts for Plex addon (plexbmc)
+Will only be available if this Skin Bool is true --> SmartShortcuts.plex
+Note that the plexbmc addon must be present on the system for this to function.
+
+| property 			| description |
+| :----------------------------	| :----------- |
+| Window(Home).Property(plexbmc.X.title) | Title of the Plex collection|
+| Window(Home).Property(plexbmc.X.path) | Path of the Plex collection|
+| Window(Home).Property(plexbmc.X.content) | Contentpath (without activatewindow) of the Plex collection, to display it's content in widgets.|
+| Window(Home).Property(plexbmc.X.background) | Rotating fanart of the Plex collection|
+| Window(Home).Property(plexbmc.X.recent) | Path to the recently added items node of the Plex collection|
+| Window(Home).Property(plexbmc.X.recent.content) | Contentpath to the recently added items node of the Plex collection (for widgets)|
+| Window(Home).Property(plexbmc.X.recent.background) | Rotating fanart of the recently added items node|
+| Window(Home).Property(plexbmc.X.ondeck) | Path to the in progress items node of the Plex collection|
+| Window(Home).Property(plexbmc.X.ondeck.content) | Contentpath to the in progress items node of the Plex collection (for widgets)|
+| Window(Home).Property(plexbmc.X.ondeck.background) | Rotating fanart of the in progress items node|
+| Window(Home).Property(plexbmc.X.unwatched) | Path to the in unwatched items node of the Plex collection|
+| Window(Home).Property(plexbmc.X.unwatched.content) | Contentpath to the unwatched items node of the Plex collection (for widgets)|
+| Window(Home).Property(plexbmc.X.unwatched.background) | Rotating fanart of the unwatched items node|
+--> replace X with the item count, starting at 0.
