@@ -493,8 +493,11 @@ Will only be available if this Skin Bool is true --> SmartShortcuts.playlists
 | Window(Home).Property(playlist.X.image) | Rotating fanart of the playlist|
 --> replace X with the item count, starting at 0.
 
+
+
 ##### Smart shortcuts for Kodi Favourites
 Will only be available if this Skin Bool is true --> SmartShortcuts.favorites
+
 Note that only favourites will be processed that actually contain video/audio content.
 
 | property 			| description |
@@ -506,8 +509,11 @@ Note that only favourites will be processed that actually contain video/audio co
 --> replace X with the item count, starting at 0.
 
 
+
+
 ##### Smart shortcuts for Plex addon (plexbmc)
 Will only be available if this Skin Bool is true --> SmartShortcuts.plex
+
 Note that the plexbmc addon must be present on the system for this to function.
 
 | property 			| description |
@@ -525,4 +531,9 @@ Note that the plexbmc addon must be present on the system for this to function.
 | Window(Home).Property(plexbmc.X.unwatched) | Path to the in unwatched items node of the Plex collection|
 | Window(Home).Property(plexbmc.X.unwatched.content) | Contentpath to the unwatched items node of the Plex collection (for widgets)|
 | Window(Home).Property(plexbmc.X.unwatched.background) | Rotating fanart of the unwatched items node|
+| |
+| Window(Home).Property(plexbmc.channels.title) | Title of the Plex Channels collection|
+| Window(Home).Property(plexbmc.channels.path) | Path to the Plex Channels|
+| Window(Home).Property(plexbmc.channels.content) | Contentpath to the Plex Channels (for widgets)|
+| Window(Home).Property(plexbmc.channels.background) | Rotating fanart of the Plex Channels|
 --> replace X with the item count, starting at 0.
