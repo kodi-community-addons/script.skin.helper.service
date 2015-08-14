@@ -22,7 +22,7 @@ class Main:
                 paramvalue = arg.split('=')[1].upper()
                 params[paramname] = paramvalue
         
-        logMsg("Parameter string: " + str(params),0)
+        logMsg("Parameter string: " + str(params))
         return params
     
     def __init__(self):
@@ -101,4 +101,4 @@ class Main:
 
 if (__name__ == "__main__"):
     Main()
-logMsg('finished loading script entry',0)
+logMsg('finished loading script entry')

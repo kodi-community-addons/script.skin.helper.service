@@ -23,12 +23,12 @@ class HomeMonitor(threading.Thread):
     delayedTaskInterval = 898
     lastWeatherNotificationCheck = None
     lastNextAiredNotificationCheck = None
-    win = None
     
     def __init__(self, *args):
         logMsg("HomeMonitor - started")
         self.event =  threading.Event()
-        threading.Thread.__init__(self, *args)   
+        threading.Thread.__init__(self, *args)
+        
         
     
     def stop(self):
@@ -39,6 +39,9 @@ class HomeMonitor(threading.Thread):
     def run(self):
         
         self.checkNetflixReady()
+        listItem = None
+        lastListItem = None
+        mainMenuContainer = "300"
 
         while (self.exit != True):
             
@@ -49,7 +52,20 @@ class HomeMonitor(threading.Thread):
                     self.updatePlexlinks()
                     self.checkNotifications()
                     self.delayedTaskInterval = 0 
-
+            
+            
+            # monitor main menu when home is active
+            if (xbmc.getCondVisibility("Window.IsActive(home) + !Window.IsActive(fullscreenvideo)")):
+                mainMenuContainer = "300"
+               
+                listItem = xbmc.getInfoLabel("Container(%s).ListItem.Property(defaultID)" %mainMenuContainer)
+                if listItem != lastListItem:
+                    
+                    # update the background
+                    background = xbmc.getInfoLabel("Container(%s).ListItem.Property(Background)" %mainMenuContainer)
+                    WINDOW.setProperty("lastbackground", background)
+                    lastListItem = listItem           
+            
             xbmc.sleep(150)
             self.delayedTaskInterval += 0.15
     

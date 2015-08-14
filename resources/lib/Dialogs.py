@@ -1,4 +1,5 @@
 import xbmcgui
+from traceback import print_exc
 
 class DialogContextMenu( xbmcgui.WindowXMLDialog ):
     def __init__( self, *args, **kwargs ):

@@ -13,14 +13,14 @@ class Main:
     
     def __init__(self):
         
-        logMsg('started loading pluginentry',0)
+        logMsg('started loading pluginentry')
         
         #get params
         action = None
         limit = None
         path = None
         params = urlparse.parse_qs(sys.argv[2][1:])
-        logMsg("Parameter string: %s" % sys.argv[2],0)
+        logMsg("Parameter string: %s" % sys.argv[2])
 
         try:
             action = params['action'][0].upper()
@@ -58,9 +58,8 @@ class Main:
             
         else:
             #do plugin main listing...
-            print "main listing!"
             doMainListing()
 
 if (__name__ == "__main__"):
     Main()
-logMsg('finished loading pluginentry',0)
+logMsg('finished loading pluginentry')
