@@ -13,6 +13,8 @@ Important settings:
 |EnableExtraFanart	| Skin.ToggleSetting(EnableExtraFanart)	| enables the extrafanart background scanner |
 |StudioImagesCustompath | Skin.SetString(StudioImagesCustompath,[PATH])| if you want the user (or yourself as skinner) be able to set a custom path to studio logos. If empty it will use the logos provided by the script (later to be replaced with the new image resource packs in Kodi 16)|
 |ShowInfoAtPlaybackStart	| Skin.SetNumeric(ShowInfoAtPlaybackStart)	| Show OSD info panel at playback start for number of seconds (0 disables this) |
+|RandomFanartDelay	| Skin.SetNumeric(RandomFanartDelay)	| Sets the time in seconds for the interval of the rotating backgrounds provided by the script (0 disables this) |
+|CustomPicturesBackgroundPath	| Skin.SetPath(CustomPicturesBackgroundPath)	| Sets a custom path from which the global pictures background should be pulled from. (empty uses all picture sources) |
 ________________________________________________________________________________________________________
 ________________________________________________________________________________________________________
 
@@ -83,6 +85,28 @@ Some additional window properties that can be used in the music library.
 | Window(Home).Property(songInfo) | Returns the album's description or if empty the artist info. Can be used at both album- and songlevel.  |
 
 
+________________________________________________________________________________________________________
+
+
+
+#### Backgrounds provided by the script
+The script has a background scanner to provide some rotating fanart backgrounds which can be used in your skin as backgrounds. The backgrounds are available in window properties.
+
+Note: the default interval for the backgrounds is set at 30 seconds. If you want to change this interval you can set a Skin String "RandomFanartDelay" with the number of seconds as value.
+
+| property 			| description |
+| :----------------------------	| :----------- |
+| Window(Home).Property(AllMoviesBackground) | Random fanart of movies in video database|
+| Window(Home).Property(AllTvShowsBackground) | Random fanart of TV shows in video database|
+| Window(Home).Property(AllMusicVideosBackground) | Random fanart of music videos in video database|
+| Window(Home).Property(AllMusicBackground) | Random fanart of music artists in database|
+| Window(Home).Property(GlobalFanartBackground) | Random fanart of all media types|
+| Window(Home).Property(InProgressMoviesBackground) | Random fanart of in progress movies|
+| Window(Home).Property(RecentMoviesBackground) | Random fanart of in recently added movies|
+| Window(Home).Property(UnwatchedMoviesBackground) | Random fanart of unwatched movies|
+| Window(Home).Property(InProgressShowsBackground) | Random fanart of in progress tv shows|
+| Window(Home).Property(RecentEpisodesBackground) | Random fanart of recently added episodes|
+| Window(Home).Property(PicturesBackground) | Random pictures from all picture sources. By default this pulls images from all picture sources the user has configured. It is however possible to provide a custom source from which the images should be pulled from by setting Skin String: CustomPicturesBackgroundPath|
 ________________________________________________________________________________________________________
 ________________________________________________________________________________________________________
 
@@ -207,7 +231,7 @@ ________________________________________________________________________________
 ```
 RunScript(script.skin.helper.service,action=enableviews)             
 ```
-This will present a selection dialog to the user to enable (or disable) views. It uses the views.xml file to display the available views (see above). When a view is disabled it will be hidden from the view selection dialog. Also, a Skin String will be set so you can check in your skin if the view has been diable (and not include it or set a visiblity condition).
+This will present a selection dialog to the user to enable (or disable) views. It uses the views.xml file to display the available views (see above). When a view is disabled it will be hidden from the view selection dialog. Also, a Skin String will be set so you can check in your skin if the view has been disabled (and not include it or set a visiblity condition).
 The name of the Skin String that will be set by the script is: View.Disabled.[VIEWID] where [VIEWID] is the numerical ID of the view.
 
 Example: <include condition="!Skin.HasSetting(View.Disabled.55)">View_55_BannerList</include>
@@ -446,3 +470,218 @@ ________________________________________________________________________________
 plugin://script.skin.helper.service/?action=favourites&limit=[LIMIT]
 ```
 Provides the Kodi favourites as list content
+
+
+
+
+
+
+________________________________________________________________________________________________________
+________________________________________________________________________________________________________
+
+### Smart shortcuts feature
+This feature is introduced to be able to provide quick-access shortcuts to specific sections of Kodi, such as user created playlists and favourites and entry points of some 3th party addons such as Emby and Plex. What it does is provide some Window properties about the shortcut. It is most convenient used with the skin shortcuts script but can offcourse be used in any part of your skin. The most important behaviour of the smart shortcuts feature is that is pulls images from the library path so you can have content based backgrounds.
+
+
+________________________________________________________________________________________________________
+
+##### Smart shortcuts for playlists
+Will only be available if this Skin Bool is true --> SmartShortcuts.playlists
+
+| property 			| description |
+| :----------------------------	| :----------- |
+| Window(Home).Property(playlist.X.label) | Title of the playlist|
+| Window(Home).Property(playlist.X.action) | Path of the playlist|
+| Window(Home).Property(playlist.X.content) | Contentpath (without activatewindow) of the playlist, to display it's content in widgets.|
+| Window(Home).Property(playlist.X.image) | Rotating fanart of the playlist|
+--> replace X with the item count, starting at 0.
+
+
+________________________________________________________________________________________________________
+
+
+##### Smart shortcuts for Kodi Favourites
+Will only be available if this Skin Bool is true --> SmartShortcuts.favorites
+
+Note that only favourites will be processed that actually contain video/audio content.
+
+| property 			| description |
+| :----------------------------	| :----------- |
+| Window(Home).Property(favorite.X.label) | Title of the favourite|
+| Window(Home).Property(favorite.X.action) | Path of the favourite|
+| Window(Home).Property(favorite.X.content) | Contentpath (without activatewindow) of the favourite, to display it's content in widgets.|
+| Window(Home).Property(favorite.X.image) | Rotating fanart of the favourite|
+--> replace X with the item count, starting at 0.
+
+
+________________________________________________________________________________________________________
+
+
+
+##### Smart shortcuts for Plex addon (plugin.video.plexbmc)
+Will only be available if this Skin Bool is true --> SmartShortcuts.plex
+
+Note that the plexbmc addon must be present on the system for this to function.
+
+| property 			| description |
+| :----------------------------	| :----------- |
+| Window(Home).Property(plexbmc.X.title) | Title of the Plex collection|
+| Window(Home).Property(plexbmc.X.path) | Path of the Plex collection|
+| Window(Home).Property(plexbmc.X.content) | Contentpath (without activatewindow) of the Plex collection, to display it's content in widgets.|
+| Window(Home).Property(plexbmc.X.background) | Rotating fanart of the Plex collection|
+| Window(Home).Property(plexbmc.X.type) | Type of the Plex collection (e.g. movies, tvshows)|
+| Window(Home).Property(plexbmc.X.recent) | Path to the recently added items node of the Plex collection|
+| Window(Home).Property(plexbmc.X.recent.content) | Contentpath to the recently added items node of the Plex collection (for widgets)|
+| Window(Home).Property(plexbmc.X.recent.background) | Rotating fanart of the recently added items node|
+| Window(Home).Property(plexbmc.X.ondeck) | Path to the in progress items node of the Plex collection|
+| Window(Home).Property(plexbmc.X.ondeck.content) | Contentpath to the in progress items node of the Plex collection (for widgets)|
+| Window(Home).Property(plexbmc.X.ondeck.background) | Rotating fanart of the in progress items node|
+| Window(Home).Property(plexbmc.X.unwatched) | Path to the in unwatched items node of the Plex collection|
+| Window(Home).Property(plexbmc.X.unwatched.content) | Contentpath to the unwatched items node of the Plex collection (for widgets)|
+| Window(Home).Property(plexbmc.X.unwatched.background) | Rotating fanart of the unwatched items node|
+| |
+| Window(Home).Property(plexbmc.channels.title) | Title of the Plex Channels collection|
+| Window(Home).Property(plexbmc.channels.path) | Path to the Plex Channels|
+| Window(Home).Property(plexbmc.channels.content) | Contentpath to the Plex Channels (for widgets)|
+| Window(Home).Property(plexbmc.channels.background) | Rotating fanart of the Plex Channels|
+| |
+| Window(Home).Property(plexfanartbg) | A global fanart background from plex sources|
+--> replace X with the item count, starting at 0.
+
+
+
+________________________________________________________________________________________________________
+
+
+
+##### Smart shortcuts for Emby addon (plugin.video.emby)
+Will only be available if this Skin Bool is true --> SmartShortcuts.emby
+
+Note that the Emby addon must be present on the system for this to function.
+
+| property 			| description |
+| :----------------------------	| :----------- |
+| Window(Home).Property(emby.nodes.X.title) | Title of the Emby collection|
+| Window(Home).Property(emby.nodes.X.path) | Path of the Emby collection|
+| Window(Home).Property(emby.nodes.X.content) | Contentpath of the Emby collection (for widgets)|
+| Window(Home).Property(emby.nodes.X.image) | Rotating Fanart of the Emby collection|
+| Window(Home).Property(emby.nodes.X.type) | Type of the Emby collection (e.g. movies, tvshows)|
+| |
+| Window(Home).Property(emby.nodes.X.recent.title) | Title of the recently added node for the Emby collection|
+| Window(Home).Property(emby.nodes.X.recent.path) | Path of the recently added node for the Emby collection|
+| Window(Home).Property(emby.nodes.X.recent.content) | Contentpath of the recently added node for the Emby collection|
+| Window(Home).Property(emby.nodes.X.recent.image) | Rotating Fanart of the recently added node for the Emby collection|
+| |
+| Window(Home).Property(emby.nodes.X.unwatched.title) | Title of the unwatched node for the Emby collection|
+| Window(Home).Property(emby.nodes.X.unwatched.path) | Path of the unwatched node for the Emby collection|
+| Window(Home).Property(emby.nodes.X.unwatched.content) | Contentpath of the unwatched node for the Emby collection|
+| Window(Home).Property(emby.nodes.X.unwatched.image) | Rotating Fanart of the unwatched node for the Emby collection|
+| |
+| Window(Home).Property(emby.nodes.X.inprogress.title) | Title of the inprogress node for the Emby collection|
+| Window(Home).Property(emby.nodes.X.inprogress.path) | Path of the inprogress node for the Emby collection|
+| Window(Home).Property(emby.nodes.X.inprogress.content) | Contentpath of the inprogress node for the Emby collection|
+| Window(Home).Property(emby.nodes.X.inprogress.image) | Rotating Fanart of the inprogress node for the Emby collection|
+| |
+| Window(Home).Property(emby.nodes.X.recentepisodes.title) | Title of the recent episodes node for the Emby collection|
+| Window(Home).Property(emby.nodes.X.recentepisodes.path) | Path of the recent episodes node for the Emby collection|
+| Window(Home).Property(emby.nodes.X.recentepisodes.content) | Contentpath of the recent episodes node for the Emby collection|
+| Window(Home).Property(emby.nodes.X.recentepisodes.image) | Rotating Fanart of the recent episodes node for the Emby collection|
+| |
+| Window(Home).Property(emby.nodes.X.nextepisodes.title) | Title of the next episodes node for the Emby collection|
+| Window(Home).Property(emby.nodes.X.nextepisodes.path) | Path of the next episodes node for the Emby collection|
+| Window(Home).Property(emby.nodes.X.nextepisodes.content) | Contentpath of the next episodes node for the Emby collection|
+| Window(Home).Property(emby.nodes.X.nextepisodes.image) | Rotating Fanart of the next episodes node for the Emby collection|
+| |
+| Window(Home).Property(emby.nodes.X.inprogressepisodes.title) | Title of the in progress episodes node for the Emby collection|
+| Window(Home).Property(emby.nodes.X.inprogressepisodes.path) | Path of the in progress episodes node for the Emby collection|
+| Window(Home).Property(emby.nodes.X.inprogressepisodes.content) | Contentpath of the in progress episodes node for the Emby collection|
+| Window(Home).Property(emby.nodes.X.inprogressepisodes.image) | Rotating Fanart of the in progress episodes node for the Emby collection|
+
+
+
+________________________________________________________________________________________________________
+
+
+
+##### Smart shortcuts for Netflix addon (plugin.video.netflixbmc)
+Will only be available if this Skin Bool is true --> SmartShortcuts.netflix
+
+Note that the Netflixbmc addon must be present on the system for this to function.
+
+| property 			| description |
+| :----------------------------	| :----------- |
+| Window(Home).Property(netflix.generic.title) | Title of the main Netflixbmc entry|
+| Window(Home).Property(netflix.generic.path) | Path of the main Netflixbmc entry|
+| Window(Home).Property(netflix.generic.content) | Contentpath of the main Netflixbmc entry (for widgets)|
+| Window(Home).Property(netflix.generic.image) | Rotating Fanart from netflixbmc addon|
+| |
+| Window(Home).Property(netflix.generic.mylist.title) | Title of the Netflixbmc My List entry|
+| Window(Home).Property(netflix.generic.mylist.path) | Path of the Netflixbmc My List entry|
+| Window(Home).Property(netflix.generic.mylist.content) | Contentpath of the Netflixbmc My List entry (for widgets)|
+| Window(Home).Property(netflix.generic.mylist.image) | Rotating Fanart from Netflixbmc My List entry|
+| |
+| Window(Home).Property(netflix.generic.suggestions.title) | Title of the Netflixbmc Suggestions entry|
+| Window(Home).Property(netflix.generic.suggestions.path) | Path of the Netflixbmc Suggestions entry|
+| Window(Home).Property(netflix.generic.suggestions.content) | Contentpath of the Netflixbmc Suggestions entry (for widgets)|
+| Window(Home).Property(netflix.generic.suggestions.image) | Rotating Fanart from Netflixbmc Suggestions entry|
+| |
+| Window(Home).Property(netflix.generic.inprogress.title) | Title of the Netflixbmc Continue Watching entry|
+| Window(Home).Property(netflix.generic.inprogress.path) | Path of the Netflixbmc Continue Watching entry|
+| Window(Home).Property(netflix.generic.inprogress.content) | Contentpath of the Netflixbmc Continue Watching entry (for widgets)|
+| Window(Home).Property(netflix.generic.inprogress.image) | Rotating Fanart from Netflixbmc Continue Watching entry|
+| |
+| Window(Home).Property(netflix.generic.recent.title) | Title of the Netflixbmc Latest entry|
+| Window(Home).Property(netflix.generic.recent.path) | Path of the Netflixbmc Latest entry|
+| Window(Home).Property(netflix.generic.recent.content) | Contentpath of the Netflixbmc Latest entry (for widgets)|
+| Window(Home).Property(netflix.generic.recent.image) | Rotating Fanart from Netflixbmc Latest entry|
+| |
+| Window(Home).Property(netflix.movies.title) | Title of the Netflixbmc Movies entry|
+| Window(Home).Property(netflix.movies.path) | Path of the Netflixbmc Movies entry|
+| Window(Home).Property(netflix.movies.content) | Contentpath of the Netflixbmc Movies entry (for widgets)|
+| Window(Home).Property(netflix.movies.image) | Rotating Fanart from Netflixbmc Movies entry|
+| |
+| Window(Home).Property(netflix.movies.mylist.title) | Title of the Netflixbmc Movies Mylist entry|
+| Window(Home).Property(netflix.movies.mylist.path) | Path of the Netflixbmc Movies Mylist entry|
+| Window(Home).Property(netflix.movies.mylist.content) | Contentpath of the Netflixbmc Movies Mylist entry (for widgets)|
+| Window(Home).Property(netflix.movies.mylist.image) | Rotating Fanart from Netflixbmc Movies Mylist entry|
+| |
+| Window(Home).Property(netflix.movies.suggestions.title) | Title of the Netflixbmc Movies suggestions entry|
+| Window(Home).Property(netflix.movies.suggestions.path) | Path of the Netflixbmc Movies suggestions entry|
+| Window(Home).Property(netflix.movies.suggestions.content) | Contentpath of the Netflixbmc Movies suggestions entry (for widgets)|
+| Window(Home).Property(netflix.movies.suggestions.image) | Rotating Fanart from Netflixbmc Movies suggestions entry|
+| |
+| Window(Home).Property(netflix.movies.inprogress.title) | Title of the Netflixbmc Movies In progress entry|
+| Window(Home).Property(netflix.movies.inprogress.path) | Path of the Netflixbmc Movies In progress entry|
+| Window(Home).Property(netflix.movies.inprogress.content) | Contentpath of the Netflixbmc Movies In progress entry (for widgets)|
+| Window(Home).Property(netflix.movies.inprogress.image) | Rotating Fanart from Netflixbmc Movies In progress entry|
+| |
+| Window(Home).Property(netflix.movies.recent.title) | Title of the Netflixbmc Latest movies entry|
+| Window(Home).Property(netflix.movies.recent.path) | Path of the Netflixbmc Latest movies entry|
+| Window(Home).Property(netflix.movies.recent.content) | Contentpath of the Netflixbmc Latest movies entry (for widgets)|
+| Window(Home).Property(netflix.movies.recent.image) | Rotating Fanart from Netflixbmc Latest movies entry|
+| |
+| Window(Home).Property(netflix.tvshows.title) | Title of the Netflixbmc tvshows entry|
+| Window(Home).Property(netflix.tvshows.path) | Path of the Netflixbmc tvshows entry|
+| Window(Home).Property(netflix.tvshows.content) | Contentpath of the Netflixbmc tvshows entry (for widgets)|
+| Window(Home).Property(netflix.tvshows.image) | Rotating Fanart from Netflixbmc tvshows entry|
+| |
+| Window(Home).Property(netflix.tvshows.mylist.title) | Title of the Netflixbmc tvshows Mylist entry|
+| Window(Home).Property(netflix.tvshows.mylist.path) | Path of the Netflixbmc tvshows Mylist entry|
+| Window(Home).Property(netflix.tvshows.mylist.content) | Contentpath of the Netflixbmc tvshows Mylist entry (for widgets)|
+| Window(Home).Property(netflix.tvshows.mylist.image) | Rotating Fanart from Netflixbmc tvshows Mylist entry|
+| |
+| Window(Home).Property(netflix.tvshows.suggestions.title) | Title of the Netflixbmc tvshows suggestions entry|
+| Window(Home).Property(netflix.tvshows.suggestions.path) | Path of the Netflixbmc tvshows suggestions entry|
+| Window(Home).Property(netflix.tvshows.suggestions.content) | Contentpath of the Netflixbmc tvshows suggestions entry (for widgets)|
+| Window(Home).Property(netflix.tvshows.suggestions.image) | Rotating Fanart from Netflixbmc tvshows suggestions entry|
+| |
+| Window(Home).Property(netflix.tvshows.inprogress.title) | Title of the Netflixbmc tvshows In progress entry|
+| Window(Home).Property(netflix.tvshows.inprogress.path) | Path of the Netflixbmc tvshows In progress entry|
+| Window(Home).Property(netflix.tvshows.inprogress.content) | Contentpath of the Netflixbmc tvshows In progress entry (for widgets)|
+| Window(Home).Property(netflix.tvshows.inprogress.image) | Rotating Fanart from Netflixbmc tvshows In progress entry|
+| |
+| Window(Home).Property(netflix.tvshows.recent.title) | Title of the Netflixbmc Latest tvshows entry|
+| Window(Home).Property(netflix.tvshows.recent.path) | Path of the Netflixbmc Latest tvshows entry|
+| Window(Home).Property(netflix.tvshows.recent.content) | Contentpath of the Netflixbmc Latest tvshows entry (for widgets)|
+| Window(Home).Property(netflix.tvshows.recent.image) | Rotating Fanart from Netflixbmc Latest tvshows entry|
+| |
