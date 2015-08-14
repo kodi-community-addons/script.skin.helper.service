@@ -13,6 +13,8 @@ Important settings:
 |EnableExtraFanart	| Skin.ToggleSetting(EnableExtraFanart)	| enables the extrafanart background scanner |
 |StudioImagesCustompath | Skin.SetString(StudioImagesCustompath,[PATH])| if you want the user (or yourself as skinner) be able to set a custom path to studio logos. If empty it will use the logos provided by the script (later to be replaced with the new image resource packs in Kodi 16)|
 |ShowInfoAtPlaybackStart	| Skin.SetNumeric(ShowInfoAtPlaybackStart)	| Show OSD info panel at playback start for number of seconds (0 disables this) |
+|RandomFanartDelay	| Skin.SetNumeric(RandomFanartDelay)	| Sets the time in seconds for the interval of the rotating backgrounds provided by the script (0 disables this) |
+|RandomFanartDelay	| Skin.SetPath(CustomPicturesBackgroundPath)	| Sets a custom path from which the global pictures background should be pulled from. (empty uses all picture sources) |
 ________________________________________________________________________________________________________
 ________________________________________________________________________________________________________
 
@@ -83,6 +85,28 @@ Some additional window properties that can be used in the music library.
 | Window(Home).Property(songInfo) | Returns the album's description or if empty the artist info. Can be used at both album- and songlevel.  |
 
 
+________________________________________________________________________________________________________
+
+
+
+#### Backgrounds provided by the script
+The script has a background scanner to provide some rotating fanart backgrounds which can be used in your skin as backgrounds. The backgrounds are available in window properties.
+
+Note: the default interval for the backgrounds is set at 30 seconds. If you want to change this interval you can set a Skin String "RandomFanartDelay" with the number of seconds as value.
+
+| property 			| description |
+| :----------------------------	| :----------- |
+| Window(Home).Property(AllMoviesBackground) | Random fanart of movies in video database|
+| Window(Home).Property(AllTvShowsBackground) | Random fanart of TV shows in video database|
+| Window(Home).Property(AllMusicVideosBackground) | Random fanart of music videos in video database|
+| Window(Home).Property(AllMusicBackground) | Random fanart of music artists in database|
+| Window(Home).Property(GlobalFanartBackground) | Random fanart of all media types|
+| Window(Home).Property(InProgressMovieBackground) | Random fanart of in progress movies|
+| Window(Home).Property(RecentMovieBackground) | Random fanart of in recently added movies|
+| Window(Home).Property(UnwatchedMovieBackground) | Random fanart of unwatched movies|
+| Window(Home).Property(InProgressShowsBackground) | Random fanart of in progress tv shows|
+| Window(Home).Property(RecentEpisodesBackground) | Random fanart of recently added episodes|
+| Window(Home).Property(PicturesBackground) | Random pictures from all picture sources. By default this pulls images from all picture sources the user has configured. It is however possible to provide a custom source from which the images should be pulled from by setting Skin String: CustomPicturesBackgroundPath|
 ________________________________________________________________________________________________________
 ________________________________________________________________________________________________________
 
