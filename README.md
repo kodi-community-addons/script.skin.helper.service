@@ -511,7 +511,7 @@ Note that only favourites will be processed that actually contain video/audio co
 
 
 
-##### Smart shortcuts for Plex addon (plexbmc)
+##### Smart shortcuts for Plex addon (plugin.video.plexbmc)
 Will only be available if this Skin Bool is true --> SmartShortcuts.plex
 
 Note that the plexbmc addon must be present on the system for this to function.
@@ -522,6 +522,7 @@ Note that the plexbmc addon must be present on the system for this to function.
 | Window(Home).Property(plexbmc.X.path) | Path of the Plex collection|
 | Window(Home).Property(plexbmc.X.content) | Contentpath (without activatewindow) of the Plex collection, to display it's content in widgets.|
 | Window(Home).Property(plexbmc.X.background) | Rotating fanart of the Plex collection|
+| Window(Home).Property(plexbmc.X.type) | Type of the Plex collection (e.g. movies, tvshows)|
 | Window(Home).Property(plexbmc.X.recent) | Path to the recently added items node of the Plex collection|
 | Window(Home).Property(plexbmc.X.recent.content) | Contentpath to the recently added items node of the Plex collection (for widgets)|
 | Window(Home).Property(plexbmc.X.recent.background) | Rotating fanart of the recently added items node|
@@ -536,4 +537,53 @@ Note that the plexbmc addon must be present on the system for this to function.
 | Window(Home).Property(plexbmc.channels.path) | Path to the Plex Channels|
 | Window(Home).Property(plexbmc.channels.content) | Contentpath to the Plex Channels (for widgets)|
 | Window(Home).Property(plexbmc.channels.background) | Rotating fanart of the Plex Channels|
+| |
+| Window(Home).Property(plexfanartbg) | A global fanart background from plex sources|
 --> replace X with the item count, starting at 0.
+
+
+
+
+
+##### Smart shortcuts for Emby addon (plugin.video.emby)
+Will only be available if this Skin Bool is true --> SmartShortcuts.emby
+
+Note that the Emby addon must be present on the system for this to function.
+
+| property 			| description |
+| :----------------------------	| :----------- |
+| Window(Home).Property(emby.nodes.X.title) | Title of the Emby collection|
+| Window(Home).Property(emby.nodes.X.path) | Path of the Emby collection|
+| Window(Home).Property(emby.nodes.X.content) | Contentpath of the Emby collection (for widgets)|
+| Window(Home).Property(emby.nodes.X.image) | Rotating Fanart of the Emby collection|
+| Window(Home).Property(emby.nodes.X.type) | Type of the Emby collection (e.g. movies, tvshows)|
+
+| Window(Home).Property(emby.nodes.X.recent.title) | Title of the recently added node for the Emby collection|
+| Window(Home).Property(emby.nodes.X.recent.path) | Path of the recently added node for the Emby collection|
+| Window(Home).Property(emby.nodes.X.recent.content) | Contentpath of the recently added node for the Emby collection|
+| Window(Home).Property(emby.nodes.X.recent.image) | Rotating Fanart of the recently added node for the Emby collection|
+
+| Window(Home).Property(emby.nodes.X.unwatched.title) | Title of the unwatched node for the Emby collection|
+| Window(Home).Property(emby.nodes.X.unwatched.path) | Path of the unwatched node for the Emby collection|
+| Window(Home).Property(emby.nodes.X.unwatched.content) | Contentpath of the unwatched node for the Emby collection|
+| Window(Home).Property(emby.nodes.X.unwatched.image) | Rotating Fanart of the unwatched node for the Emby collection|
+
+| Window(Home).Property(emby.nodes.X.inprogress.title) | Title of the inprogress node for the Emby collection|
+| Window(Home).Property(emby.nodes.X.inprogress.path) | Path of the inprogress node for the Emby collection|
+| Window(Home).Property(emby.nodes.X.inprogress.content) | Contentpath of the inprogress node for the Emby collection|
+| Window(Home).Property(emby.nodes.X.inprogress.image) | Rotating Fanart of the inprogress node for the Emby collection|
+
+| Window(Home).Property(emby.nodes.X.recentepisodes.title) | Title of the recent episodes node for the Emby collection|
+| Window(Home).Property(emby.nodes.X.recentepisodes.path) | Path of the recent episodes node for the Emby collection|
+| Window(Home).Property(emby.nodes.X.recentepisodes.content) | Contentpath of the recent episodes node for the Emby collection|
+| Window(Home).Property(emby.nodes.X.recentepisodes.image) | Rotating Fanart of the recent episodes node for the Emby collection|
+
+| Window(Home).Property(emby.nodes.X.nextepisodes.title) | Title of the next episodes node for the Emby collection|
+| Window(Home).Property(emby.nodes.X.nextepisodes.path) | Path of the next episodes node for the Emby collection|
+| Window(Home).Property(emby.nodes.X.nextepisodes.content) | Contentpath of the next episodes node for the Emby collection|
+| Window(Home).Property(emby.nodes.X.nextepisodes.image) | Rotating Fanart of the next episodes node for the Emby collection|
+
+| Window(Home).Property(emby.nodes.X.inprogressepisodes.title) | Title of the in progress episodes node for the Emby collection|
+| Window(Home).Property(emby.nodes.X.inprogressepisodes.path) | Path of the in progress episodes node for the Emby collection|
+| Window(Home).Property(emby.nodes.X.inprogressepisodes.content) | Contentpath of the in progress episodes node for the Emby collection|
+| Window(Home).Property(emby.nodes.X.inprogressepisodes.image) | Rotating Fanart of the in progress episodes node for the Emby collection|
