@@ -14,8 +14,7 @@ from xml.dom.minidom import parse
 import base64
 import json
 
-import Utils as utils
-
+from Utils import *
 
 class BackgroundsUpdater(threading.Thread):
     
@@ -28,27 +27,19 @@ class BackgroundsUpdater(threading.Thread):
     smartShortcuts = {}
     cachePath = None
     SmartShortcutsCachePath = None
-    win = None
-    addondir = None
     delayedTaskInterval = 30
     
     def __init__(self, *args):
-        
-        self.win = xbmcgui.Window( 10000 )
         self.lastPicturesPath = xbmc.getInfoLabel("skin.string(CustomPicturesBackgroundPath)")
-        
-        addon = xbmcaddon.Addon(id='script.skin.helper.service')
-        self.addondir = xbmc.translatePath(addon.getAddonInfo('profile'))
-        
-        self.cachePath = os.path.join(self.addondir,"backgroundscache.json")
-        self.SmartShortcutsCachePath = os.path.join(self.addondir,"smartshotcutscache.json")
+        self.cachePath = os.path.join(ADDON_DATA_PATH,"backgroundscache.json")
+        self.SmartShortcutsCachePath = os.path.join(ADDON_DATA_PATH,"smartshotcutscache.json")
 
-        utils.logMsg("BackgroundsUpdater - started")
+        logMsg("BackgroundsUpdater - started")
         self.event =  threading.Event()
         threading.Thread.__init__(self, *args)    
     
     def stop(self):
-        utils.logMsg("BackgroundsUpdater - stop called",0)
+        logMsg("BackgroundsUpdater - stop called",0)
         self.saveCacheToFile()
         self.exit = True
         self.event.set()
@@ -62,7 +53,7 @@ class BackgroundsUpdater(threading.Thread):
             self.getCacheFromFile()
             self.UpdateBackgrounds()
         except Exception as e:
-            utils.logMsg("ERROR in BackgroundsUpdater ! --> " + str(e), 0)
+            logMsg("ERROR in BackgroundsUpdater ! --> " + str(e), 0)
         
         self.allBackgrounds = {}
         self.smartShortcuts = {}
@@ -85,15 +76,15 @@ class BackgroundsUpdater(threading.Thread):
                     try:
                         self.UpdateBackgrounds()
                     except Exception as e:
-                        utils.logMsg("ERROR in UpdateBackgrounds ! --> " + str(e), 0)
+                        logMsg("ERROR in UpdateBackgrounds ! --> " + str(e), 0)
             
             xbmc.sleep(150)
             self.delayedTaskInterval += 0.15
                                
     def saveCacheToFile(self):
         #safety check: does the config directory exist?
-        if not xbmcvfs.exists(self.addondir + os.sep):
-            xbmcvfs.mkdir(self.addondir)
+        if not xbmcvfs.exists(ADDON_DATA_PATH + os.sep):
+            xbmcvfs.mkdir(ADDON_DATA_PATH)
         
         self.allBackgrounds["blacklist"] = list(self.defBlacklist)
         json.dump(self.allBackgrounds, open(self.cachePath,'w'))
@@ -119,42 +110,42 @@ class BackgroundsUpdater(threading.Thread):
         if self.exit:
             return None
             
-        libPath = utils.getContentPath(libPath)
-        utils.logMsg("getting images for path " + libPath)
+        libPath = getContentPath(libPath)
+        logMsg("getting images for path " + libPath)
 
         #is path in the temporary blacklist ?
         if libPath in self.tempBlacklist:
-            utils.logMsg("path blacklisted - skipping for path " + libPath)
+            logMsg("path blacklisted - skipping for path " + libPath)
             return fallbackImage
         
         #is path in the definitive blacklist ?
         if libPath in self.defBlacklist:
-            utils.logMsg("path blacklisted - skipping for path " + libPath)
+            logMsg("path blacklisted - skipping for path " + libPath)
             return fallbackImage
         
         #no blacklist so read cache and/or path
-        utils.logMsg("path is NOT blacklisted (or blacklist file error) - continuing for path " + libPath)
+        logMsg("path is NOT blacklisted (or blacklist file error) - continuing for path " + libPath)
         images = []
                
         #cache entry exists and cache is not expired, load cache entry
         if self.allBackgrounds.has_key(libPath):
-            utils.logMsg("load random image from the cache file... " + libPath)
+            logMsg("load random image from the cache file... " + libPath)
             image = None
             image = random.choice(self.allBackgrounds[libPath])
             if image:
-                utils.logMsg("loading done setting image from cache... " + image)
+                logMsg("loading done setting image from cache... " + image)
                 return image
             else:
-                utils.logMsg("cache entry empty ?...skipping...")
+                logMsg("cache entry empty ?...skipping...")
         else:
             #no cache file so try to load images from the path
-            utils.logMsg("get images from the path or plugin... " + libPath)
+            logMsg("get images from the path or plugin... " + libPath)
             if libPath.startswith("plugin://"):
                 media_type = "files"
             else:
                 media_type = "video"
             media_array = None
-            media_array = utils.getJSON('Files.GetDirectory','{ "properties": ["title","art"], "directory": "' + libPath + '", "media": "' + media_type + '", "limits": {"end":150}, "sort": { "order": "ascending", "method": "random", "ignorearticle": true } }')
+            media_array = getJSON('Files.GetDirectory','{ "properties": ["title","art"], "directory": "' + libPath + '", "media": "' + media_type + '", "limits": {"end":150}, "sort": { "order": "ascending", "method": "random", "ignorearticle": true } }')
             if(media_array != None and media_array.has_key('files')):
                 for media in media_array['files']:
                     if media.has_key('art'):
@@ -163,7 +154,7 @@ class BackgroundsUpdater(threading.Thread):
                         if media['art'].has_key('tvshow.fanart'):
                             images.append(media['art']['tvshow.fanart'])
             else:
-                utils.logMsg("media array empty or error so add this path to temporary blacklist..." + libPath)
+                logMsg("media array empty or error so add this path to temporary blacklist..." + libPath)
                 if libPath.startswith("musicdb://") or libPath.startswith("videodb://") or libPath.startswith("library://") or libPath.endswith(".xsp") or libPath.startswith("plugin://plugin.video.emby"):
                     #addpath to temporary blacklist
                     self.tempBlacklist.add(libPath)
@@ -179,19 +170,19 @@ class BackgroundsUpdater(threading.Thread):
             self.allBackgrounds[libPath] = images
             random.shuffle(images)
             image = images[0]
-            utils.logMsg("setting random image.... " + image)
+            logMsg("setting random image.... " + image)
         else:
-            utils.logMsg("image array or cache empty so skipping this path until next restart - " + libPath)
+            logMsg("image array or cache empty so skipping this path until next restart - " + libPath)
             self.tempBlacklist.add(libPath)
         
         return image
 
     def getPicturesBackground(self):
-        utils.logMsg("setting pictures background...")
+        logMsg("setting pictures background...")
         customPath = xbmc.getInfoLabel("skin.string(CustomPicturesBackgroundPath)")
         if (self.lastPicturesPath != customPath):
             if (self.allBackgrounds.has_key("pictures")):
-                utils.logMsg("path has changed for pictures - clearing cache...")
+                logMsg("path has changed for pictures - clearing cache...")
                 del self.allBackgrounds["pictures"]
             
         self.lastPicturesPath = customPath
@@ -202,7 +193,7 @@ class BackgroundsUpdater(threading.Thread):
                 image = None
                 image = random.choice(self.allBackgrounds["pictures"])
                 if image:
-                    utils.logMsg("setting random image from cache.... " + image)
+                    logMsg("setting random image from cache.... " + image)
                 return image 
             else:
                 #load the pictures from the custom path or from all picture sources
@@ -218,7 +209,7 @@ class BackgroundsUpdater(threading.Thread):
                             images.append(image)
                 else:
                     #load picture sources
-                    media_array = utils.getJSON('Files.GetSources','{"media": "pictures"}')
+                    media_array = getJSON('Files.GetSources','{"media": "pictures"}')
                     if(media_array != None and media_array.has_key('sources')):
                         for source in media_array['sources']:
                             if source.has_key('file'):
@@ -263,14 +254,14 @@ class BackgroundsUpdater(threading.Thread):
                 if images != []:
                     random.shuffle(images)
                     image = images[0]
-                    utils.logMsg("setting random image.... " + image)
+                    logMsg("setting random image.... " + image)
                     return image
                 else:
-                    utils.logMsg("image sources array or cache empty so skipping this path until next restart - " + libPath)
+                    logMsg("image sources array or cache empty so skipping this path until next restart - " + libPath)
                     return None
         #if something fails, return None
         except:
-            utils.logMsg("exception occured in getPicturesBackground.... ")
+            logMsg("exception occured in getPicturesBackground.... ")
             return None            
                
     def getGlobalBackground(self):
@@ -320,10 +311,10 @@ class BackgroundsUpdater(threading.Thread):
         
         #smart shortcuts --> emby nodes
         if xbmc.getCondVisibility("System.HasAddon(plugin.video.emby) + Skin.HasSetting(SmartShortcuts.emby)"):
-            utils.logMsg("Processing smart shortcuts for emby nodes.... ")
+            logMsg("Processing smart shortcuts for emby nodes.... ")
             
             if self.smartShortcuts.has_key("emby"):
-                utils.logMsg("get emby entries from cache.... ")
+                logMsg("get emby entries from cache.... ")
                 nodes = self.smartShortcuts["emby"]
                 for node in nodes:
                     key = node[0]
@@ -336,7 +327,7 @@ class BackgroundsUpdater(threading.Thread):
             
             elif WINDOW.getProperty("Emby.nodes.total"):
                 
-                utils.logMsg("no cache - Get emby entries from file.... ")            
+                logMsg("no cache - Get emby entries from file.... ")            
                
                 embyProperty = WINDOW.getProperty("Emby.nodes.total")
                 contentStrings = ["", ".recent", ".inprogress", ".unwatched", ".recentepisodes", ".inprogressepisodes", ".nextepisodes"]
@@ -358,10 +349,10 @@ class BackgroundsUpdater(threading.Thread):
                                         
         #smart shortcuts --> playlists
         if xbmc.getCondVisibility("Skin.HasSetting(SmartShortcuts.playlists)"):
-            utils.logMsg("Processing smart shortcuts for playlists.... ")
+            logMsg("Processing smart shortcuts for playlists.... ")
             try:
                 if self.smartShortcuts.has_key("playlists"):
-                    utils.logMsg("get playlist entries from cache.... ")
+                    logMsg("get playlist entries from cache.... ")
                     playlists = self.smartShortcuts["playlists"]
                     for playlist in playlists:
                         playlistCount = playlist[0]
@@ -372,7 +363,7 @@ class BackgroundsUpdater(threading.Thread):
                         WINDOW.setProperty("playlist." + str(playlistCount) + ".label", label)
                         WINDOW.setProperty("playlist." + str(playlistCount) + ".action", path)
                 else:
-                    utils.logMsg("no cache - Get playlist entries from file.... ")
+                    logMsg("no cache - Get playlist entries from file.... ")
                     playlistCount = 0
                     playlists = []
                     path = "special://profile/playlists/video/"
@@ -395,14 +386,14 @@ class BackgroundsUpdater(threading.Thread):
             except:
                 #something wrong so disable the smartshortcuts for this section for now
                 xbmc.executebuiltin("Skin.Reset(SmartShortcuts.playlists)")
-                utils.logMsg("Error while processing smart shortcuts for playlists - set disabled.... ")
+                logMsg("Error while processing smart shortcuts for playlists - set disabled.... ")
                     
         #smart shortcuts --> favorites
         if xbmc.getCondVisibility("Skin.HasSetting(SmartShortcuts.favorites)"):
-            utils.logMsg("Processing smart shortcuts for favourites.... ")
+            logMsg("Processing smart shortcuts for favourites.... ")
             try:
                 if self.smartShortcuts.has_key("favourites"):
-                    utils.logMsg("get favourites entries from cache.... ")
+                    logMsg("get favourites entries from cache.... ")
                     favourites = self.smartShortcuts["favourites"]
                     for favourite in favourites:
                         playlistCount = favourite[0]
@@ -413,7 +404,7 @@ class BackgroundsUpdater(threading.Thread):
                         WINDOW.setProperty("favorite." + str(playlistCount) + ".label", label)
                         WINDOW.setProperty("favorite." + str(playlistCount) + ".action", path)
                 else:
-                    utils.logMsg("no cache - Get favourite entries from file.... ")
+                    logMsg("no cache - Get favourite entries from file.... ")
                     favoritesCount = 0
                     favourites = []
                     fav_file = xbmc.translatePath( 'special://profile/favourites.xml' ).decode("utf-8")
@@ -437,15 +428,15 @@ class BackgroundsUpdater(threading.Thread):
             except:
                 #something wrong so disable the smartshortcuts for this section for now
                 xbmc.executebuiltin("Skin.Reset(SmartShortcuts.favorites)")
-                utils.logMsg("Error while processing smart shortcuts for favourites - set disabled.... ")                
+                logMsg("Error while processing smart shortcuts for favourites - set disabled.... ")                
                
         #smart shortcuts --> plex nodes
         if xbmc.getCondVisibility("Skin.HasSetting(SmartShortcuts.plex)"):
             nodes = []
-            utils.logMsg("Processing smart shortcuts for plex nodes.... ")
+            logMsg("Processing smart shortcuts for plex nodes.... ")
             
             if self.smartShortcuts.has_key("plex"):
-                utils.logMsg("get plex entries from cache.... ")
+                logMsg("get plex entries from cache.... ")
                 nodes = self.smartShortcuts["plex"]
                 for node in nodes:
                     key = node[0]
@@ -454,7 +445,7 @@ class BackgroundsUpdater(threading.Thread):
                     image = self.getImageFromPath(node[2])
                     WINDOW.setProperty(key + ".background", image)
             elif WINDOW.getProperty("plexbmc.0.title"):
-                utils.logMsg("no cache - Get plex entries from file.... ")    
+                logMsg("no cache - Get plex entries from file.... ")    
                                    
                 contentStrings = ["", ".ondeck", ".recent", ".unwatched"]
                 if WINDOW.getProperty("plexbmc.0.title"):

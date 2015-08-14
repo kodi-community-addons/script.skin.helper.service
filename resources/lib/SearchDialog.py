@@ -7,7 +7,7 @@ import urllib
 import threading
 import InfoDialog
 
-
+from Utils import *
 
 class SearchDialog(xbmcgui.WindowXMLDialog):
 
@@ -190,6 +190,7 @@ class SearchDialog(xbmcgui.WindowXMLDialog):
             content = "episodes"
         info_dialog = InfoDialog.GUI( "script-skin_helper_service-CustomInfo.xml" , self.cwd, "default", "1080i", listitem=listitem, content=content )
         info_dialog.doModal()
+        
         if info_dialog.action is not None:
             if info_dialog.action == 'play_movie':
                 listitem = self.getControl( 3110 ).getSelectedItem()
@@ -266,129 +267,33 @@ class BackgroundSearchThread(threading.Thread):
         search = urllib.quote(searchTerm)        
         
         # Process movies
-        json_query = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetMovies", "params": {"properties": ["title", "genre", "studio", "year", "tagline", "plot", "plotoutline", "runtime", "fanart", "thumbnail", "file", "trailer", "playcount", "rating", "mpaa", "director", "writer", "art"], "limits": {"end":50}, "sort": { "method": "label" }, "filter": {"field":"title","operator":"contains","value":"%s"} }, "id": 1}' % search)
+        json_query = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetMovies", "params": {"properties": ["title", "genre", "studio", "year", "tagline", "plot", "plotoutline", "runtime", "fanart", "thumbnail", "file", "trailer", "playcount", "rating", "mpaa", "director", "writer", "art", "cast", "streamdetails"], "limits": {"end":50}, "sort": { "method": "label" }, "filter": {"field":"title","operator":"contains","value":"%s"} }, "id": 1}' % search)
         json_query = unicode(json_query, 'utf-8', errors='ignore')
         json_response = json.loads(json_query)
         if (json_response['result'] != None) and (json_response['result'].has_key('movies')):
             for item in json_response['result']['movies']:
-                movie = item['title']
-                director = " / ".join(item['director'])
-                writer = " / ".join(item['writer'])
-                fanart = item['fanart']
-                path = item['file']
-                genre = " / ".join(item['genre'])
-                mpaa = item['mpaa']
-                playcount = str(item['playcount'])
-                plot = item['plot']
-                outline = item['plotoutline']
-                rating = str(round(float(item['rating']),1))
-                starrating = 'rating%.1d.png' % round(float(rating)/2)
-                runtime = str(int((item['runtime'] / 60.0) + 0.5))
-                studio = " / ".join(item['studio'])
-                tagline = item['tagline']
-                thumb = item['thumbnail']
-                trailer = item['trailer']
-                year = str(item['year'])
-                listitem = xbmcgui.ListItem(label=movie, iconImage='DefaultVideo.png', thumbnailImage=thumb)
-                listitem.setProperty( "icon", thumb )
-                listitem.setProperty( "fanart", fanart )
-                listitem.setProperty( "genre", genre )
-                listitem.setProperty( "plot", plot )
-                listitem.setProperty( "plotoutline", outline )
-                listitem.setProperty( "duration", runtime )
-                listitem.setProperty( "studio", studio )
-                listitem.setProperty( "tagline", tagline )
-                listitem.setProperty( "year", year )
-                listitem.setProperty( "trailer", trailer )
-                listitem.setProperty( "playcount", playcount )
-                listitem.setProperty( "rating", rating )
-                listitem.setProperty( "starrating", starrating )
-                listitem.setProperty( "mpaa", mpaa )
-                listitem.setProperty( "writer", writer )
-                listitem.setProperty( "director", director )
-                listitem.setProperty( "path", path )
-                movieResultsList.addItem(listitem)
+                liz = createListItem(item)
+                movieResultsList.addItem(liz)
 
         # Process TV Shows
-        json_query = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetTVShows", "params": {"properties": ["title", "genre", "studio", "premiered", "plot", "fanart", "thumbnail", "playcount", "year", "mpaa", "episode", "rating", "art"], "limits": {"end":50}, "sort": { "method": "label" }, "filter": {"field": "title", "operator": "contains", "value": "%s"} }, "id": 1}' % search)
+        json_query = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetTVShows", "params": {"properties": ["title", "genre", "studio", "premiered", "plot", "fanart", "thumbnail", "playcount", "year", "mpaa", "episode", "rating", "art", "cast"], "limits": {"end":50}, "sort": { "method": "label" }, "filter": {"field": "title", "operator": "contains", "value": "%s"} }, "id": 1}' % search)
         json_query = unicode(json_query, 'utf-8', errors='ignore')
         json_response = json.loads(json_query)
         if (json_response['result'] != None) and (json_response['result'].has_key('tvshows')):
             for item in json_response['result']['tvshows']:
-                tvshow = item['title']
-                episode = str(item['episode'])
-                fanart = item['fanart']
-                genre = " / ".join(item['genre'])
-                mpaa = item['mpaa']
-                playcount = str(item['playcount'])
-                plot = item['plot']
-                premiered = item['premiered']
-                rating = str(round(float(item['rating']),1))
-                starrating = 'rating%.1d.png' % round(float(rating)/2)
-                studio = " / ".join(item['studio'])
-                thumb = item['thumbnail']
-                banner = item['art'].get('banner', '')
-                poster = item['art'].get('poster', '')
+                liz = createListItem(item)
                 tvshowid = str(item['tvshowid'])
-                path = path = 'videodb://tvshows/titles/' + tvshowid + '/'
-                year = str(item['year'])
-                listitem = xbmcgui.ListItem(label=tvshow, iconImage='DefaultVideo.png', thumbnailImage=thumb)
-                listitem.setProperty( "icon", thumb )
-                listitem.setProperty( "art(banner)", banner )
-                listitem.setProperty( "art(poster)", poster )
-                listitem.setProperty( "episode", episode )
-                listitem.setProperty( "mpaa", mpaa )
-                listitem.setProperty( "year", year )
-                listitem.setProperty( "fanart", fanart )
-                listitem.setProperty( "genre", genre )
-                listitem.setProperty( "plot", plot )
-                listitem.setProperty( "premiered", premiered )
-                listitem.setProperty( "studio", studio )
-                listitem.setProperty( "rating", rating )
-                listitem.setProperty( "starrating", starrating )
-                listitem.setProperty( "playcount", playcount )
-                listitem.setProperty( "path", path )
-                listitem.setProperty( "id", tvshowid )
-                seriesResultsList.addItem(listitem)
+                path = 'videodb://tvshows/titles/' + tvshowid + '/'
+                liz.setPath(path)
+                liz.setProperty("path", path)
+                seriesResultsList.addItem(liz)
 
         # Process episodes
-        json_query = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetEpisodes", "params": { "properties": ["title", "plot", "firstaired", "runtime", "season", "episode", "showtitle", "thumbnail", "fanart", "file", "playcount", "director", "rating", "art"], "limits": {"end":50}, "sort": { "method": "title" }, "filter": {"field": "title", "operator": "contains", "value": "%s"} }, "id": 1}' % search)
+        json_query = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetEpisodes", "params": { "properties": ["title", "plot", "firstaired", "runtime", "season", "episode", "showtitle", "thumbnail", "fanart", "file", "playcount", "director", "rating", "art", "cast", "streamdetails"], "limits": {"end":50}, "sort": { "method": "title" }, "filter": {"field": "title", "operator": "contains", "value": "%s"} }, "id": 1}' % search)
         json_query = unicode(json_query, 'utf-8', errors='ignore')
         json_response = json.loads(json_query)
         if (json_response['result'] != None) and (json_response['result'].has_key('episodes')):
             for item in json_response['result']['episodes']:
-                episode = item['title']
-                tvshowname = item['showtitle']
-                director = " / ".join(item['director'])
-                fanart = item['fanart']
-                episodenumber = "%.2d" % float(item['episode'])
-                path = item['file']
-                plot = item['plot']
-                runtime = str(int((item['runtime'] / 60.0) + 0.5))
-                premiered = item['firstaired']
-                rating = str(round(float(item['rating']),1))
-                starrating = 'rating%.1d.png' % round(float(rating)/2)
-                seasonnumber = '%.2d' % float(item['season'])
-                playcount = str(item['playcount'])
-                thumb = item['thumbnail']
-                fanart = item['fanart']
-                poster = item['art']['tvshow.poster']
-                listitem = xbmcgui.ListItem(label=episode, iconImage='DefaultVideo.png', thumbnailImage=thumb)
-                listitem.setProperty( "icon", thumb )
-                listitem.setProperty( "poster", poster )
-                listitem.setProperty( "episode", episodenumber )
-                listitem.setProperty( "plot", plot )
-                listitem.setProperty( "rating", rating )
-                listitem.setProperty( "starrating", starrating )
-                listitem.setProperty( "director", director )
-                listitem.setProperty( "fanart", fanart )
-                listitem.setProperty( "season", seasonnumber )
-                listitem.setProperty( "duration", runtime )
-                listitem.setProperty( "tvshowtitle", tvshowname )
-                listitem.setProperty( "premiered", premiered )
-                listitem.setProperty( "playcount", playcount )
-                listitem.setProperty( "path", path )
-                episodeResultsList.addItem(listitem)
-                
-                
+                liz = createListItem(item)
+                episodeResultsList.addItem(liz)
                 

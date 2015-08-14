@@ -2,61 +2,54 @@
 <window type="dialog" id="1119">
 	<defaultcontrol always="true">3010</defaultcontrol>
 	<controls>
-    
-		<!-- Video Background -->
-        <include>GlobalBackground</include>
-
-		<!--NowPlaying-->
-        <include condition="Skin.HasTheme(classic)">NowPlayingMusicClassic</include>
-        <include condition="Skin.HasTheme(classic)">NowPlayingVideoClassic</include>
-		<include condition="!Skin.HasTheme(classic)">NowPlayingModern</include>
+	
+	
+		<!-- background panel -->
+		<control type="image">
+			<left>30</left>
+			<top>60</top>
+			<width>1860</width>
+			<height>920</height>
+			<aspectratio>stretch</aspectratio>
+			<texture border="5">panel.png</texture>
+			<animation effect="fade" reversible="false" end="95" time="0" condition="true">Conditional</animation>
+			<colordiffuse>FF1b1b1b</colordiffuse>
+		</control>
         
         <!--Header-->
         <control type="label">
-            <include>animation_fade_visible_hidden</include>
             <posx>61</posx>
-            <posy>10</posy>
+            <posy>60</posy>
             <width min="80" max="1400">auto</width>
             <height>100</height>
-            <font>Bold45</font>
+            <font>font35_title</font>
 			<label>19140</label>
             <align>left</align>
-            <textcolor>$INFO[Skin.String(HeaderTextColor)]</textcolor>
-			<shadowcolor>$INFO[Skin.String(HeaderTextShadowColor)]</shadowcolor>
-			<animation effect="slide" end="80,15" time="0" condition="skin.hastheme(classic)">Conditional</animation>
+            <textcolor>white</textcolor>
+			<shadowcolor>black</shadowcolor>
         </control>
-		<!--Time-->
-        <include>TimeInfo</include>
-		<include condition="!skin.hassetting(nofooterbar)">Footer</include>
-    
-         
-        
+
 		<!-- search panel with keyboard -->
 		<control type="group">
 			<top>90</top>
 			<left>15</left>
-			<!-- background panel -->
+			<!-- left panel -->
 			<control type="image">
 				<left>40</left>
 				<top>65</top>
 				<width>520</width>
 				<height>800</height>
 				<aspectratio>stretch</aspectratio>
-				<texture border="15">diffuse/bgpanel.png</texture>
-				<animation effect="fade" reversible="false" end="80" time="0" condition="StringCompare(Skin.String(GeneralPanelsOpacity),80)">Conditional</animation>
-				<animation effect="fade" reversible="false" end="60" time="0" condition="StringCompare(Skin.String(GeneralPanelsOpacity),60)">Conditional</animation>
-				<animation effect="fade" reversible="false" end="40" time="0" condition="StringCompare(Skin.String(GeneralPanelsOpacity),40)">Conditional</animation>
-				<animation effect="fade" reversible="false" end="20" time="0" condition="StringCompare(Skin.String(GeneralPanelsOpacity),20)">Conditional</animation>
-				<animation effect="fade" reversible="false" end="0" time="0" condition="StringCompare(Skin.String(GeneralPanelsOpacity),0)">Conditional</animation>
-				<colordiffuse>$INFO[Skin.String(GeneralPanelsColor)]</colordiffuse>
+				<texture border="15">bgpanel.png</texture>
+				<animation effect="fade" reversible="false" end="80" time="0" condition="true">Conditional</animation>
+				<colordiffuse>FF3e3e3e</colordiffuse>
 			</control>
 			<control type="label">
 				<left>64</left>
 				<top>80</top>
 				<width>auto</width>
 				<height>50</height>
-				<font>Reg41</font>
-				<textcolor>aawhite</textcolor>
+				<textcolor>white</textcolor>
 				<label>$LOCALIZE[16017]: </label>
 			</control>
 			<!-- edit label -->
@@ -65,16 +58,10 @@
 				<top>140</top>
 				<width>470</width>
 				<height>60</height>
-				<font>Reg41</font>
 				<ondown>3020</ondown>
 				<onback>down</onback>
 				<onright>2900</onright>
 				<textcolor>white</textcolor>
-				<focusedcolor>black</focusedcolor>
-				<disabledcolor>lightgrey</disabledcolor>
-				<pulseonselect>false</pulseonselect>
-				<texturefocus colordiffuse="$INFO[Skin.String(ButtonFocusColor)]">colors/color_white.png</texturefocus>
-				<texturenofocus colordiffuse="$INFO[Skin.String(ButtonFocusColor)]">colors/color_90%trans_white.png</texturenofocus>
 			</control>
 			<control type="grouplist">
 				<orientation>vertical</orientation>
@@ -92,7 +79,8 @@
 						
 					
 					<control type="button" id="3020">
-						<include>ExtraSmallKey</include>
+						<width>90</width>
+						<height>90</height>
 						<label>A</label>
 						<onleft>noop</onleft>
 						<onright>3021</onright>
@@ -101,7 +89,8 @@
 					</control>
 					
 					<control type="button" id="3021">
-						<include>ExtraSmallKey</include>
+						<width>90</width>
+						<height>90</height>
 						<label>B</label>
 						<onleft>3020</onleft>
 						<onright>3022</onright>
@@ -110,7 +99,8 @@
 					</control>   
 
 					<control type="button" id="3022">
-						<include>ExtraSmallKey</include>
+						<width>90</width>
+						<height>90</height>
 						<label>C</label>
 						<onleft>3021</onleft>
 						<onright>3023</onright>
@@ -119,7 +109,8 @@
 					</control>  
 					
 					<control type="button" id="3023">
-						<include>ExtraSmallKey</include>
+						<width>90</width>
+						<height>90</height>
 						<label>D</label>
 						<onleft>3022</onleft>
 						<onright>3024</onright>
@@ -128,7 +119,8 @@
 					</control>     
 
 					<control type="button" id="3024">
-						<include>ExtraSmallKey</include>
+						<width>90</width>
+						<height>90</height>
 						<label>E</label>
 						<onleft>3023</onleft>
 						<onright>3025</onright>
@@ -137,7 +129,8 @@
 					</control>   
 					
 					<control type="button" id="3025">
-						<include>ExtraSmallKey</include>
+						<width>90</width>
+						<height>90</height>
 						<label>F</label>
 						<onleft>3024</onleft>
 						<onright>2900</onright>
@@ -156,7 +149,8 @@
 					<orientation>horizontal</orientation>			
 
 					<control type="button" id="3026">
-						<include>ExtraSmallKey</include>
+						<width>90</width>
+						<height>90</height>
 						<label>G</label>
 						<onleft>noop</onleft>
 						<onright>3027</onright>
@@ -165,7 +159,8 @@
 					</control>
 					
 					<control type="button" id="3027">
-						<include>ExtraSmallKey</include>
+						<width>90</width>
+						<height>90</height>
 						<label>H</label>
 						<onleft>3026</onleft>
 						<onright>3028</onright>
@@ -174,7 +169,8 @@
 					</control>   
 
 					<control type="button" id="3028">
-						<include>ExtraSmallKey</include>
+						<width>90</width>
+						<height>90</height>
 						<label>I</label>
 						<onleft>3027</onleft>
 						<onright>3029</onright>
@@ -183,7 +179,8 @@
 					</control>  
 					
 					<control type="button" id="3029">
-						<include>ExtraSmallKey</include>
+						<width>90</width>
+						<height>90</height>
 						<label>J</label>
 						<onleft>3028</onleft>
 						<onright>3030</onright>
@@ -192,7 +189,8 @@
 					</control>     
 
 					<control type="button" id="3030">
-						<include>ExtraSmallKey</include>
+						<width>90</width>
+						<height>90</height>
 						<label>K</label>
 						<onleft>3029</onleft>
 						<onright>3031</onright>
@@ -201,7 +199,8 @@
 					</control>   
 					
 					<control type="button" id="3031">
-						<include>ExtraSmallKey</include>
+						<width>90</width>
+						<height>90</height>
 						<label>L</label>
 						<onleft>3030</onleft>
 						<onright>2900</onright>
@@ -220,7 +219,8 @@
 					<height>80</height>
 					<orientation>horizontal</orientation>
 					<control type="button" id="3032">
-						<include>ExtraSmallKey</include>
+						<width>90</width>
+						<height>90</height>
 						<label>M</label>
 						<onleft>noop</onleft>
 						<onright>3033</onright>
@@ -229,7 +229,8 @@
 					</control>
 					
 					<control type="button" id="3033">
-						<include>ExtraSmallKey</include>
+						<width>90</width>
+						<height>90</height>
 						<label>N</label>
 						<onleft>3032</onleft>
 						<onright>3034</onright>
@@ -238,7 +239,8 @@
 					</control>   
 
 					<control type="button" id="3034">
-					   <include>ExtraSmallKey</include>
+					   <width>90</width>
+						<height>90</height>
 						<label>O</label>
 						<onleft>3033</onleft>
 						<onright>3035</onright>
@@ -247,7 +249,8 @@
 					</control>  
 					
 					<control type="button" id="3035">
-						<include>ExtraSmallKey</include>
+						<width>90</width>
+						<height>90</height>
 						<label>P</label>
 						<onleft>3034</onleft>
 						<onright>3036</onright>
@@ -256,7 +259,8 @@
 					</control>     
 
 					<control type="button" id="3036">
-						<include>ExtraSmallKey</include>
+						<width>90</width>
+						<height>90</height>
 						<label>Q</label>
 						<onleft>3035</onleft>
 						<onright>3037</onright>
@@ -265,7 +269,8 @@
 					</control>   
 					
 					<control type="button" id="3037">
-					   <include>ExtraSmallKey</include>
+					   <width>90</width>
+						<height>90</height>
 						<label>R</label>
 						<onleft>3036</onleft>
 						<onright>2900</onright>
@@ -285,7 +290,8 @@
 					<orientation>horizontal</orientation>			
 			
 					<control type="button" id="3038">
-						<include>ExtraSmallKey</include>
+						<width>90</width>
+						<height>90</height>
 						<label>S</label>
 						<onleft>noop</onleft>
 						<onright>3039</onright>
@@ -294,7 +300,8 @@
 					</control>
 					
 					<control type="button" id="3039">
-						<include>ExtraSmallKey</include>
+						<width>90</width>
+						<height>90</height>
 						<label>T</label>
 						<onleft>3038</onleft>
 						<onright>3040</onright>
@@ -303,7 +310,8 @@
 					</control>   
 
 					<control type="button" id="3040">
-						<include>ExtraSmallKey</include>
+						<width>90</width>
+						<height>90</height>
 						<label>U</label>
 						<onleft>3039</onleft>
 						<onright>3041</onright>
@@ -312,7 +320,8 @@
 					</control>  
 					
 					<control type="button" id="3041">
-						<include>ExtraSmallKey</include>
+						<width>90</width>
+						<height>90</height>
 						<label>V</label>
 						<onleft>3040</onleft>
 						<onright>3042</onright>
@@ -321,7 +330,8 @@
 					</control>     
 
 					<control type="button" id="3042">
-						<include>ExtraSmallKey</include>
+						<width>90</width>
+						<height>90</height>
 						<label>W</label>
 						<onleft>3041</onleft>
 						<onright>3043</onright>
@@ -330,7 +340,8 @@
 					</control>   
 					
 					<control type="button" id="3043">
-						<include>ExtraSmallKey</include>
+						<width>90</width>
+						<height>90</height>
 						<label>X</label>
 						<onleft>3042</onleft>
 						<onright>2900</onright>
@@ -350,7 +361,8 @@
 					<orientation>horizontal</orientation>			
 			
 					<control type="button" id="3044">
-						<include>ExtraSmallKey</include>
+						<width>90</width>
+						<height>90</height>
 						<label>Y</label>
 						<onleft>noop</onleft>
 						<onright>3045</onright>
@@ -359,7 +371,8 @@
 					</control>
 					
 					<control type="button" id="3045">
-						<include>ExtraSmallKey</include>
+						<width>90</width>
+						<height>90</height>
 						<label>Z</label>
 						<onleft>3044</onleft>
 						<onright>3046</onright>
@@ -368,7 +381,8 @@
 					</control>   
 
 					<control type="button" id="3046">
-						<include>ExtraSmallKey</include>
+						<width>90</width>
+						<height>90</height>
 						<label>$NUMBER[0]</label>
 						<onleft>3045</onleft>
 						<onright>3047</onright>
@@ -377,7 +391,8 @@
 					</control>  
 					
 					<control type="button" id="3047">
-					   <include>ExtraSmallKey</include>
+					   <width>90</width>
+						<height>90</height>
 						<label>$NUMBER[1]</label>
 						<onleft>3046</onleft>
 						<onright>3048</onright>
@@ -386,7 +401,8 @@
 					</control>     
 
 					<control type="button" id="3048">
-						<include>ExtraSmallKey</include>
+						<width>90</width>
+						<height>90</height>
 						<label>$NUMBER[2]</label>
 						<onleft>3047</onleft>
 						<onright>3049</onright>
@@ -395,7 +411,8 @@
 					</control>   
 					
 					<control type="button" id="3049">
-					   <include>ExtraSmallKey</include>
+					   <width>90</width>
+						<height>90</height>
 						<label>$NUMBER[3]</label>
 						<onleft>3048</onleft>
 						<onright>2900</onright>
@@ -414,7 +431,8 @@
 				<itemgap>-10</itemgap>
 				<orientation>horizontal</orientation>		
 					<control type="button" id="3050">
-					   <include>ExtraSmallKey</include>
+					   <width>90</width>
+						<height>90</height>
 						<label>$NUMBER[4]</label>
 						<onleft>noop</onleft>
 						<onright>3051</onright>
@@ -423,7 +441,8 @@
 					</control>
 					
 					<control type="button" id="3051">
-					   <include>ExtraSmallKey</include>
+					   <width>90</width>
+						<height>90</height>
 						<label>$NUMBER[5]</label>
 						<onleft>3050</onleft>
 						<onright>3052</onright>
@@ -432,7 +451,8 @@
 					</control>   
 
 					<control type="button" id="3052">
-						<include>ExtraSmallKey</include>
+						<width>90</width>
+						<height>90</height>
 						<label>$NUMBER[6]</label>
 						<onleft>3051</onleft>
 						<onright>3053</onright>
@@ -441,7 +461,8 @@
 					</control>  
 					
 					<control type="button" id="3053">
-					   <include>ExtraSmallKey</include>
+					   <width>90</width>
+						<height>90</height>
 						<label>$NUMBER[7]</label>
 						<onleft>3052</onleft>
 						<onright>3054</onright>
@@ -450,7 +471,8 @@
 					</control>     
 
 					<control type="button" id="3054">
-						<include>ExtraSmallKey</include>
+						<width>90</width>
+						<height>90</height>
 						<label>$NUMBER[8]</label>
 						<onleft>3053</onleft>
 						<onright>3055</onright>
@@ -459,7 +481,8 @@
 					</control>   
 					
 					<control type="button" id="3055">
-					   <include>ExtraSmallKey</include>
+					   <width>90</width>
+						<height>90</height>
 						<label>$NUMBER[9]</label>
 						<onleft>3054</onleft>
 						<onright>2900</onright>
@@ -479,8 +502,9 @@
 				<orientation>horizontal</orientation>		
 					<control type="button" id="3056">
 						<width>170</width>
-						<font>Reg24</font>
-						<include>ExtraSmallKey</include>
+						<font>font13</font>
+						<width>90</width>
+						<height>90</height>
 						<label>20181</label>
 						<onleft>noop</onleft>
 						<onright>3057</onright>
@@ -490,8 +514,9 @@
 					
 					<control type="button" id="3057">
 						<width>170</width>
-						<font>Reg24</font>
-						<include>ExtraSmallKey</include>
+						<font>font13</font>
+						<width>90</width>
+						<height>90</height>
 						<label>20182</label>
 						<onleft>3056</onleft>
 						<onright>3058</onright>
@@ -501,8 +526,9 @@
 
 					<control type="button" id="3058">
 						<width>170</width>
-						<font>Reg24</font>
-						<include>ExtraSmallKey</include>
+						<font>font13</font>
+						<width>90</width>
+						<height>90</height>
 						<label>192</label>
 						<onleft>3057</onleft>
 						<onright>2900</onright>
@@ -519,20 +545,16 @@
 		<control type="group" id="2900">
 			<top>90</top>
 			<left>690</left>
-			<!-- background panel -->
+			<!-- right panel -->
 			<control type="image">
 				<left>-40</left>
 				<top>65</top>
 				<width>1210</width>
 				<height>800</height>
 				<aspectratio>stretch</aspectratio>
-				<texture border="15">diffuse/bgpanel.png</texture>
-				<animation effect="fade" reversible="false" end="80" time="0" condition="StringCompare(Skin.String(GeneralPanelsOpacity),80)">Conditional</animation>
-				<animation effect="fade" reversible="false" end="60" time="0" condition="StringCompare(Skin.String(GeneralPanelsOpacity),60)">Conditional</animation>
-				<animation effect="fade" reversible="false" end="40" time="0" condition="StringCompare(Skin.String(GeneralPanelsOpacity),40)">Conditional</animation>
-				<animation effect="fade" reversible="false" end="20" time="0" condition="StringCompare(Skin.String(GeneralPanelsOpacity),20)">Conditional</animation>
-				<animation effect="fade" reversible="false" end="0" time="0" condition="StringCompare(Skin.String(GeneralPanelsOpacity),0)">Conditional</animation>
-				<colordiffuse>$INFO[Skin.String(GeneralPanelsColor)]</colordiffuse>
+				<texture border="15">bgpanel.png</texture>
+				<animation effect="fade" reversible="false" end="80" time="0" condition="true">Conditional</animation>
+				<colordiffuse>FF3e3e3e</colordiffuse>
 			</control>
         
 			
@@ -542,8 +564,8 @@
 				<height>20</height>
 				<width>190</width>
 				<label>342</label>
-				<font>Reg41</font>
-				<textcolor>aawhite</textcolor>
+				<font>font35_title</font>
+				<textcolor>white</textcolor>
 				<angle>-90</angle>
 			</control>   
 			
@@ -565,14 +587,21 @@
 						<posx>7</posx>
 						<posy>7</posy>
 						<control type="image">
-							<include>SmallPanelPosterDimensions</include>
-							<include>PosterThumbBG</include>
+							<width>150</width>
+							<height>221</height>
+							<bordersize>-6</bordersize>
+							<texture border="0">poster.png</texture>
+							<colordiffuse>black</colordiffuse>
+							<animation effect="fade" reversible="false" end="40" time="0" condition="true">Conditional</animation>
 						  </control>
 						  <control type="image">
-							<include>SmallPanelPosterDimensions</include>
-							<include>PosterThumb</include>
+							<width>150</width>
+							<height>221</height>
+							<texture border="1" background="true" diffuse="poster.png" fallback="DefaultVideo.png">$INFO[ListItem.Icon]</texture>
+							<aspectratio scalediffuse="true" aligny="bottom" align="center">stretch</aspectratio>
+							<bordersize>0</bordersize>
 						  </control>
-						  <include>SmallPosterViewWatchedImage</include>
+						  
 					  </control>
                 </itemlayout>
                 <!-- focussed layout movies -->
@@ -582,20 +611,24 @@
 						<posy>7</posy>
 						<!--Poster-->				
 						<control type="image">
-						<include>SmallPanelPosterDimensions</include>
-						<include>PosterThumbFO</include>
+							<width>150</width>
+							<height>221</height>
+							<bordersize>-6</bordersize>
+							<texture border="0">poster.png</texture>
+							<colordiffuse>FF00b8ff</colordiffuse>
+						</control>
+						<control type="image">
+							<width>150</width>
+							<height>221</height>
+							<texture border="1" background="true" diffuse="poster.png" fallback="DefaultVideo.png">$INFO[ListItem.Icon]</texture>
+							<aspectratio scalediffuse="true" aligny="bottom" align="center">stretch</aspectratio>
+							<bordersize>0</bordersize>
 					  </control>
-					  <control type="image">
-						<include>SmallPanelPosterDimensions</include>
-						<include>PosterThumb</include>
-					  </control>
-					  <include>SmallPosterViewWatchedImage</include>
+					  
 				  </control>
                 </focusedlayout>
 			</control>
 
-
-			
 			<!-- Series -->
 			
 			<control type="label">
@@ -604,11 +637,10 @@
 				<height>20</height>
 				<width>190</width>
 				<label>20343</label>
-				<font>Reg41</font>
-				<textcolor>aawhite</textcolor>
+				<font>font35_title</font>
+				<textcolor>white</textcolor>
 				<angle>-90</angle>
-			</control>   
-			
+			</control>   		
 			<control type="panel" id="3111">
 				<left>70</left>
 				<top>330</top>
@@ -621,49 +653,64 @@
 				<pagecontrol>noop</pagecontrol>
 				<scrolltime>200</scrolltime>
 				<orientation>horizontal</orientation>
-				<!-- itemlayout movies -->
+				<!-- itemlayout series -->
                 <itemlayout height="245" width="182">
                     <control type="group">
 						<posx>7</posx>
 						<posy>7</posy>
 						<control type="image">
-							<include>SmallPanelPosterDimensions</include>
-							<include>PosterThumbBG</include>
+							<width>150</width>
+							<height>221</height>
+							<bordersize>-6</bordersize>
+							<texture border="0">poster.png</texture>
+							<colordiffuse>black</colordiffuse>
+							<animation effect="fade" reversible="false" end="40" time="0" condition="true">Conditional</animation>
 						  </control>
 						  <control type="image">
-							<include>SmallPanelPosterDimensions</include>
-							<include>PosterThumb</include>
+							<width>150</width>
+							<height>221</height>
+							<texture border="1" background="true" diffuse="poster.png" fallback="DefaultVideo.png">$INFO[ListItem.Icon]</texture>
+							<aspectratio scalediffuse="true" aligny="bottom" align="center">stretch</aspectratio>
+							<bordersize>0</bordersize>
 						  </control>
-						  <include>SmallPosterViewWatchedImage</include>
+						  
 					  </control>
                 </itemlayout>
-                <!-- focussed layout movies -->
+                <!-- focussed layout series -->
                 <focusedlayout height="245" width="182">
                     <control type="group">
 						<posx>7</posx>
 						<posy>7</posy>
 						<!--Poster-->				
 						<control type="image">
-						<include>SmallPanelPosterDimensions</include>
-						<include>PosterThumbFO</include>
+							<width>150</width>
+							<height>221</height>
+							<bordersize>-6</bordersize>
+							<texture border="0">poster.png</texture>
+							<colordiffuse>FF00b8ff</colordiffuse>
 					  </control>
 					  <control type="image">
-						<include>SmallPanelPosterDimensions</include>
-						<include>PosterThumb</include>
+							<width>150</width>
+							<height>221</height>
+							<texture border="1" background="true" diffuse="poster.png" fallback="DefaultVideo.png">$INFO[ListItem.Icon]</texture>
+							<aspectratio scalediffuse="true" aligny="bottom" align="center">stretch</aspectratio>
+							<bordersize>0</bordersize>
 					  </control>
-					  <include>SmallPosterViewWatchedImage</include>
+					  
 				  </control>
                 </focusedlayout>
 			</control>
 			
+			
+			<!-- episodes -->
 			<control type="label">
 				<left>0</left>
 				<top>580</top>
 				<height>20</height>
 				<width>190</width>
 				<label>20360</label>
-				<font>Reg41</font>
-				<textcolor>aawhite</textcolor>
+				<font>font35_title</font>
+				<textcolor>white</textcolor>
 				<angle>-90</angle>
 			</control> 
 			
@@ -686,13 +733,19 @@
 						<control type="image">
 							<width>150</width>
 							<height>270</height>
-							<include>PosterThumbBG</include>
+							<bordersize>-6</bordersize>
+							<texture border="0">poster.png</texture>
+							<colordiffuse>black</colordiffuse>
+							<animation effect="fade" reversible="false" end="40" time="0" condition="true">Conditional</animation>
 						  </control>
 						  <control type="image">
-							<include>SmallPanelPosterDimensions</include>
-							<include>PosterThumb</include>
+							<width>150</width>
+							<height>221</height>
+							<texture border="1" background="true" diffuse="poster.png" fallback="DefaultVideo.png">$INFO[ListItem.Art(tvshow.poster)]</texture>
+							<aspectratio scalediffuse="true" aligny="bottom" align="center">stretch</aspectratio>
+							<bordersize>0</bordersize>
 						  </control>
-						  <include>SmallPosterViewWatchedImage</include>
+						  
 					  </control>
 					  <control type="label">
 						<top>230</top>
@@ -700,10 +753,10 @@
 						<width>150</width>
 						<height>30</height>
 						<align>left</align>
-						<font>reg20</font>
+						<font>font13</font>
 						<textcolor>white</textcolor>
 						<shadowcolor>black</shadowcolor>
-						<label>$INFO[Listitem.Property(tvshowtitle)]</label>
+						<label>$INFO[Listitem.tvshowtitle]</label>
 					</control>
 					<control type="label">
 						<top>252</top>
@@ -711,7 +764,7 @@
 						<width>150</width>
 						<height>30</height>
 						<align>left</align>
-						<font>Reg14</font>
+						<font>font13</font>
 						<textcolor>white</textcolor>
 						<label>$INFO[Listitem.Label]</label>
 					</control>        					
@@ -724,14 +777,17 @@
 						<width>150</width>
 						<height>270</height>
 						<bordersize>-6</bordersize>
-						<texture border="5">diffuse/panel.png</texture>
-						<colordiffuse>mainblue</colordiffuse>
+						<texture border="5">panel.png</texture>
+						<colordiffuse>FF00b8ff</colordiffuse>
 					  </control>
 					  <control type="image">
-						<include>SmallPanelPosterDimensions</include>
-						<include>PosterThumb</include>
+						<width>150</width>
+							<height>221</height>
+						<texture border="1" background="true" diffuse="poster.png" fallback="DefaultVideo.png">$INFO[ListItem.Art(tvshow.poster)]</texture>
+							<aspectratio scalediffuse="true" aligny="bottom" align="center">stretch</aspectratio>
+							<bordersize>0</bordersize>
 					  </control>
-					  <include>SmallPosterViewWatchedImage</include>
+					  
 				  </control>
 				  <control type="label">
 						<top>230</top>
@@ -739,9 +795,9 @@
 						<width>150</width>
 						<height>30</height>
 						<align>left</align>
-						<font>reg20</font>
+						<font>font13</font>
 						<textcolor>black</textcolor>
-						<label>$INFO[Listitem.Property(tvshowtitle)]</label>
+						<label>$INFO[Listitem.tvshowtitle]</label>
 					</control>
 					<control type="label">
 						<top>252</top>
@@ -749,7 +805,7 @@
 						<width>150</width>
 						<height>30</height>
 						<align>left</align>
-						<font>Reg14</font>
+						<font>font13</font>
 						<textcolor>black</textcolor>
 						<label>$INFO[Listitem.Label]</label>
 					</control>        					

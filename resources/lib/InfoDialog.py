@@ -20,44 +20,20 @@ class GUI( xbmcgui.WindowXMLDialog ):
         pass
 
     def _show_info( self ):
-        self.getControl( 190 ).setLabel(self.content)
-        
+
         if self.content == 'movies':
-            self.getControl( 4 ).setText( self.listitem.getProperty('plot') )
-            self.getControl( 3 ).setImage( self.listitem.getProperty('icon') )
-            self.getControl( 188 ).setLabel( self.listitem.getLabel() )
-            self.getControl( 189 ).setLabel( self.listitem.getProperty('tagline') )
-            self.getControl( 191 ).setLabel( self.listitem.getProperty('director') )
-            self.getControl( 192 ).setLabel( self.listitem.getProperty('genre') )
-            self.getControl( 193 ).setLabel( self.listitem.getProperty('year') )
-            self.getControl( 194 ).setLabel( self.listitem.getProperty('rating') )
+            self.listitem.setProperty("type","movie")
             if not self.listitem.getProperty('trailer'):
                 self.getControl( 6 ).setVisible( False )
         
         elif self.content == 'tvshows':
-            self.getControl( 5 ).setLabel( xbmc.getLocalizedString(1024) )
-            self.getControl( 6 ).setVisible( False )
-            self.setProperty("content","tvshow")
-            self.getControl( 4 ).setText( self.listitem.getProperty('plot') )
-            self.getControl( 3 ).setImage( self.listitem.getProperty('icon') )
-            self.getControl( 188 ).setLabel( self.listitem.getLabel() )
-            self.getControl( 189 ).setLabel( self.listitem.getProperty('tagline') )
-            self.getControl( 191 ).setLabel( self.listitem.getProperty('studio') )
-            self.getControl( 192 ).setLabel( self.listitem.getProperty('genre') )
-            self.getControl( 193 ).setLabel( self.listitem.getProperty('premiered') )
-            self.getControl( 194 ).setLabel( self.listitem.getProperty('rating') )
+            self.listitem.setProperty("type","tvshow")
             
         elif self.content == 'episodes':
-            self.getControl( 6 ).setVisible( False )
-            self.setProperty("content","episode")
-            self.getControl( 4 ).setText( self.listitem.getProperty('plot') )
-            self.getControl( 3 ).setImage( self.listitem.getProperty('poster') )
-            self.getControl( 188 ).setLabel( self.listitem.getProperty('tvshowtitle') )
-            self.getControl( 189 ).setLabel( "S" + self.listitem.getProperty('season') + "E" + self.listitem.getProperty('episode') + " - " + self.listitem.getLabel() )
-            self.getControl( 191 ).setLabel( self.listitem.getProperty('director') )
-            self.getControl( 192 ).setLabel( self.listitem.getProperty('genre') )
-            self.getControl( 193 ).setLabel( self.listitem.getProperty('premiered') )
-            self.getControl( 194 ).setLabel( self.listitem.getProperty('rating') )
+            self.listitem.setProperty("type","episode")
+            
+        list = self.getControl( 999 )
+        list.addItem(self.listitem)
         
         self.setFocus( self.getControl( 5 ) )
 

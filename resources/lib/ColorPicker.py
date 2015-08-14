@@ -10,7 +10,7 @@ import InfoDialog
 
 from xml.dom.minidom import parse
 from operator import itemgetter
-
+from Utils import *
 
 #PIL fails on Android devices ?
 hasPilModule = True
@@ -22,13 +22,12 @@ except:
 class ColorPicker(xbmcgui.WindowXMLDialog):
 
     colorsList = None
-    skinStringName = None
-    skinStringValue = None
+    skinString = None
     colorsPath = None
     
     def __init__(self, *args, **kwargs):
         xbmcgui.WindowXMLDialog.__init__(self, *args, **kwargs)
-        self.colorsPath = xbmc.translatePath( 'special://home/addons/script.skin.helper.service/resources/colors/' ).decode("utf-8")
+        self.colorsPath = os.path.join(ADDON_PATH, 'resources', 'colors' ).decode("utf-8")
         
     def addColorToList(self, colorname, colorstring):
         
@@ -68,7 +67,7 @@ class ColorPicker(xbmcgui.WindowXMLDialog):
         
         #get all colors from the colors xml file and fill a list with tuples to sort later on
         allColors = []
-        colors_file = xbmc.translatePath( 'special://home/addons/script.skin.helper.service/resources/colors/colors.xml' ).decode("utf-8")
+        colors_file = os.path.join(ADDON_PATH, 'resources', 'colors','colors.xml' ).decode("utf-8")
         if xbmcvfs.exists( colors_file ):
             doc = parse( colors_file )
             listing = doc.documentElement.getElementsByTagName( 'color' )
@@ -139,10 +138,9 @@ class ColorPicker(xbmcgui.WindowXMLDialog):
             colorstringvalue = colorstring
         
         
-        if self.skinStringName and colorstring:
-            xbmc.executebuiltin("Skin.SetString(" + self.skinStringName + ','+ colorstring + ')')
+        if self.skinString and colorstring:
+            xbmc.executebuiltin("Skin.SetString(" + self.skinString + '.name,'+ colorstring + ')')
+            xbmc.executebuiltin("Skin.SetString(" + self.skinString + ','+ colorstringvalue + ')')
             self.closeDialog()
-        if self.skinStringValue and colorstring:
-            xbmc.executebuiltin("Skin.SetString(" + self.skinStringValue + ','+ colorstringvalue + ')')
-            self.closeDialog()            
+          
             

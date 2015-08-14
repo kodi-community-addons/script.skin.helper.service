@@ -13,42 +13,17 @@ from xml.dom.minidom import parse
 import json
 import random
 
-import Utils as utils
+from Utils import *
 
 from xml.etree.ElementTree import Element, SubElement, Comment, tostring
 from xml.etree import ElementTree
 from xml.dom import minidom
 import xml.etree.cElementTree as ET
 
-doDebugLog = False
-
-win = xbmcgui.Window( 10000 )
-addon = xbmcaddon.Addon(id='script.skin.helper.service')
-addondir = xbmc.translatePath(addon.getAddonInfo('profile'))
-
-xbmc.getLocalizedString = xbmc.getLocalizedString
-__cwd__ = addon.getAddonInfo('path')
-
       
 def musicSearch():
     xbmc.executebuiltin( "ActivateWindow(MusicLibrary)" )
     xbmc.executebuiltin( "SendClick(8)" )
-            
-def showInfoPanel():
-    tryCount = 0
-    secondsToDisplay = "4"
-    secondsToDisplay = xbmc.getInfoLabel("Skin.String(ShowInfoAtPlaybackStart)")
-    if win.getProperty("VideoScreensaverRunning") != "true":
-        while tryCount !=50 and not xbmc.getCondVisibility("Window.IsActive(fullscreeninfo)"):
-            time.sleep(0.1)
-            if not xbmc.getCondVisibility("Window.IsActive(fullscreeninfo)") and xbmc.getCondVisibility("Player.HasVideo"):
-                xbmc.executebuiltin('Action(info)')
-            tryCount += 1
-        
-        # close info again
-        time.sleep(int(secondsToDisplay))
-        if xbmc.getCondVisibility("Window.IsActive(fullscreeninfo)"):
-            xbmc.executebuiltin('Action(info)')
 
 def addShortcutWorkAround():
     xbmc.executebuiltin('SendClick(301)')
@@ -77,10 +52,10 @@ def selectOverlayTexture():
     overlaysList.append("None")
     
     dialog = xbmcgui.Dialog()
-    ret = dialog.select(xbmc.getLocalizedString(31470), overlaysList)
+    ret = dialog.select(ADDON.getLocalizedString(32015), overlaysList)
     if ret == 0:
         dialog = xbmcgui.Dialog()
-        custom_texture = dialog.browse( 2 , xbmc.getLocalizedString(31457), 'files')
+        custom_texture = dialog.browse( 2 , ADDON.getLocalizedString(32016), 'files')
         if custom_texture:
             xbmc.executebuiltin("Skin.SetString(ColorThemeTexture,Custom)")
             xbmc.executebuiltin("Skin.SetString(CustomColorThemeTexture,%s)" % custom_texture)
@@ -122,7 +97,7 @@ def selectBusyTexture():
             listitem.setProperty("icon","special://skin/extras/busy_spinners/" + file)
             spinnersList.append(listitem)
 
-    w = dialogs.DialogSelectBig( "DialogSelect.xml", __cwd__, listing=spinnersList, windowtitle="select busy spinner",multiselect=False )
+    w = dialogs.DialogSelectBig( "DialogSelect.xml", ADDON_PATH, listing=spinnersList, windowtitle="select busy spinner",multiselect=False )
     
     count = 0
     for li in spinnersList:
@@ -140,13 +115,13 @@ def selectBusyTexture():
     
     if selectedItem == 1:
         dialog = xbmcgui.Dialog()
-        custom_texture = dialog.browse( 2 , xbmc.getLocalizedString(31504), 'files', mask='.gif')
+        custom_texture = dialog.browse( 2 , ADDON.getLocalizedString(32014), 'files', mask='.gif')
         if custom_texture:
             xbmc.executebuiltin("Skin.SetString(SpinnerTexture,%s)" %spinnersList[selectedItem].getLabel())
             xbmc.executebuiltin("Skin.SetString(SpinnerTexturePath,%s)" % custom_texture)
     elif selectedItem == 2:
         dialog = xbmcgui.Dialog()
-        custom_texture = dialog.browse( 0 , xbmc.getLocalizedString(31504), 'files')
+        custom_texture = dialog.browse( 0 , ADDON.getLocalizedString(32014), 'files')
         if custom_texture:
             xbmc.executebuiltin("Skin.SetString(SpinnerTexture,%s)" %spinnersList[selectedItem].getLabel())
             xbmc.executebuiltin("Skin.SetString(SpinnerTexturePath,%s)" % custom_texture)
@@ -172,7 +147,7 @@ def enableViews():
                 listitem.select(selected=True)
             allViews.append(listitem)
     
-    w = dialogs.DialogSelectSmall( "DialogSelect.xml", __cwd__, listing=allViews, windowtitle=xbmc.getLocalizedString(31487),multiselect=True )
+    w = dialogs.DialogSelectSmall( "DialogSelect.xml", ADDON_PATH, listing=allViews, windowtitle=ADDON.getLocalizedString(32017),multiselect=True )
     w.doModal()
     
     selectedItems = w.result
@@ -251,7 +226,7 @@ def searchTrailer(title):
     libPath = "plugin://plugin.video.youtube/kodion/search/query/?q=%s Trailer" %title
     media_array = None
     allTrailers = []
-    media_array = utils.getJSON('Files.GetDirectory','{ "properties": ["title","art","plot"], "directory": "' + libPath + '", "media": "files", "limits": {"end":25} }')
+    media_array = getJSON('Files.GetDirectory','{ "properties": ["title","art","plot"], "directory": "' + libPath + '", "media": "files", "limits": {"end":25} }')
     if(media_array != None and media_array.has_key('files')):
         for media in media_array['files']:
             
@@ -269,7 +244,7 @@ def searchTrailer(title):
                 listitem.setProperty("icon",image)
                 allTrailers.append(listitem)
 
-    w = dialogs.DialogSelectBig( "DialogSelect.xml", __cwd__, listing=allTrailers, windowtitle="select trailer",multiselect=False )
+    w = dialogs.DialogSelectBig( "DialogSelect.xml", ADDON_PATH, listing=allTrailers, windowtitle="select trailer",multiselect=False )
     xbmc.executebuiltin( "Dialog.Close(busydialog)" )
     w.doModal()
     selectedItem = w.result
@@ -310,7 +285,7 @@ def selectView(contenttype="other", currentView=None, displayNone=False, display
                 listitem.setProperty("icon",image)
                 allViews.append(listitem)
                 itemcount +=1
-    w = dialogs.DialogSelectBig( "DialogSelect.xml", __cwd__, listing=allViews, windowtitle="select view",multiselect=False )
+    w = dialogs.DialogSelectBig( "DialogSelect.xml", ADDON_PATH, listing=allViews, windowtitle="select view",multiselect=False )
     w.autoFocusId = currentViewSelectId
     w.doModal()
     selectedItem = w.result

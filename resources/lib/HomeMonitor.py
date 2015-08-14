@@ -14,36 +14,30 @@ import xml.etree.ElementTree as etree
 import base64
 import time
 
-import Utils as utils
-
+from Utils import *
 
 class HomeMonitor(threading.Thread):
     
     event = None
     exit = False
-    delayedTaskInterval = 899
+    delayedTaskInterval = 898
     lastWeatherNotificationCheck = None
     lastNextAiredNotificationCheck = None
     win = None
     
     def __init__(self, *args):
-        utils.logMsg("HomeMonitor - started")
-        self.win = xbmcgui.Window( 10000 )
+        logMsg("HomeMonitor - started")
         self.event =  threading.Event()
         threading.Thread.__init__(self, *args)   
         
     
     def stop(self):
-        utils.logMsg("HomeMonitor - stop called",0)
+        logMsg("HomeMonitor - stop called",0)
         self.exit = True
         self.event.set()
 
     def run(self):
         
-        listItem = None
-        lastListItem = None
-        mainMenuContainer = "300"
-        utils.setSkinVersion()
         self.checkNetflixReady()
 
         while (self.exit != True):
@@ -54,42 +48,10 @@ class HomeMonitor(threading.Thread):
                     self.checkNetflixReady()
                     self.updatePlexlinks()
                     self.checkNotifications()
-                    self.delayedTaskInterval = 0
-            
-            # monitor main menu when home is active
-            if (xbmc.getCondVisibility("Window.IsActive(home) + !Window.IsActive(fullscreenvideo)")):
-
-                #monitor widget window prop
-                if WINDOW.getProperty("ShowWidget") == "show" and not xbmc.getCondVisibility("Window.IsActive(selectdialog) | Window.IsActive(shutdownmenu) | Window.IsActive(contextmenu)"):
-                    self.showWidget()
-                
-                listItem = xbmc.getInfoLabel("Container(%s).ListItem.Label" %mainMenuContainer)
-                if ((listItem != lastListItem) and xbmc.getCondVisibility("!Window.IsActive(selectdialog) + !Window.IsActive(shutdownmenu) + !Window.IsActive(contextmenu)")):
-                    
-                    # update the widget content
-                    if (xbmc.getCondVisibility("!Skin.HasSetting(DisableAllWidgets) + !Skin.String(GadgetRows, 3)")):
-                        
-                        #spotlight widget
-                        if xbmc.getCondVisibility("Skin.String(GadgetRows, enhanced)"):
-                            self.setSpotlightWidget(mainMenuContainer)
-                        
-                        #normal widget
-                        self.setWidget(mainMenuContainer)
-
-                    lastListItem = listItem
-  
+                    self.delayedTaskInterval = 0 
 
             xbmc.sleep(150)
             self.delayedTaskInterval += 0.15
-
-
-    
-    def showWidget(self):
-        linkCount = 20
-        while linkCount != 0 and not xbmc.getCondVisibility("ControlGroup(77777).HasFocus"):
-            xbmc.executebuiltin('Control.SetFocus(77777,0)')
-            linkCount -= 1
-            xbmc.sleep(50)
     
     def checkNetflixReady(self):
         if xbmc.getCondVisibility("System.HasAddon(plugin.video.netflixbmc)"):
@@ -103,7 +65,7 @@ class HomeMonitor(threading.Thread):
     def updatePlexlinks(self):
         
         if xbmc.getCondVisibility("System.HasAddon(plugin.video.plexbmc) + Skin.HasSetting(SmartShortcuts.plex)"): 
-            utils.logMsg("update plexlinks started...")
+            logMsg("update plexlinks started...")
             
             #initialize plex window props by using the amberskin entrypoint for now
             if not WINDOW.getProperty("plexbmc.0.title"):
@@ -133,9 +95,9 @@ class HomeMonitor(threading.Thread):
                 link = WINDOW.getProperty(plexstring + ".title")
                 if not link:
                     break
-                utils.logMsg(plexstring + ".title --> " + link)
+                logMsg(plexstring + ".title --> " + link)
                 plexType = WINDOW.getProperty(plexstring + ".type")
-                utils.logMsg(plexstring + ".type --> " + plexType)            
+                logMsg(plexstring + ".type --> " + plexType)            
 
                 if hasSecondayMenus == True:
                     recentlink = WINDOW.getProperty(plexstring + ".recent")
@@ -152,20 +114,20 @@ class HomeMonitor(threading.Thread):
                     WINDOW.setProperty(plexstring + ".ondeck", progresslink)
                     
                 
-                utils.logMsg(plexstring + ".all --> " + alllink)
+                logMsg(plexstring + ".all --> " + alllink)
                 
-                WINDOW.setProperty(plexstring + ".recent.content", utils.getContentPath(recentlink))
-                utils.logMsg(plexstring + ".recent --> " + recentlink)       
-                WINDOW.setProperty(plexstring + ".ondeck.content", utils.getContentPath(progresslink))
-                utils.logMsg(plexstring + ".ondeck --> " + progresslink)
+                WINDOW.setProperty(plexstring + ".recent.content", getContentPath(recentlink))
+                logMsg(plexstring + ".recent --> " + recentlink)       
+                WINDOW.setProperty(plexstring + ".ondeck.content", getContentPath(progresslink))
+                logMsg(plexstring + ".ondeck --> " + progresslink)
                 
                 unwatchedlink = alllink.replace("mode=1", "mode=0")
                 unwatchedlink = alllink.replace("mode=2", "mode=0")
                 unwatchedlink = alllink.replace("/all", "/unwatched")
                 WINDOW.setProperty(plexstring + ".unwatched", unwatchedlink)
-                WINDOW.setProperty(plexstring + ".unwatched.content", utils.getContentPath(unwatchedlink))
+                WINDOW.setProperty(plexstring + ".unwatched.content", getContentPath(unwatchedlink))
                 
-                WINDOW.setProperty(plexstring + ".content", utils.getContentPath(alllink))
+                WINDOW.setProperty(plexstring + ".content", getContentPath(alllink))
                 WINDOW.setProperty(plexstring + ".path", alllink)
                 
                 linkCount += 1
@@ -179,9 +141,9 @@ class HomeMonitor(threading.Thread):
                 link = link + ", return)"
                 plexstring = "plexbmc.channels"
                 WINDOW.setProperty(plexstring + ".title", "Channels")
-                utils.logMsg(plexstring + ".path --> " + link)
+                logMsg(plexstring + ".path --> " + link)
                 WINDOW.setProperty(plexstring + ".path", link)
-                WINDOW.setProperty(plexstring + ".content", utils.getContentPath(link))
+                WINDOW.setProperty(plexstring + ".content", getContentPath(link))
 
     def checkNotifications(self):
         
@@ -201,60 +163,3 @@ class HomeMonitor(threading.Thread):
                 dialog.notification(xbmc.getLocalizedString(31295), WINDOW.getProperty("NextAired.TodayShow"), xbmcgui.NOTIFICATION_WARNING, 8000)
                 self.lastNextAiredNotificationCheck = currentHour
     
-    def setWidget(self, containerID):
-        WINDOW.clearProperty("activewidget")
-        WINDOW.clearProperty("customwidgetcontent")
-        skinStringContent = ""
-        customWidget = False
-        
-        # workaround for numeric labels (get translated by xbmc)
-        skinString = xbmc.getInfoLabel("Container(" + containerID + ").ListItem.Property(submenuVisibility)")
-        skinString = skinString.replace("num-","")
-        if xbmc.getCondVisibility("Skin.String(widget-" + skinString + ')'):
-            skinStringContent = xbmc.getInfoLabel("Skin.String(widget-" + skinString + ')')
-        
-        # normal method by getting the defaultID
-        if skinStringContent == "":
-            skinString = xbmc.getInfoLabel("Container(" + containerID + ").ListItem.Property(defaultID)")
-            if xbmc.getCondVisibility("Skin.String(widget-" + skinString + ')'):
-                skinStringContent = xbmc.getInfoLabel("Skin.String(widget-" + skinString + ')')
-           
-        if skinStringContent and not "search" in skinStringContent:
-            if ("$INFO" in skinStringContent or "Activate" in skinStringContent or ":" in skinStringContent):
-                skinStringContent = utils.getContentPath(skinStringContent)
-                customWidget = True   
-            if customWidget:
-                 WINDOW.setProperty("customwidgetcontent", skinStringContent)
-                 WINDOW.setProperty("activewidget","custom")
-            else:
-                WINDOW.clearProperty("customwidgetcontent")
-                WINDOW.setProperty("activewidget",skinStringContent)
-
-        else:
-            WINDOW.clearProperty("activewidget")
-
-    def setSpotlightWidget(self, containerID):
-        WINDOW.clearProperty("spotlightwidgetcontent")
-        skinStringContent = ""
-        customWidget = False
-        
-        # workaround for numeric labels (get translated by xbmc)
-        skinString = xbmc.getInfoLabel("Container(" + containerID + ").ListItem.Property(submenuVisibility)")
-        skinString = skinString.replace("num-","")
-        if xbmc.getCondVisibility("Skin.String(spotlightwidget-" + skinString + ')'):
-            skinStringContent = xbmc.getInfoLabel("Skin.String(spotlightwidget-" + skinString + ')')
-        
-        # normal method by getting the defaultID
-        if skinStringContent == "":
-            skinString = xbmc.getInfoLabel("Container(" + containerID + ").ListItem.Property(defaultID)")
-            if xbmc.getCondVisibility("Skin.String(spotlightwidget-" + skinString + ')'):
-                skinStringContent = xbmc.getInfoLabel("Skin.String(spotlightwidget-" + skinString + ')')
-           
-        if skinStringContent and not "search" in skinStringContent:
-            if ("$INFO" in skinStringContent or "Activate" in skinStringContent or ":" in skinStringContent):
-                skinStringContent = utils.getContentPath(skinStringContent)
-                customWidget = True
-            WINDOW.setProperty("spotlightwidgetcontent", skinStringContent)
-
-        else:
-            WINDOW.clearProperty("spotlightwidgetcontent")        

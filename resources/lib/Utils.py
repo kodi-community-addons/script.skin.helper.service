@@ -35,7 +35,7 @@ def getContentPath(libPath):
         win = xbmcgui.Window( 10000 )
         libPath = libPath.replace("$INFO[Window(Home).Property(", "")
         libPath = libPath.replace(")]", "")
-        libPath = win.getProperty(libPath)    
+        libPath = WINDOW.getProperty(libPath)    
 
     if "Activate" in libPath:
         if "ActivateWindow(MusicLibrary," in libPath:
@@ -82,6 +82,10 @@ def createListItem(item):
     if "runtime" in item:
         liz.setInfo( type="Video", infoLabels={ "duration": str(item['runtime']/60) })
     
+    if "file" in item:
+        liz.setPath(item['file'])
+        liz.setProperty("path", item['file'])
+    
     if "episode" in item:
         episode = "%.2d" % float(item['episode'])
         liz.setInfo( type="Video", infoLabels={ "Episode": item['episode'] })
@@ -116,8 +120,6 @@ def createListItem(item):
         liz.setProperty("DBID", str(item['musicvideoid']))
         liz.setIconImage('DefaultMusicVideos.png')
     
-    if "firstaired" in item:
-        liz.setInfo( type="Video", infoLabels={ "Premiered": item['firstaired'] })
     
     if "plot" in item:
         plot = item['plot']
@@ -131,11 +133,33 @@ def createListItem(item):
     if "artist" in item:
         liz.setInfo( type="Video", infoLabels={ "Artist": item['artist'] })
         
+    if "votes" in item:
+        liz.setInfo( type="Video", infoLabels={ "votes": item['votes'] })
+    
+    if "trailer" in item:
+        liz.setInfo( type="Video", infoLabels={ "trailer": item['trailer'] })
+        liz.setProperty("trailer", item['trailer'])
+        
+    if "dateadded" in item:
+        liz.setInfo( type="Video", infoLabels={ "dateadded": item['dateadded'] })
+        
+    if "album" in item:
+        liz.setInfo( type="Video", infoLabels={ "album": item['album'] })
+        
+    if "plotoutline" in item:
+        liz.setInfo( type="Video", infoLabels={ "plotoutline ": item['plotoutline'] })
+        
+    if "studio" in item:
+        liz.setInfo( type="Video", infoLabels={ "studio": " / ".join(item['studio']) })
+        
+    if "playcount" in item:
+        liz.setInfo( type="Video", infoLabels={ "playcount ": item['playcount'] })
+        
     if "mpaa" in item:
         liz.setInfo( type="Video", infoLabels={ "mpaa": item['mpaa'] })
         
     if "tagline" in item:
-        liz.setInfo( type="Video", infoLabels={ "mpaa": item['tagline'] })
+        liz.setInfo( type="Video", infoLabels={ "tagline": item['tagline'] })
     
     if "showtitle" in item:
         liz.setInfo( type="Video", infoLabels={ "TVshowTitle": item['showtitle'] })
@@ -148,8 +172,21 @@ def createListItem(item):
     
     if "director" in item:
         liz.setInfo( type="Video", infoLabels={ "Director": " / ".join(item['director']) })
+    
     if "writer" in item:
         liz.setInfo( type="Video", infoLabels={ "Writer": " / ".join(item['writer']) })
+    
+    if "genre" in item:
+        liz.setInfo( type="Video", infoLabels={ "genre": " / ".join(item['genre']) })
+        
+    if "year" in item:
+        liz.setInfo( type="Video", infoLabels={ "year": item['year'] })
+    
+    if "firstaired" in item:
+        liz.setInfo( type="Video", infoLabels={ "premiered": item['firstaired'] })
+
+    if "premiered" in item:
+        liz.setInfo( type="Video", infoLabels={ "premiered": item['premiered'] })
         
     if "cast" in item:
         listCast = []

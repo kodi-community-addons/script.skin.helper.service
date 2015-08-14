@@ -10,6 +10,7 @@ import InfoDialog
 import json
 from xml.dom.minidom import parse
 from operator import itemgetter
+from Utils import *
 
 skin = xbmcaddon.Addon(id=xbmc.getSkinDir())
 userThemesDir = xbmc.translatePath(skin.getAddonInfo('profile'))
@@ -60,7 +61,7 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
 
     def backupColorTheme(self, themeName, themeFile):
         import zipfile
-        backup_path = get_browse_dialog(dlg_type=3,heading=xbmc.getLocalizedString(31283))
+        backup_path = get_browse_dialog(dlg_type=3,heading=ADDON.getLocalizedString(32018))
         
         if backup_path:
             backup_name = xbmc.getSkinDir().replace("skin.","") + "_COLORTHEME_" + themeName
@@ -137,6 +138,8 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
                 listitem = xbmcgui.ListItem(label=label, iconImage=icon)
                 listitem.setProperty("filename",os.path.join(self.skinThemesPath,file))
                 listitem.setProperty("description",desc)
+                listitem.setProperty("Addon.Summary",desc)
+                listitem.setLabel2(desc)
                 listitem.setProperty("type","skin")
                 self.themesList.addItem(listitem)
                 count += 1
@@ -152,6 +155,8 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
                 listitem = xbmcgui.ListItem(label=label, iconImage=icon)
                 listitem.setProperty("filename",os.path.join(self.userThemesPath,file))
                 listitem.setProperty("description",desc)
+                listitem.setProperty("Addon.Summary",desc)
+                listitem.setLabel2(desc)
                 listitem.setProperty("type","user")
                 self.themesList.addItem(listitem)
                 count += 1
@@ -166,6 +171,9 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
         
         self.themesList = self.getControl(6)
         
+        self.getControl(1).setLabel(ADDON.getLocalizedString(32014))
+        self.getControl(5).setVisible(False)
+        
         list = self.refreshListing()
         if list != 0:
             xbmc.executebuiltin("Control.SetFocus(6)")
@@ -177,7 +185,7 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
         
     def onAction(self, action):
 
-        ACTION_CANCEL_DIALOG = ( 9, 10, 92, 216, 247, 257, 275, 61467, 61448, 1)
+        ACTION_CANCEL_DIALOG = ( 9, 10, 92, 216, 247, 257, 275, 61467, 61448, )
         ACTION_SHOW_INFO = ( 11, )
         ACTION_SELECT_ITEM = 7
         ACTION_PARENT_DIR = 9
@@ -196,7 +204,7 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
                 menuOptions.append(xbmc.getLocalizedString(117))
                 menuOptions.append(xbmc.getLocalizedString(118))
                 menuOptions.append(xbmc.getLocalizedString(19285))
-                menuOptions.append(xbmc.getLocalizedString(31542))
+                menuOptions.append(ADDON.getLocalizedString(32019))
             ret = dialog.select(xbmc.getLocalizedString(33063), menuOptions)
             if ret == 0:
                 self.loadColorTheme(themeFile)
@@ -210,8 +218,7 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
                 self.backupColorTheme(item.getLabel(),themeFile) 
 
     def closeDialog(self):
-        #self.close() ##crashes kodi ?
-        xbmc.executebuiltin("Dialog.Close(all,true)")
+        self.close()
         
     def onClick(self, controlID):
                 
@@ -231,7 +238,7 @@ def restoreColorTheme():
     import zipfile
     zip_path = None
     userThemesPath = os.path.join(userThemesDir,"themes") + os.sep
-    zip_path = get_browse_dialog(dlg_type=1,heading=xbmc.getLocalizedString(31282),mask=".zip")
+    zip_path = get_browse_dialog(dlg_type=1,heading=ADDON.getLocalizedString(32020),mask=".zip")
     if zip_path:
         #create temp path
         temp_path = xbmc.translatePath('special://temp/skinbackup/').decode("utf-8")
@@ -258,19 +265,19 @@ def restoreColorTheme():
                 sourcefile = os.path.join(temp_path,file)
                 destfile = os.path.join(userThemesPath,file)
                 xbmcvfs.copy(sourcefile,destfile)
-        xbmcgui.Dialog().ok(xbmc.getLocalizedString(31541), xbmc.getLocalizedString(31540))
+        xbmcgui.Dialog().ok(ADDON.getLocalizedString(32022), ADDON.getLocalizedString(32021))
         
 def createColorTheme():
     userThemesPath = os.path.join(userThemesDir,"themes") + os.sep    
     #user has to enter name for the theme
     dialog = xbmcgui.Dialog()
-    themeName = dialog.input(xbmc.getLocalizedString(31467), type=xbmcgui.INPUT_ALPHANUM)
+    themeName = dialog.input(ADDON.getLocalizedString(32023), type=xbmcgui.INPUT_ALPHANUM)
     if not themeName:
         return
     
     #add screenshot
     dialog = xbmcgui.Dialog()
-    custom_thumbnail = dialog.browse( 2 , xbmc.getLocalizedString(31468), 'files')
+    custom_thumbnail = dialog.browse( 2 , ADDON.getLocalizedString(32024), 'files')
     
     if custom_thumbnail:
         xbmcvfs.copy(custom_thumbnail, os.path.join(userThemesPath, themeName + ".jpg"))
@@ -283,7 +290,7 @@ def createColorTheme():
         skinsettings = doc.documentElement.getElementsByTagName('setting')
         newlist = []
         newlist.append(("THEMENAME", themeName))
-        newlist.append(("DESCRIPTION", xbmc.getLocalizedString(31466)))
+        newlist.append(("DESCRIPTION", ADDON.getLocalizedString(32025)))
         newlist.append(("SKINTHEME", xbmc.getInfoLabel("Skin.CurrentTheme")))
 
         for count, skinsetting in enumerate(skinsettings):
@@ -305,5 +312,5 @@ def createColorTheme():
         json.dump(newlist, text_file)
         text_file.close()
         
-        xbmcgui.Dialog().ok(xbmc.getLocalizedString(31539), xbmc.getLocalizedString(31540))
+        xbmcgui.Dialog().ok(ADDON.getLocalizedString(32026), ADDON.getLocalizedString(32027))
         

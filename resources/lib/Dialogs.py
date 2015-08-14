@@ -1,16 +1,4 @@
-import sys
-import xbmc
 import xbmcgui
-import xbmcaddon
-import xbmcvfs
-import os, sys
-import urllib
-import threading
-import InfoDialog
-from PIL import Image
-from xml.dom.minidom import parse
-from operator import itemgetter
-
 
 class DialogContextMenu( xbmcgui.WindowXMLDialog ):
     def __init__( self, *args, **kwargs ):
@@ -146,7 +134,7 @@ class DialogSelectBig( xbmcgui.WindowXMLDialog ):
 
         for item in self.listing :
             listitem = xbmcgui.ListItem(label=item.getLabel(), label2=item.getLabel2(), iconImage=item.getProperty( "icon" ), thumbnailImage=item.getProperty( "thumbnail" ))
-            listitem.setProperty( "Addon.Summary", "blaat" )
+            listitem.setProperty( "Addon.Summary", "" )
             self.fav_list.addItem( listitem )
 
         self.setFocus(self.fav_list)
@@ -168,3 +156,4 @@ class DialogSelectBig( xbmcgui.WindowXMLDialog ):
 
     def onFocus(self, controlID):
         pass
+        

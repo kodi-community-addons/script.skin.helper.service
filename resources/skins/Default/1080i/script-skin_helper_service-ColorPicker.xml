@@ -3,36 +3,32 @@
 	<defaultcontrol always="true">3110</defaultcontrol>
 	<controls>
     
-		<!--Background Panel-->
+		<!-- background panel -->
 		<control type="image">
-			<!--Panel-->
-			<posx>284</posx>
-			<posy>169</posy>
-			<width>1352</width>
-			<height>730</height>
-			<texture border="15">panel.png</texture>
-			<animation effect="fade" end="60" time="0" condition="true">Conditional</animation>
-			<colordiffuse>$INFO[Skin.String(GeneralPanelsColor)]</colordiffuse>
+			<left>30</left>
+			<top>60</top>
+			<width>1860</width>
+			<height>920</height>
+			<aspectratio>stretch</aspectratio>
+			<texture border="5">panel.png</texture>
+			<animation effect="fade" reversible="false" end="95" time="0" condition="true">Conditional</animation>
+			<colordiffuse>FF1b1b1b</colordiffuse>
 		</control>
 	
         <!--Header-->
         <control type="label">
             <posx>61</posx>
-            <posy>10</posy>
+            <posy>60</posy>
             <width min="80" max="1400">auto</width>
             <height>100</height>
-            <font>Bold45</font>
-			<label>$ADDON[script.extendedinfo 32012]</label>
+            <font>font35_title</font>
+			<label>$ADDON[script.skin.helper.service 32011]</label>
             <align>left</align>
             <textcolor>white</textcolor>
 			<shadowcolor>black</shadowcolor>
 			<animation effect="slide" end="80,15" time="0" condition="skin.hastheme(classic)">Conditional</animation>
         </control>
-		<!--Time-->
-        <include>TimeInfo</include>
-		<include condition="!skin.hassetting(nofooterbar)">Footer</include>
-		
-		
+
 		<control type="panel" id="3110">
 			<viewtype label="31438">icons</viewtype>
 			<posx>60</posx>
@@ -60,7 +56,7 @@
 					<texture border="5">$INFO[ListItem.Icon]</texture>
 				</control>
 				<control type="textbox">
-					<font>Reg24</font>
+					<font>font13</font>
 					<left>10</left>
 					<top>10</top>
 					<right>10</right>
@@ -84,14 +80,10 @@
 			<onup>3110</onup>
 			<ondown>SetFocus(3110,1)</ondown>
 			<onright>3011</onright>
-			<label>Manual ARGB color value:</label>
+			<label>$ADDON[script.skin.helper.service 32012]</label>
 			<label2>$INFO[Window(home).Property(colorstring)]</label2>
 			<textcolor>white</textcolor>
-			<focusedcolor>black</focusedcolor>
-			<disabledcolor>lightgrey</disabledcolor>
-			<pulseonselect>false</pulseonselect>
-			<texturefocus colordiffuse="$INFO[Skin.String(ButtonFocusColor)]">colors/color_white.png</texturefocus>
-			<texturenofocus colordiffuse="$INFO[Skin.String(ButtonFocusColor)]">colors/color_90%trans_white.png</texturenofocus>
+			<texturenofocus colordiffuse="black" border="5">panel_trans.png</texturenofocus>
 		</control>
 		
 		<!-- None -->
@@ -103,27 +95,11 @@
 			<font>Reg32</font>
 			<onup>3110</onup>
 			<onleft>3010</onleft>
-			<label>None</label>
+			<label>$ADDON[script.skin.helper.service 32013]</label>
 			<textcolor>white</textcolor>
-			<focusedcolor>black</focusedcolor>
-			<disabledcolor>lightgrey</disabledcolor>
-			<pulseonselect>false</pulseonselect>
-			<texturefocus colordiffuse="$INFO[Skin.String(ButtonFocusColor)]">colors/color_white.png</texturefocus>
-			<texturenofocus colordiffuse="$INFO[Skin.String(ButtonFocusColor)]">colors/color_90%trans_white.png</texturenofocus>
+			<texturenofocus colordiffuse="black" border="5">panel_trans.png</texturenofocus>
 		</control>
-		
-		<!--vertical Scollbar-->
-		<control type="scrollbar" id="60">
-			<right>15</right>
-			<posy>175</posy>
-			<height>700</height>
-			<onup>60</onup>
-			<ondown>60</ondown>
-			<onleft>3110</onleft>
-			<animation effect="fade" start="0" end="100" time="400" condition="Control.HasFocus(60) | Skin.HasSetting(EnableTouchSupport) | Container.Scrolling | Skin.HasSetting(alwaysShowScrollbars)">Conditional</animation>
-			<animation effect="fade" start="100" end="0" time="400" condition="![Control.HasFocus(60) | Skin.HasSetting(EnableTouchSupport) | Container.Scrolling | Skin.HasSetting(alwaysShowScrollbars)]">Conditional</animation>
-		</control>
-		
+			
 
 	</controls>
 </window>

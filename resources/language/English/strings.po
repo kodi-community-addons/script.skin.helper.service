@@ -59,3 +59,112 @@ msgstr ""
 msgctxt "#32010"
 msgid "Next Episodes"
 msgstr ""
+
+msgctxt "#32011"
+msgid "Pick a color..."
+msgstr ""
+
+msgctxt "#32012"
+msgid "Manual (ARGB) color value:"
+msgstr ""
+
+msgctxt "#32013"
+msgid "None"
+msgstr ""
+
+msgctxt "#32014"
+msgid "Select a color theme"
+msgstr ""
+
+msgctxt "#32015"
+msgid "Background overlay texture"
+msgstr ""
+
+msgctxt "#32016"
+msgid "Browse custom image for background overlay"
+msgstr ""
+
+msgctxt "#32017"
+msgid "Enable/disable views"
+msgstr ""
+
+msgctxt "#32018"
+msgid "Select a folder to create the backupfile"
+msgstr ""
+
+msgctxt "#32019"
+msgid "Export this theme to file"
+msgstr ""
+
+msgctxt "#32020"
+msgid "Select Titan skin backup file"
+msgstr ""
+
+msgctxt "#32021"
+msgid "Your colortheme is now available in the list of available themes"
+msgstr ""
+
+msgctxt "#32022"
+msgid "Color theme imported succesfully"
+msgstr ""
+
+msgctxt "#32023"
+msgid "Enter a name for your color theme"
+msgstr ""
+
+msgctxt "#32024"
+msgid "Screenshot of color theme (optional)"
+msgstr ""
+
+msgctxt "#32025"
+msgid "User defined color theme"
+msgstr ""
+
+msgctxt "#32026"
+msgid "Color theme created succesfully"
+msgstr ""
+
+msgctxt "#32027"
+msgid "Your colortheme is now available in the list of available themes"
+msgstr ""
+
+msgctxt "#32028"
+msgid "Backup the skin settings"
+msgstr ""
+
+msgctxt "#32029"
+msgid "Backupfile was succesfully created!"
+msgstr ""
+
+msgctxt "#32030"
+msgid "An error has occured creating the backup!"
+msgstr ""
+
+msgctxt "#32031"
+msgid "Select skin backup file"
+msgstr ""
+
+msgctxt "#32032"
+msgid "Restore the skin settings"
+msgstr ""
+
+msgctxt "#32033"
+msgid "Restoring..."
+msgstr ""
+
+msgctxt "#32034"
+msgid "Your backup is succesfully restored!"
+msgstr ""
+
+msgctxt "#32035"
+msgid "An error has occured while restoring the backup"
+msgstr ""
+
+msgctxt "#32036"
+msgid "Reset the skin to default settings"
+msgstr ""
+
+msgctxt "#32037"
+msgid "Are you sure you want to reset the skin to default settings ?"
+msgstr ""
+

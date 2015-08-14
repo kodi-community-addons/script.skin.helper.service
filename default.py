@@ -33,12 +33,8 @@ class Main:
         if params:
             action = params.get("ACTION",None)
 
-            elif action =="ADDSHORTCUT":
+            if action =="ADDSHORTCUT":
                 addShortcutWorkAround()
-            
-            elif action == "SHOWINFO":
-                ## TODO --> MOVE TO SERVICE !
-                pass
             
             elif action == "MUSICSEARCH":
                 musicSearch()
@@ -59,21 +55,20 @@ class Main:
             
             elif action == "VIDEOSEARCH":
                 from resources.lib.SearchDialog import SearchDialog
-                searchDialog = SearchDialog("script-skin_helper_service-CustomSearch.xml", __cwd__, "default", "1080i")
+                searchDialog = SearchDialog("script-skin_helper_service-CustomSearch.xml", ADDON_PATH, "default", "1080i")
                 searchDialog.doModal()
                 del searchDialog
             
             elif action == "COLORPICKER":
                 from resources.lib.ColorPicker import ColorPicker
-                colorPicker = ColorPicker("script-skin_helper_service-ColorPicker.xml", __cwd__, "default", "1080i")
-                colorPicker.skinStringName = params.get("SKINSTRINGNAME",None)
-                colorPicker.skinStringValue = params.get("SKINSTRINGVALUE",None)
+                colorPicker = ColorPicker("script-skin_helper_service-ColorPicker.xml", ADDON_PATH, "default", "1080i")
+                colorPicker.skinString = params.get("SKINSTRING",None)
                 colorPicker.doModal()
                 del colorPicker
             
             elif action == "COLORTHEMES":
                 from resources.lib.ColorThemes import ColorThemes
-                colorThemes = ColorThemes("script-skin_helper_service-ColorThemes.xml", __cwd__, "default", "1080i")
+                colorThemes = ColorThemes("DialogSelect.xml", ADDON_PATH)
                 colorThemes.doModal()
                 del colorThemes
             
@@ -92,16 +87,16 @@ class Main:
                 selectBusyTexture()     
             
             elif action == "BACKUP":
-                import resources.lib.BackupRestore
-                BackupRestore.backup()
+                from resources.lib.BackupRestore import *
+                backup()
             
             elif action == "RESTORE":
-                import resources.lib.BackupRestore
-                BackupRestore.restore()
+                from resources.lib.BackupRestore import *
+                restore()
             
             elif action == "RESET":
-                import resources.lib.BackupRestore
-                BackupRestore.reset()
+                from resources.lib.BackupRestore import *
+                reset()
 
 
 if (__name__ == "__main__"):

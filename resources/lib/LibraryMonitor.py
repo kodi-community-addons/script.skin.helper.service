@@ -14,7 +14,7 @@ import xml.etree.ElementTree as etree
 import base64
 import json
 from datetime import datetime
-from resources.lib.Utils import *
+from Utils import *
 
 class LibraryMonitor(threading.Thread):
     
@@ -32,10 +32,6 @@ class LibraryMonitor(threading.Thread):
     moviesetCache = {}
     extraFanartcache = {}
     musicArtCache = {}
-    
-    win = None
-    addon = None
-    addondir = None
     
     def __init__(self, *args):
         
@@ -74,7 +70,7 @@ class LibraryMonitor(threading.Thread):
                 try:
                     self.checkMusicArt()
                 except Exception as e:
-                    utils.logMsg("ERROR in checkMusicArt ! --> " + str(e), 0)
+                    logMsg("ERROR in checkMusicArt ! --> " + str(e), 0)
             
             # monitor listitem props when videolibrary is active
             elif (xbmc.getCondVisibility("[Window.IsActive(videolibrary) | Window.IsActive(movieinformation)] + !Window.IsActive(fullscreenvideo)")):
@@ -95,7 +91,7 @@ class LibraryMonitor(threading.Thread):
                         self.setMovieSetDetails()
                         self.setAddonName()
                     except Exception as e:
-                        utils.logMsg("ERROR in LibraryMonitor ! --> " + str(e), 0)
+                        logMsg("ERROR in LibraryMonitor ! --> " + str(e), 0)
   
             else:
                 #reset window props
@@ -137,7 +133,7 @@ class LibraryMonitor(threading.Thread):
                 if self.moviesetCache.has_key(dbId):
                     json_response = self.moviesetCache[dbId]
                 else:
-                    json_response = utils.getJSON('VideoLibrary.GetMovieSetDetails', '{"setid": %s, "properties": [ "thumbnail" ], "movies": { "properties":  [ "rating", "art", "file", "year", "director", "writer", "playcount", "genre" , "thumbnail", "runtime", "studio", "plotoutline", "plot", "country", "streamdetails"], "sort": { "order": "ascending",  "method": "year" }} }' % dbId)
+                    json_response = getJSON('VideoLibrary.GetMovieSetDetails', '{"setid": %s, "properties": [ "thumbnail" ], "movies": { "properties":  [ "rating", "art", "file", "year", "director", "writer", "playcount", "genre" , "thumbnail", "runtime", "studio", "plotoutline", "plot", "country", "streamdetails"], "sort": { "order": "ascending",  "method": "year" }} }' % dbId)
                 
                 #save to cache
                 self.moviesetCache[dbId] = json_response
@@ -370,7 +366,7 @@ class LibraryMonitor(threading.Thread):
             hours   = full_minutes // 60
             durationString = str(hours) + ':' + str(minutes).zfill(2)
         except Exception as e:
-            utils.logMsg("ERROR in getDurationString ! --> " + str(e), 0)
+            logMsg("ERROR in getDurationString ! --> " + str(e), 0)
             return None
         return durationString
             
@@ -685,11 +681,34 @@ class Kodi_Monitor(xbmc.Monitor):
     def onNotification(self,sender,method,data):
         if method == "VideoLibrary.OnUpdate":
             #update nextup list when library has changed
-            WINDOW = xbmcgui.Window(10000)
             WINDOW.setProperty("widgetreload", datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
             #refresh some widgets when library has changed
             WINDOW.setProperty("widgetrefresh","refresh")
             xbmc.sleep(500)
             WINDOW.clearProperty("widgetrefresh")
+        
+        if method == "Player.OnPlay":
+            
+            try:
+                secondsToDisplay = int(xbmc.getInfoLabel("Skin.String(ShowInfoAtPlaybackStart)"))
+            except:
+                secondsToDisplay = 0
+            
+            logMsg("onNotification - ShowInfoAtPlaybackStart - number of seconds: " + str(secondsToDisplay),0)
+            
+            #Show the OSD info panel on playback start
+            if secondsToDisplay != 0:
+                tryCount = 0
+                if WINDOW.getProperty("VideoScreensaverRunning") != "true":
+                    while tryCount !=50 and xbmc.getCondVisibility("!Window.IsActive(fullscreeninfo)"):
+                        xbmc.sleep(100)
+                        if xbmc.getCondVisibility("!Window.IsActive(fullscreeninfo) + Window.IsActive(fullscreenvideo)"):
+                            xbmc.executebuiltin('Action(info)')
+                        tryCount += 1
+                    
+                    # close info again
+                    xbmc.sleep(secondsToDisplay*1000)
+                    if xbmc.getCondVisibility("Window.IsActive(fullscreeninfo)"):
+                        xbmc.executebuiltin('Action(info)')
 
                                            
