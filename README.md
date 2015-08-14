@@ -101,9 +101,9 @@ Note: the default interval for the backgrounds is set at 30 seconds. If you want
 | Window(Home).Property(AllMusicVideosBackground) | Random fanart of music videos in video database|
 | Window(Home).Property(AllMusicBackground) | Random fanart of music artists in database|
 | Window(Home).Property(GlobalFanartBackground) | Random fanart of all media types|
-| Window(Home).Property(InProgressMovieBackground) | Random fanart of in progress movies|
-| Window(Home).Property(RecentMovieBackground) | Random fanart of in recently added movies|
-| Window(Home).Property(UnwatchedMovieBackground) | Random fanart of unwatched movies|
+| Window(Home).Property(InProgressMoviesBackground) | Random fanart of in progress movies|
+| Window(Home).Property(RecentMoviesBackground) | Random fanart of in recently added movies|
+| Window(Home).Property(UnwatchedMoviesBackground) | Random fanart of unwatched movies|
 | Window(Home).Property(InProgressShowsBackground) | Random fanart of in progress tv shows|
 | Window(Home).Property(RecentEpisodesBackground) | Random fanart of recently added episodes|
 | Window(Home).Property(PicturesBackground) | Random pictures from all picture sources. By default this pulls images from all picture sources the user has configured. It is however possible to provide a custom source from which the images should be pulled from by setting Skin String: CustomPicturesBackgroundPath|
