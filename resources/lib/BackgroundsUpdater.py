@@ -11,6 +11,7 @@ import threading
 import xbmcvfs
 import random
 from xml.dom.minidom import parse
+import xml.etree.ElementTree as xmltree
 import base64
 import json
 import urllib
@@ -29,6 +30,8 @@ class BackgroundsUpdater(threading.Thread):
     cachePath = None
     SmartShortcutsCachePath = None
     delayedTaskInterval = 30
+    refreshSmartshortcuts = False
+    lastWindow = None
     
     def __init__(self, *args):
         self.lastPicturesPath = xbmc.getInfoLabel("skin.string(CustomPicturesBackgroundPath)")
@@ -67,6 +70,13 @@ class BackgroundsUpdater(threading.Thread):
                     backgroundDelay = int(xbmc.getInfoLabel("skin.string(randomfanartdelay)"))
                 except:
                     backgroundDelay = 30
+                
+                # force refresh smart shortcuts when skin settings launched (so user sees any newly added smartshortcuts)
+                currentWindow = xbmc.getInfoLabel("$INFO[Window.Property(xmlfile)]")
+                if ("skinshortcuts.xml" in currentWindow or "SkinSettings" in currentWindow) and currentWindow != self.lastWindow and self.refreshSmartshortcuts == False:
+                    self.lastWindow = currentWindow
+                    self.refreshSmartshortcuts = True
+                    self.UpdateBackgrounds()
                 
                 # Update home backgrounds every interval (default 60 seconds)
                 if backgroundDelay != 0:
@@ -265,20 +275,25 @@ class BackgroundsUpdater(threading.Thread):
             logMsg("exception occured in getPicturesBackground.... ")
             return None            
                
-    def getGlobalBackground(self):
+    def getGlobalBackground(self, fallbackImage=None):
         #just get a random image from all the images in the cache
+        image = fallbackImage
         if self.allBackgrounds != {}:
             #get random image from our global cache
-            image = None
-            randomimages = random.choice(self.allBackgrounds.keys())
-            print "global fanart..."
-            print randomimages
-            image = random.choice(randomimages)
-            print "chosen image"
-            print image
+            images = []
+            for key in self.allBackgrounds:
+                randomimage = random.choice(self.allBackgrounds[key])
+                if randomimage:
+                    images.append(randomimage)
+            
+            if images:
+                image = random.choice(images)
+
             return image 
                   
     def UpdateBackgrounds(self):
+        
+        allSmartShortcuts = []
         
         #get all movies  
         WINDOW.setProperty("AllMoviesBackground",self.getImageFromPath("videodb://movies/titles/"))
@@ -317,7 +332,7 @@ class BackgroundsUpdater(threading.Thread):
         if xbmc.getCondVisibility("System.HasAddon(plugin.video.emby) + Skin.HasSetting(SmartShortcuts.emby)"):
             logMsg("Processing smart shortcuts for emby nodes.... ")
             
-            if self.smartShortcuts.has_key("emby"):
+            if self.smartShortcuts.has_key("emby") and not self.refreshSmartshortcuts:
                 logMsg("get emby entries from cache.... ")
                 nodes = self.smartShortcuts["emby"]
                 for node in nodes:
@@ -329,25 +344,27 @@ class BackgroundsUpdater(threading.Thread):
                     WINDOW.setProperty(key + ".title", label)
                     WINDOW.setProperty(key + ".path", path)
             
-            elif WINDOW.getProperty("Emby.nodes.total"):
+            elif WINDOW.getProperty("emby.nodes.total"):
                 
                 logMsg("no cache - Get emby entries from file.... ")            
                
-                embyProperty = WINDOW.getProperty("Emby.nodes.total")
+                embyProperty = WINDOW.getProperty("emby.nodes.total")
                 contentStrings = ["", ".recent", ".inprogress", ".unwatched", ".recentepisodes", ".inprogressepisodes", ".nextepisodes"]
                 if embyProperty:
                     nodes = []
                     totalNodes = int(embyProperty)
                     for i in range(totalNodes):
                         for contentString in contentStrings:
-                            key = "Emby.nodes.%s%s"%(str(i),contentString)
-                            path = WINDOW.getProperty("Emby.nodes.%s%s.path"%(str(i),contentString))
-                            label = WINDOW.getProperty("Emby.nodes.%s%s.title"%(str(i),contentString))
+                            key = "emby.nodes.%s%s"%(str(i),contentString)
+                            path = WINDOW.getProperty("emby.nodes.%s%s.path"%(str(i),contentString))
+                            label = WINDOW.getProperty("emby.nodes.%s%s.title"%(str(i),contentString))
                             if path:
                                 nodes.append( (key, label, path ) )
                                 image = self.getImageFromPath(path)
                                 if image:
-                                    WINDOW.setProperty("Emby.nodes.%s%s.image"%(str(i),contentString),image)
+                                    WINDOW.setProperty("emby.nodes.%s%s.image"%(str(i),contentString),image)
+                                if contentString == "": 
+                                    allSmartShortcuts.append("emby.nodes." + str(i) )
                                 
                     self.smartShortcuts["emby"] = nodes
                                         
@@ -355,54 +372,76 @@ class BackgroundsUpdater(threading.Thread):
         if xbmc.getCondVisibility("Skin.HasSetting(SmartShortcuts.playlists)"):
             logMsg("Processing smart shortcuts for playlists.... ")
             try:
-                if self.smartShortcuts.has_key("playlists"):
+                if self.smartShortcuts.has_key("playlists") and not self.refreshSmartshortcuts:
                     logMsg("get playlist entries from cache.... ")
                     playlists = self.smartShortcuts["playlists"]
                     for playlist in playlists:
                         playlistCount = playlist[0]
-                        WINDOW.setProperty("playlist." + str(playlistCount) + ".image", self.getImageFromPath(playlist[2]))
+                        WINDOW.setProperty("playlist." + str(playlistCount) + ".image", self.getImageFromPath(playlist[3]))
                         WINDOW.setProperty("playlist." + str(playlistCount) + ".label",  playlist[1])
+                        WINDOW.setProperty("playlist." + str(playlistCount) + ".title",  playlist[1])
                         WINDOW.setProperty("playlist." + str(playlistCount) + ".action", playlist[2])
+                        WINDOW.setProperty("playlist." + str(playlistCount) + ".path", playlist[2])
                         WINDOW.setProperty("playlist." + str(playlistCount) + ".content", playlist[3])
+                        WINDOW.setProperty("playlist." + str(playlistCount) + ".type", playlist[4])
                 else:
                     logMsg("no cache - Get playlist entries from file.... ")
                     playlistCount = 0
-                    playlists = []
-                    path = "special://profile/playlists/video/"
-                    if xbmcvfs.exists( path ):
-                        dirs, files = xbmcvfs.listdir(path)
-                        for file in files:
-                            if file.endswith(".xsp"):
-                                playlist = path + file
-                                label = file.replace(".xsp","")
-                                image = self.getImageFromPath(playlist)
-                                if image != None:
-                                    path = "ActivateWindow(Videos," + playlist + ",return)"
+                    playlists = []                   
+                    
+                    paths = [['special://videoplaylists/','VideoLibrary'], ['special://musicplaylists/','MusicLibrary']]
+                    for playlistpath in paths:
+                        media_array = None
+                        media_array = getJSON('Files.GetDirectory','{ "directory": "%s", "media": "files" }' % playlistpath[0] )
+                        if media_array != None and media_array.has_key('files'):
+                            for item in media_array['files']:
+                                if item["file"].endswith(".xsp"):
+                                    playlist = item["file"]
+                                    contents = xbmcvfs.File(playlist, 'r')
+                                    contents_data = contents.read().decode('utf-8')
+                                    contents.close()
+                                    xmldata = xmltree.fromstring(contents_data.encode('utf-8'))
+                                    type = "unknown"
+                                    label = item["label"]
+                                    image = self.getImageFromPath(playlist)
+                                    for line in xmldata.getiterator():
+                                        if line.tag == "smartplaylist":
+                                            type = line.attrib['type']
+                                        if line.tag == "name":
+                                            label = line.text
+                                    path = "ActivateWindow(%s,%s,return)" %(playlistpath[1],playlist)
                                     WINDOW.setProperty("playlist." + str(playlistCount) + ".image", image)
                                     WINDOW.setProperty("playlist." + str(playlistCount) + ".label", label)
+                                    WINDOW.setProperty("playlist." + str(playlistCount) + ".title", label)
                                     WINDOW.setProperty("playlist." + str(playlistCount) + ".action", path)
+                                    WINDOW.setProperty("playlist." + str(playlistCount) + ".path", path)
                                     WINDOW.setProperty("playlist." + str(playlistCount) + ".content", playlist)
-                                    playlists.append( (playlistCount, label, path, playlist ))
+                                    WINDOW.setProperty("playlist." + str(playlistCount) + ".type", type)
+                                    allSmartShortcuts.append("playlist." + str(playlistCount) )
+                                    playlists.append( (playlistCount, label, path, playlist, type ))
                                     playlistCount += 1
                     
                     self.smartShortcuts["playlists"] = playlists
-            except:
+            except Exception as e:
                 #something wrong so disable the smartshortcuts for this section for now
                 xbmc.executebuiltin("Skin.Reset(SmartShortcuts.playlists)")
-                logMsg("Error while processing smart shortcuts for playlists - set disabled.... ")
+                logMsg("Error while processing smart shortcuts for playlists - set disabled.... ", 0)
+                logMsg(str(e),0)
                     
         #smart shortcuts --> favorites
         if xbmc.getCondVisibility("Skin.HasSetting(SmartShortcuts.favorites)"):
             logMsg("Processing smart shortcuts for favourites.... ")
             try:
-                if self.smartShortcuts.has_key("favourites"):
+                if self.smartShortcuts.has_key("favourites") and not self.refreshSmartshortcuts:
                     logMsg("get favourites entries from cache.... ")
                     favourites = self.smartShortcuts["favourites"]
                     for favourite in favourites:
                         playlistCount = favourite[0]
                         WINDOW.setProperty("favorite." + str(playlistCount) + ".image", self.getImageFromPath(favourite[2]))
                         WINDOW.setProperty("favorite." + str(playlistCount) + ".label", favourite[1])
+                        WINDOW.setProperty("favorite." + str(playlistCount) + ".title", favourite[1])
                         WINDOW.setProperty("favorite." + str(playlistCount) + ".action", favourite[2])
+                        WINDOW.setProperty("favorite." + str(playlistCount) + ".path", favourite[2])
                         WINDOW.setProperty("favorite." + str(playlistCount) + ".content", favourite[3])
                 else:
                     logMsg("no cache - Get favourite entries from file.... ")
@@ -416,28 +455,33 @@ class BackgroundsUpdater(threading.Thread):
                         for count, favourite in enumerate(listing):
                             name = favourite.attributes[ 'name' ].nodeValue
                             path = favourite.childNodes [ 0 ].nodeValue
+                            content = getContentPath(path)
                             if (path.startswith("ActivateWindow(Videos") or path.startswith("ActivateWindow(10025") or path.startswith("ActivateWindow(videos") or path.startswith("ActivateWindow(Music") or path.startswith("ActivateWindow(10502")) and not "script://" in path and not "mode=9" in path and not "search" in path:
                                 image = self.getImageFromPath(path)
                                 if image != None:
                                     WINDOW.setProperty("favorite." + str(favoritesCount) + ".image", image)
                                     WINDOW.setProperty("favorite." + str(favoritesCount) + ".label", name)
+                                    WINDOW.setProperty("favorite." + str(favoritesCount) + ".title", name)
                                     WINDOW.setProperty("favorite." + str(favoritesCount) + ".action", path)
-                                    WINDOW.setProperty("favorite." + str(favoritesCount) + ".content", getContentPath(path))
-                                    favourites.append( (favoritesCount, label, path, content) )
+                                    WINDOW.setProperty("favorite." + str(favoritesCount) + ".path", path)
+                                    WINDOW.setProperty("favorite." + str(favoritesCount) + ".content", content)
+                                    allSmartShortcuts.append("favorite." + str(favoritesCount) )
+                                    favourites.append( (favoritesCount, name, path, content) )
                                     favoritesCount += 1
                                     
                     self.smartShortcuts["favourites"] = favourites
-            except:
+            except Exception as e:
                 #something wrong so disable the smartshortcuts for this section for now
                 xbmc.executebuiltin("Skin.Reset(SmartShortcuts.favorites)")
-                logMsg("Error while processing smart shortcuts for favourites - set disabled.... ")                
+                logMsg("Error while processing smart shortcuts for favourites - set disabled.... ",0)
+                logMsg(str(e),0)                
                
         #smart shortcuts --> plex nodes
         if xbmc.getCondVisibility("Skin.HasSetting(SmartShortcuts.plex)"):
             nodes = []
             logMsg("Processing smart shortcuts for plex nodes.... ")
             
-            if self.smartShortcuts.has_key("plex"):
+            if self.smartShortcuts.has_key("plex") and not self.refreshSmartshortcuts:
                 logMsg("get plex entries from cache.... ")
                 nodes = self.smartShortcuts["plex"]
                 for node in nodes:
@@ -446,13 +490,14 @@ class BackgroundsUpdater(threading.Thread):
                     path = node[2]
                     image = self.getImageFromPath(node[2])
                     WINDOW.setProperty(key + ".background", image)
+                    WINDOW.setProperty(key + ".image", image)
             elif WINDOW.getProperty("plexbmc.0.title"):
                 logMsg("no cache - Get plex entries from file.... ")    
                                    
                 contentStrings = ["", ".ondeck", ".recent", ".unwatched"]
                 if WINDOW.getProperty("plexbmc.0.title"):
                     nodes = []
-                    totalNodes = 14
+                    totalNodes = 50
                     for i in range(totalNodes):
                         for contentString in contentStrings:
                             key = "plexbmc.%s%s"%(str(i),contentString)
@@ -464,9 +509,13 @@ class BackgroundsUpdater(threading.Thread):
                                 image = self.getImageFromPath(path)
                                 if image:
                                     WINDOW.setProperty("plexbmc.%s%s.background"%(str(i),contentString),image)
+                                    WINDOW.setProperty("plexbmc.%s%s.image"%(str(i),contentString),image)
                                     if plextype == "movie":
                                         WINDOW.setProperty("plexfanartbg", image)
-                
+                                    if contentString == "":
+                                        allSmartShortcuts.append("plexbmc." + str(i) )
+                            else:
+                                break
                 
                     #channels
                     plextitle = WINDOW.getProperty("plexbmc.channels.title")
@@ -477,13 +526,16 @@ class BackgroundsUpdater(threading.Thread):
                         nodes.append( (key, plextitle, plexcontent ) )
                         if image:
                             WINDOW.setProperty("plexbmc.channels.background", image)
+                            WINDOW.setProperty("plexbmc.channels.image", image)
+                            allSmartShortcuts.append("plexbmc.channels")
+                            
                     
                     self.smartShortcuts["plex"] = nodes
                  
         #smart shortcuts --> netflix nodes
         if xbmc.getCondVisibility("System.HasAddon(plugin.video.netflixbmc) + Skin.HasSetting(SmartShortcuts.netflix)") and WINDOW.getProperty("netflixready") == "ready":
             
-            if self.smartShortcuts.has_key("netflix"):
+            if self.smartShortcuts.has_key("netflix") and not self.refreshSmartshortcuts:
                 logMsg("get netflix entries from cache.... ")
                 nodes = self.smartShortcuts["netflix"]
                 for node in nodes:
@@ -491,8 +543,9 @@ class BackgroundsUpdater(threading.Thread):
                     label = node[1]
                     content = node[2]
                     path = node[3]
-                    if len(node) == 5:
-                        imagespath = node[4]
+                    type = node[4]
+                    if len(node) == 6:
+                        imagespath = node[5]
                     else:
                         imagespath = content
                     image = self.getImageFromPath(imagespath)
@@ -513,7 +566,8 @@ class BackgroundsUpdater(threading.Thread):
                 path = "ActivateWindow(Videos,%s,return)" %content.replace("&widget=true","")
                 imagespath = "plugin://plugin.video.netflixbmc/?mode=listViewingActivity&thumb=&type=both&url&widget=true"
                 image = self.getImageFromPath(imagespath, "special://special://home/addons/plugin.video.netflixbmc/fanart.jpg")
-                nodes.append( (key, label, content, path, imagespath ) )
+                type = "media"
+                nodes.append( (key, label, content, path, type, imagespath ) )
                 
                 #generic netflix mylist
                 key = "netflix.generic.mylist"
@@ -521,7 +575,8 @@ class BackgroundsUpdater(threading.Thread):
                 content = "plugin://plugin.video.netflixbmc/?mode=listSliderVideos&thumb&type=both&widget=true&url=slider_38"
                 path = "ActivateWindow(Videos,%s,return)" %content.replace("&widget=true","")
                 image = self.getImageFromPath(content, "special://special://home/addons/plugin.video.netflixbmc/fanart.jpg")
-                nodes.append( (key, label, content, path ) )
+                type = "movies"
+                nodes.append( (key, label, content, type, path ) )
                 
                 #generic netflix suggestions
                 key = "netflix.generic.suggestions"
@@ -529,7 +584,8 @@ class BackgroundsUpdater(threading.Thread):
                 content = "plugin://plugin.video.netflixbmc/?mode=listSliderVideos&thumb&type=both&widget=true&url=slider_2"
                 path = "ActivateWindow(Videos,%s,return)" %content.replace("&widget=true","")
                 image = self.getImageFromPath(content, "special://special://home/addons/plugin.video.netflixbmc/fanart.jpg")
-                nodes.append( (key, label, content, path ) )
+                type = "movies"
+                nodes.append( (key, label, content, type, path ) )
                 
                 #generic netflix inprogress
                 key = "netflix.generic.inprogress"
@@ -537,7 +593,8 @@ class BackgroundsUpdater(threading.Thread):
                 content = "plugin://plugin.video.netflixbmc/?mode=listSliderVideos&thumb&type=both&widget=true&url=slider_0"
                 path = "ActivateWindow(Videos,%s,return)" %content.replace("&widget=true","")
                 image = self.getImageFromPath(content, "special://special://home/addons/plugin.video.netflixbmc/fanart.jpg")
-                nodes.append( (key, label, content, path ) )
+                type = "movies"
+                nodes.append( (key, label, content, type, path ) )
                 
                 #generic netflix recent
                 key = "netflix.generic.recent"
@@ -545,16 +602,18 @@ class BackgroundsUpdater(threading.Thread):
                 content = "plugin://plugin.video.netflixbmc/?mode=listVideos&thumb&type=both&widget=true&url=http%3a%2f%2fwww.netflix.com%2fWiRecentAdditionsGallery%3fnRR%3dreleaseDate%26nRT%3dall%26pn%3d1%26np%3d1%26actionMethod%3djson"
                 path = "ActivateWindow(Videos,%s,return)" %content.replace("&widget=true","")
                 image = self.getImageFromPath(content, "special://special://home/addons/plugin.video.netflixbmc/fanart.jpg")
-                nodes.append( (key, label, content, path ) )
+                type = "movies"
+                nodes.append( (key, label, content, type, path ) )
 
                 #netflix movies
                 key = "netflix.movies"
-                label = netflixAddon.getLocalizedString(30011)
-                content = "plugin://plugin.video.netflixbmc/?mode=main&thumb&type=movie&url"
+                label = netflixAddon.getAddonInfo('name') + " " + netflixAddon.getLocalizedString(30011)
+                content = "plugin://plugin.video.netflixbmc/?mode=main&thumb&type=movie&url&widget=true"
                 path = "ActivateWindow(Videos,%s,return)" %content.replace("&widget=true","")
                 imagespath = "plugin://plugin.video.netflixbmc/?mode=listViewingActivity&thumb=&type=movie&url&widget=true"
                 image = self.getImageFromPath(imagespath, "special://special://home/addons/plugin.video.netflixbmc/fanart.jpg")
-                nodes.append( (key, label, content, path, imagespath ) )
+                type = "movies"
+                nodes.append( (key, label, content, path, type, imagespath ) )
                 
                 #netflix movies mylist
                 key = "netflix.movies.mylist"
@@ -562,7 +621,8 @@ class BackgroundsUpdater(threading.Thread):
                 content = "plugin://plugin.video.netflixbmc/?mode=listVideos&thumb&type=movie&widget=true&url=http%3a%2f%2fwww.netflix.com%2fMyList%3fleid%3d595%26link%3dseeall"
                 path = "ActivateWindow(Videos,%s,return)" %content.replace("&widget=true","")
                 image = self.getImageFromPath(content, "special://special://home/addons/plugin.video.netflixbmc/fanart.jpg")
-                nodes.append( (key, label, content, path ) )
+                type = "movies"
+                nodes.append( (key, label, content, type, path ) )
                 
                 #netflix movies suggestions
                 key = "netflix.movies.suggestions"
@@ -570,7 +630,8 @@ class BackgroundsUpdater(threading.Thread):
                 content = "plugin://plugin.video.netflixbmc/?mode=listSliderVideos&thumb&type=movie&widget=true&url=slider_2"
                 path = "ActivateWindow(Videos,%s,return)" %content.replace("&widget=true","")
                 image = self.getImageFromPath(content, "special://special://home/addons/plugin.video.netflixbmc/fanart.jpg")
-                nodes.append( (key, label, content, path ) )
+                type = "movies"
+                nodes.append( (key, label, content, type, path ) )
 
                 #netflix movies inprogress
                 key = "netflix.movies.inprogress"
@@ -578,7 +639,8 @@ class BackgroundsUpdater(threading.Thread):
                 content = "plugin://plugin.video.netflixbmc/?mode=listSliderVideos&thumb&type=movie&widget=true&url=slider_4"
                 path = "ActivateWindow(Videos,%s,return)" %content.replace("&widget=true","")
                 image = self.getImageFromPath(content, "special://special://home/addons/plugin.video.netflixbmc/fanart.jpg")
-                nodes.append( (key, label, content, path ) )
+                type = "movies"
+                nodes.append( (key, label, content, type, path ) )
                 
                 #netflix movies recent
                 key = "netflix.movies.recent"
@@ -586,16 +648,18 @@ class BackgroundsUpdater(threading.Thread):
                 content = "plugin://plugin.video.netflixbmc/?mode=listVideos&thumb&type=movie&widget=true&url=http%3a%2f%2fwww.netflix.com%2fWiRecentAdditionsGallery%3fnRR%3dreleaseDate%26nRT%3dall%26pn%3d1%26np%3d1%26actionMethod%3djson"
                 path = "ActivateWindow(Videos,%s,return)" %content.replace("&widget=true","")
                 image = self.getImageFromPath(content, "special://special://home/addons/plugin.video.netflixbmc/fanart.jpg")
-                nodes.append( (key, label, content, path ) )
+                type = "movies"
+                nodes.append( (key, label, content, type, path ) )
                 
                 #netflix tvshows
                 key = "netflix.tvshows"
-                label = netflixAddon.getLocalizedString(30012)
+                label = netflixAddon.getAddonInfo('name') + " " + netflixAddon.getLocalizedString(30012)
                 content = "plugin://plugin.video.netflixbmc/?mode=main&thumb&type=tv&url"
                 path = "ActivateWindow(Videos,%s,return)" %content.replace("&widget=true","")
                 imagespath = "plugin://plugin.video.netflixbmc/?mode=listViewingActivity&thumb=&type=movie&url&widget=true"
                 image = self.getImageFromPath(imagespath, "special://special://home/addons/plugin.video.netflixbmc/fanart.jpg")
-                nodes.append( (key, label, content, path, imagespath ) )
+                type = "tvshows"
+                nodes.append( (key, label, content, path, type, imagespath ) )
                 
                 #netflix tvshows mylist
                 key = "netflix.tvshows.mylist"
@@ -603,7 +667,8 @@ class BackgroundsUpdater(threading.Thread):
                 content = "plugin://plugin.video.netflixbmc/?mode=listVideos&thumb&type=tv&widget=true&url=http%3a%2f%2fwww.netflix.com%2fMyList%3fleid%3d595%26link%3dseeall"
                 path = "ActivateWindow(Videos,%s,return)" %content.replace("&widget=true","")
                 image = self.getImageFromPath(content, "special://special://home/addons/plugin.video.netflixbmc/fanart.jpg")
-                nodes.append( (key, label, content, path ) )
+                type = "tvshows"
+                nodes.append( (key, label, content, type, path ) )
                 
                 #netflix tvshows suggestions
                 key = "netflix.tvshows.suggestions"
@@ -611,7 +676,8 @@ class BackgroundsUpdater(threading.Thread):
                 content = "plugin://plugin.video.netflixbmc/?mode=listSliderVideos&thumb&type=tv&widget=true&url=slider_2"
                 path = "ActivateWindow(Videos,%s,return)" %content.replace("&widget=true","")
                 image = self.getImageFromPath(content, "special://special://home/addons/plugin.video.netflixbmc/fanart.jpg")
-                nodes.append( (key, label, content, path ) )
+                type = "tvshows"
+                nodes.append( (key, label, content, type, path ) )
 
                 #netflix tvshows inprogress
                 key = "netflix.tvshows.inprogress"
@@ -619,7 +685,8 @@ class BackgroundsUpdater(threading.Thread):
                 content = "plugin://plugin.video.netflixbmc/?mode=listSliderVideos&thumb&type=tv&widget=true&url=slider_4"
                 path = "ActivateWindow(Videos,%s,return)" %content.replace("&widget=true","")
                 image = self.getImageFromPath(content, "special://special://home/addons/plugin.video.netflixbmc/fanart.jpg")
-                nodes.append( (key, label, content, path ) )
+                type = "tvshows"
+                nodes.append( (key, label, content, type, path ) )
                 
                 #netflix tvshows recent
                 key = "netflix.tvshows.recent"
@@ -627,21 +694,38 @@ class BackgroundsUpdater(threading.Thread):
                 content = "plugin://plugin.video.netflixbmc/?mode=listVideos&thumb&type=tv&widget=true&url=http%3a%2f%2fwww.netflix.com%2fWiRecentAdditionsGallery%3fnRR%3dreleaseDate%26nRT%3dall%26pn%3d1%26np%3d1%26actionMethod%3djson"
                 path = "ActivateWindow(Videos,%s,return)" %content.replace("&widget=true","")
                 image = self.getImageFromPath(content, "special://special://home/addons/plugin.video.netflixbmc/fanart.jpg")
-                nodes.append( (key, label, content, path ) )
+                type = "tvshows"
+                nodes.append( (key, label, content, type, path ) )
                 
                 for node in nodes:
                     key = node[0]
                     label = node[1]
                     content = node[2]
                     path = node[3]
-                    if len(node) == 5:
-                        imagespath = node[4]
+                    type = node[4]
+                    if len(node) == 6:
+                        imagespath = node[5]
                     else:
                         imagespath = content
                     image = self.getImageFromPath(imagespath)
                     WINDOW.setProperty(key + ".title", label)
                     WINDOW.setProperty(key + ".content", content)
                     WINDOW.setProperty(key + ".path", path)
-                    WINDOW.setProperty(key + ".image", image) 
+                    WINDOW.setProperty(key + ".image", image)
+                    WINDOW.setProperty(key + ".type", type) 
                     
                 self.smartShortcuts["netflix"] = nodes
+                allSmartShortcuts.append("netflix.generic")
+                allSmartShortcuts.append("netflix.movies")
+                allSmartShortcuts.append("netflix.tvshows")
+                
+        if allSmartShortcuts:
+            self.smartShortcuts["allSmartShortcuts"] = allSmartShortcuts
+            WINDOW.setProperty("allSmartShortcuts", repr(allSmartShortcuts))
+        elif self.smartShortcuts.has_key("allSmartShortcuts"):
+            WINDOW.setProperty("allSmartShortcuts", repr(self.smartShortcuts["allSmartShortcuts"]))
+        
+        self.refreshSmartshortcuts = False        
+                
+                
+                

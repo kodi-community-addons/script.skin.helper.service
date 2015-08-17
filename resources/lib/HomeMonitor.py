@@ -15,12 +15,13 @@ import base64
 import time
 
 from Utils import *
+import PluginContent as pluginContent
 
 class HomeMonitor(threading.Thread):
     
     event = None
     exit = False
-    delayedTaskInterval = 898
+    delayedTaskInterval = 1799
     lastWeatherNotificationCheck = None
     lastNextAiredNotificationCheck = None
     
@@ -45,14 +46,14 @@ class HomeMonitor(threading.Thread):
 
         while (self.exit != True):
             
-            #do some background stuff every 15 minutes
+            #do some background stuff every 30 minutes
             if (xbmc.getCondVisibility("!Window.IsActive(fullscreenvideo)")):
-                if (self.delayedTaskInterval >= 900):
+                if (self.delayedTaskInterval >= 1800):
+                    pluginContent.buildWidgetsListing()
                     self.checkNetflixReady()
                     self.updatePlexlinks()
                     self.checkNotifications()
-                    self.delayedTaskInterval = 0 
-            
+                    self.delayedTaskInterval = 0
             
             # monitor main menu when home is active
             if (xbmc.getCondVisibility("Window.IsActive(home) + !Window.IsActive(fullscreenvideo)")):
@@ -106,7 +107,7 @@ class HomeMonitor(threading.Thread):
             
             #update plex window properties
             linkCount = 0
-            while linkCount !=14:
+            while linkCount !=50:
                 plexstring = "plexbmc." + str(linkCount)
                 link = WINDOW.getProperty(plexstring + ".title")
                 if not link:
@@ -133,8 +134,12 @@ class HomeMonitor(threading.Thread):
                 logMsg(plexstring + ".all --> " + alllink)
                 
                 WINDOW.setProperty(plexstring + ".recent.content", getContentPath(recentlink))
+                WINDOW.setProperty(plexstring + ".recent.path", recentlink)
+                WINDOW.setProperty(plexstring + ".recent.title", "recently added")
                 logMsg(plexstring + ".recent --> " + recentlink)       
                 WINDOW.setProperty(plexstring + ".ondeck.content", getContentPath(progresslink))
+                WINDOW.setProperty(plexstring + ".ondeck.path", progresslink)
+                WINDOW.setProperty(plexstring + ".ondeck.title", "on deck")
                 logMsg(plexstring + ".ondeck --> " + progresslink)
                 
                 unwatchedlink = alllink.replace("mode=1", "mode=0")
@@ -142,6 +147,8 @@ class HomeMonitor(threading.Thread):
                 unwatchedlink = alllink.replace("/all", "/unwatched")
                 WINDOW.setProperty(plexstring + ".unwatched", unwatchedlink)
                 WINDOW.setProperty(plexstring + ".unwatched.content", getContentPath(unwatchedlink))
+                WINDOW.setProperty(plexstring + ".unwatched.path", unwatchedlink)
+                WINDOW.setProperty(plexstring + ".unwatched.title", "unwatched")
                 
                 WINDOW.setProperty(plexstring + ".content", getContentPath(alllink))
                 WINDOW.setProperty(plexstring + ".path", alllink)

@@ -36,7 +36,6 @@ def getContentPath(libPath):
         libPath = libPath.replace("$INFO[Window(Home).Property(", "")
         libPath = libPath.replace(")]", "")
         libPath = WINDOW.getProperty(libPath)    
-
     if "Activate" in libPath:
         if "ActivateWindow(MusicLibrary," in libPath:
             libPath = libPath.replace("ActivateWindow(MusicLibrary," ,"musicdb://").lower()
@@ -49,7 +48,9 @@ def getContentPath(libPath):
         
         libPath = libPath.replace(")","")
         libPath = libPath.replace("\"","")
-    
+        libPath = libPath.replace("musicdb://special://","special://")
+        libPath = libPath.replace("videodb://special://","special://")
+
     return libPath
 
 def getJSON(method,params):
@@ -224,3 +225,44 @@ def createListItem(item):
                 liz.addStreamInfo( key, stream )
     
     return liz
+    
+def detectPluginContent(plugin, returnImage=True):
+    #based on the properties in the listitem we try to detect the content
+    media_array = getJSON('Files.GetDirectory','{ "directory": "%s", "media": "files", "properties": ["title", "file", "thumbnail", "episode", "showtitle", "season", "album", "artist", "imdbnumber", "firstaired", "mpaa", "trailer", "studio", "art"], "limits": {"end":3} }' %plugin)
+    if media_array != None and media_array.has_key('files'):
+        for item in media_array['files']:
+            image = None
+            if item.has_key("art"):
+                if item["art"].has_key("fanart"):
+                    image = item["art"]["fanart"]
+                elif item["art"].has_key("tvshow.fanart"):
+                    image = item["art"]["tvshow.fanart"]
+            if not item.has_key("showtitle") and not item.has_key("artist"):
+                #these properties are only returned in the json response if we're looking at actual file content...
+                # if it's missing it means this is a main directory listing and no need to scan the underlying listitems.
+                return ("files", image)
+            if not item.has_key("showtitle") and item.has_key("artist"):
+                ##### AUDIO ITEMS ####
+                if item["artist"][0] == item["title"]:
+                    return ("artists", image)
+                elif item["album"] == item["title"]:
+                    return ("albums", image)
+                elif (item["type"] == "song" or (item["artist"] and item["album"])):
+                    return ("songs", image)
+            else:    
+                ##### VIDEO ITEMS ####
+                if (item["showtitle"] and not item["artist"]):
+                    #this is a tvshow, episode or season...
+                    if (item["season"] > -1 and item["episode"] == -1):
+                        return ("seasons", image)
+                    elif item["season"] > -1 and item["episode"] > -1:
+                        return ("episodes", image)
+                    else:
+                        return ("tvshows", image)
+                elif (item["artist"]):
+                    #this is a musicvideo!
+                    return ("musicvideos", image)
+                elif (item["imdbnumber"] or item["mpaa"] or item["trailer"] or item["studio"]):
+                    return ("movies", image)
+
+    return None, None

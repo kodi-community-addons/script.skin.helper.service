@@ -168,3 +168,46 @@ msgctxt "#32037"
 msgid "Are you sure you want to reset the skin to default settings ?"
 msgstr ""
 
+msgctxt "#32038"
+msgid "Global random fanart background"
+msgstr ""
+
+msgctxt "#32039"
+msgid "Random movies background"
+msgstr ""
+
+msgctxt "#32040"
+msgid "Recent movies background"
+msgstr ""
+
+msgctxt "#32041"
+msgid "In progress movies background"
+msgstr ""
+
+msgctxt "#32042"
+msgid "Unwatched movies background"
+msgstr ""
+
+msgctxt "#32043"
+msgid "Random Tv Shows background"
+msgstr ""
+
+msgctxt "#32044"
+msgid "Recent episodes background"
+msgstr ""
+
+msgctxt "#32045"
+msgid "In progress Tv Shows background"
+msgstr ""
+
+msgctxt "#32046"
+msgid "Random pictures background"
+msgstr ""
+
+msgctxt "#32047"
+msgid "Random music videos background"
+msgstr ""
+
+msgctxt "#32048"
+msgid "Random music artists background"
+msgstr ""

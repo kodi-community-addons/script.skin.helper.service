@@ -52,6 +52,12 @@ class Main:
                 getFavouriteMedia(limit) 
             elif action == "FAVOURITES":
                 getFavourites(limit)
+            elif action == "SMARTSHORTCUTS":
+                getSmartShortcuts(path)
+            elif action == "BACKGROUNDS":
+                getBackgrounds()
+            elif action == "WIDGETS":
+                getWidgets(path)
             elif action == "LAUNCH":
                 if path:
                     xbmc.executebuiltin(path)
