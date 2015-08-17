@@ -1,6 +1,25 @@
 # script.skin.helper.service
 a helper service for Kodi skins
 
+This is the first version of this script, currently only available as beta on Git. Once tested by a few skinners I will submit it to the official Kodi repo.
+
+If you run into any issues , have some feedback or feature requests, feel free to ask and please report bugs !
+
+IMPORTANT NOTE:  To use all the fancy integration options with skinshortcuts please use the latest version from Git because we haven't submitted this to the repo yet. This latest version of skinshortcuts contains lot's of cool stuff:
+- speed improvements (you should really notice that)
+- new widget selection system (browse anywhere in the system)
+- support for this skininfo script off course ;-)
+- template building system: this is really cool; it will auto build your skin's xml code for you. Just a couple of lines of codes is what's needed to build your entire widgets, menus etc. Look at the documentation and examples, great stuff!
+
+Latest version of skinshortcuts: https://github.com/BigNoid/script.skinshortcuts/archive/master.zip
+
+
+Thanks all for testing!
+
+Regards,
+
+Marcel
+
 ________________________________________________________________________________________________________
 
 ### Settings for the script
@@ -685,3 +704,81 @@ Note that the Netflixbmc addon must be present on the system for this to functio
 | Window(Home).Property(netflix.tvshows.recent.content) | Contentpath of the Netflixbmc Latest tvshows entry (for widgets)|
 | Window(Home).Property(netflix.tvshows.recent.image) | Rotating Fanart from Netflixbmc Latest tvshows entry|
 | |
+
+
+
+________________________________________________________________________________________________________
+________________________________________________________________________________________________________
+
+### Use with skin shortcuts script
+This addon is designed to fully work together with the skinshortcuts script, so it will save you a lot of time because the script provides skinshortcuts with all the info to display contents.
+No need to manually skin all those window properties in your skin, just a few lines in your overrides file is enough.
+
+#### Display Smart Shortcuts in skin shortcuts listing
+
+When the smart shortcuts are used together with skinshortcuts it will auto assign the icon and background with rotating fanart and both the widget and submenu (if needed) are assigned by default. The user just adds the shortcut and is all set.
+
+To display the complete listing of Smart Shortcuts in your skin, place the following line in your overrides file, in the groupings section:
+```xml
+<shortcut label="Smart Shortcuts" type="32010">||BROWSE||script.skin.helper.service/?action=smartshortcuts</shortcut>
+```
+
+full example:
+```xml
+<overrides>
+	<groupings>
+		<shortcut label="Smart Shortcuts" type="32010">||BROWSE||script.skin.helper.service/?action=smartshortcuts</shortcut>
+	</groupings>
+</overrides>	
+```
+Offcourse you can use a condition parameter to only show the smart shortcuts entry if it's enabled in your skin.
+You can also choose to use display the smart shortcuts to be used as widgets, in that case include this line in your overrides.xml file:
+```xml
+<widget label="Smart Shortcuts" type="32010">||BROWSE||script.skin.helper.service/?action=smartshortcuts</widget>
+```
+
+#### Auto display Backgrounds provided by the script in skinshortcuts selector
+
+You can choose to show all backgrounds (including those for smart shortcuts) that are provided by this addon in the skinshortcuts backgrounds selector.
+
+To display all backgrounds automatically in skinshorts you only have to include the line below in your overrides file:
+```xml
+<background label="smartshortcuts">||BROWSE||plugin://script.skin.helper.service/?action=backgrounds</background>
+```
+
+Note: You can still use the default skinshortcuts method to assign a default background to a item by labelID or defaultID.
+In that case use the full $INFO path of the background. For example, to assign the "all movies" background to the Movies shortcut:
+```xml
+<backgrounddefault defaultID="movies">$INFO[Window(Home).Property(AllMoviesBackground)]</backgrounddefault>
+```
+For more info, see skinshortcut's documentation.
+
+
+#### Auto display widgets in skinshortcuts
+
+Coding all widgets in your skin can be a pain, especially to keep up with all the fancy scripts like extendedinfo and library data provider. This addon, combined with skinshortcuts can make things a little easier for you...
+By including just one line of code in your skinshortcuts override.xml you can display a whole bunch of widgets, ready to be selected by the user:
+
+```xml
+<widget label="Widgets" type="32010">||BROWSE||script.skin.helper.service/?action=widgets&amp;path=skinplaylists,librarydataprovider,scriptwidgets,extendedinfo,smartshortcuts,pvr,smartishwidgets</widget>
+```
+
+This will display a complete list of widgets available to select if the user presses the select widget button in skinshortcuts. In the path parameter you can specify which widgettypes should be listed. The widgets will be displayed in the order of which you type them as parameters (comma separated). You can also leave out the whole path parameterm in that case all available widgets will be displayed.
+Currently available widgets (more to be added soon):
+
+skinplaylist --> all playlists that are stored in "yourskin\extras\widgetplaylists" or "yourskin\playlists"
+librarydataprovider --> all widgets that are provider by the Library Data Provider script
+scriptwidgets --> the special widgets that are provided by this addon, like favourites and favourite media etc.
+extendedinfo --> All widgets that are provided by the Extended info script
+smartshortcuts --> all smartshortcuts
+pvr --> pvr widgets
+smartishwidgets --> widget supplied by the smartisch widgets addon
+
+Note: the script will auto check the existence of the addons on the system so no need for complex visibility conditions in your skin.
+
+
+
+________________________________________________________________________________________________________
+________________________________________________________________________________________________________
+
+
