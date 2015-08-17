@@ -136,30 +136,31 @@ def buildWidgetsListing():
     #skin provided playlists
     paths = ["special://skin/playlists/","special://skin/extras/widgetplaylists"]
     for path in paths:
-        media_array = getJSON('Files.GetDirectory','{ "directory": "%s", "media": "files" }' %path)
-        if media_array != None and media_array.has_key('files'):
-            for item in media_array['files']:
-                if item["file"].endswith(".xsp"):
-                    playlist = item["file"] + "&amp;reload=$INFO[Window(Home).Property(widgetreload)]"
-                    contents = xbmcvfs.File(playlist, 'r')
-                    contents_data = contents.read().decode('utf-8')
-                    contents.close()
-                    xmldata = xmltree.fromstring(contents_data.encode('utf-8'))
-                    type = "unknown"
-                    label = item["label"]
-                    type2, image = detectPluginContent(item["file"], returnImage=True)
-                    for line in xmldata.getiterator():
-                        if line.tag == "smartplaylist":
-                            type = line.attrib['type']
-                        if line.tag == "name":
-                            label = line.text
-                            
-                    if type == "albums" or type == "artists" or type == "songs":
-                        mediaLibrary = "MusicLibrary"
-                    else:
-                        mediaLibrary = "VideoLibrary"
-                    path = "ActivateWindow(%s,%s,return)" %(mediaLibrary, playlist)
-                    allWidgets.append([label, path, playlist, image, type, "skinplaylists"])
+        if xbmcvfs.exists(path):
+            media_array = getJSON('Files.GetDirectory','{ "directory": "%s", "media": "files" }' %path)
+            if media_array != None and media_array.has_key('files'):
+                for item in media_array['files']:
+                    if item["file"].endswith(".xsp"):
+                        playlist = item["file"] + "&amp;reload=$INFO[Window(Home).Property(widgetreload)]"
+                        contents = xbmcvfs.File(playlist, 'r')
+                        contents_data = contents.read().decode('utf-8')
+                        contents.close()
+                        xmldata = xmltree.fromstring(contents_data.encode('utf-8'))
+                        type = "unknown"
+                        label = item["label"]
+                        type2, image = detectPluginContent(item["file"], returnImage=True)
+                        for line in xmldata.getiterator():
+                            if line.tag == "smartplaylist":
+                                type = line.attrib['type']
+                            if line.tag == "name":
+                                label = line.text
+                                
+                        if type == "albums" or type == "artists" or type == "songs":
+                            mediaLibrary = "MusicLibrary"
+                        else:
+                            mediaLibrary = "VideoLibrary"
+                        path = "ActivateWindow(%s,%s,return)" %(mediaLibrary, playlist)
+                        allWidgets.append([label, path, playlist, image, type, "skinplaylists"])
         
     #service.library.data.provider provided widgets
     media_array = getJSON('Files.GetDirectory','{ "directory": "plugin://service.library.data.provider", "media": "files" }' )
@@ -204,7 +205,7 @@ def buildWidgetsListing():
                 else:
                     mediaLibrary = "VideoLibrary"
                 path = "ActivateWindow(%s,%s,return)" %(mediaLibrary, content)
-                allWidgets.append([label, path, playlist, image, type, "extendedinfo"])
+                allWidgets.append([label, path, content, image, type, "extendedinfo"])
             
     WINDOW.setProperty("allwidgets",repr(allWidgets))    
        
@@ -215,7 +216,7 @@ def getWidgets(itemstoInclude = None):
     if itemstoInclude:
         itemstoInclude = itemstoInclude.split(",")
     else:
-        itemstoInclude = ["skinplaylists", "librarydataprovider", "scriptwidgets", "extendedinfo"]
+        itemstoInclude = ["skinplaylists", "librarydataprovider", "scriptwidgets", "extendedinfo", "smartshortcuts","pvr", "smartishwidgets" ]
     
     #load the widget listing from the cache
     allWidgets = WINDOW.getProperty("allwidgets")
