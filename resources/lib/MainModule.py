@@ -69,7 +69,7 @@ def selectBusyTexture():
     import Dialogs as dialogs
     spinnersList = []
     
-    currentSpinnerTexture = xbmc.getInfoLabel("Skin.String(SpinnerTexture)")
+    currentSkinHelper.SpinnerTexture = xbmc.getInfoLabel("Skin.String(SkinHelper.SpinnerTexture)")
     
     listitem = xbmcgui.ListItem(label="None")
     listitem.setProperty("icon","None")
@@ -101,7 +101,7 @@ def selectBusyTexture():
     
     count = 0
     for li in spinnersList:
-        if li.getLabel() == currentSpinnerTexture:
+        if li.getLabel() == currentSkinHelper.SpinnerTexture:
             w.autoFocusId = count
         count += 1
          
@@ -117,17 +117,17 @@ def selectBusyTexture():
         dialog = xbmcgui.Dialog()
         custom_texture = dialog.browse( 2 , ADDON.getLocalizedString(32014), 'files', mask='.gif')
         if custom_texture:
-            xbmc.executebuiltin("Skin.SetString(SpinnerTexture,%s)" %spinnersList[selectedItem].getLabel())
-            xbmc.executebuiltin("Skin.SetString(SpinnerTexturePath,%s)" % custom_texture)
+            xbmc.executebuiltin("Skin.SetString(SkinHelper.SpinnerTexture,%s)" %spinnersList[selectedItem].getLabel())
+            xbmc.executebuiltin("Skin.SetString(SkinHelper.SpinnerTexturePath,%s)" % custom_texture)
     elif selectedItem == 2:
         dialog = xbmcgui.Dialog()
         custom_texture = dialog.browse( 0 , ADDON.getLocalizedString(32014), 'files')
         if custom_texture:
-            xbmc.executebuiltin("Skin.SetString(SpinnerTexture,%s)" %spinnersList[selectedItem].getLabel())
-            xbmc.executebuiltin("Skin.SetString(SpinnerTexturePath,%s)" % custom_texture)
+            xbmc.executebuiltin("Skin.SetString(SkinHelper.SpinnerTexture,%s)" %spinnersList[selectedItem].getLabel())
+            xbmc.executebuiltin("Skin.SetString(SkinHelper.SpinnerTexturePath,%s)" % custom_texture)
     else:
-        xbmc.executebuiltin("Skin.SetString(SpinnerTexture,%s)" %spinnersList[selectedItem].getLabel())
-        xbmc.executebuiltin("Skin.SetString(SpinnerTexturePath,%s)" % spinnersList[selectedItem].getProperty("icon"))
+        xbmc.executebuiltin("Skin.SetString(SkinHelper.SpinnerTexture,%s)" %spinnersList[selectedItem].getLabel())
+        xbmc.executebuiltin("Skin.SetString(SkinHelper.SpinnerTexturePath,%s)" % spinnersList[selectedItem].getProperty("icon"))
                 
 def enableViews():
     import Dialogs as dialogs
@@ -143,7 +143,7 @@ def enableViews():
             type = view.attributes[ 'type' ].nodeValue
             listitem = xbmcgui.ListItem(label=label)
             listitem.setProperty("id",id)
-            if not xbmc.getCondVisibility("Skin.HasSetting(View.Disabled.%s)" %id):
+            if not xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.View.Disabled.%s)" %id):
                 listitem.select(selected=True)
             allViews.append(listitem)
     
@@ -157,19 +157,19 @@ def enableViews():
             viewid = allViews[itemcount].getProperty("id")
             if itemcount in selectedItems:
                 #view is enabled
-                xbmc.executebuiltin("Skin.Reset(View.Disabled.%s)" %viewid)
+                xbmc.executebuiltin("Skin.Reset(SkinHelper.View.Disabled.%s)" %viewid)
             else:
                 #view is disabled
-                xbmc.executebuiltin("Skin.SetBool(View.Disabled.%s)" %viewid)
+                xbmc.executebuiltin("Skin.SetBool(SkinHelper.View.Disabled.%s)" %viewid)
             itemcount -= 1    
     del w        
 
 def setForcedView(contenttype):
-    currentView = xbmc.getInfoLabel("Skin.String(ForcedViews.%s)" %contenttype)
+    currentView = xbmc.getInfoLabel("Skin.String(SkinHelper.ForcedViews.%s)" %contenttype)
     selectedItem = selectView(contenttype, currentView, True, True)
     
     if selectedItem != -1 and selectedItem != None:
-        xbmc.executebuiltin("Skin.SetString(ForcedViews.%s,%s)" %(contenttype, selectedItem))
+        xbmc.executebuiltin("Skin.SetString(SkinHelper.ForcedViews.%s,%s)" %(contenttype, selectedItem))
     
 def setView():
     #sets the selected viewmode for the container
@@ -210,11 +210,11 @@ def setView():
     
     currentView = xbmc.getInfoLabel("Container.Viewmode")
     selectedItem = selectView(contenttype, currentView)
-    currentForcedView = xbmc.getInfoLabel("Skin.String(ForcedViews.%s)" %contenttype)
+    currentForcedView = xbmc.getInfoLabel("Skin.String(SkinHelper.ForcedViews.%s)" %contenttype)
     
     #also store forced view    
     if currentForcedView != "None":
-        xbmc.executebuiltin("Skin.SetString(ForcedViews.%s,%s)" %(contenttype, selectedItem))
+        xbmc.executebuiltin("Skin.SetString(SkinHelper.ForcedViews.%s,%s)" %(contenttype, selectedItem))
     
     #set view
     if selectedItem != -1 and selectedItem != None:
@@ -278,7 +278,7 @@ def selectView(contenttype="other", currentView=None, displayNone=False, display
                 currentViewSelectId = itemcount
                 if displayNone == True:
                     currentViewSelectId += 1
-            if (type == "all" or contenttype in type) and not xbmc.getCondVisibility("Skin.HasSetting(View.Disabled.%s)" %id):
+            if (type == "all" or contenttype in type) and not xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.View.Disabled.%s)" %id):
                 image = "special://skin/extras/viewthumbs/%s.jpg" %id
                 listitem = xbmcgui.ListItem(label=label, iconImage=image)
                 listitem.setProperty("id",id)

@@ -34,7 +34,7 @@ class BackgroundsUpdater(threading.Thread):
     lastWindow = None
     
     def __init__(self, *args):
-        self.lastPicturesPath = xbmc.getInfoLabel("skin.string(CustomPicturesBackgroundPath)")
+        self.lastPicturesPath = xbmc.getInfoLabel("skin.string(SkinHelper.PicturesBackgroundPath)")
         self.cachePath = os.path.join(ADDON_DATA_PATH,"backgroundscache.json")
         self.SmartShortcutsCachePath = os.path.join(ADDON_DATA_PATH,"smartshotcutscache.json")
 
@@ -67,7 +67,7 @@ class BackgroundsUpdater(threading.Thread):
             if (not xbmc.getCondVisibility("Window.IsActive(fullscreenvideo)")):
 
                 try:
-                    backgroundDelay = int(xbmc.getInfoLabel("skin.string(randomfanartdelay)"))
+                    backgroundDelay = int(xbmc.getInfoLabel("skin.string(SkinHelper.RandomFanartDelay)"))
                 except:
                     backgroundDelay = 30
                 
@@ -190,7 +190,7 @@ class BackgroundsUpdater(threading.Thread):
 
     def getPicturesBackground(self):
         logMsg("setting pictures background...")
-        customPath = xbmc.getInfoLabel("skin.string(CustomPicturesBackgroundPath)")
+        customPath = xbmc.getInfoLabel("skin.string(SkinHelper.CustomPicturesBackgroundPath)")
         if (self.lastPicturesPath != customPath):
             if (self.allBackgrounds.has_key("pictures")):
                 logMsg("path has changed for pictures - clearing cache...")
@@ -296,37 +296,37 @@ class BackgroundsUpdater(threading.Thread):
         allSmartShortcuts = []
         
         #get all movies  
-        WINDOW.setProperty("AllMoviesBackground",self.getImageFromPath("videodb://movies/titles/"))
+        WINDOW.setProperty("SkinHelper.AllMoviesBackground",self.getImageFromPath("videodb://movies/titles/"))
         
         #get all tvshows  
-        WINDOW.setProperty("AllTvShowsBackground",self.getImageFromPath("videodb://tvshows/titles/"))
+        WINDOW.setProperty("SkinHelper.AllTvShowsBackground",self.getImageFromPath("videodb://tvshows/titles/"))
         
         #get all musicvideos  
-        WINDOW.setProperty("AllMusicVideosBackground",self.getImageFromPath("videodb://musicvideos/titles/"))
+        WINDOW.setProperty("SkinHelper.AllMusicVideosBackground",self.getImageFromPath("videodb://musicvideos/titles/"))
         
         #get all music  
-        WINDOW.setProperty("AllMusicBackground",self.getImageFromPath("musicdb://artists/"))
+        WINDOW.setProperty("SkinHelper.AllMusicBackground",self.getImageFromPath("musicdb://artists/"))
         
         #get global fanart background 
-        WINDOW.setProperty("GlobalFanartBackground",self.getGlobalBackground())
+        WINDOW.setProperty("SkinHelper.GlobalFanartBackground",self.getGlobalBackground())
          
         #get in progress movies  
-        WINDOW.setProperty("InProgressMoviesBackground",self.getImageFromPath("special://skin/extras/widgetplaylists/inprogressmovies.xsp"))
+        WINDOW.setProperty("SkinHelper.InProgressMoviesBackground",self.getImageFromPath("special://skin/extras/widgetplaylists/inprogressmovies.xsp"))
 
         #get recent and unwatched movies
-        WINDOW.setProperty("RecentMoviesBackground",self.getImageFromPath("videodb://recentlyaddedmovies/"))
+        WINDOW.setProperty("SkinHelper.RecentMoviesBackground",self.getImageFromPath("videodb://recentlyaddedmovies/"))
            
         #unwatched movies
-        WINDOW.setProperty("UnwatchedMoviesBackground",self.getImageFromPath("special://skin/extras/widgetplaylists/unwatchedmovies.xsp"))
+        WINDOW.setProperty("SkinHelper.UnwatchedMoviesBackground",self.getImageFromPath("special://skin/extras/widgetplaylists/unwatchedmovies.xsp"))
       
         #get in progress tvshows
-        WINDOW.setProperty("InProgressShowsBackground",self.getImageFromPath("library://video/inprogressshows.xml"))
+        WINDOW.setProperty("SkinHelper.InProgressShowsBackground",self.getImageFromPath("library://video/inprogressshows.xml"))
         
         #get recent episodes
-        WINDOW.setProperty("RecentEpisodesBackground",self.getImageFromPath("videodb://recentlyaddedepisodes/"))
+        WINDOW.setProperty("SkinHelper.RecentEpisodesBackground",self.getImageFromPath("videodb://recentlyaddedepisodes/"))
         
         #get pictures background
-        WINDOW.setProperty("PicturesBackground", self.getPicturesBackground())
+        WINDOW.setProperty("SkinHelper.PicturesBackground", self.getPicturesBackground())
         
         #smart shortcuts --> emby nodes
         if xbmc.getCondVisibility("System.HasAddon(plugin.video.emby) + Skin.HasSetting(SmartShortcuts.emby)"):
@@ -565,7 +565,7 @@ class BackgroundsUpdater(threading.Thread):
                 content = "plugin://plugin.video.netflixbmc/?mode=main&widget=true&url"
                 path = "ActivateWindow(Videos,%s,return)" %content.replace("&widget=true","")
                 imagespath = "plugin://plugin.video.netflixbmc/?mode=listViewingActivity&thumb=&type=both&url&widget=true"
-                image = self.getImageFromPath(imagespath, "special://special://home/addons/plugin.video.netflixbmc/fanart.jpg")
+                image = self.getImageFromPath(imagespath, "special://home/addons/plugin.video.netflixbmc/fanart.jpg")
                 type = "media"
                 nodes.append( (key, label, content, path, type, imagespath ) )
                 
@@ -574,7 +574,7 @@ class BackgroundsUpdater(threading.Thread):
                 label = netflixAddon.getLocalizedString(30002)
                 content = "plugin://plugin.video.netflixbmc/?mode=listSliderVideos&thumb&type=both&widget=true&url=slider_38"
                 path = "ActivateWindow(Videos,%s,return)" %content.replace("&widget=true","")
-                image = self.getImageFromPath(content, "special://special://home/addons/plugin.video.netflixbmc/fanart.jpg")
+                image = self.getImageFromPath(content, "special://home/addons/plugin.video.netflixbmc/fanart.jpg")
                 type = "movies"
                 nodes.append( (key, label, content, type, path ) )
                 
@@ -583,7 +583,7 @@ class BackgroundsUpdater(threading.Thread):
                 label = netflixAddon.getLocalizedString(30143)
                 content = "plugin://plugin.video.netflixbmc/?mode=listSliderVideos&thumb&type=both&widget=true&url=slider_2"
                 path = "ActivateWindow(Videos,%s,return)" %content.replace("&widget=true","")
-                image = self.getImageFromPath(content, "special://special://home/addons/plugin.video.netflixbmc/fanart.jpg")
+                image = self.getImageFromPath(content, "special://home/addons/plugin.video.netflixbmc/fanart.jpg")
                 type = "movies"
                 nodes.append( (key, label, content, type, path ) )
                 
@@ -592,7 +592,7 @@ class BackgroundsUpdater(threading.Thread):
                 label = netflixAddon.getLocalizedString(30121)
                 content = "plugin://plugin.video.netflixbmc/?mode=listSliderVideos&thumb&type=both&widget=true&url=slider_0"
                 path = "ActivateWindow(Videos,%s,return)" %content.replace("&widget=true","")
-                image = self.getImageFromPath(content, "special://special://home/addons/plugin.video.netflixbmc/fanart.jpg")
+                image = self.getImageFromPath(content, "special://home/addons/plugin.video.netflixbmc/fanart.jpg")
                 type = "movies"
                 nodes.append( (key, label, content, type, path ) )
                 
@@ -601,7 +601,7 @@ class BackgroundsUpdater(threading.Thread):
                 label = netflixAddon.getLocalizedString(30003)
                 content = "plugin://plugin.video.netflixbmc/?mode=listVideos&thumb&type=both&widget=true&url=http%3a%2f%2fwww.netflix.com%2fWiRecentAdditionsGallery%3fnRR%3dreleaseDate%26nRT%3dall%26pn%3d1%26np%3d1%26actionMethod%3djson"
                 path = "ActivateWindow(Videos,%s,return)" %content.replace("&widget=true","")
-                image = self.getImageFromPath(content, "special://special://home/addons/plugin.video.netflixbmc/fanart.jpg")
+                image = self.getImageFromPath(content, "special://home/addons/plugin.video.netflixbmc/fanart.jpg")
                 type = "movies"
                 nodes.append( (key, label, content, type, path ) )
 
@@ -611,7 +611,7 @@ class BackgroundsUpdater(threading.Thread):
                 content = "plugin://plugin.video.netflixbmc/?mode=main&thumb&type=movie&url&widget=true"
                 path = "ActivateWindow(Videos,%s,return)" %content.replace("&widget=true","")
                 imagespath = "plugin://plugin.video.netflixbmc/?mode=listViewingActivity&thumb=&type=movie&url&widget=true"
-                image = self.getImageFromPath(imagespath, "special://special://home/addons/plugin.video.netflixbmc/fanart.jpg")
+                image = self.getImageFromPath(imagespath, "special://home/addons/plugin.video.netflixbmc/fanart.jpg")
                 type = "movies"
                 nodes.append( (key, label, content, path, type, imagespath ) )
                 
@@ -620,7 +620,7 @@ class BackgroundsUpdater(threading.Thread):
                 label = netflixAddon.getLocalizedString(30011) + " - " + netflixAddon.getLocalizedString(30002)
                 content = "plugin://plugin.video.netflixbmc/?mode=listVideos&thumb&type=movie&widget=true&url=http%3a%2f%2fwww.netflix.com%2fMyList%3fleid%3d595%26link%3dseeall"
                 path = "ActivateWindow(Videos,%s,return)" %content.replace("&widget=true","")
-                image = self.getImageFromPath(content, "special://special://home/addons/plugin.video.netflixbmc/fanart.jpg")
+                image = self.getImageFromPath(content, "special://home/addons/plugin.video.netflixbmc/fanart.jpg")
                 type = "movies"
                 nodes.append( (key, label, content, type, path ) )
                 
@@ -629,7 +629,7 @@ class BackgroundsUpdater(threading.Thread):
                 label = netflixAddon.getLocalizedString(30011) + " - " + netflixAddon.getLocalizedString(30143)
                 content = "plugin://plugin.video.netflixbmc/?mode=listSliderVideos&thumb&type=movie&widget=true&url=slider_2"
                 path = "ActivateWindow(Videos,%s,return)" %content.replace("&widget=true","")
-                image = self.getImageFromPath(content, "special://special://home/addons/plugin.video.netflixbmc/fanart.jpg")
+                image = self.getImageFromPath(content, "special://home/addons/plugin.video.netflixbmc/fanart.jpg")
                 type = "movies"
                 nodes.append( (key, label, content, type, path ) )
 
@@ -638,7 +638,7 @@ class BackgroundsUpdater(threading.Thread):
                 label = netflixAddon.getLocalizedString(30011) + " - " + netflixAddon.getLocalizedString(30121)
                 content = "plugin://plugin.video.netflixbmc/?mode=listSliderVideos&thumb&type=movie&widget=true&url=slider_4"
                 path = "ActivateWindow(Videos,%s,return)" %content.replace("&widget=true","")
-                image = self.getImageFromPath(content, "special://special://home/addons/plugin.video.netflixbmc/fanart.jpg")
+                image = self.getImageFromPath(content, "special://home/addons/plugin.video.netflixbmc/fanart.jpg")
                 type = "movies"
                 nodes.append( (key, label, content, type, path ) )
                 
@@ -647,7 +647,7 @@ class BackgroundsUpdater(threading.Thread):
                 label = netflixAddon.getLocalizedString(30011) + " - " + netflixAddon.getLocalizedString(30003)
                 content = "plugin://plugin.video.netflixbmc/?mode=listVideos&thumb&type=movie&widget=true&url=http%3a%2f%2fwww.netflix.com%2fWiRecentAdditionsGallery%3fnRR%3dreleaseDate%26nRT%3dall%26pn%3d1%26np%3d1%26actionMethod%3djson"
                 path = "ActivateWindow(Videos,%s,return)" %content.replace("&widget=true","")
-                image = self.getImageFromPath(content, "special://special://home/addons/plugin.video.netflixbmc/fanart.jpg")
+                image = self.getImageFromPath(content, "special://home/addons/plugin.video.netflixbmc/fanart.jpg")
                 type = "movies"
                 nodes.append( (key, label, content, type, path ) )
                 
@@ -657,7 +657,7 @@ class BackgroundsUpdater(threading.Thread):
                 content = "plugin://plugin.video.netflixbmc/?mode=main&thumb&type=tv&url"
                 path = "ActivateWindow(Videos,%s,return)" %content.replace("&widget=true","")
                 imagespath = "plugin://plugin.video.netflixbmc/?mode=listViewingActivity&thumb=&type=movie&url&widget=true"
-                image = self.getImageFromPath(imagespath, "special://special://home/addons/plugin.video.netflixbmc/fanart.jpg")
+                image = self.getImageFromPath(imagespath, "special://home/addons/plugin.video.netflixbmc/fanart.jpg")
                 type = "tvshows"
                 nodes.append( (key, label, content, path, type, imagespath ) )
                 
@@ -666,7 +666,7 @@ class BackgroundsUpdater(threading.Thread):
                 label = netflixAddon.getLocalizedString(30012) + " - " + netflixAddon.getLocalizedString(30002)
                 content = "plugin://plugin.video.netflixbmc/?mode=listVideos&thumb&type=tv&widget=true&url=http%3a%2f%2fwww.netflix.com%2fMyList%3fleid%3d595%26link%3dseeall"
                 path = "ActivateWindow(Videos,%s,return)" %content.replace("&widget=true","")
-                image = self.getImageFromPath(content, "special://special://home/addons/plugin.video.netflixbmc/fanart.jpg")
+                image = self.getImageFromPath(content, "special://home/addons/plugin.video.netflixbmc/fanart.jpg")
                 type = "tvshows"
                 nodes.append( (key, label, content, type, path ) )
                 
@@ -675,7 +675,7 @@ class BackgroundsUpdater(threading.Thread):
                 label = netflixAddon.getLocalizedString(30012) + " - " + netflixAddon.getLocalizedString(30143)
                 content = "plugin://plugin.video.netflixbmc/?mode=listSliderVideos&thumb&type=tv&widget=true&url=slider_2"
                 path = "ActivateWindow(Videos,%s,return)" %content.replace("&widget=true","")
-                image = self.getImageFromPath(content, "special://special://home/addons/plugin.video.netflixbmc/fanart.jpg")
+                image = self.getImageFromPath(content, "special://home/addons/plugin.video.netflixbmc/fanart.jpg")
                 type = "tvshows"
                 nodes.append( (key, label, content, type, path ) )
 
@@ -684,7 +684,7 @@ class BackgroundsUpdater(threading.Thread):
                 label = netflixAddon.getLocalizedString(30012) + " - " + netflixAddon.getLocalizedString(30121)
                 content = "plugin://plugin.video.netflixbmc/?mode=listSliderVideos&thumb&type=tv&widget=true&url=slider_4"
                 path = "ActivateWindow(Videos,%s,return)" %content.replace("&widget=true","")
-                image = self.getImageFromPath(content, "special://special://home/addons/plugin.video.netflixbmc/fanart.jpg")
+                image = self.getImageFromPath(content, "special://home/addons/plugin.video.netflixbmc/fanart.jpg")
                 type = "tvshows"
                 nodes.append( (key, label, content, type, path ) )
                 
@@ -693,7 +693,7 @@ class BackgroundsUpdater(threading.Thread):
                 label = netflixAddon.getLocalizedString(30012) + " - " + netflixAddon.getLocalizedString(30003)
                 content = "plugin://plugin.video.netflixbmc/?mode=listVideos&thumb&type=tv&widget=true&url=http%3a%2f%2fwww.netflix.com%2fWiRecentAdditionsGallery%3fnRR%3dreleaseDate%26nRT%3dall%26pn%3d1%26np%3d1%26actionMethod%3djson"
                 path = "ActivateWindow(Videos,%s,return)" %content.replace("&widget=true","")
-                image = self.getImageFromPath(content, "special://special://home/addons/plugin.video.netflixbmc/fanart.jpg")
+                image = self.getImageFromPath(content, "special://home/addons/plugin.video.netflixbmc/fanart.jpg")
                 type = "tvshows"
                 nodes.append( (key, label, content, type, path ) )
                 

@@ -22,7 +22,7 @@ SETTING = ADDON.getSetting
 def logMsg(msg, level = 1):
     doDebugLog = False
     if doDebugLog == True or level == 0:
-        xbmc.log("Skin Helper Service --> " + msg)
+        xbmc.log("Skin Helper Service --> " + try_decode(msg))
 
 def getLocalizedString(label_id):
     if 31000 <= label_id <= 33000:
@@ -64,13 +64,21 @@ def getJSON(method,params):
         logMsg("no result " + str(jsonobject))
         return None
 
+def try_decode(text, encoding="utf-8"):
+    if isinstance(text, str):
+        try:
+            return text.decode(encoding)
+        except:
+            pass
+    return text       
+        
 def setSkinVersion():
     skin = xbmc.getSkinDir()
     skinLabel = xbmcaddon.Addon(id=skin).getAddonInfo('name')
     skinVersion = xbmcaddon.Addon(id=skin).getAddonInfo('version')
-    WINDOW.setProperty("skinTitle",skinLabel + " - " + xbmc.getLocalizedString(19114) + ": " + skinVersion)
-    WINDOW.setProperty("skinVersion",xbmc.getLocalizedString(19114) + ": " + skinVersion)
-    WINDOW.setProperty("skinhelper.Version",ADDON_VERSION.replace(".",""))
+    WINDOW.setProperty("SkinHelper.skinTitle",skinLabel + " - " + xbmc.getLocalizedString(19114) + ": " + skinVersion)
+    WINDOW.setProperty("SkinHelper.skinVersion",xbmc.getLocalizedString(19114) + ": " + skinVersion)
+    WINDOW.setProperty("SkinHelper.Version",ADDON_VERSION.replace(".",""))
         
 def createListItem(item):
        

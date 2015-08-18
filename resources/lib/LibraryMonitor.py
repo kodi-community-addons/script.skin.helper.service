@@ -25,9 +25,9 @@ class LibraryMonitor(threading.Thread):
     unwatched = 1
     lastEpPath = ""
     lastMusicDbId = None
-    allStudioLogos = list()
-    studioLogosPath = None
-    LastStudioImagesPath = None
+    allStudioLogos = {}
+    allStudioLogosColor = {}
+    LastCustomStudioImagesPath = None
     delayedTaskInterval = 1800
     moviesetCache = {}
     extraFanartcache = {}
@@ -95,14 +95,14 @@ class LibraryMonitor(threading.Thread):
   
             else:
                 #reset window props
-                WINDOW.clearProperty("ListItemStudioLogo")
-                WINDOW.clearProperty('Duration')
-                WINDOW.setProperty("ExtraFanArtPath","") 
-                WINDOW.clearProperty("bannerArt") 
-                WINDOW.clearProperty("logoArt") 
-                WINDOW.clearProperty("cdArt")
-                WINDOW.clearProperty("songInfo")
-                WINDOW.setProperty("ExtraFanArtPath","")
+                WINDOW.clearProperty("SkinHelper.ListItemStudioLogo")
+                WINDOW.clearProperty('SkinHelper.ListItemDuration')
+                WINDOW.setProperty("SkinHelper.ExtraFanArtPath","") 
+                WINDOW.clearProperty("SkinHelper.Music.BannerArt") 
+                WINDOW.clearProperty("SkinHelper.Music.LogoArt") 
+                WINDOW.clearProperty("SkinHelper.Music.DiscArt")
+                WINDOW.clearProperty("SkinHelper.Music.Info")
+                WINDOW.setProperty("SkinHelper.ExtraFanArtPath","")
                 
             xbmc.sleep(150)
             self.delayedTaskInterval += 0.15
@@ -110,18 +110,20 @@ class LibraryMonitor(threading.Thread):
     def setMovieSetDetails(self):
         #get movie set details -- thanks to phil65 - used this idea from his skin info script
         
-        WINDOW.clearProperty('MovieSet.Title')
-        WINDOW.clearProperty('MovieSet.Runtime')
-        WINDOW.clearProperty('MovieSet.Duration')
-        WINDOW.clearProperty('MovieSet.Writer')
-        WINDOW.clearProperty('MovieSet.Director')
-        WINDOW.clearProperty('MovieSet.Genre')
-        WINDOW.clearProperty('MovieSet.Country')
-        WINDOW.clearProperty('MovieSet.Studio')
-        WINDOW.clearProperty('MovieSet.Years')
-        WINDOW.clearProperty('MovieSet.Year')
-        WINDOW.clearProperty('MovieSet.Count')
-        WINDOW.clearProperty('MovieSet.Plot')
+        WINDOW.clearProperty('SkinHelper.MovieSet.Title')
+        WINDOW.clearProperty('SkinHelper.MovieSet.Runtime')
+        WINDOW.clearProperty('SkinHelper.MovieSet.Duration')
+        WINDOW.clearProperty('SkinHelper.MovieSet.Duration.Hours')
+        WINDOW.clearProperty('SkinHelper.MovieSet.Duration.Minutes')
+        WINDOW.clearProperty('SkinHelper.MovieSet.Writer')
+        WINDOW.clearProperty('SkinHelper.MovieSet.Director')
+        WINDOW.clearProperty('SkinHelper.MovieSet.Genre')
+        WINDOW.clearProperty('SkinHelper.MovieSet.Country')
+        WINDOW.clearProperty('SkinHelper.MovieSet.Studio')
+        WINDOW.clearProperty('SkinHelper.MovieSet.Years')
+        WINDOW.clearProperty('SkinHelper.MovieSet.Year')
+        WINDOW.clearProperty('SkinHelper.MovieSet.Count')
+        WINDOW.clearProperty('SkinHelper.MovieSet.Plot')
             
         if xbmc.getCondVisibility("SubString(ListItem.Path,videodb://movies/sets/,left)"):
             
@@ -183,39 +185,34 @@ class LibraryMonitor(threading.Thread):
                         if item.get("studio"):
                             studio += [s for s in item["studio"] if s and s not in studio]
                         years.append(str(item['year']))
-                    WINDOW.setProperty('MovieSet.Plot', plot)
+                    WINDOW.setProperty('SkinHelper.MovieSet.Plot', plot)
                     if json_response['setdetails']['limits']['total'] > 1:
-                        WINDOW.setProperty('MovieSet.ExtendedPlot', title_header + title_list + "[CR]" + plot)
+                        WINDOW.setProperty('SkinHelper.MovieSet.ExtendedPlot', title_header + title_list + "[CR]" + plot)
                     else:
-                        WINDOW.setProperty('MovieSet.ExtendedPlot', plot)
-                    WINDOW.setProperty('MovieSet.Title', title_list)
-                    WINDOW.setProperty('MovieSet.Runtime', str(runtime / 60))
+                        WINDOW.setProperty('SkinHelper.MovieSet.ExtendedPlot', plot)
+                    WINDOW.setProperty('SkinHelper.MovieSet.Title', title_list)
+                    WINDOW.setProperty('SkinHelper.MovieSet.Runtime', str(runtime / 60))
                     durationString = self.getDurationString(runtime / 60)
                     if durationString:
-                        WINDOW.setProperty('MovieSet.Duration', durationString)
-                    WINDOW.setProperty('MovieSet.Writer', " / ".join(writer))
-                    WINDOW.setProperty('MovieSet.Director', " / ".join(director))
-                    WINDOW.setProperty('MovieSet.Genre', " / ".join(genre))
-                    WINDOW.setProperty('MovieSet.Country', " / ".join(country))
-                    WINDOW.setProperty('MovieSet.Studio', " / ".join(studio))
-                    listudio = None
-                    for item in studio:
-                        if item in self.allStudioLogos:
-                            listudio = item
-                            break
-                    if listudio:
-                        WINDOW.setProperty("ListItemStudio", listudio)
-                    else:
-                        WINDOW.clearProperty("ListItemStudio")
-                    
-                    WINDOW.setProperty('MovieSet.Years', " / ".join(years))
-                    WINDOW.setProperty('MovieSet.Year', years[0] + " - " + years[-1])
-                    WINDOW.setProperty('MovieSet.Count', str(json_response['setdetails']['limits']['total']))
-                    WINDOW.setProperty('MovieSet.WatchedCount', str(watchedcount))
-                    WINDOW.setProperty('MovieSet.UnWatchedCount', str(unwatchedcount))
+                        WINDOW.setProperty('SkinHelper.MovieSet.Duration', durationString[2])
+                        WINDOW.setProperty('SkinHelper.MovieSet.Duration.Hours', durationString[0])
+                        WINDOW.setProperty('SkinHelper.MovieSet.Duration.Minutes', durationString[1])
+                    WINDOW.setProperty('SkinHelper.MovieSet.Writer', " / ".join(writer))
+                    WINDOW.setProperty('SkinHelper.MovieSet.Director', " / ".join(director))
+                    WINDOW.setProperty('SkinHelper.MovieSet.Genre', " / ".join(genre))
+                    WINDOW.setProperty('SkinHelper.MovieSet.Country', " / ".join(country))
+                    studioString = " / ".join(studio)
+                    WINDOW.setProperty('SkinHelper.MovieSet.Studio', studioString)
+                    self.setStudioLogo(studioString)
+                   
+                    WINDOW.setProperty('SkinHelper.MovieSet.Years', " / ".join(years))
+                    WINDOW.setProperty('SkinHelper.MovieSet.Year', years[0] + " - " + years[-1])
+                    WINDOW.setProperty('SkinHelper.MovieSet.Count', str(json_response['setdetails']['limits']['total']))
+                    WINDOW.setProperty('SkinHelper.MovieSet.WatchedCount', str(watchedcount))
+                    WINDOW.setProperty('SkinHelper.MovieSet.UnWatchedCount', str(unwatchedcount))
                     
                     #rotate fanart from movies in set while listitem is in focus
-                    if xbmc.getCondVisibility("Skin.HasSetting(EnableExtraFanart)"):
+                    if xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnableExtraFanart)"):
                         count = 5
                         delaycount = 5
                         backgroundDelayStr = xbmc.getInfoLabel("skin.string(extrafanartdelay)")
@@ -226,7 +223,7 @@ class LibraryMonitor(threading.Thread):
                             
                             if count == delaycount:
                                 random.shuffle(set_fanart)
-                                WINDOW.setProperty('ExtraFanArtPath', set_fanart[0])
+                                WINDOW.setProperty('SkinHelper.ExtraFanArtPath', set_fanart[0])
                                 count = 0
                             else:
                                 xbmc.sleep(1000)
@@ -238,62 +235,123 @@ class LibraryMonitor(threading.Thread):
             if (xbmc.getCondVisibility("Container.Content(plugins) | !IsEmpty(Container.PluginName)")):
                 AddonName = xbmc.getInfoLabel('Container.PluginName')
                 AddonName = xbmcaddon.Addon(AddonName).getAddonInfo('name')
-                WINDOW.setProperty("Player.AddonName", AddonName)
+                WINDOW.setProperty("SkinHelper.Player.AddonName", AddonName)
             else:
-                WINDOW.clearProperty("Player.AddonName")
+                WINDOW.clearProperty("SkinHelper.Player.AddonName")
     
-    def setStudioLogo(self):
-        studio = xbmc.getInfoLabel('ListItem.Studio')
+    def setStudioLogo(self, studio=None):
+        if not studio:
+            studio = xbmc.getInfoLabel('ListItem.Studio')
         studiologo = None
+        studiologoColor = None
         
-        #find logo if multiple found
+        studios = []
         if "/" in studio:
             studios = studio.split(" / ")
-            count = 0
-            for item in studios:
-                if item in self.allStudioLogos:
-                    studiologo = self.studioLogosPath + studios[count]
-                    break
-                count += 1
+            WINDOW.setProperty("SkinHelper.ListItemStudio", studios[0])
+        else:
+            studios.append(studio)
+            WINDOW.setProperty("SkinHelper.ListItemStudio", studio)
         
-        #find logo normal
-        if studio in self.allStudioLogos:
-            studiologo = self.studioLogosPath + studio
-        else:
-            #find logo by substituting characters
-            studio = studio.replace(" (US)","")
-            studio = studio.replace(" (UK)","")
-            studio = studio.replace(" (CA)","")
-            for logo in self.allStudioLogos:
-                if logo.lower() == studio.lower():
-                    studiologo = self.studioLogosPath + logo
-
+        for studio in studios:
+            studio = studio.lower()
+            #find logo normal
+            if self.allStudioLogos.has_key(studio):
+                studiologo = self.allStudioLogos[studio]
+            if self.allStudioLogosColor.has_key(studio):
+                studiologoColor = self.allStudioLogosColor[studio]    
+            
+            if not studiologo and not studiologoColor:
+                #find logo by substituting characters
+                if " (" in studio:
+                    studio = studio.split(" (")[-1]
+                    if self.allStudioLogos.has_key(studio):
+                        studiologo = self.allStudioLogos[studio]
+                    if self.allStudioLogosColor.has_key(studio):
+                        studiologoColor = self.allStudioLogosColor[studio]    
+        
         if studiologo:
-            WINDOW.setProperty("ListItemStudioLogo", studiologo + ".png")
+            WINDOW.setProperty("SkinHelper.ListItemStudioLogo", studiologo)
         else:
-            WINDOW.clearProperty("ListItemStudioLogo")
+            WINDOW.clearProperty("SkinHelper.ListItemStudioLogo")
+        
+        if studiologoColor:
+            WINDOW.setProperty("SkinHelper.ListItemStudioLogoColor", studiologo)
+        else:
+            WINDOW.clearProperty("SkinHelper.ListItemStudioLogoColor")
                 
     def getStudioLogos(self):
         #fill list with all studio logos
-        StudioImagesCustompath = xbmc.getInfoLabel("Skin.String(StudioImagesCustompath)")
-        if StudioImagesCustompath:
-            path = StudioImagesCustompath
-            if not (path.endswith("/") or path.endswith("\\")):
-                path = path + os.sep()
-        else:
-            path = "special://skin/extras/flags/studios/"
-        
-        if path != self.LastStudioImagesPath:
-            self.LastStudioImagesPath = path
-            allLogos = list()
-            dirs, files = xbmcvfs.listdir(path)
-            for file in files:
-                file = file.replace(".png","")
-                file = file.replace(".PNG","")
-                allLogos.append(file)
+        allLogos = {}
+        allLogosColor = {}
+        allPaths = []
+        allPathsColor = []
+
+        CustomStudioImagesPath = xbmc.getInfoLabel("Skin.String(SkinHelper.CustomStudioImagesPath)")
+        if CustomStudioImagesPath + xbmc.getSkinDir() != self.LastCustomStudioImagesPath:
+            #only proceed if the custom path or skin has changed...
+            self.LastCustomStudioImagesPath = CustomStudioImagesPath + xbmc.getSkinDir()
             
-            self.studioLogosPath = path
-            self.allStudioLogos = set(allLogos)
+            #add the custom path to the list
+            if CustomStudioImagesPath:
+                path = CustomStudioImagesPath
+                if not (CustomStudioImagesPath.endswith("/") or CustomStudioImagesPath.endswith("\\")):
+                    CustomStudioImagesPath = CustomStudioImagesPath + os.sep()
+                    allPaths.append(CustomStudioImagesPath)
+            
+            #add skin provided paths
+            allPaths.append("special://skin/extras/flags/studios/")
+            allPathsColor.append("special://skin/extras/flags/studioscolor/")
+            
+            #add images provided by the image resource addons
+            allPaths.append("resource://resource.images.studios.white/")
+            allPathsColor.append("resource://resource.images.studios.coloured/")
+            allPaths.append("special://home/addons/resource.images.studios.white/")
+            allPathsColor.append("special://home/addons/resource.images.studios.coloured/")
+            
+            #check all white logos
+            for path in allPaths:               
+                if xbmcvfs.exists(path):
+                    dirs, files = xbmcvfs.listdir(path)
+                    for file in files:
+                        name = file.split(".")[0].lower()
+                        if not allLogos.has_key(name):
+                            allLogos[name] = path + file
+                    for dir in dirs:
+                        dirs2, files2 = xbmcvfs.listdir(os.path.join(path,dir))
+                        for file in files2:
+                            name = dir + "/" + file.split(".")[0].lower()
+                            if not allLogos.has_key(name):
+                                if "/" in path:
+                                    sep = "/"
+                                else:
+                                    sep = "\\"
+                                allLogos[name] = path + dir + sep + file
+                    
+            #check all color logos
+            for path in allPathsColor:
+                if xbmcvfs.exists(path):
+                    dirs, files = xbmcvfs.listdir(path)
+                    for file in files:
+                        name = file.split(".")[0].lower()
+                        if not allLogos.has_key(name):
+                            allLogos[name] = path + file
+                    for dir in dirs:
+                        dirs2, files2 = xbmcvfs.listdir(os.path.join(path,dir))
+                        for file in files2:
+                            name = dir + "/" + file.split(".")[0].lower()
+                            if not allLogos.has_key(name):
+                                if "/" in path:
+                                    sep = "/"
+                                else:
+                                    sep = "\\"
+                                allLogos[name] = path + dir + sep + file
+            
+            #assign all found logos in the list
+            self.allStudioLogos = allLogos
+            self.allStudioLogosColor = allLogosColor
+            print "all studio logos--->"
+            print allLogos
     
     def focusEpisode(self):
         # monitor episodes for auto focus first unwatched
@@ -351,24 +409,31 @@ class LibraryMonitor(threading.Thread):
             currentDuration = xbmc.getInfoLabel("ListItem.Duration")
             durationString = self.getDurationString(currentDuration)
             if durationString:
-                WINDOW.setProperty('Duration', durationString)
+                WINDOW.setProperty('SkinHelper.ListItemDuration', durationString[2])
+                WINDOW.setProperty('SkinHelper.ListItemDuration.Hours', durationString[0])
+                WINDOW.setProperty('SkinHelper.ListItemDuration.Minutes', durationString[1])
             else:
-                WINDOW.clearProperty('Duration')
+                WINDOW.clearProperty('SkinHelper.ListItemDuration')
+                WINDOW.clearProperty('SkinHelper.ListItemDuration.Hours')
+                WINDOW.clearProperty('SkinHelper.ListItemDuration.Minutes')
         else:
-            WINDOW.clearProperty('Duration')
+            WINDOW.clearProperty('SkinHelper.ListItemDuration')
+            WINDOW.clearProperty('SkinHelper.ListItemDuration.Hours')
+            WINDOW.clearProperty('SkinHelper.ListItemDuration.Minutes')
         
     def getDurationString(self, duration):
         if duration == None or duration == 0:
             return None
         try:
             full_minutes = int(duration)
-            minutes = full_minutes % 60
-            hours   = full_minutes // 60
-            durationString = str(hours) + ':' + str(minutes).zfill(2)
+            minutes = str(full_minutes % 60)
+            minutes = str(minutes).zfill(2)
+            hours   = str(full_minutes // 60)
+            durationString = hours + ':' + minutes
         except Exception as e:
             logMsg("ERROR in getDurationString ! --> " + str(e), 0)
             return None
-        return durationString
+        return ( hours, minutes, durationString )
             
     def getViewId(self, viewString):
         # get all views from views-file
@@ -390,11 +455,11 @@ class LibraryMonitor(threading.Thread):
         if self.lastMusicDbId == dbID:
             return
         
-        WINDOW.setProperty("ExtraFanArtPath","") 
-        WINDOW.clearProperty("bannerArt") 
-        WINDOW.clearProperty("logoArt") 
-        WINDOW.clearProperty("cdArt")
-        WINDOW.clearProperty("songInfo")
+        WINDOW.setProperty("SkinHelper.ExtraFanArtPath","") 
+        WINDOW.clearProperty("SkinHelper.Music.BannerArt") 
+        WINDOW.clearProperty("SkinHelper.Music.LogoArt") 
+        WINDOW.clearProperty("SkinHelper.Music.DiscArt")
+        WINDOW.clearProperty("SkinHelper.Music.Info")
         
         self.lastMusicDbId = dbID
         
@@ -402,40 +467,40 @@ class LibraryMonitor(threading.Thread):
             return
         
         #get the items from cache first
-        if self.musicArtCache.has_key(dbID + "cdArt"):
+        if self.musicArtCache.has_key(dbID + "SkinHelper.Music.DiscArt"):
             cacheFound = True
-            if self.musicArtCache[dbID + "cdArt"] == "None":
-                WINDOW.clearProperty("cdArt")   
+            if self.musicArtCache[dbID + "SkinHelper.Music.DiscArt"] == "None":
+                WINDOW.clearProperty("SkinHelper.Music.DiscArt")   
             else:
-                WINDOW.setProperty("cdArt",self.musicArtCache[dbID + "cdArt"])
+                WINDOW.setProperty("SkinHelper.Music.DiscArt",self.musicArtCache[dbID + "SkinHelper.Music.DiscArt"])
 
-        if self.musicArtCache.has_key(dbID + "logoArt"):
+        if self.musicArtCache.has_key(dbID + "SkinHelper.Music.LogoArt"):
             cacheFound = True
-            if self.musicArtCache[dbID + "logoArt"] == "None":
-                WINDOW.clearProperty("logoArt")   
+            if self.musicArtCache[dbID + "SkinHelper.Music.LogoArt"] == "None":
+                WINDOW.clearProperty("SkinHelper.Music.LogoArt")   
             else:
-                WINDOW.setProperty("logoArt",self.musicArtCache[dbID + "logoArt"])
+                WINDOW.setProperty("SkinHelper.Music.LogoArt",self.musicArtCache[dbID + "SkinHelper.Music.LogoArt"])
                 
-        if self.musicArtCache.has_key(dbID + "bannerArt"):
+        if self.musicArtCache.has_key(dbID + "SkinHelper.Music.BannerArt"):
             cacheFound = True
-            if self.musicArtCache[dbID + "bannerArt"] == "None":
-                WINDOW.clearProperty("bannerArt")   
+            if self.musicArtCache[dbID + "SkinHelper.Music.BannerArt"] == "None":
+                WINDOW.clearProperty("SkinHelper.Music.BannerArt")   
             else:
-                WINDOW.setProperty("bannerArt",self.musicArtCache[dbID + "bannerArt"])
+                WINDOW.setProperty("SkinHelper.Music.BannerArt",self.musicArtCache[dbID + "SkinHelper.Music.BannerArt"])
         
         if self.musicArtCache.has_key(dbID + "extraFanArt"):
             cacheFound = True
             if self.musicArtCache[dbID + "extraFanArt"] == "None":
-                WINDOW.setProperty("ExtraFanArtPath","")   
+                WINDOW.setProperty("SkinHelper.ExtraFanArtPath","")   
             else:
-                WINDOW.setProperty("ExtraFanArtPath",self.musicArtCache[dbID + "extraFanArt"])
+                WINDOW.setProperty("SkinHelper.ExtraFanArtPath",self.musicArtCache[dbID + "extraFanArt"])
                 
-        if self.musicArtCache.has_key(dbID + "songInfo"):
+        if self.musicArtCache.has_key(dbID + "SkinHelper.Music.Info"):
             cacheFound = True
-            if self.musicArtCache[dbID + "songInfo"] == "None":
-                WINDOW.setProperty("songInfo","")   
+            if self.musicArtCache[dbID + "SkinHelper.Music.Info"] == "None":
+                WINDOW.setProperty("SkinHelper.Music.Info","")   
             else:
-                WINDOW.setProperty("songInfo",self.musicArtCache[dbID + "songInfo"])
+                WINDOW.setProperty("SkinHelper.Music.Info",self.musicArtCache[dbID + "SkinHelper.Music.Info"])
                
         if not cacheFound:
             
@@ -443,10 +508,10 @@ class LibraryMonitor(threading.Thread):
             path = None
             json_response = None
             cdArt = None
-            logoArt = None
-            bannerArt = None
+            SkinHelper.Music.LogoArt = None
+            SkinHelper.Music.BannerArt = None
             extraFanArt = None
-            songInfo = None
+            SkinHelper.Music.Info = None
             folderPath = xbmc.getInfoLabel("ListItem.FolderPath")
             
             if xbmc.getCondVisibility("Container.Content(songs) | Container.Content(singles)"):
@@ -506,7 +571,7 @@ class LibraryMonitor(threading.Thread):
                     elif result.has_key("songdetails"):
                         song = result["songdetails"]
                         path = song["file"]
-                        if not songInfo:
+                        if not SkinHelper.Music.Info:
                             json_response2 = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "AudioLibrary.GetAlbumDetails", "params": { "albumid": %s, "properties": [ "musicbrainzalbumid","description" ] }, "id": "1"}'%song["albumid"])
                             json_response2 = json.loads(json_response2)
                             if json_response2.has_key("result"):
@@ -514,8 +579,8 @@ class LibraryMonitor(threading.Thread):
                                 if result.has_key("albumdetails"):
                                     albumdetails = result["albumdetails"]
                                     if albumdetails["description"]:
-                                        songInfo = albumdetails["description"]
-                    if not songInfo and song:
+                                        SkinHelper.Music.Info = albumdetails["description"]
+                    if not SkinHelper.Music.Info and song:
                         json_response2 = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "AudioLibrary.GetArtistDetails", "params": { "artistid": %s, "properties": [ "musicbrainzartistid","description" ] }, "id": "1"}'%song["artistid"][0])
                         json_response2 = json.loads(json_response2)
                         if json_response2.has_key("result"):
@@ -523,7 +588,7 @@ class LibraryMonitor(threading.Thread):
                             if result.has_key("artistdetails"):
                                 artistdetails = result["artistdetails"]
                                 if artistdetails["description"]:
-                                    songInfo = artistdetails["description"]
+                                    SkinHelper.Music.Info = artistdetails["description"]
 
             if path:
                 if "\\" in path:
@@ -552,55 +617,55 @@ class LibraryMonitor(threading.Thread):
                 
                 #banner
                 if xbmcvfs.exists(os.path.join(path,"banner.jpg")):
-                    bannerArt = os.path.join(path,"banner.jpg")
+                    SkinHelper.Music.BannerArt = os.path.join(path,"banner.jpg")
                 else:
                     imgPath = os.path.join(path.replace(path.split(delim)[-2]+delim,""),"banner.jpg")
                     if xbmcvfs.exists(imgPath):
-                        bannerArt = imgPath
+                        SkinHelper.Music.BannerArt = imgPath
                         
                 #logo
                 imgPath = os.path.join(path,"logo.png")
                 if xbmcvfs.exists(imgPath):
-                    logoArt = imgPath
+                    SkinHelper.Music.LogoArt = imgPath
                 else:
                     imgPath = os.path.join(path.replace(path.split(delim)[-2]+delim,""),"logo.png")
                     if xbmcvfs.exists(imgPath):
-                        logoArt = imgPath
+                        SkinHelper.Music.LogoArt = imgPath
    
             if extraFanArt:
-                WINDOW.setProperty("ExtraFanArtPath",extraFanArt)
+                WINDOW.setProperty("SkinHelper.ExtraFanArtPath",extraFanArt)
                 self.musicArtCache[dbID + "extraFanArt"] = extraFanArt
             else:
-                WINDOW.setProperty("ExtraFanArtPath","")
+                WINDOW.setProperty("SkinHelper.ExtraFanArtPath","")
                 self.musicArtCache[dbID + "extraFanArt"] = "None"
                     
             if cdArt:
-                WINDOW.setProperty("CdArt",cdArt)
-                self.musicArtCache[dbID + "cdArt"] = cdArt
+                WINDOW.setProperty("SkinHelper.Music.DiscArt",cdArt)
+                self.musicArtCache[dbID + "SkinHelper.Music.DiscArt"] = cdArt
             else:
-                WINDOW.setProperty("ExtraFanArtPath","")
-                self.musicArtCache[dbID + "cdArt"] = "None"
+                WINDOW.setProperty("SkinHelper.Music.DiscArt","")
+                self.musicArtCache[dbID + "SkinHelper.Music.DiscArt"] = "None"
                 
-            if bannerArt:
-                WINDOW.setProperty("bannerArt",bannerArt)
-                self.musicArtCache[dbID + "bannerArt"] = bannerArt
+            if SkinHelper.Music.BannerArt:
+                WINDOW.setProperty("SkinHelper.Music.BannerArt",SkinHelper.Music.BannerArt)
+                self.musicArtCache[dbID + "SkinHelper.Music.BannerArt"] = SkinHelper.Music.BannerArt
             else:
-                WINDOW.clearProperty("bannerArt")
-                self.musicArtCache[dbID + "bannerArt"] = "None"
+                WINDOW.clearProperty("SkinHelper.Music.BannerArt")
+                self.musicArtCache[dbID + "SkinHelper.Music.BannerArt"] = "None"
 
-            if logoArt:
-                WINDOW.setProperty("logoArt",logoArt)
-                self.musicArtCache[dbID + "logoArt"] = logoArt
+            if SkinHelper.Music.LogoArt:
+                WINDOW.setProperty("SkinHelper.Music.LogoArt",SkinHelper.Music.LogoArt)
+                self.musicArtCache[dbID + "SkinHelper.Music.LogoArt"] = SkinHelper.Music.LogoArt
             else:
-                WINDOW.clearProperty("logoArt")
-                self.musicArtCache[dbID + "logoArt"] = "None"
+                WINDOW.clearProperty("SkinHelper.Music.LogoArt")
+                self.musicArtCache[dbID + "SkinHelper.Music.LogoArt"] = "None"
 
-            if songInfo:
-                WINDOW.setProperty("songInfo",songInfo)
-                self.musicArtCache[dbID + "songInfo"] = songInfo
+            if SkinHelper.Music.Info:
+                WINDOW.setProperty("SkinHelper.Music.Info",SkinHelper.Music.Info)
+                self.musicArtCache[dbID + "SkinHelper.Music.Info"] = SkinHelper.Music.Info
             else:
-                WINDOW.clearProperty("songInfo")
-                self.musicArtCache[dbID + "songInfo"] = "None"
+                WINDOW.clearProperty("SkinHelper.Music.Info")
+                self.musicArtCache[dbID + "SkinHelper.Music.Info"] = "None"
                 
     def checkExtraFanArt(self):
         
@@ -616,14 +681,14 @@ class LibraryMonitor(threading.Thread):
         #get the item from cache first
         if self.extraFanartcache.has_key(self.liPath):
             if self.extraFanartcache[self.liPath] == "None":
-                WINDOW.setProperty("ExtraFanArtPath","")
+                WINDOW.setProperty("SkinHelper.ExtraFanArtPath","")
                 return
             else:
-                WINDOW.setProperty("ExtraFanArtPath",self.extraFanartcache[self.liPath])
+                WINDOW.setProperty("SkinHelper.ExtraFanArtPath",self.extraFanartcache[self.liPath])
                 return
         
-        if not xbmc.getCondVisibility("Skin.HasSetting(EnableExtraFanart) + [Window.IsActive(videolibrary) | Window.IsActive(movieinformation)] + !Container.Scrolling"):
-            WINDOW.setProperty("ExtraFanArtPath","")
+        if not xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnableExtraFanart) + [Window.IsActive(videolibrary) | Window.IsActive(movieinformation)] + !Container.Scrolling"):
+            WINDOW.setProperty("SkinHelper.ExtraFanArtPath","")
             return
         
         if (self.liPath != None and (xbmc.getCondVisibility("Container.Content(movies) | Container.Content(seasons) | Container.Content(episodes) | Container.Content(tvshows)")) and not "videodb:" in self.liPath):
@@ -633,7 +698,7 @@ class LibraryMonitor(threading.Thread):
             
             # do not set extra fanart for virtuals
             if (("plugin://" in self.liPath) or ("addon://" in self.liPath) or ("sources" in self.liPath) or ("plugin://" in containerPath) or ("sources://" in containerPath) or ("plugin://" in containerPath)):
-                WINDOW.setProperty("ExtraFanArtPath","")
+                WINDOW.setProperty("SkinHelper.ExtraFanArtPath","")
                 self.extraFanartcache[self.liPath] = "None"
                 lastPath = None
             else:
@@ -653,15 +718,15 @@ class LibraryMonitor(threading.Thread):
                         
                 if (efaPath != None and efaFound == True):
                     if lastPath != efaPath:
-                        WINDOW.setProperty("ExtraFanArtPath",efaPath)
+                        WINDOW.setProperty("SkinHelper.ExtraFanArtPath",efaPath)
                         self.extraFanartcache[self.liPath] = efaPath
                         lastPath = efaPath       
                 else:
-                    WINDOW.setProperty("ExtraFanArtPath","")
+                    WINDOW.setProperty("SkinHelper.ExtraFanArtPath","")
                     self.extraFanartcache[self.liPath] = "None"
                     lastPath = None
         else:
-            WINDOW.setProperty("ExtraFanArtPath","")
+            WINDOW.setProperty("SkinHelper.ExtraFanArtPath","")
             lastPath = None
 
 class Kodi_Monitor(xbmc.Monitor):
@@ -670,7 +735,7 @@ class Kodi_Monitor(xbmc.Monitor):
         xbmc.Monitor.__init__(self)
     
     def onDatabaseUpdated(self, database):
-        #update nextup list when library has changed
+        #update widgets when library has changed
         WINDOW = xbmcgui.Window(10000)
         WINDOW.setProperty("widgetreload", datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         #refresh some widgets when library has changed
@@ -690,7 +755,7 @@ class Kodi_Monitor(xbmc.Monitor):
         if method == "Player.OnPlay":
             
             try:
-                secondsToDisplay = int(xbmc.getInfoLabel("Skin.String(ShowInfoAtPlaybackStart)"))
+                secondsToDisplay = int(xbmc.getInfoLabel("Skin.String(SkinHelper.ShowInfoAtPlaybackStart)"))
             except:
                 secondsToDisplay = 0
             

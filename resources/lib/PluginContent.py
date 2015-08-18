@@ -251,17 +251,17 @@ def getBackgrounds():
     xbmcplugin.setContent(int(sys.argv[1]), 'files')
     
     globalBackgrounds = []
-    globalBackgrounds.append((ADDON.getLocalizedString(32038), "GlobalFanartBackground"))
-    globalBackgrounds.append((ADDON.getLocalizedString(32039), "AllMoviesBackground"))
-    globalBackgrounds.append((ADDON.getLocalizedString(32040), "RecentMoviesBackground"))
-    globalBackgrounds.append((ADDON.getLocalizedString(32041), "InProgressMoviesBackground"))
-    globalBackgrounds.append((ADDON.getLocalizedString(32042), "UnwatchedMoviesBackground"))
-    globalBackgrounds.append((ADDON.getLocalizedString(32043), "AllTvShowsBackground"))
-    globalBackgrounds.append((ADDON.getLocalizedString(32044), "RecentEpisodesBackground"))
-    globalBackgrounds.append((ADDON.getLocalizedString(32045), "InProgressShowsBackground"))
-    globalBackgrounds.append((ADDON.getLocalizedString(32046), "PicturesBackground"))
-    globalBackgrounds.append((ADDON.getLocalizedString(32047), "AllMusicVideosBackground"))
-    globalBackgrounds.append((ADDON.getLocalizedString(32048), "AllMusicBackground"))
+    globalBackgrounds.append((ADDON.getLocalizedString(32038), "SkinHelper.GlobalFanartBackground"))
+    globalBackgrounds.append((ADDON.getLocalizedString(32039), "SkinHelper.AllMoviesBackground"))
+    globalBackgrounds.append((ADDON.getLocalizedString(32040), "SkinHelper.RecentMoviesBackground"))
+    globalBackgrounds.append((ADDON.getLocalizedString(32041), "SkinHelper.InProgressMoviesBackground"))
+    globalBackgrounds.append((ADDON.getLocalizedString(32042), "SkinHelper.UnwatchedMoviesBackground"))
+    globalBackgrounds.append((ADDON.getLocalizedString(32043), "SkinHelper.AllTvShowsBackground"))
+    globalBackgrounds.append((ADDON.getLocalizedString(32044), "SkinHelper.RecentEpisodesBackground"))
+    globalBackgrounds.append((ADDON.getLocalizedString(32045), "SkinHelper.InProgressShowsBackground"))
+    globalBackgrounds.append((ADDON.getLocalizedString(32046), "SkinHelper.PicturesBackground"))
+    globalBackgrounds.append((ADDON.getLocalizedString(32047), "SkinHelper.AllMusicVideosBackground"))
+    globalBackgrounds.append((ADDON.getLocalizedString(32048), "SkinHelper.AllMusicBackground"))
     
     for node in globalBackgrounds:
         label = node[0]
@@ -410,7 +410,7 @@ def getSimilarMovies(limit):
             originalTitle = item["title"]
             #get all movies from the same genre
             for genre in genres:
-                json_query_string = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetMovies", "params": { "sort": { "order": "descending", "method": "random" }, "filter": {"and": [{"operator":"is", "field":"genre", "value":"' + genre + '"}, {"operator":"is", "field":"playcount", "value":"0"}]}, "properties": [ "title", "playcount", "plot", "file", "genre", "rating", "resume", "art", "streamdetails", "year", "mpaa", "runtime", "writer", "cast", "dateadded", "lastplayed", "tagline" ],"limits":{"end":10} }, "id": "1"}')
+                json_query_string = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetMovies", "params": { "sort": { "order": "descending", "method": "random" }, "filter": {"and": [{"operator":"is", "field":"genre", "value":"' + genre.encode('utf-8') + '"}, {"operator":"is", "field":"playcount", "value":"0"}]}, "properties": [ "title", "playcount", "plot", "file", "genre", "rating", "resume", "art", "streamdetails", "year", "mpaa", "runtime", "writer", "cast", "dateadded", "lastplayed", "tagline" ],"limits":{"end":10} }, "id": "1"}')
                 json_result = json.loads(json_query_string)
                 if json_result.has_key('result') and json_result['result'].has_key('movies'):
                     for item in json_result['result']['movies']:
@@ -725,6 +725,8 @@ def getFavouriteMedia(limit):
                             xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=tvshowpath, listitem=liz)                   
                 if fav["type"] == "media":
                     path = fav["path"]
+                    if isinstance(path, unicode):
+                        path = path.encode("utf-8")
                     if "/" in path:
                         sep = "/"
                     else:
