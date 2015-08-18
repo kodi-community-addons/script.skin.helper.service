@@ -31,7 +31,7 @@ Important settings:
 | setting name 		| how to set 				| description |
 |:---------------------- | :------------------------------------- | :----------- |
 |SkinHelper.EnableExtraFanart	| Skin.ToggleSetting(SkinHelper.EnableExtraFanart)	| enables the extrafanart background scanner |
-|SkinHelper.StudioImagesPath | Skin.SetString(SkinHelper.StudioImagesPath,[PATH])| if you want the user (or yourself as skinner) be able to set the path to the studio logos. If empty it will try to locate the images (later to be replaced with the new image resource packs in Kodi 16)|
+|SkinHelper.CustomStudioImagesPath | Skin.SetString(SkinHelper.CustomStudioImagesPath,[PATH])| if you want the user (or yourself as skinner) be able to set the path to the studio logos. If empty it will try to locate the images (later to be replaced with the new image resource packs in Kodi 16)|
 |SkinHelper.ShowInfoAtPlaybackStart	| Skin.SetNumeric(SkinHelper.ShowInfoAtPlaybackStart)	| Show OSD info panel at playback start for number of seconds (0 disables this) |
 |SkinHelper.RandomFanartDelay	| Skin.SetNumeric(SkinHelper.RandomFanartDelay)	| Sets the time in seconds for the interval of the rotating backgrounds provided by the script (0 disables this) |
 |CustomPicturesBackgroundPath	| Skin.SetPath(CustomPicturesBackgroundPath)	| Sets a custom path from which the global pictures background should be pulled from. (empty uses all picture sources) |
@@ -59,12 +59,32 @@ Some additional window properties that can be used in the video library.
 | property 			| description |
 |:-----------------------------	| :----------- |
 |Window(Home).Property(SkinHelper.ExtraFanArtPath) | will return the extrafanart path for the listitem, empty if none is found. This window property is only available when browsing the video library and when the following Skin Bool is true: SkinHelper.EnableExtraFanart|
-|Window(Home).Property(SkinHelper.ListItemStudioLogo) | Will return the full image path of the studio logo for the current selected item in a list. |
 |Window(Home).Property(SkinHelper.Player.AddonName) | If you want to display the name of the addon in the player |
-|Window(Home).Property(SkinHelper.ListItemDuration) | The duration of the current listitem in hours, for example 1:20 |
+| Window(Home).Property(SkinHelper.ListItemDuration) | Formatted duration hours:minutes of the current listitem total runtime |
+| Window(Home).Property(SkinHelper.ListItemDuration.Hours) | Only the hours part of the current listitem duration |
+| Window(Home).Property(SkinHelper.ListItemDuration.Minutes) | Only the minutes part of the current listitem duration |
 
 ________________________________________________________________________________________________________
 
+
+
+________________________________________________________________________________________________________
+#### Studio Logos
+The script can provide you the full path of the studio logo found for the selected listitem.
+It will do that by looking up all found studio images and do a smart compare to match the correct one.
+If the listitem has multiple studios it will return the logo from the first studio found in the list thas has a logo.
+This will prevent you from having to sort out that logic yourself in your skin.
+
+The script handles this logic to locate the fanart:
+1. custom path set by you in the skin: Skin.String(SkinHelper.CustomStudioImagesPath)
+2. try to locate the images in skin\extras\flags\studios  (and flags\studioscolor for coloured images)
+3. try to locate the images in the new image resource addons provided by the Kodi team
+
+| property 			| description |
+|:-----------------------------	| :----------- |
+|Window(Home).Property(SkinHelper.ListItemStudioLogo) | Will return the full image path of the (default/white) studio logo for the current selected item in a list. |
+|Window(Home).Property(SkinHelper.ListItemStudioLogoColor) | Will return the full image path of the coloured studio logo for the current selected item in a list. |
+|Window(Home).Property(SkinHelper.ListItemStudio) | Will just return the first studio of the listitem if you want to locate the images yourself. |
 
 
 #### Movie sets window properties
@@ -74,7 +94,9 @@ If the selected listitem in the videolibrary is a movie set, some additional win
 | :----------------------------	| :----------- |
 | Window(Home).Property(SkinHelper.MovieSet.Title) | Title of the movie set |
 | Window(Home).Property(SkinHelper.MovieSet.Runtime) | Total runtime (in minutes) of the movie set |
-| Window(Home).Property(SkinHelper.MovieSet.Duration) | Total runtime (in hours) of the movie set |
+| Window(Home).Property(SkinHelper.MovieSet.Duration) | Formatted duration hours:minutes of the movieset total runtime |
+| Window(Home).Property(SkinHelper.MovieSet.Duration.Hours) | Only the hours part of the formatted duration |
+| Window(Home).Property(SkinHelper.MovieSet.Duration.Minutes) | Only the minutes part of the formatted duration |
 | Window(Home).Property(SkinHelper.MovieSet.Writer) | All writers of the movies in the set |
 | Window(Home).Property(SkinHelper.MovieSet.Director) | All directors of the movies in the set |
 | Window(Home).Property(SkinHelper.MovieSet.Genre) | All genres of the movies in the set |
