@@ -76,9 +76,13 @@ If the listitem has multiple studios it will return the logo from the first stud
 This will prevent you from having to sort out that logic yourself in your skin.
 
 The script handles this logic to locate the fanart:
+
 1. custom path set by you in the skin: Skin.String(SkinHelper.CustomStudioImagesPath)
+
 2. try to locate the images in skin\extras\flags\studios  (and flags\studioscolor for coloured images)
+
 3. try to locate the images in the new image resource addons provided by the Kodi team
+
 
 | property 			| description |
 |:-----------------------------	| :----------- |
