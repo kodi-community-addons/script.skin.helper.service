@@ -30,10 +30,10 @@ Important settings:
 
 | setting name 		| how to set 				| description |
 |:---------------------- | :------------------------------------- | :----------- |
-|EnableExtraFanart	| Skin.ToggleSetting(EnableExtraFanart)	| enables the extrafanart background scanner |
-|StudioImagesCustompath | Skin.SetString(StudioImagesCustompath,[PATH])| if you want the user (or yourself as skinner) be able to set a custom path to studio logos. If empty it will use the logos provided by the script (later to be replaced with the new image resource packs in Kodi 16)|
-|ShowInfoAtPlaybackStart	| Skin.SetNumeric(ShowInfoAtPlaybackStart)	| Show OSD info panel at playback start for number of seconds (0 disables this) |
-|RandomFanartDelay	| Skin.SetNumeric(RandomFanartDelay)	| Sets the time in seconds for the interval of the rotating backgrounds provided by the script (0 disables this) |
+|SkinHelper.EnableExtraFanart	| Skin.ToggleSetting(SkinHelper.EnableExtraFanart)	| enables the extrafanart background scanner |
+|SkinHelper.StudioImagesPath | Skin.SetString(SkinHelper.StudioImagesPath,[PATH])| if you want the user (or yourself as skinner) be able to set the path to the studio logos. If empty it will try to locate the images (later to be replaced with the new image resource packs in Kodi 16)|
+|SkinHelper.ShowInfoAtPlaybackStart	| Skin.SetNumeric(SkinHelper.ShowInfoAtPlaybackStart)	| Show OSD info panel at playback start for number of seconds (0 disables this) |
+|SkinHelper.RandomFanartDelay	| Skin.SetNumeric(SkinHelper.RandomFanartDelay)	| Sets the time in seconds for the interval of the rotating backgrounds provided by the script (0 disables this) |
 |CustomPicturesBackgroundPath	| Skin.SetPath(CustomPicturesBackgroundPath)	| Sets a custom path from which the global pictures background should be pulled from. (empty uses all picture sources) |
 ________________________________________________________________________________________________________
 ________________________________________________________________________________________________________
@@ -49,8 +49,8 @@ ________________________________________________________________________________
 #### General window Properties
 The window properties can be called in your skin like this: $INFO[Window(Home).Property(propertyname)]
 ```
-Window(Home).Property(skinTitle)  --> your skin name including the version
-Window(Home).Property(skinVersion) --> only the version of your skin
+Window(Home).Property(SkinHelper.skinTitle)  --> your skin name including the version
+Window(Home).Property(SkinHelper.skinVersion) --> only the version of your skin
 ```
 ________________________________________________________________________________________________________
 #### Video library window properties
@@ -58,10 +58,10 @@ Some additional window properties that can be used in the video library.
 
 | property 			| description |
 |:-----------------------------	| :----------- |
-|Window(Home).Property(ExtraFanArtPath) | will return the extrafanart path for the listitem, empty if none is found. This window property is only available when browsing the video library and when the following Skin Bool is true: EnableExtraFanart|
-|Window(Home).Property(ListItemStudioLogo) | Will return the full image path of the studio logo for the current selected item in a list. |
-|Window(Home).Property(Player.AddonName) | If you want to display the name of the addon in the player |
-|Window(Home).Property(Duration) | The duration of the current listitem in hours, for example 1:20 |
+|Window(Home).Property(SkinHelper.ExtraFanArtPath) | will return the extrafanart path for the listitem, empty if none is found. This window property is only available when browsing the video library and when the following Skin Bool is true: SkinHelper.EnableExtraFanart|
+|Window(Home).Property(SkinHelper.ListItemStudioLogo) | Will return the full image path of the studio logo for the current selected item in a list. |
+|Window(Home).Property(SkinHelper.Player.AddonName) | If you want to display the name of the addon in the player |
+|Window(Home).Property(SkinHelper.ListItemDuration) | The duration of the current listitem in hours, for example 1:20 |
 
 ________________________________________________________________________________________________________
 
@@ -72,22 +72,23 @@ If the selected listitem in the videolibrary is a movie set, some additional win
 
 | property 			| description |
 | :----------------------------	| :----------- |
-| Window(Home).Property(MovieSet.Title) | Title of the movie set |
-| Window(Home).Property(MovieSet.Runtime) | Total runtime (in minutes) of the movie set |
-| Window(Home).Property(MovieSet.Duration) | Total runtime (in hours) of the movie set |
-| Window(Home).Property(MovieSet.Writer) | All writers of the movies in the set |
-| Window(Home).Property(MovieSet.Director) | All directors of the movies in the set |
-| Window(Home).Property(MovieSet.Genre) | All genres of the movies in the set |
-| Window(Home).Property(MovieSet.Country) | All countries of the movies in the set |
-| Window(Home).Property(MovieSet.Studio) | All studios of the movies in the set |
-| Window(Home).Property(MovieSet.Years) | All years of the movies in the set |
-| Window(Home).Property(MovieSet.Year) | Year of first movie - Year of last movie |
-| Window(Home).Property(MovieSet.Plot) | All plots of the movies in the set |
-| Window(Home).Property(MovieSet.ExtendedPlot) | Plots combined with movie title info |
-| Window(Home).Property(MovieSet.Count) | Total movies in the set |
-| Window(Home).Property(MovieSet.WatchedCount) | Total watched movies in the set |
-| Window(Home).Property(MovieSet.UnWatchedCount) | Total unwatched movies in the set |
-both ExtraFanArtPath and ListItemStudioLogo will also be provided (if available) for the movie set
+| Window(Home).Property(SkinHelper.MovieSet.Title) | Title of the movie set |
+| Window(Home).Property(SkinHelper.MovieSet.Runtime) | Total runtime (in minutes) of the movie set |
+| Window(Home).Property(SkinHelper.MovieSet.Duration) | Total runtime (in hours) of the movie set |
+| Window(Home).Property(SkinHelper.MovieSet.Writer) | All writers of the movies in the set |
+| Window(Home).Property(SkinHelper.MovieSet.Director) | All directors of the movies in the set |
+| Window(Home).Property(SkinHelper.MovieSet.Genre) | All genres of the movies in the set |
+| Window(Home).Property(SkinHelper.MovieSet.Country) | All countries of the movies in the set |
+| Window(Home).Property(SkinHelper.MovieSet.Studio) | All studios of the movies in the set |
+| Window(Home).Property(SkinHelper.MovieSet.Years) | All years of the movies in the set |
+| Window(Home).Property(SkinHelper.MovieSet.Year) | Year of first movie - Year of last movie |
+| Window(Home).Property(SkinHelper.MovieSet.Plot) | All plots of the movies in the set |
+| Window(Home).Property(SkinHelper.MovieSet.ExtendedPlot) | Plots combined with movie title info |
+| Window(Home).Property(SkinHelper.MovieSet.Count) | Total movies in the set |
+| Window(Home).Property(SkinHelper.MovieSet.WatchedCount) | Total watched movies in the set |
+| Window(Home).Property(SkinHelper.MovieSet.UnWatchedCount) | Total unwatched movies in the set |
+
+both SkinHelper.ExtraFanArtPath and SkinHelper.ListItemStudioLogo will also be provided (if available) for the movie set
 
 ________________________________________________________________________________________________________
 
@@ -98,11 +99,11 @@ Some additional window properties that can be used in the music library.
 
 | property 			| description |
 | :----------------------------	| :----------- |
-| Window(Home).Property(ExtraFanArtPath) | will return the extrafanart path for the artist, empty if none is found. This window property is only available when the following Skin Bool is true: EnableExtraFanart|
-| Window(Home).Property(bannerArt) | Will return the Artist's banner image for the current selected item in the list. |
-| Window(Home).Property(logoArt) | Will return the Artist's logo image for the current selected item in the list. |
-| Window(Home).Property(cdArt) | Will return the Album's cd art image for the current selected item in the list. |
-| Window(Home).Property(songInfo) | Returns the album's description or if empty the artist info. Can be used at both album- and songlevel.  |
+| Window(Home).Property(SkinHelper.ExtraFanArtPath) | will return the extrafanart path for the artist, empty if none is found. This window property is only available when the following Skin Bool is true: SkinHelper.EnableExtraFanart|
+| Window(Home).Property(SkinHelper.Music.BannerArt) | Will return the Artist's banner image for the current selected item in the list. |
+| Window(Home).Property(SkinHelper.Music.LogoArt) | Will return the Artist's logo image for the current selected item in the list. |
+| Window(Home).Property(SkinHelper.Music.DiscArt) | Will return the Album's cd art image for the current selected item in the list. |
+| Window(Home).Property(SkinHelper.Music.Info) | Returns the album's description or if empty the artist info. Can be used at both album- and songlevel.  |
 
 
 ________________________________________________________________________________________________________
@@ -116,17 +117,17 @@ Note: the default interval for the backgrounds is set at 30 seconds. If you want
 
 | property 			| description |
 | :----------------------------	| :----------- |
-| Window(Home).Property(AllMoviesBackground) | Random fanart of movies in video database|
-| Window(Home).Property(AllTvShowsBackground) | Random fanart of TV shows in video database|
-| Window(Home).Property(AllMusicVideosBackground) | Random fanart of music videos in video database|
-| Window(Home).Property(AllMusicBackground) | Random fanart of music artists in database|
-| Window(Home).Property(GlobalFanartBackground) | Random fanart of all media types|
-| Window(Home).Property(InProgressMoviesBackground) | Random fanart of in progress movies|
-| Window(Home).Property(RecentMoviesBackground) | Random fanart of in recently added movies|
-| Window(Home).Property(UnwatchedMoviesBackground) | Random fanart of unwatched movies|
-| Window(Home).Property(InProgressShowsBackground) | Random fanart of in progress tv shows|
-| Window(Home).Property(RecentEpisodesBackground) | Random fanart of recently added episodes|
-| Window(Home).Property(PicturesBackground) | Random pictures from all picture sources. By default this pulls images from all picture sources the user has configured. It is however possible to provide a custom source from which the images should be pulled from by setting Skin String: CustomPicturesBackgroundPath|
+| Window(Home).Property(SkinHelper.AllMoviesBackground) | Random fanart of movies in video database|
+| Window(Home).Property(SkinHelper.AllTvShowsBackground) | Random fanart of TV shows in video database|
+| Window(Home).Property(SkinHelper.AllMusicVideosBackground) | Random fanart of music videos in video database|
+| Window(Home).Property(SkinHelper.AllMusicBackground) | Random fanart of music artists in database|
+| Window(Home).Property(SkinHelper.GlobalFanartBackground) | Random fanart of all media types|
+| Window(Home).Property(SkinHelper.InProgressMoviesBackground) | Random fanart of in progress movies|
+| Window(Home).Property(SkinHelper.RecentMoviesBackground) | Random fanart of in recently added movies|
+| Window(Home).Property(SkinHelper.UnwatchedMoviesBackground) | Random fanart of unwatched movies|
+| Window(Home).Property(SkinHelper.InProgressShowsBackground) | Random fanart of in progress tv shows|
+| Window(Home).Property(SkinHelper.RecentEpisodesBackground) | Random fanart of recently added episodes|
+| Window(Home).Property(SkinHelper.PicturesBackground) | Random pictures from all picture sources. By default this pulls images from all picture sources the user has configured. It is however possible to provide a custom source from which the images should be pulled from by setting Skin String: SkinHelper.CustomPicturesBackgroundPath|
 ________________________________________________________________________________________________________
 ________________________________________________________________________________________________________
 
@@ -189,8 +190,8 @@ Allows the user to select a busy spinner from some predefined ones in your skin.
 RunScript(script.skin.helper.service,action=busytexture)             
 ```
 The script fills this Skin Strings after selection: 
-SpinnerTexture --> the name of the selected busy texture
-SpinnerTexturePath --> The full path of the selected busy texture
+SkinHelper.SpinnerTexture --> the name of the selected busy texture
+SkinHelper.SpinnerTexturePath --> The full path of the selected busy texture
 
 #####To provide busy spinners with your skin:
 - Make sure to create a directory "busy_spinners" in your skin's extras folder.
@@ -203,11 +204,11 @@ Make sure that you use a multiimage control in DialogBusy.xml. Example code:
 	<width>150</width>
 	<height>150</height>
 	<aspectratio>keep</aspectratio>
-	<imagepath>$INFO[Skin.String(SpinnerTexturePath)]</imagepath>
+	<imagepath>$INFO[Skin.String(SkinHelper.SpinnerTexturePath)]</imagepath>
 	<timeperimage>100</timeperimage>
 	<colordiffuse>$INFO[Skin.String(SpinnerTextureColor)]</colordiffuse>
 	<fadetime>0</fadetime>
-	<visible>!Skin.String(SpinnerTexturePath,None)</visible>
+	<visible>!Skin.String(SkinHelper.SpinnerTexturePath,None)</visible>
 </control>
 ```
 
@@ -252,9 +253,9 @@ ________________________________________________________________________________
 RunScript(script.skin.helper.service,action=enableviews)             
 ```
 This will present a selection dialog to the user to enable (or disable) views. It uses the views.xml file to display the available views (see above). When a view is disabled it will be hidden from the view selection dialog. Also, a Skin String will be set so you can check in your skin if the view has been disabled (and not include it or set a visiblity condition).
-The name of the Skin String that will be set by the script is: View.Disabled.[VIEWID] where [VIEWID] is the numerical ID of the view.
+The name of the Skin String that will be set by the script is: SkinHelper.View.Disabled.[VIEWID] where [VIEWID] is the numerical ID of the view.
 
-Example: <include condition="!Skin.HasSetting(View.Disabled.55)">View_55_BannerList</include>
+Example: <include condition="!Skin.HasSetting(SkinHelper.View.Disabled.55)">View_55_BannerList</include>
 
 ________________________________________________________________________________________________________
 
@@ -265,7 +266,7 @@ ________________________________________________________________________________
 RunScript(script.skin.helper.service,action=setforcedview,contenttype=[TYPE])             
 ```
 The script can help you to set a forced view for a specific contenttype in your skin. For example if the user wants to set the list view for all tvshow content etc. For [TYPE] you must fill in one of the content types, see above at "Views selector". When a button is pressed with the above command, a select dialog appears and the user can choose on of the available views. Disabled views and views that aren't suitable for the specified type are hidden from the list.
-When the user made a choice from the list a Skin String will be filled by the script: ForcedViews.[TYPE]
+When the user made a choice from the list a Skin String will be filled by the script: SkinHelper.ForcedViews.[TYPE]
 The value of that skin string is the numeric ID of the selected view.
 
 Note: It is recommended that you create a Skin toggle to enable/disable the forced views feature.
@@ -281,60 +282,60 @@ Example code to use in your skin settings:
 ```xml
 <control type="radiobutton" id="6009">
 	<label>Enable forced views</label>
-	<onclick>Skin.ToggleSetting(ForcedViews.Enabled)</onclick>
-	<selected>Skin.HasSetting(ForcedViews.Enabled)</selected>
+	<onclick>Skin.ToggleSetting(SkinHelper.ForcedViews.Enabled)</onclick>
+	<selected>Skin.HasSetting(SkinHelper.ForcedViews.Enabled)</selected>
 </control>
 <control type="button" id="6010">
 	<onclick>RunScript(script.skin.helper.service,action=setforcedview,contenttype=movies)</onclick>
-	<visible>Skin.HasSetting(ForcedViews.Enabled)</visible>
-	<label>Forced view for movies: $INFO[Skin.String(ForcedViews.movies)]</label>
+	<visible>Skin.HasSetting(SkinHelper.ForcedViews.Enabled)</visible>
+	<label>Forced view for movies: $INFO[Skin.String(SkinHelper.ForcedViews.movies)]</label>
 </control>
 <control type="button" id="6011">
 	<onclick>RunScript(script.skin.helper.service,action=setforcedview,contenttype=tvshows)</onclick>
-	<visible>Skin.HasSetting(ForcedViews.Enabled)</visible>
-	<label>Forced view for tv shows:  $INFO[Skin.String(ForcedViews.tvshows)]</label>
+	<visible>Skin.HasSetting(SkinHelper.ForcedViews.Enabled)</visible>
+	<label>Forced view for tv shows:  $INFO[Skin.String(SkinHelper.ForcedViews.tvshows)]</label>
 </control>
 <control type="button" id="6012">
 	<onclick>RunScript(script.skin.helper.service,action=setforcedview,contenttype=seasons)</onclick>
-	<visible>Skin.HasSetting(ForcedViews.Enabled)</visible>
-	<label>Forced view for seasons:  $INFO[Skin.String(ForcedViews.seasons)]</label>
+	<visible>Skin.HasSetting(SkinHelper.ForcedViews.Enabled)</visible>
+	<label>Forced view for seasons:  $INFO[Skin.String(SkinHelper.ForcedViews.seasons)]</label>
 </control>
 <control type="button" id="6013">
 	<onclick>RunScript(script.skin.helper.service,action=setforcedview,contenttype=episodes)</onclick>
-	<visible>Skin.HasSetting(ForcedViews.Enabled)</visible>
-	<label>Forced view for episodes: $INFO[Skin.String(ForcedViews.episodes)]</label>
+	<visible>Skin.HasSetting(SkinHelper.ForcedViews.Enabled)</visible>
+	<label>Forced view for episodes: $INFO[Skin.String(SkinHelper.ForcedViews.episodes)]</label>
 	<font>Reg28</font>
 </control>
 <control type="button" id="6014">
 	<onclick>RunScript(script.skin.helper.service,action=setforcedview,contenttype=sets)</onclick>
-	<visible>Skin.HasSetting(ForcedViews.Enabled)</visible>
-	<label>Forced view for movie sets: $INFO[Skin.String(ForcedViews.sets)]</label>
+	<visible>Skin.HasSetting(SkinHelper.ForcedViews.Enabled)</visible>
+	<label>Forced view for movie sets: $INFO[Skin.String(SkinHelper.ForcedViews.sets)]</label>
 </control>
 <control type="button" id="6015">
 	<onclick>RunScript(script.skin.helper.service,action=setforcedview,contenttype=setmovies)</onclick>
-	<visible>Skin.HasSetting(ForcedViews.Enabled)</visible>
-	<label>Forced view for movies inside set: $INFO[Skin.String(ForcedViews.setmovies)]</label>
+	<visible>Skin.HasSetting(SkinHelper.ForcedViews.Enabled)</visible>
+	<label>Forced view for movies inside set: $INFO[Skin.String(SkinHelper.ForcedViews.setmovies)]</label>
 </control>
 ```
 
 Example code to use for your views visibility conditions:
 ```xml
 <control type="panel" id="51">
-	<visible>!Skin.HasSetting(ForcedViews.Enabled) | 
-	[Container.Content(movies) + Skin.String(ForcedViews.movies,None)] | 
-	[Container.Content(tvshows) + Skin.String(ForcedViews.tvshows,None)] | 
-	[Container.Content(seasons) + Skin.String(ForcedViews.seasons,None)] | 
-	[Container.Content(episodes) + Skin.String(ForcedViews.episodes,None)] | 
-	[Container.Content(movies) + Skin.String(ForcedViews.movies,None)] | 
-	[Container.Content(tvshows) + Skin.String(ForcedViews.tvshows,None)] | 
-	[Container.Content(seasons) + Skin.String(ForcedViews.seasons,None)] | 
-	[Container.Content(episodes) + Skin.String(ForcedViews.episodes,None)] | 
-	[[Container.Content(sets) | StringCompare(Container.Folderpath,videodb://movies/sets/)] + Skin.String(ForcedViews.sets,51)] | 
-	[Container.Content(movies) + Skin.String(ForcedViews.movies,51) + !substring(Container.FolderPath,videodb://movies/sets/,left)] | 
-	[Container.Content(movies) + Skin.String(ForcedViews.setmovies,51) + substring(Container.FolderPath,setid=)] | 
-	[Container.Content(tvshows) + Skin.String(ForcedViews.tvshows,51)] | 
-	[Container.Content(seasons) + Skin.String(ForcedViews.seasons,51)] | 
-	[Container.Content(episodes) + Skin.String(ForcedViews.episodes,51)] | 
+	<visible>!Skin.HasSetting(SkinHelper.ForcedViews.Enabled) | 
+	[Container.Content(movies) + Skin.String(SkinHelper.ForcedViews.movies,None)] | 
+	[Container.Content(tvshows) + Skin.String(SkinHelper.ForcedViews.tvshows,None)] | 
+	[Container.Content(seasons) + Skin.String(SkinHelper.ForcedViews.seasons,None)] | 
+	[Container.Content(episodes) + Skin.String(SkinHelper.ForcedViews.episodes,None)] | 
+	[Container.Content(movies) + Skin.String(SkinHelper.ForcedViews.movies,None)] | 
+	[Container.Content(tvshows) + Skin.String(SkinHelper.ForcedViews.tvshows,None)] | 
+	[Container.Content(seasons) + Skin.String(SkinHelper.ForcedViews.seasons,None)] | 
+	[Container.Content(episodes) + Skin.String(SkinHelper.ForcedViews.episodes,None)] | 
+	[[Container.Content(sets) | StringCompare(Container.Folderpath,videodb://movies/sets/)] + Skin.String(SkinHelper.ForcedViews.sets,51)] | 
+	[Container.Content(movies) + Skin.String(SkinHelper.ForcedViews.movies,51) + !substring(Container.FolderPath,videodb://movies/sets/,left)] | 
+	[Container.Content(movies) + Skin.String(SkinHelper.ForcedViews.setmovies,51) + substring(Container.FolderPath,setid=)] | 
+	[Container.Content(tvshows) + Skin.String(SkinHelper.ForcedViews.tvshows,51)] | 
+	[Container.Content(seasons) + Skin.String(SkinHelper.ForcedViews.seasons,51)] | 
+	[Container.Content(episodes) + Skin.String(SkinHelper.ForcedViews.episodes,51)] | 
 	[!Container.Content(movies) + !Container.Content(tvshows) + !Container.Content(seasons) + !Container.Content(episodes) + !Container.Content(sets)]
 	</visible>
 </control>
@@ -370,7 +371,7 @@ RunScript(script.skin.helper.service,action=restorecolortheme)
 ```
 
 #####Provide color themes with your skin
-It is possible to deliver skin provided color themes. Those colorthemes are stored in the skin's extras\skinthemes folder.
+It is possible to deliver skin provided color themes. Those colorthemes should be stored in the skin's extras\skinthemes folder.
 If you want to create one or more skinprovided color themes (for example the defaults):
 - Create a folder "skinthemes" in your skin's "extras" folder. 
 - Make all color modifications in your skin to represent the colortheme
@@ -391,13 +392,13 @@ ________________________________________________________________________________
 ________________________________________________________________________________________________________
 
 ### Skin backup feature
-The script comes with a backup/restore feature. It supports backup of ALL skin settings including skin shortcuts (when script.skinshortcuts is used). 
+The script comes with a backup/restore feature. It supports backup of ALL skin settings including skin shortcuts (when script.skinshortcuts is also used). 
 
 - Backup all settings to file
 - Restore all settings from file
 - Reset the skin to default settings (wipe all settings)
 
-#####To backup the skin settings:
+#####To backup the skin settings (including any skinshortcuts shortcuts):
 ```
 RunScript(script.skin.helper.service,action=backup)             
 ```
@@ -750,7 +751,7 @@ To display all backgrounds automatically in skinshorts you only have to include 
 Note: You can still use the default skinshortcuts method to assign a default background to a item by labelID or defaultID.
 In that case use the full $INFO path of the background. For example, to assign the "all movies" background to the Movies shortcut:
 ```xml
-<backgrounddefault defaultID="movies">$INFO[Window(Home).Property(AllMoviesBackground)]</backgrounddefault>
+<backgrounddefault defaultID="movies">$INFO[Window(Home).Property(SkinHelper.AllMoviesBackground)]</backgrounddefault>
 ```
 For more info, see skinshortcut's documentation.
 
