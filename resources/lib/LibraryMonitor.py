@@ -350,8 +350,6 @@ class LibraryMonitor(threading.Thread):
             #assign all found logos in the list
             self.allStudioLogos = allLogos
             self.allStudioLogosColor = allLogosColor
-            print "all studio logos--->"
-            print allLogos
     
     def focusEpisode(self):
         # monitor episodes for auto focus first unwatched

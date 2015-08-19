@@ -100,7 +100,6 @@ class BackgroundsUpdater(threading.Thread):
         
         json.dump(self.smartShortcuts, open(self.SmartShortcutsCachePath,'w'))
         
-
     def getCacheFromFile(self):
         if xbmcvfs.exists(self.cachePath):
             with open(self.cachePath) as data_file:    
@@ -113,7 +112,6 @@ class BackgroundsUpdater(threading.Thread):
             with open(self.SmartShortcutsCachePath) as data_file:    
                 self.smartShortcuts = json.load(data_file)    
                 
-
     def getImageFromPath(self, libPath, fallbackImage=None):
         
         if self.exit:
@@ -154,6 +152,9 @@ class BackgroundsUpdater(threading.Thread):
             else:
                 media_type = "video"
             media_array = None
+            #safety check: check if no library windows are active to prevent any addons setting the view
+            if xbmc.getInfoLabel("$INFO[Window.Property(xmlfile)]").endswith("Nav.xml"):
+                return None
             media_array = getJSON('Files.GetDirectory','{ "properties": ["title","art"], "directory": "' + libPath + '", "media": "' + media_type + '", "limits": {"end":150}, "sort": { "order": "ascending", "method": "random", "ignorearticle": true } }')
             if(media_array != None and media_array.has_key('files')):
                 for media in media_array['files']:

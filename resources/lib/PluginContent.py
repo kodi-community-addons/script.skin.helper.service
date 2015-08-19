@@ -33,7 +33,6 @@ def doMainListing():
     addDirectoryItem(ADDON.getLocalizedString(32005), "plugin://script.skin.helper.service/?action=recentmedia&limit=100")
     addDirectoryItem(ADDON.getLocalizedString(32006), "plugin://script.skin.helper.service/?action=similarmovies&limit=100")
     addDirectoryItem(ADDON.getLocalizedString(32007), "plugin://script.skin.helper.service/?action=inprogressandrecommendedmedia&limit=100")
-    addDirectoryItem(ADDON.getLocalizedString(32007), "plugin://script.skin.helper.service/?action=SMARTSHORTCUTS")
     
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
@@ -130,8 +129,9 @@ def getSmartShortcuts(sublevel=None):
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 def buildWidgetsListing():
-    allWidgets = []
-    widgetsToInclude = ["skinwidgets"]
+    allWidgets = {}
+    if WINDOW.getProperty("allwidgets"):
+        allWidgets = eval(WINDOW.getProperty("allwidgets"))
     
     #skin provided playlists
     paths = ["special://skin/playlists/","special://skin/extras/widgetplaylists"]
@@ -148,7 +148,7 @@ def buildWidgetsListing():
                         xmldata = xmltree.fromstring(contents_data.encode('utf-8'))
                         type = "unknown"
                         label = item["label"]
-                        type2, image = detectPluginContent(item["file"], returnImage=True)
+                        type2, image = detectPluginContent(item["file"])
                         for line in xmldata.getiterator():
                             if line.tag == "smartplaylist":
                                 type = line.attrib['type']
@@ -160,52 +160,78 @@ def buildWidgetsListing():
                         else:
                             mediaLibrary = "VideoLibrary"
                         path = "ActivateWindow(%s,%s,return)" %(mediaLibrary, playlist)
-                        allWidgets.append([label, path, playlist, image, type, "skinplaylists"])
+                        allWidgets["skinplaylists"] = [label, path, playlist, image, type]
         
-    #service.library.data.provider provided widgets
-    media_array = getJSON('Files.GetDirectory','{ "directory": "plugin://service.library.data.provider", "media": "files" }' )
-    if media_array != None and media_array.has_key('files'):
-        for item in media_array['files']:
-            content = item["file"] + "&amp;reload=$INFO[Window(Home).Property(widgetreload)]"
-            label = item["label"]
-            type, image = detectPluginContent(item["file"], returnImage=True)
-            if type:
-                if type == "albums" or type == "artists" or type == "songs":
-                    mediaLibrary = "MusicLibrary"
-                else:
-                    mediaLibrary = "VideoLibrary"
-                path = "ActivateWindow(%s,%s,return)" %(mediaLibrary, content)
-                allWidgets.append([label, path, content, image, type, "librarydataprovider"])
+    #addons that provide dynamic content for widgets
+    #will only be loaded once so no cache refreshes
+    addonList = []
+    addonList.append(["plugin://service.library.data.provider", "librarydataprovider"])
+    addonList.append(["plugin://script.extendedinfo", "extendedinfo"])
+    addonList.append(["plugin://script.skin.helper.service", "scriptwidgets"])
+    for addon in addonList:
+        if not allWidgets.has_key(addon[1]):
+            foundWidgets = []
+            media_array = getJSON('Files.GetDirectory','{ "directory": "%s", "media": "files" }' %addon[0])
+            if media_array != None and media_array.has_key('files'):
+                for item in media_array['files']:
+                    #safety check: check if no library windows are active to prevent any addons setting the view
+                    curWindow = xbmc.getInfoLabel("$INFO[Window.Property(xmlfile)]")
+                    if curWindow.endswith("Nav.xml") or curWindow == "AddonBrowser.xml" or curWindow.startswith("MyPVR"):
+                        return
+                    content = item["file"] + "&amp;reload=$INFO[Window(Home).Property(widgetreload)]"
+                    label = item["label"]
+                    type, image = detectPluginContent(item["file"])
+                    if type:
+                        if type == "albums" or type == "artists" or type == "songs":
+                            mediaLibrary = "MusicLibrary"
+                        else:
+                            mediaLibrary = "VideoLibrary"
+                        path = "ActivateWindow(%s,%s,return)" %(mediaLibrary, content)
+                        foundWidgets.append([label, path, content, image, type])
+                allWidgets[addon[1]] = foundWidgets
     
-    #script provided widgets
-    media_array = getJSON('Files.GetDirectory','{ "directory": "plugin://script.skin.helper.service", "media": "files" }' )
-    if media_array != None and media_array.has_key('files'):
-        for item in media_array['files']:
-            content = item["file"]
-            label = item["label"]
-            type, image = detectPluginContent(item["file"], returnImage=True)
-            if type:
-                if type == "albums" or type == "artists" or type == "songs":
-                    mediaLibrary = "MusicLibrary"
-                else:
-                    mediaLibrary = "VideoLibrary"
-                path = "ActivateWindow(%s,%s,return)" %(mediaLibrary, content)
-                allWidgets.append([label, path, content, image, type, "scriptwidgets"])
-    
-    #widgets from extendedinfo script
-    media_array = getJSON('Files.GetDirectory','{ "directory": "plugin://script.extendedinfo", "media": "files" }' )
-    if media_array != None and media_array.has_key('files'):
-        for item in media_array['files']:
-            content = item["file"] + "&amp;reload=$INFO[Window(Home).Property(widgetreload)]"
-            label = item["label"]
-            type, image = detectPluginContent(item["file"], returnImage=True)
-            if type:
-                if type == "albums" or type == "artists" or type == "songs":
-                    mediaLibrary = "MusicLibrary"
-                else:
-                    mediaLibrary = "VideoLibrary"
-                path = "ActivateWindow(%s,%s,return)" %(mediaLibrary, content)
-                allWidgets.append([label, path, content, image, type, "extendedinfo"])
+    #widgets from favourites
+    json_query_string = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "Favourites.GetFavourites", "params": {"type": null, "properties": ["path", "thumbnail", "window", "windowparameter"]}, "id": "1"}')
+    json_result = json.loads(json_query_string)
+    if json_result.has_key('result'):
+        foundWidgets = []
+        if json_result['result'].has_key('favourites') and json_result['result']['favourites']:
+            for fav in json_result['result']['favourites']:
+                matchFound = False
+                if "windowparameter" in fav:
+                    content = fav["windowparameter"]
+                    window = fav["window"]
+                    label = fav["title"]
+                    type, image = detectPluginContent(content)
+                    if window == "music":
+                        mediaLibrary = "MusicLibrary"
+                    else:
+                        mediaLibrary = "VideoLibrary"
+                    path = "ActivateWindow(%s,%s,return)" %(mediaLibrary, content)
+                    if type:
+                        foundWidgets.append([label, path, content, image, type])
+            allWidgets["favourites"] = foundWidgets
+                        
+    #some other widgets (by their direct endpoint) such as smartish widgets and PVR
+    otherWidgets = []
+    foundWidgets = []
+    if xbmc.getCondVisibility("PVR.HasTVChannels"):
+        otherWidgets.append(["pvr://recordings","pvr", "TV Recordings", "pvr"])
+        otherWidgets.append(["pvr://tvchannels","pvr", "TV Channels", "pvr"])
+    if xbmc.getCondVisibility("System.HasAddon(service.smartish.widgets) + Skin.HasSetting(enable.smartish.widgets)"):
+        otherWidgets.append(["plugin://service.smartish.widgets?type=movies&amp;reload=$INFO[Window.Property(smartish.movies)]","movies", "Smart(ish) Movies widget", "smartishwidgets"])
+        otherWidgets.append(["plugin://service.smartish.widgets?type=episodes&amp;reload=$INFO[Window.Property(smartish.episodes)]","episodes", "Smart(ish) Episodes widget", "smartishwidgets"])
+        otherWidgets.append(["plugin://service.smartish.widgets?type=pvr&amp;reload=$INFO[Window.Property(smartish.pvr)]","pvr", "Smart(ish) PVR widget", "smartishwidgets"])
+        otherWidgets.append(["plugin://service.smartish.widgets?type=albums&amp;reload=$INFO[Window.Property(smartish.albums)]","albums", "Smart(ish) Albums widget", "smartishwidgets"])
+    for widget in otherWidgets:
+        content = widget[0]
+        type = widget[1]
+        image = ""
+        label = widget[2]
+        mediaLibrary = "VideoLibrary"
+        path = "ActivateWindow(%s,%s,return)" %(mediaLibrary, content)
+        foundWidgets.append([label, path, content, image, type])
+        allWidgets[widget[3]] = foundWidgets
             
     WINDOW.setProperty("allwidgets",repr(allWidgets))    
        
@@ -216,7 +242,7 @@ def getWidgets(itemstoInclude = None):
     if itemstoInclude:
         itemstoInclude = itemstoInclude.split(",")
     else:
-        itemstoInclude = ["skinplaylists", "librarydataprovider", "scriptwidgets", "extendedinfo", "smartshortcuts","pvr", "smartishwidgets" ]
+        itemstoInclude = ["skinplaylists", "librarydataprovider", "scriptwidgets", "extendedinfo", "smartshortcuts","pvr", "smartishwidgets", "favourites" ]
     
     #load the widget listing from the cache
     allWidgets = WINDOW.getProperty("allwidgets")
@@ -227,8 +253,9 @@ def getWidgets(itemstoInclude = None):
     if allWidgets:
         allWidgets = eval(allWidgets)
         for widgetType in itemstoInclude:
-            for widget in allWidgets:
-                if widget[5] == widgetType:
+            if allWidgets.has_key(widgetType):
+                widgets = allWidgets[widgetType]
+                for widget in widgets:
                     li = xbmcgui.ListItem(widget[0], path=widget[1])
                     props = {}
                     props["list"] = widget[2]

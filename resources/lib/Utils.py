@@ -234,8 +234,14 @@ def createListItem(item):
     
     return liz
     
-def detectPluginContent(plugin, returnImage=True):
+def detectPluginContent(plugin):
     #based on the properties in the listitem we try to detect the content
+    
+    #safety check: check if no library windows are active to prevent any addons setting the view
+    curWindow = xbmc.getInfoLabel("$INFO[Window.Property(xmlfile)]")
+    if curWindow.endswith("Nav.xml") or curWindow == "AddonBrowser.xml" or curWindow.startswith("MyPVR"):
+        return None, None
+    
     media_array = getJSON('Files.GetDirectory','{ "directory": "%s", "media": "files", "properties": ["title", "file", "thumbnail", "episode", "showtitle", "season", "album", "artist", "imdbnumber", "firstaired", "mpaa", "trailer", "studio", "art"], "limits": {"end":3} }' %plugin)
     if media_array != None and media_array.has_key('files'):
         for item in media_array['files']:
