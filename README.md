@@ -800,12 +800,21 @@ This will display a complete list of widgets available to select if the user pre
 Currently available widgets (more to be added soon):
 
 skinplaylist --> all playlists that are stored in "yourskin\extras\widgetplaylists" or "yourskin\playlists"
+
 librarydataprovider --> all widgets that are provider by the Library Data Provider script
+
 scriptwidgets --> the special widgets that are provided by this addon, like favourites and favourite media etc.
+
 extendedinfo --> All widgets that are provided by the Extended info script
+
 smartshortcuts --> all smartshortcuts
+
 pvr --> pvr widgets
-smartishwidgets --> widget supplied by the smartisch widgets addon
+
+smartishwidgets --> widget supplied by the smartish widgets addon
+
+favourites --> any browsable nodes in the user's favourites that can be used as widget
+
 
 Note: the script will auto check the existence of the addons on the system so no need for complex visibility conditions in your skin.
 
