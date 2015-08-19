@@ -797,11 +797,12 @@ By including just one line of code in your skinshortcuts override.xml you can di
 ```
 
 This will display a complete list of widgets available to select if the user presses the select widget button in skinshortcuts. In the path parameter you can specify which widgettypes should be listed. The widgets will be displayed in the order of which you type them as parameters (comma separated). You can also leave out the whole path parameterm in that case all available widgets will be displayed.
+
 Currently available widgets (more to be added soon):
 
 skinplaylist --> all playlists that are stored in "yourskin\extras\widgetplaylists" or "yourskin\playlists"
 
-librarydataprovider --> all widgets that are provider by the Library Data Provider script
+librarydataprovider --> all widgets that are provided by the Library Data Provider script
 
 scriptwidgets --> the special widgets that are provided by this addon, like favourites and favourite media etc.
 
