@@ -115,7 +115,6 @@ class BackgroundsUpdater(threading.Thread):
                 
     def setImageFromPath(self, windowProp, libPath, fallbackImage=None, customJson=None):
         image = fallbackImage
-        print windowProp
         if self.exit:
             return False
             
@@ -167,7 +166,6 @@ class BackgroundsUpdater(threading.Thread):
                         break
                 if keyname and media_array.has_key(keyname):
                     for media in media_array[keyname]:
-                        print media
                         if media.has_key('art') and not media['title'].lower() == "next page":
                             if media['art'].has_key('fanart'):
                                 image = media['art']['fanart']
@@ -467,7 +465,6 @@ class BackgroundsUpdater(threading.Thread):
                             content = getContentPath(path)
                             if (path.startswith("ActivateWindow(Videos") or path.startswith("ActivateWindow(10025") or path.startswith("ActivateWindow(videos") or path.startswith("ActivateWindow(Music") or path.startswith("ActivateWindow(10502")) and not "script://" in path and not "mode=9" in path and not "search" in path:
                                 if self.setImageFromPath("favorite." + str(favoritesCount) + ".image",path):
-                                    WINDOW.setProperty("favorite." + str(favoritesCount) + ".image", image)
                                     WINDOW.setProperty("favorite." + str(favoritesCount) + ".label", name)
                                     WINDOW.setProperty("favorite." + str(favoritesCount) + ".title", name)
                                     WINDOW.setProperty("favorite." + str(favoritesCount) + ".action", path)
@@ -515,8 +512,6 @@ class BackgroundsUpdater(threading.Thread):
                                 nodes.append( (key, label, path ) )
                                 if self.setImageFromPath("plexbmc.%s%s.background"%(str(i),contentString),path):
                                     self.setImageFromPath("plexbmc.%s%s.image"%(str(i),contentString),path)
-                                    if plextype == "movie":
-                                        WINDOW.setProperty("plexfanartbg", image)
                                     if contentString == "":
                                         allSmartShortcuts.append("plexbmc." + str(i) )
                             else:
@@ -551,11 +546,11 @@ class BackgroundsUpdater(threading.Thread):
                         imagespath = node[5]
                     else:
                         imagespath = content
-                    self.setImageFromPath(key + ".image",imagespath)
+                    self.setImageFromPath(key + ".image",imagespath,"special://home/addons/plugin.video.netflixbmc/fanart.jpg")
                     WINDOW.setProperty(key + ".title", label)
                     WINDOW.setProperty(key + ".content", content)
                     WINDOW.setProperty(key + ".path", path)
-                    WINDOW.setProperty(key + ".image", image, "special://home/addons/plugin.video.netflixbmc/fanart.jpg")            
+          
             
             else:
                 nodes = []
@@ -699,7 +694,6 @@ class BackgroundsUpdater(threading.Thread):
                     WINDOW.setProperty(key + ".title", label)
                     WINDOW.setProperty(key + ".content", content)
                     WINDOW.setProperty(key + ".path", path)
-                    WINDOW.setProperty(key + ".image", image)
                     WINDOW.setProperty(key + ".type", type) 
                     
                 self.smartShortcuts["netflix"] = nodes
