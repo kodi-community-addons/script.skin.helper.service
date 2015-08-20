@@ -33,6 +33,7 @@ def doMainListing():
     addDirectoryItem(ADDON.getLocalizedString(32005), "plugin://script.skin.helper.service/?action=recentmedia&limit=100")
     addDirectoryItem(ADDON.getLocalizedString(32006), "plugin://script.skin.helper.service/?action=similarmovies&limit=100")
     addDirectoryItem(ADDON.getLocalizedString(32007), "plugin://script.skin.helper.service/?action=inprogressandrecommendedmedia&limit=100")
+    addDirectoryItem("smart pvr channels", "plugin://script.skin.helper.service/?action=pvrchannelssmart&limit=10")
     
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
@@ -343,7 +344,74 @@ def getFavourites(limit):
         print e
         pass        
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
-        
+
+def getPVRChannels(limit):
+    xbmcplugin.setContent(int(sys.argv[1]), 'files')
+    
+    # Perform a JSON query to get all tv channel groups
+    json_query = xbmc.executeJSONRPC('{"jsonrpc": "2.0",  "id": 1, "method": "PVR.GetChannelGroups", "params": {"channeltype": "tv"}}' )
+    json_query = unicode(json_query, 'utf-8', errors='ignore')
+    json_query = json.loads(json_query)
+
+    if json_query.has_key('result') and json_query['result'].has_key('channelgroups'):
+        for group in json_query['result']['channelgroups']:
+            # Perform a JSON query to get all channels
+            json_query = xbmc.executeJSONRPC('{"jsonrpc": "2.0",  "id": 1, "method": "PVR.GetChannels", "params": {"channelgroupid": %d, "properties": [ "thumbnail", "channeltype", "hidden", "locked", "channel", "lastplayed" ], "limits": {"end": 5}}}' %( group[ "channelgroupid" ] ) )
+            json_query = unicode(json_query, 'utf-8', errors='ignore')
+            json_query = json.loads(json_query)
+            if json_query.has_key('result') and json_query['result'].has_key('channels'):
+                for item in json_query['result']['channels']:
+                    channelname = item["label"]
+                    channelid = item["channelid"]
+                    print item
+                    # Get current show for the channel
+                    json_query = xbmc.executeJSONRPC( '{ "jsonrpc": "2.0",  "id": 1, "method": "PVR.GetBroadcasts", "params": {"channelid": %d, "properties": [ "title", "plot", "plotoutline", "starttime", "endtime", "runtime", "progress", "progresspercentage", "genre", "episodename", "episodenum", "episodepart", "firstaired", "hastimer", "isactive", "parentalrating", "wasactive", "thumbnail" ], "limits": {"end": 1} } }' %( item[ "channelid" ] ) )
+                    json_query = unicode(json_query, 'utf-8', errors='ignore')
+                    json_query = json.loads(json_query)
+                    if json_query.has_key( "result" ) and json_query[ "result" ].has_key( "broadcasts" ):
+                        for item in json_query['result']['broadcasts']:
+                            print item
+                            image = getPVRProgramThumb(item["title"] + " " + channelname)
+                            path="plugin://script.skin.helper.service/?action=launchpvr&path=" + str(channelid)
+                            li = xbmcgui.ListItem(item["title"], path=path)
+                            li.setThumbnailImage(image)
+                            li.setProperty('IsPlayable', 'false')
+                            xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=path, listitem=li, isFolder=True)
+                    if xbmc.abortRequested:
+                        return None, None
+    
+    xbmcplugin.endOfDirectory(int(sys.argv[1]))
+
+def getPVRProgramThumb(showtitle):
+    cache = WINDOW.getProperty("PVRProgramThumbs")
+    image = ""
+    if cache:
+        cache = eval(cache)
+    else:
+        cache = {}
+    
+    if cache.has_key(showtitle):
+        return cache[showtitle]
+    else:
+        #lookup with youtube addon - to be replaced with something better
+        libPath = "plugin://plugin.video.youtube/kodion/search/query/?q=%s" %showtitle
+        media_array = None
+        allTrailers = []
+        media_array = getJSON('Files.GetDirectory','{ "properties": ["title","art","plot"], "directory": "' + libPath + '", "media": "files", "limits": {"end":5} }')
+        if(media_array != None and media_array.has_key('files')):
+            for media in media_array['files']:
+                
+                if not media["filetype"] == "directory":
+                    label = media["label"]
+                    label2 = media["plot"]
+                    if media.has_key('art'):
+                        if media['art'].has_key('thumb'):
+                            image = (media['art']['thumb'])
+
+    cache[showtitle] = image
+    WINDOW.setProperty("PVRProgramThumbs", repr(cache))
+    return image
+
 def getNextEpisodes(limit):
     if not limit:
         limit = 25
@@ -758,6 +826,7 @@ def getFavouriteMedia(limit):
                         sep = "/"
                     else:
                         sep = "\\"
+                    path = try_decode(path)
                     pathpart = path.split(sep)[-1] #apparently only the filename can be used for the search
                     #is this a movie?
                     json_query_string = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetMovies", "params": { "filter": {"operator":"contains", "field":"filename", "value":"' + pathpart + '"}, "properties": [ "title", "playcount", "plot", "file", "rating", "resume", "art", "streamdetails", "year", "mpaa", "runtime", "writer", "cast", "dateadded", "lastplayed", "tagline" ] }, "id": "1"}')

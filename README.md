@@ -144,7 +144,7 @@ ________________________________________________________________________________
 #### Backgrounds provided by the script
 The script has a background scanner to provide some rotating fanart backgrounds which can be used in your skin as backgrounds. The backgrounds are available in window properties.
 
-Note: the default interval for the backgrounds is set at 30 seconds. If you want to change this interval you can set a Skin String "RandomFanartDelay" with the number of seconds as value.
+Note: the default interval for the backgrounds is set at 30 seconds. If you want to change this interval you can set a Skin String "SkinHelper.RandomFanartDelay" with the number of seconds as value.
 
 | property 			| description |
 | :----------------------------	| :----------- |

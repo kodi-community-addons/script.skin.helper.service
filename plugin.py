@@ -49,7 +49,9 @@ class Main:
             elif action == "INPROGRESSANDRECOMMENDEDMEDIA":
                 getRecommendedMedia(limit,ondeckContent=True,recommendedContent=True)
             elif action == "FAVOURITEMEDIA":
-                getFavouriteMedia(limit) 
+                getFavouriteMedia(limit)
+            elif action == "PVRCHANNELSSMART":
+                getPVRChannels(limit) 
             elif action == "FAVOURITES":
                 getFavourites(limit)
             elif action == "SMARTSHORTCUTS":
@@ -58,9 +60,15 @@ class Main:
                 getBackgrounds()
             elif action == "WIDGETS":
                 getWidgets(path)
+            elif action == "WIDGETS":
+                getWidgets(path)
+            elif action == "LAUNCHPVR":
+                if path:
+                    xbmc.executeJSONRPC('{ "jsonrpc": "2.0", "id": 0, "method": "Player.Open", "params": { "item": {"channelid": ' + path + '} } }')
             elif action == "LAUNCH":
                 if path:
                     xbmc.executebuiltin(path)
+                    
             
         else:
             #do plugin main listing...
