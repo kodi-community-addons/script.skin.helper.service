@@ -17,8 +17,18 @@ import random
 doDebugLog = False
 
 
-def backup(filter=None):
+def backup(filterString=None):
     try:
+        
+        if filterString:
+            if "|" in filterString:
+                filter = filter.split("|")
+            else:
+                filter = []
+                filter.append(filterString)
+        else:
+            filter = []
+        
         #get backup destination
         backup_path = None
         backup_path = get_browse_dialog(dlg_type=3,heading=ADDON.getLocalizedString(32018))
@@ -39,8 +49,13 @@ def backup(filter=None):
                     if skinsetting.attributes['name'].nodeValue.startswith(xbmc.getSkinDir()):
                         name = skinsetting.attributes['name'].nodeValue
                         name = name.replace(xbmc.getSkinDir()+".","")
-                        if filter==None or (filter in name):
+                        if not filter:
                             newlist.append((skinsetting.attributes['type'].nodeValue, name, value))
+                        else:
+                            #filter
+                            for filteritem in filter:
+                                if filteritem in name:
+                                    newlist.append((skinsetting.attributes['type'].nodeValue, name, value))
 
                 if not xbmcvfs.exists(backup_path):
                     xbmcvfs.mkdir(backup_path)

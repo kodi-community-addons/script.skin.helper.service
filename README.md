@@ -455,6 +455,13 @@ The script comes with a backup/restore feature. It supports backup of ALL skin s
 RunScript(script.skin.helper.service,action=backup)             
 ```
 
+It is possible to apply a filter to the backup. In that case only skin settings containing a specific phrase will be back upped.
+Can be usefull if you want to use the backup function for something else in your skin.
+To use the filter you have to add the filter= argument and supply one or more phrases (separated by |)
+For example:
+RunScript(script.skin.helper.service,action=backup,filter=color|view|font)    
+Note that the filter is case sensitive
+
 #####To restore the skin settings:
 ```
 RunScript(script.skin.helper.service,action=restore)             
@@ -464,8 +471,6 @@ RunScript(script.skin.helper.service,action=restore)
 ```
 RunScript(script.skin.helper.service,action=reset)             
 ```
-
-
 
 
 ________________________________________________________________________________________________________
