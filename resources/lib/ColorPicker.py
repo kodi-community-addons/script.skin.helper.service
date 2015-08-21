@@ -7,6 +7,7 @@ import os, sys
 import urllib
 import threading
 import InfoDialog
+import math
 
 from xml.dom.minidom import parse
 from operator import itemgetter
@@ -24,6 +25,8 @@ class ColorPicker(xbmcgui.WindowXMLDialog):
     colorsList = None
     skinString = None
     colorsPath = None
+    savedColor = None
+    currentWindow = None
     
     def __init__(self, *args, **kwargs):
         xbmcgui.WindowXMLDialog.__init__(self, *args, **kwargs)
@@ -40,8 +43,8 @@ class ColorPicker(xbmcgui.WindowXMLDialog):
                 raise ValueError, "input #%s is not in #AARRGGBB format" % colorstring
             a, r, g, b = colorstring[:2], colorstring[2:4], colorstring[4:6], colorstring[6:]
             a, r, g, b = [int(n, 16) for n in (a, r, g, b)]
-            color = (r, g, b)
-            im = Image.new("RGB", (64, 64), color)
+            color = (r, g, b, a)
+            im = Image.new("RGBA", (64, 64), color)
             im.save(colorImageFile)
         elif not xbmcvfs.exists(colorImageFile) and not hasPilModule:
             return
@@ -54,6 +57,8 @@ class ColorPicker(xbmcgui.WindowXMLDialog):
     
     def onInit(self):
         self.action_exitkeys_id = [10, 13]
+        
+        self.currentWindow = xbmcgui.Window( xbmcgui.getCurrentWindowDialogId() )
 
         if not xbmcvfs.exists(self.colorsPath):
             xbmcvfs.mkdir(self.colorsPath)
@@ -62,7 +67,8 @@ class ColorPicker(xbmcgui.WindowXMLDialog):
         self.win = xbmcgui.Window( 10000 )
         
         #get current color that is stored in the skin setting
-        currentColor = xbmc.getInfoLabel("Skin.String(" + self.skinString + ')')
+        self.currentWindow.setProperty("colorstring", xbmc.getInfoLabel("Skin.String(" + self.skinString + ')'))
+        self.currentWindow.setProperty("colorname", xbmc.getInfoLabel("Skin.String(" + self.skinString + '.name)'))
         selectItem = 0
         
         #get all colors from the colors xml file and fill a list with tuples to sort later on
@@ -79,26 +85,30 @@ class ColorPicker(xbmcgui.WindowXMLDialog):
         #sort list and fill the panel
         count = 0
         allColors = sorted(allColors,key=itemgetter(1))
-        
+        colorstring = self.currentWindow.getProperty("colorstring")
+        colorname = self.currentWindow.getProperty("colorname")
         for color in allColors:
             self.addColorToList(color[0], color[1])
-            if (currentColor == color[1] or currentColor == color[0]):
+            if (colorname == color[0] or colorstring == color[1]):
                 selectItem = count
             count += 1
 
         #focus the current color
         if selectItem != 0:
-            xbmc.executebuiltin("Control.SetFocus(3110)")
+            #select existing color in the list
+            self.currentWindow.setFocusId(3110)
             self.colorsList.selectItem(selectItem)
-            item =  self.colorsList.getSelectedItem()
-            colorstring = item.getProperty("colorstring")
+        elif self.currentWindow.getProperty("colorstring"):
+            #user has setup a manual color so focus the manual button
+            self.currentWindow.setFocusId(3010)
         else:
-            xbmc.executebuiltin("Control.SetFocus(3010)")
-            colorstring = currentColor
+            #no color setup so we just focus the colorslist
+            self.currentWindow.setFocusId(3110)
+            self.colorsList.selectItem(selectItem)
         
-        WINDOW.setProperty("colorstring",colorstring)
-        self.getControl( 3015 ).setPercent( float(86) ) 
-               
+        #set opacity slider
+        if self.currentWindow.getProperty("colorstring"):
+            self.setOpacitySlider()
 
     def onFocus(self, controlId):
         pass
@@ -113,38 +123,63 @@ class ColorPicker(xbmcgui.WindowXMLDialog):
         if action.getId() in ACTION_CANCEL_DIALOG:
             self.closeDialog()
         else:
-            item =  self.colorsList.getSelectedItem()
-            colorstring = item.getProperty("colorstring")
-            WINDOW.setProperty("colorstring",colorstring)
+            if self.currentWindow.getFocusId() == 3110:
+                item =  self.colorsList.getSelectedItem()
+                colorstring = item.getProperty("colorstring")
+                self.currentWindow.setProperty("colorstring",colorstring)
+                self.currentWindow.setProperty("colorname",item.getLabel())
+                self.setOpacitySlider()
 
 
     def closeDialog(self):
-        #self.close() ##crashes kodi ?
-        xbmc.executebuiltin("Dialog.Close(all,true)")
+        self.close()
+
+    def setOpacitySlider(self):
+        colorstring = self.currentWindow.getProperty("colorstring")
+        a, r, g, b = colorstring[:2], colorstring[2:4], colorstring[4:6], colorstring[6:]
+        a, r, g, b = [int(n, 16) for n in (a, r, g, b)]
+        a = 100.0 * a / 255
+        self.getControl( 3015 ).setPercent( float(a) )
         
     def onClick(self, controlID):
-        colorstring = None
-        colorstringvalue = None
-        if(controlID == 3110):       
-            item = self.colorsList.getSelectedItem()
-            colorstring = item.getLabel()
-            colorstringvalue = item.getProperty("colorstring")
-            xbmc.executebuiltin("Control.SetFocus(3012)")
-        elif(controlID == 3010):       
+        colorname = self.currentWindow.getProperty("colorname")
+        colorstring = self.currentWindow.getProperty("colorstring")
+        if controlID == 3110:       
+            self.currentWindow.setFocusId(3012)
+        elif controlID == 3010:  
+            #manual input
             dialog = xbmcgui.Dialog()
-            colorstring = dialog.input("Color", WINDOW.getProperty("colorstring"), type=xbmcgui.INPUT_ALPHANUM)
-            colorstringvalue = colorstring
-        elif(controlID == 3011):       
-            colorstring = "None"
-            colorstringvalue = colorstring
-        elif(controlID == 3012):       
-            item = self.colorsList.getSelectedItem()
-            colorstring = item.getLabel()
-            colorstringvalue = item.getProperty("colorstring")
-
+            colorstring = dialog.input("Color", self.currentWindow.getProperty("colorstring"), type=xbmcgui.INPUT_ALPHANUM)
+            self.currentWindow.setProperty("colorname", ADDON.getLocalizedString(32050))
+            self.currentWindow.setProperty("colorstring", colorstring)
+            self.setOpacitySlider()
+        elif controlID == 3011:
+            # none button
+            colorname = ADDON.getLocalizedString(32013)
+            xbmc.executebuiltin("Skin.SetString(" + self.skinString + '.name,'+ colorname + ')')
+            xbmc.executebuiltin("Skin.SetString(" + self.skinString + ',None)')
+            self.closeDialog()
+        elif controlID == 3012:
+            #save button clicked
             if self.skinString and colorstring:
-                xbmc.executebuiltin("Skin.SetString(" + self.skinString + '.name,'+ colorstring + ')')
-                xbmc.executebuiltin("Skin.SetString(" + self.skinString + ','+ colorstringvalue + ')')
+                xbmc.executebuiltin("Skin.SetString(" + self.skinString + '.name,'+ colorname + ')')
+                xbmc.executebuiltin("Skin.SetString(" + self.skinString + ','+ colorstring + ')')
                 self.closeDialog()
           
+        elif controlID == 3015:
+            opacity = self.getControl( 3015 ).getPercent()
+            
+            num = opacity / 100.0 * 255
+            e = num - math.floor( num )
+            a = e < 0.5 and int( math.floor( num ) ) or int( math.ceil( num ) )
+            
+            colorstring = colorstring.strip()
+            r, g, b = colorstring[2:4], colorstring[4:6], colorstring[6:]
+            r, g, b = [int(n, 16) for n in (r, g, b)]
+            color = (a, r, g, b)
+            colorstringvalue = '%02x%02x%02x%02x' % color
+
+            self.currentWindow.setProperty("colorstring",colorstringvalue)
+
+            
             

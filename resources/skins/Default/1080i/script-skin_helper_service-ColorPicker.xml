@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<window type="dialog" id="129">
+<window>
 	<defaultcontrol always="true">3110</defaultcontrol>
 	<controls>
     
@@ -26,7 +26,6 @@
             <align>left</align>
             <textcolor>white</textcolor>
 			<shadowcolor>black</shadowcolor>
-			<animation effect="slide" end="80,15" time="0" condition="skin.hastheme(classic)">Conditional</animation>
         </control>
 
 		<control type="panel" id="3110">
@@ -70,83 +69,107 @@
 			</focusedlayout>
 		</control>
 		
+		<!--current color name-->
+        <control type="label">
+            <left>60</left>
+			<top>920</top>
+            <width>600</width>
+            <height>40</height>
+			<label>$INFO[Window.Property(colorname)]</label>
+            <align>left</align>
+            <textcolor>white</textcolor>
+			<shadowcolor>black</shadowcolor>
+        </control>
+		
 		<control type="grouplist">
-		<orientation>horizontal</orientation>
-		<itemgap>20</itemgap>
-		<left>60</left>
-		<top>980</top>
-		<width>1800</width>
-		<!-- color preview-->
-		<control type="image">
-			<width>100</width>
-			<height>60</height>
-			<aspectratio>stretch</aspectratio>
-			<texture border="5">panel.png</texture>
-			<colordiffuse>$INFO[Window(home).Property(colorstring)]</colordiffuse>
-		</control>
-		<!-- edit manual -->
-		<control type="button" id="3010">
-			<width>400</width>
-			<height>60</height>
-			<font>Reg32</font>
-			<onup>3110</onup>
-			<align>left</align>
-			<ondown>SetFocus(3110,1)</ondown>
-			<onright>3011</onright>
-			<label>$ADDON[script.skin.helper.service 32012]</label>
-			<label2>$INFO[Window(home).Property(colorstring)]</label2>
-			<textcolor>white</textcolor>
-			<texturenofocus colordiffuse="black" border="5">panel_trans.png</texturenofocus>
-		</control>
-		
-		<!-- Save button -->
-		<control type="button" id="3012">
-			<width>300</width>
-			<height>60</height>
-			<font>Reg32</font>
-			<onup>3110</onup>
-			<onleft>3010</onleft>
-			<label>190</label>
-			<textcolor>white</textcolor>
-			<texturenofocus colordiffuse="black" border="5">panel_trans.png</texturenofocus>
-		</control>
-		
-		<!-- None -->
-		<control type="button" id="3011">
-			<width>300</width>
-			<height>60</height>
-			<font>Reg32</font>
-			<onup>3110</onup>
-			<onleft>3010</onleft>
-			<label>$ADDON[script.skin.helper.service 32013]</label>
-			<textcolor>white</textcolor>
-			<texturenofocus colordiffuse="black" border="5">panel_trans.png</texturenofocus>
-		</control>
-		<control type="label">
-			<width>200</width>
-			<height>60</height>
-			<font>Reg32</font>
-			<onup>3110</onup>
-			<onleft>3010</onleft>
-			<onright>3015</onright>
-			<label>$ADDON[script.skin.helper.service 32049]:</label>
-			<textcolor>white</textcolor>
-			<texturenofocus colordiffuse="black" border="5">panel_trans.png</texturenofocus>
-		</control>
-		<control type="slider" id="3015">
-				<width>200</width>
+			<orientation>horizontal</orientation>
+			<itemgap>20</itemgap>
+			<left>60</left>
+			<top>980</top>
+			<width>1800</width>
+			<!-- color preview-->
+			<control type="image">
+				<width>100</width>
+				<height>60</height>
+				<aspectratio>stretch</aspectratio>
+				<texture border="5">panel.png</texture>
+				<colordiffuse>$INFO[Window.Property(colorstring)]</colordiffuse>
 			</control>
-		<control type="label">
-			<width>200</width>
-			<height>60</height>
-			<font>Reg32</font>
-			<onup>3110</onup>
-			<onleft>3010</onleft>
-			<label>$INFO[Control.Getlabel(3015)]</label>
-			<textcolor>white</textcolor>
-			<texturenofocus colordiffuse="black" border="5">panel_trans.png</texturenofocus>
-		</control>
-	</control>		
+			<!-- edit manual -->
+			<control type="button" id="3010">
+				<width>400</width>
+				<height>60</height>
+				<font>Reg32</font>
+				<onup>3110</onup>
+				<align>left</align>
+				<ondown>SetFocus(3110,1)</ondown>
+				<onright>3011</onright>
+				<label>$ADDON[script.skin.helper.service 32012]</label>
+				<label2>$INFO[Window.Property(colorstring)]</label2>
+				<textcolor>white</textcolor>
+				<texturenofocus colordiffuse="black" border="5">panel_trans.png</texturenofocus>
+			</control>
+			
+			<!-- Save button -->
+			<control type="button" id="3012">
+				<width>300</width>
+				<height>60</height>
+				<font>Reg32</font>
+				<onup>3110</onup>
+				<onleft>3010</onleft>
+				<label>190</label>
+				<textcolor>white</textcolor>
+				<texturenofocus colordiffuse="black" border="5">panel_trans.png</texturenofocus>
+			</control>
+			
+			<!-- None -->
+			<control type="button" id="3011">
+				<width>300</width>
+				<height>60</height>
+				<font>Reg32</font>
+				<onup>3110</onup>
+				<onleft>3010</onleft>
+				<label>$ADDON[script.skin.helper.service 32013]</label>
+				<textcolor>white</textcolor>
+				<texturenofocus colordiffuse="black" border="5">panel_trans.png</texturenofocus>
+			</control>
+			
+			<control type="group" id="3020">
+				<width>450</width>
+				<height>60</height>
+				<control type="label" id="3016">
+					<!-- label opacity-->
+					<width>150</width>
+					<left>0</left>
+					<align>left</align>
+					<onup>3110</onup>
+					<label>$ADDON[script.skin.helper.service 32049]:</label>
+					<textcolor>white</textcolor>
+					<texturenofocus colordiffuse="black" border="5">panel_trans.png</texturenofocus>
+				</control>
+				<control type="slider" id="3015">
+					<!-- opacity slider -->
+					<top>25</top>
+					<left>160</left>
+					<onup>3011</onup>
+					<ondown>3011</ondown>
+					<width>200</width>
+				</control>
+				
+				<control type="label" id="3017">
+					<!-- opacity percentage -->
+					<width>80</width>
+					<height>60</height>
+					<right>0</right>
+					<align>right</align>
+					<onup>3110</onup>
+					<onleft>3010</onleft>
+					<label>$INFO[Control.Getlabel(3015)]</label>
+					<textcolor>white</textcolor>
+					<texturenofocus colordiffuse="black" border="5">panel_trans.png</texturenofocus>
+				</control>
+			</control>
+		</control>		
 
 	</controls>
 </window>

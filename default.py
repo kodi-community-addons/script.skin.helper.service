@@ -62,7 +62,7 @@ class Main:
             
             elif action == "COLORPICKER":
                 from resources.lib.ColorPicker import ColorPicker
-                colorPicker = ColorPicker("script-skin_helper_service-ColorPicker.xml", ADDON_PATH, "default", "1080i")
+                colorPicker = ColorPicker("script-skin_helper_service-ColorPicker.xml", ADDON_PATH, "Default", "1080i")
                 colorPicker.skinString = params.get("SKINSTRING",None)
                 colorPicker.doModal()
                 del colorPicker

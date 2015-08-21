@@ -215,3 +215,7 @@ msgstr ""
 msgctxt "#32049"
 msgid "Opacity"
 msgstr ""
+
+msgctxt "#32050"
+msgid "Custom color"
+msgstr ""
