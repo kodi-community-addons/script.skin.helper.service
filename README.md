@@ -95,6 +95,8 @@ The script handles this logic to locate the fanart:
 |Window(Home).Property(SkinHelper.ListItemStudioLogoColor) | Will return the full image path of the coloured studio logo for the current selected item in a list. |
 |Window(Home).Property(SkinHelper.ListItemStudio) | Will just return the first studio of the listitem if you want to locate the images yourself. |
 
+Note: If you also want to have the Studio logo and Duration Properties for your homescreen widgets, you need to set a Window Property "SkinHelper.WidgetContainer" with the ID of your widget container:
+For example in home.xml: <onload>SetProperty(SkinHelper.WidgetContainer,301)</onload>
 
 #### Movie sets window properties
 If the selected listitem in the videolibrary is a movie set, some additional window properties are provided:

@@ -58,7 +58,7 @@ class LibraryMonitor(threading.Thread):
                     self.delayedTaskInterval = 0                   
             
             #flush cache if videolibrary has changed
-            elif WINDOW.getProperty("widgetrefresh") == "refresh":
+            if WINDOW.getProperty("widgetrefresh") == "refresh":
                 self.moviesetCache = {}
             
             # monitor listitem props when musiclibrary is active
@@ -71,6 +71,21 @@ class LibraryMonitor(threading.Thread):
                     self.checkMusicArt()
                 except Exception as e:
                     logMsg("ERROR in checkMusicArt ! --> " + str(e), 0)
+            
+            #monitor home widget
+            elif xbmc.getCondVisibility("Window.IsActive(home)") and WINDOW.getProperty("SkinHelper.WidgetContainer"):
+                widgetContainer = WINDOW.getProperty("SkinHelper.WidgetContainer")
+                print "widgetContainer-->"+ widgetContainer
+                self.liPath = xbmc.getInfoLabel("Container(%s).ListItem.Path" %widgetContainer)
+                liLabel = xbmc.getInfoLabel("Container(%s).ListItem.Label"%widgetContainer)
+                if ((liLabel != lastListItemLabel) and xbmc.getCondVisibility("!Container(%s).Scrolling" %widgetContainer)):
+                    self.liPathLast = self.liPath
+                    lastListItemLabel = liLabel
+                    try:
+                        self.setDuration(xbmc.getInfoLabel("Container(%s).ListItem.Duration" %widgetContainer))
+                        self.setStudioLogo(xbmc.getInfoLabel("Container(%s).ListItem.Studio" %widgetContainer))
+                    except Exception as e:
+                        logMsg("ERROR in LibraryMonitor widgets ! --> " + str(e), 0)
             
             # monitor listitem props when videolibrary is active
             elif (xbmc.getCondVisibility("[Window.IsActive(videolibrary) | Window.IsActive(movieinformation)] + !Window.IsActive(fullscreenvideo)")):
@@ -401,10 +416,12 @@ class LibraryMonitor(threading.Thread):
                                         
             self.lastEpPath = xbmc.getInfoLabel("Container.FolderPath")
         
-    def setDuration(self):
-        # monitor listitem to set duration
-        if (xbmc.getCondVisibility("!IsEmpty(ListItem.Duration)")):
+    def setDuration(self,currentDuration=None):
+        if not currentDuration:
             currentDuration = xbmc.getInfoLabel("ListItem.Duration")
+            
+        # monitor listitem to set duration
+        if currentDuration:
             durationString = self.getDurationString(currentDuration)
             if durationString:
                 WINDOW.setProperty('SkinHelper.ListItemDuration', durationString[2])
