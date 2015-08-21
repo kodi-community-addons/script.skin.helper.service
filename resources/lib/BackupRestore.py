@@ -66,14 +66,13 @@ def backup(filterString=None):
                     shutil.rmtree(temp_path)
                 xbmcvfs.mkdir(temp_path)
                     
-                skinshortcuts_path = temp_path + "skinshortcuts/"
-                if not xbmcvfs.exists(skinshortcuts_path):
-                    xbmcvfs.mkdir(skinshortcuts_path)
-                    
                 #get skinshortcuts preferences
+                skinshortcuts_path = temp_path + "skinshortcuts/"
                 skinshortcuts_path_source = xbmc.translatePath('special://profile/addon_data/script.skinshortcuts/').decode("utf-8")
                 logMsg(skinshortcuts_path_source)
                 if xbmcvfs.exists(skinshortcuts_path_source):
+                    if not xbmcvfs.exists(skinshortcuts_path):
+                        xbmcvfs.mkdir(skinshortcuts_path)
                     dirs, files = xbmcvfs.listdir(skinshortcuts_path_source)
                     for file in files:
                         if ".xml" in file:
@@ -123,7 +122,7 @@ def restore():
         zip_path = None
         zip_path = get_browse_dialog(dlg_type=1,heading=ADDON.getLocalizedString(32031),mask=".zip")
         
-        if zip_path != None and zip_path != "":
+        if zip_path and zip_path != "protocol://":
             logMsg("zip_path " + zip_path)
             progressDialog = xbmcgui.DialogProgress(ADDON.getLocalizedString(32032))
             progressDialog.create(ADDON.getLocalizedString(32032))

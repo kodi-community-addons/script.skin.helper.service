@@ -97,7 +97,7 @@ msgid "Export this theme to file"
 msgstr ""
 
 msgctxt "#32020"
-msgid "Select Titan skin backup file"
+msgid "Select skin backup file"
 msgstr ""
 
 msgctxt "#32021"
