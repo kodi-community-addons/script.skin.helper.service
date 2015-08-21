@@ -88,16 +88,17 @@ class Main:
                 selectBusyTexture()     
             
             elif action == "BACKUP":
-                from resources.lib.BackupRestore import *
-                backup()
+                import resources.lib.BackupRestore as backup
+                filter = params.get("FILTER",None)
+                backup.backup(filter)
             
             elif action == "RESTORE":
-                from resources.lib.BackupRestore import *
-                restore()
+                import resources.lib.BackupRestore as backup
+                backup.restore()
             
             elif action == "RESET":
-                from resources.lib.BackupRestore import *
-                reset()
+                import resources.lib.BackupRestore as backup
+                backup.reset()
 
 
 if (__name__ == "__main__"):

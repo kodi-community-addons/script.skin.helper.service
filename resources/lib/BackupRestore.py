@@ -17,12 +17,12 @@ import random
 doDebugLog = False
 
 
-def backup():
+def backup(filter=None):
     try:
         #get backup destination
         backup_path = None
         backup_path = get_browse_dialog(dlg_type=3,heading=ADDON.getLocalizedString(32018))
-        if backup_path != None and backup_path != "":
+        if backup_path and backup_path != "protocol://":
         
             from xml.dom.minidom import parse
             guisettings_path = xbmc.translatePath('special://profile/guisettings.xml').decode("utf-8")
@@ -38,8 +38,9 @@ def backup():
                         value = ""
                     if skinsetting.attributes['name'].nodeValue.startswith(xbmc.getSkinDir()):
                         name = skinsetting.attributes['name'].nodeValue
-                        name = name.replace(xbmc.getSkinDir(),"")
-                        newlist.append((skinsetting.attributes['type'].nodeValue, name, value))
+                        name = name.replace(xbmc.getSkinDir()+".","")
+                        if filter==None or (filter in name):
+                            newlist.append((skinsetting.attributes['type'].nodeValue, name, value))
 
                 if not xbmcvfs.exists(backup_path):
                     xbmcvfs.mkdir(backup_path)
