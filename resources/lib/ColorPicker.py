@@ -74,6 +74,10 @@ class ColorPicker(xbmcgui.WindowXMLDialog):
         #get all colors from the colors xml file and fill a list with tuples to sort later on
         allColors = []
         colors_file = os.path.join(ADDON_PATH, 'resources', 'colors','colors.xml' ).decode("utf-8")
+        #prefer skin colors file
+        if xbmcvfs.exists( "special://skin/extras/colors/colors.xml" ):
+            colors_file = xbmc.translatePath("special://skin/extras/colors/colors.xml").decode("utf-8")
+        
         if xbmcvfs.exists( colors_file ):
             doc = parse( colors_file )
             listing = doc.documentElement.getElementsByTagName( 'color' )

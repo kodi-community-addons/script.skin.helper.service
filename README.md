@@ -201,6 +201,10 @@ For example: <label>Default color for labels: $INFO[Skin.String(defaultLabelColo
 
 If you want to customize the look and feel of the color picker window, make sure to include script-skin_helper_service-ColorPicker.xml in your skin and skin in to your needs.
 
+TIP: By default the colorpicker will provide a list of available colors.
+If you want to provide that list yourself, create a file "colors.xml" in skin\extras\colors\colors.xml
+See the default colors file in the script's location, subfolder resources\colors
+
 ________________________________________________________________________________________________________
 
 
