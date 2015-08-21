@@ -69,7 +69,6 @@ class ColorPicker(xbmcgui.WindowXMLDialog):
         #get current color that is stored in the skin setting
         self.currentWindow.setProperty("colorstring", xbmc.getInfoLabel("Skin.String(" + self.skinString + ')'))
         self.currentWindow.setProperty("colorname", xbmc.getInfoLabel("Skin.String(" + self.skinString + '.name)'))
-        selectItem = 0
         
         #get all colors from the colors xml file and fill a list with tuples to sort later on
         allColors = []
@@ -98,11 +97,7 @@ class ColorPicker(xbmcgui.WindowXMLDialog):
             count += 1
 
         #focus the current color
-        if selectItem != 0:
-            #select existing color in the list
-            self.currentWindow.setFocusId(3110)
-            self.colorsList.selectItem(selectItem)
-        elif self.currentWindow.getProperty("colorstring"):
+        if self.currentWindow.getProperty("colorstring"):
             #user has setup a manual color so focus the manual button
             self.currentWindow.setFocusId(3010)
         else:
@@ -140,10 +135,11 @@ class ColorPicker(xbmcgui.WindowXMLDialog):
 
     def setOpacitySlider(self):
         colorstring = self.currentWindow.getProperty("colorstring")
-        a, r, g, b = colorstring[:2], colorstring[2:4], colorstring[4:6], colorstring[6:]
-        a, r, g, b = [int(n, 16) for n in (a, r, g, b)]
-        a = 100.0 * a / 255
-        self.getControl( 3015 ).setPercent( float(a) )
+        if colorstring != "" and colorstring != None and colorstring.lower() != "none":
+            a, r, g, b = colorstring[:2], colorstring[2:4], colorstring[4:6], colorstring[6:]
+            a, r, g, b = [int(n, 16) for n in (a, r, g, b)]
+            a = 100.0 * a / 255
+            self.getControl( 3015 ).setPercent( float(a) )
         
     def onClick(self, controlID):
         colorname = self.currentWindow.getProperty("colorname")
