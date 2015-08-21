@@ -65,7 +65,7 @@ msgid "Pick a color..."
 msgstr ""
 
 msgctxt "#32012"
-msgid "Manual (ARGB) color value:"
+msgid "Color value:"
 msgstr ""
 
 msgctxt "#32013"
@@ -210,4 +210,8 @@ msgstr ""
 
 msgctxt "#32048"
 msgid "Random music artists background"
+msgstr ""
+
+msgctxt "#32049"
+msgid "Opacity"
 msgstr ""

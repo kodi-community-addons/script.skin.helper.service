@@ -42,9 +42,10 @@ class Main:
             elif action == "SETVIEW":
                 setView()
             
-            elif action == "SEARCHTRAILER":
+            elif action == "SEARCHYOUTUBE":
                 title = params.get("TITLE",None)
-                searchTrailer(title)
+                windowHeader = params.get("HEADER","")
+                searchYouTube(title,windowHeader)
             
             elif action == "SETFORCEDVIEW":
                 contenttype = params.get("CONTENTTYPE",None)

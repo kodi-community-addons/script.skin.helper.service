@@ -1,23 +1,5 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <colors>
-<!-- colors from skin -->
-<color name="darkblue">ff011222</color>
-<color name="mainblue">FF00b8ff</color>
-<color name="grey">FFC0C2C2</color>
-<color name="lightgrey">FF858585</color>      
-<color name="midgrey">FF686868</color>      
-<color name="bluegrey">ffC6C6C8</color>
-<color name="darkgrey">FF3e3e3e</color>
-<color name="darkgrey2">FF666769</color>
-<color name="77white">77FFFFFF</color>	
-<color name="aawhite">AAFFFFFF</color>  
-<color name="bbwhite">BBFFFFFF</color>  
-<color name="ddwhite">DDFFFFFF</color>  
-<color name="eewhite">EEFFFFFF</color>	
-<color name="ccmainblue">cc00b8ff</color>
-<color name="softblue">FF4d86a6</color>
-  
-  <!-- other colors -->
   <color name="air force blue">ff5d8aa8</color>
   <color name="alice blue">fff0f8ff</color>
   <color name="alizarin crimson">ffe32636</color>

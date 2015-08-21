@@ -220,13 +220,13 @@ def setView():
     if selectedItem != -1 and selectedItem != None:
         xbmc.executebuiltin("Container.SetViewMode(%s)" %selectedItem)
     
-def searchTrailer(title):
+def searchYouTube(title,windowHeader=""):
     xbmc.executebuiltin( "ActivateWindow(busydialog)" )
     import Dialogs as dialogs
-    libPath = "plugin://plugin.video.youtube/kodion/search/query/?q=%s Trailer" %title
+    libPath = "plugin://plugin.video.youtube/kodion/search/query/?q=" + title
     media_array = None
-    allTrailers = []
-    media_array = getJSON('Files.GetDirectory','{ "properties": ["title","art","plot"], "directory": "' + libPath + '", "media": "files", "limits": {"end":25} }')
+    allResults = []
+    media_array = getJSON('Files.GetDirectory','{ "properties": ["title","art","plot"], "directory": "%s", "media": "files", "limits": {"end":25} }' %libPath)
     if(media_array != None and media_array.has_key('files')):
         for media in media_array['files']:
             
@@ -242,15 +242,15 @@ def searchTrailer(title):
                 listitem = xbmcgui.ListItem(label=label, label2=label2, iconImage=image)
                 listitem.setProperty("path",path)
                 listitem.setProperty("icon",image)
-                allTrailers.append(listitem)
+                allResults.append(listitem)
 
-    w = dialogs.DialogSelectBig( "DialogSelect.xml", ADDON_PATH, listing=allTrailers, windowtitle="select trailer",multiselect=False )
+    w = dialogs.DialogSelectBig( "DialogSelect.xml", ADDON_PATH, listing=allResults, windowtitle=windowHeader,multiselect=False )
     xbmc.executebuiltin( "Dialog.Close(busydialog)" )
     w.doModal()
     selectedItem = w.result
     del w
     if selectedItem != -1:
-        path = allTrailers[selectedItem].getProperty("path")
+        path = allResults[selectedItem].getProperty("path")
         xbmc.executebuiltin("PlayMedia(%s)" %path)
             
 def selectView(contenttype="other", currentView=None, displayNone=False, displayViewId=False):

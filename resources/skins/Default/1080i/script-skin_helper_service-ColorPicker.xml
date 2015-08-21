@@ -69,15 +69,28 @@
 				</control>
 			</focusedlayout>
 		</control>
-
+		
+		<control type="grouplist">
+		<orientation>horizontal</orientation>
+		<itemgap>20</itemgap>
+		<left>60</left>
+		<top>980</top>
+		<width>1800</width>
+		<!-- color preview-->
+		<control type="image">
+			<width>100</width>
+			<height>60</height>
+			<aspectratio>stretch</aspectratio>
+			<texture border="5">panel.png</texture>
+			<colordiffuse>$INFO[Window(home).Property(colorstring)]</colordiffuse>
+		</control>
 		<!-- edit manual -->
 		<control type="button" id="3010">
-			<left>60</left>
-			<top>980</top>
-			<width>800</width>
+			<width>400</width>
 			<height>60</height>
 			<font>Reg32</font>
 			<onup>3110</onup>
+			<align>left</align>
 			<ondown>SetFocus(3110,1)</ondown>
 			<onright>3011</onright>
 			<label>$ADDON[script.skin.helper.service 32012]</label>
@@ -86,11 +99,21 @@
 			<texturenofocus colordiffuse="black" border="5">panel_trans.png</texturenofocus>
 		</control>
 		
+		<!-- Save button -->
+		<control type="button" id="3012">
+			<width>300</width>
+			<height>60</height>
+			<font>Reg32</font>
+			<onup>3110</onup>
+			<onleft>3010</onleft>
+			<label>190</label>
+			<textcolor>white</textcolor>
+			<texturenofocus colordiffuse="black" border="5">panel_trans.png</texturenofocus>
+		</control>
+		
 		<!-- None -->
 		<control type="button" id="3011">
-			<right>60</right>
-			<top>980</top>
-			<width>800</width>
+			<width>300</width>
 			<height>60</height>
 			<font>Reg32</font>
 			<onup>3110</onup>
@@ -99,7 +122,31 @@
 			<textcolor>white</textcolor>
 			<texturenofocus colordiffuse="black" border="5">panel_trans.png</texturenofocus>
 		</control>
-			
+		<control type="label">
+			<width>200</width>
+			<height>60</height>
+			<font>Reg32</font>
+			<onup>3110</onup>
+			<onleft>3010</onleft>
+			<onright>3015</onright>
+			<label>$ADDON[script.skin.helper.service 32049]:</label>
+			<textcolor>white</textcolor>
+			<texturenofocus colordiffuse="black" border="5">panel_trans.png</texturenofocus>
+		</control>
+		<control type="slider" id="3015">
+				<width>200</width>
+			</control>
+		<control type="label">
+			<width>200</width>
+			<height>60</height>
+			<font>Reg32</font>
+			<onup>3110</onup>
+			<onleft>3010</onleft>
+			<label>$INFO[Control.Getlabel(3015)]</label>
+			<textcolor>white</textcolor>
+			<texturenofocus colordiffuse="black" border="5">panel_trans.png</texturenofocus>
+		</control>
+	</control>		
 
 	</controls>
 </window>

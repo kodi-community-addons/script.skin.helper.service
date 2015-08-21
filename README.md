@@ -206,12 +206,29 @@ ________________________________________________________________________________
 
 
 
-#### Youtube trailer search
-Shows a dialog with all trailers found by the Youtube plugin, replace [MOVIETITLE] with the movie title (or info label in the skin). To be used for example in DialogVideoInfo.xml to let the user select a trailer instead of playing the default one.
-```
-RunScript(script.skin.helper.service,action=searchtrailer,title=[MOVIETITLE])             
-```
+#### Youtube search
+Shows a selectdialog with all searchresults found by the Youtube plugin, for example to search for trailers in DialogVideoInfo.xml.
+The benefit of that is that user stays in the same window and is not moved away from the library to the youtube plugin.
+You can supply a searchphrase to the script and optionally provide a label for the header in the DialogSelect.
 
+RunScript(script.skin.helper.service,action=searchyoutube,title=[SEARCHPHRASE],header=[HEADER FOR THE DIALOGSELECT]
+
+TIP: The results of the script displayed in DialogSelect.xml will have the label2 of the ListItem set to the description.
+
+example 1: Search for trailers in DialogVideoInfo.xml
+```xml
+<control type="button">
+	<label>YouTube $LOCALIZE[20410]</label>
+	<onclick condition="System.HasAddon(plugin.video.youtube)">RunScript(script.skin.helper.service,action=searchyoutube,title=$INFO[ListItem.Title] Trailer,header=Search YouTube Trailers)</onclick>
+	<onclick condition="!System.HasAddon(plugin.video.youtube)">ActivateWindow(Videos,plugin://plugin.video.youtube)</onclick>
+	<visible>Container.Content(movies)</visible>
+</control>
+           
+```
+example 2: Search for artist videos in DialogAlbumInfo.xml
+```
+RunScript(script.skin.helper.service,action=searchyoutube,title=$INFO[ListItem.Artist], header=Videos for $INFO[ListItem.Artist])             
+```
 
 
 #### Busy spinner selector

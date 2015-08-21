@@ -40,8 +40,8 @@ class ColorPicker(xbmcgui.WindowXMLDialog):
                 raise ValueError, "input #%s is not in #AARRGGBB format" % colorstring
             a, r, g, b = colorstring[:2], colorstring[2:4], colorstring[4:6], colorstring[6:]
             a, r, g, b = [int(n, 16) for n in (a, r, g, b)]
-            color = (r, g, b, a)
-            im = Image.new("RGBA", (64, 64), color)
+            color = (r, g, b)
+            im = Image.new("RGB", (64, 64), color)
             im.save(colorImageFile)
         elif not xbmcvfs.exists(colorImageFile) and not hasPilModule:
             return
@@ -74,12 +74,11 @@ class ColorPicker(xbmcgui.WindowXMLDialog):
             for count, color in enumerate(listing):
                 name = color.attributes[ 'name' ].nodeValue.lower()
                 colorstring = color.childNodes [ 0 ].nodeValue.lower()
-                sortstring = colorstring[-6:]
-                allColors.append((name,colorstring,sortstring))
+                allColors.append((name,colorstring))
                 
         #sort list and fill the panel
         count = 0
-        allColors = sorted(allColors,key=itemgetter(2))
+        allColors = sorted(allColors,key=itemgetter(1))
         
         for color in allColors:
             self.addColorToList(color[0], color[1])
@@ -98,6 +97,7 @@ class ColorPicker(xbmcgui.WindowXMLDialog):
             colorstring = currentColor
         
         WINDOW.setProperty("colorstring",colorstring)
+        self.getControl( 3015 ).setPercent( float(86) ) 
                
 
     def onFocus(self, controlId):
@@ -129,6 +129,7 @@ class ColorPicker(xbmcgui.WindowXMLDialog):
             item = self.colorsList.getSelectedItem()
             colorstring = item.getLabel()
             colorstringvalue = item.getProperty("colorstring")
+            xbmc.executebuiltin("Control.SetFocus(3012)")
         elif(controlID == 3010):       
             dialog = xbmcgui.Dialog()
             colorstring = dialog.input("Color", WINDOW.getProperty("colorstring"), type=xbmcgui.INPUT_ALPHANUM)
@@ -136,11 +137,14 @@ class ColorPicker(xbmcgui.WindowXMLDialog):
         elif(controlID == 3011):       
             colorstring = "None"
             colorstringvalue = colorstring
-        
-        
-        if self.skinString and colorstring:
-            xbmc.executebuiltin("Skin.SetString(" + self.skinString + '.name,'+ colorstring + ')')
-            xbmc.executebuiltin("Skin.SetString(" + self.skinString + ','+ colorstringvalue + ')')
-            self.closeDialog()
+        elif(controlID == 3012):       
+            item = self.colorsList.getSelectedItem()
+            colorstring = item.getLabel()
+            colorstringvalue = item.getProperty("colorstring")
+
+            if self.skinString and colorstring:
+                xbmc.executebuiltin("Skin.SetString(" + self.skinString + '.name,'+ colorstring + ')')
+                xbmc.executebuiltin("Skin.SetString(" + self.skinString + ','+ colorstringvalue + ')')
+                self.closeDialog()
           
             
