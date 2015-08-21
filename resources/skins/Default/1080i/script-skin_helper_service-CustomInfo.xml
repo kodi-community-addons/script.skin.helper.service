@@ -8,6 +8,8 @@
 		<!-- use Container(999).ListItem to get all info -->
 		<!-- all normal listitem properties will be available -->
 		<control type="list" id="999">
+		<posx>630</posx>
+                <posy>0</posy>
 		<itemlayout />
 		<focusedlayout />
 		</control>
@@ -263,6 +265,7 @@
                     <align>center</align>
                     <label>20410</label>
 					<textcolor>white</textcolor>
+					<onclick>PlayMedia($ESCINFO[Container(999).ListItem.Trailer])</onclick>
                 </control>
             </control>
         </control>

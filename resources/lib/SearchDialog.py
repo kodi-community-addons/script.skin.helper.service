@@ -188,27 +188,24 @@ class SearchDialog(xbmcgui.WindowXMLDialog):
         elif controlId == 3112:
             listitem = self.getControl( controlId ).getSelectedItem()
             content = "episodes"
-        info_dialog = InfoDialog.GUI( "script-skin_helper_service-CustomInfo.xml" , self.cwd, "default", "1080i", listitem=listitem, content=content )
+        listitem2 = createListItem(eval(listitem.getProperty("json")))
+        listitem2.setProperty("path", listitem.getProperty("path"))
+        info_dialog = InfoDialog.GUI( "script-skin_helper_service-CustomInfo.xml" , self.cwd, "Default", "1080i", listitem=listitem2, content=content )
         info_dialog.doModal()
         
         if info_dialog.action is not None:
             if info_dialog.action == 'play_movie':
-                listitem = self.getControl( 3110 ).getSelectedItem()
                 path = listitem.getProperty('path')
                 self.closeDialog()
                 xbmc.Player().play( path )
             elif info_dialog.action == 'play_trailer':
-                listitem = self.getControl( 3110 ).getSelectedItem()
                 path = listitem.getProperty('trailer')
-                self.closeDialog()
                 xbmc.Player().play( path )
             elif info_dialog.action == 'browse_tvshow':
-                listitem = self.getControl( 3111 ).getSelectedItem()
                 path = listitem.getProperty('path')
                 self.closeDialog()
                 xbmc.executebuiltin('ActivateWindow(Videos,' + path + ',return)')    
             elif info_dialog.action == 'play_episode':
-                listitem = self.getControl( 3112 ).getSelectedItem()
                 path = listitem.getProperty('path')
                 self.closeDialog()
                 xbmc.Player().play( path )
@@ -273,6 +270,7 @@ class BackgroundSearchThread(threading.Thread):
         if (json_response['result'] != None) and (json_response['result'].has_key('movies')):
             for item in json_response['result']['movies']:
                 liz = createListItem(item)
+                liz.setProperty("json",repr(item))
                 movieResultsList.addItem(liz)
 
         # Process TV Shows
@@ -286,6 +284,7 @@ class BackgroundSearchThread(threading.Thread):
                 path = 'videodb://tvshows/titles/' + tvshowid + '/'
                 liz.setPath(path)
                 liz.setProperty("path", path)
+                liz.setProperty("json",repr(item))
                 seriesResultsList.addItem(liz)
 
         # Process episodes
@@ -295,5 +294,6 @@ class BackgroundSearchThread(threading.Thread):
         if (json_response['result'] != None) and (json_response['result'].has_key('episodes')):
             for item in json_response['result']['episodes']:
                 liz = createListItem(item)
+                liz.setProperty("json",repr(item))
                 episodeResultsList.addItem(liz)
                 

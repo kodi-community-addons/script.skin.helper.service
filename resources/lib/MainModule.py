@@ -69,39 +69,41 @@ def selectBusyTexture():
     import Dialogs as dialogs
     spinnersList = []
     
-    currentSkinHelper.SpinnerTexture = xbmc.getInfoLabel("Skin.String(SkinHelper.SpinnerTexture)")
+    currentSpinnerTexture = xbmc.getInfoLabel("Skin.String(SkinHelper.SpinnerTexture)")
     
     listitem = xbmcgui.ListItem(label="None")
     listitem.setProperty("icon","None")
     spinnersList.append(listitem)
     
-    listitem = xbmcgui.ListItem(label="Custom single image (gif)")
-    listitem.setProperty("icon","special://skin/extras/icons/animated-gif-icon.png")
+    listitem = xbmcgui.ListItem(label=ADDON.getLocalizedString(32052))
+    listitem.setProperty("icon","")
     spinnersList.append(listitem)
     
-    listitem = xbmcgui.ListItem(label="Custom multi image (path)")
-    listitem.setProperty("icon","special://skin/extras/icons/animated-spinner-folder-icon.png")
+    listitem = xbmcgui.ListItem(label=ADDON.getLocalizedString(32053))
+    listitem.setProperty("icon","")
     spinnersList.append(listitem)
-
-    dirs, files = xbmcvfs.listdir("special://skin/extras/busy_spinners/")
     
-    for dir in dirs:
-        listitem = xbmcgui.ListItem(label=dir)
-        listitem.setProperty("icon","special://skin/extras/busy_spinners/" + dir)
-        spinnersList.append(listitem)
-    
-    for file in files:
-        if file.endswith(".gif"):
-            label = file.replace(".gif","")
-            listitem = xbmcgui.ListItem(label=label)
-            listitem.setProperty("icon","special://skin/extras/busy_spinners/" + file)
+    path = "special://skin/extras/busy_spinners/"
+    if xbmcvfs.exists(path):
+        dirs, files = xbmcvfs.listdir(path)
+        
+        for dir in dirs:
+            listitem = xbmcgui.ListItem(label=dir)
+            listitem.setProperty("icon",path + dir)
             spinnersList.append(listitem)
+        
+        for file in files:
+            if file.endswith(".gif"):
+                label = file.replace(".gif","")
+                listitem = xbmcgui.ListItem(label=label)
+                listitem.setProperty("icon",path + file)
+                spinnersList.append(listitem)
 
-    w = dialogs.DialogSelectBig( "DialogSelect.xml", ADDON_PATH, listing=spinnersList, windowtitle="select busy spinner",multiselect=False )
+    w = dialogs.DialogSelectBig( "DialogSelect.xml", ADDON_PATH, listing=spinnersList, windowtitle=ADDON.getLocalizedString(32051),multiselect=False )
     
     count = 0
     for li in spinnersList:
-        if li.getLabel() == currentSkinHelper.SpinnerTexture:
+        if li.getLabel() == currentSpinnerTexture:
             w.autoFocusId = count
         count += 1
          
@@ -115,13 +117,13 @@ def selectBusyTexture():
     
     if selectedItem == 1:
         dialog = xbmcgui.Dialog()
-        custom_texture = dialog.browse( 2 , ADDON.getLocalizedString(32014), 'files', mask='.gif')
+        custom_texture = dialog.browse( 2 , ADDON.getLocalizedString(32052), 'files', mask='.gif')
         if custom_texture:
             xbmc.executebuiltin("Skin.SetString(SkinHelper.SpinnerTexture,%s)" %spinnersList[selectedItem].getLabel())
             xbmc.executebuiltin("Skin.SetString(SkinHelper.SpinnerTexturePath,%s)" % custom_texture)
     elif selectedItem == 2:
         dialog = xbmcgui.Dialog()
-        custom_texture = dialog.browse( 0 , ADDON.getLocalizedString(32014), 'files')
+        custom_texture = dialog.browse( 0 , ADDON.getLocalizedString(32053), 'files')
         if custom_texture:
             xbmc.executebuiltin("Skin.SetString(SkinHelper.SpinnerTexture,%s)" %spinnersList[selectedItem].getLabel())
             xbmc.executebuiltin("Skin.SetString(SkinHelper.SpinnerTexturePath,%s)" % custom_texture)
@@ -285,7 +287,7 @@ def selectView(contenttype="other", currentView=None, displayNone=False, display
                 listitem.setProperty("icon",image)
                 allViews.append(listitem)
                 itemcount +=1
-    w = dialogs.DialogSelectBig( "DialogSelect.xml", ADDON_PATH, listing=allViews, windowtitle="select view",multiselect=False )
+    w = dialogs.DialogSelectBig( "DialogSelect.xml", ADDON_PATH, listing=allViews, windowtitle=ADDON.getLocalizedString(32054),multiselect=False )
     w.autoFocusId = currentViewSelectId
     w.doModal()
     selectedItem = w.result

@@ -219,3 +219,19 @@ msgstr ""
 msgctxt "#32050"
 msgid "Custom color"
 msgstr ""
+
+msgctxt "#32051"
+msgid "Select busy spinner"
+msgstr ""
+
+msgctxt "#32052"
+msgid "Custom single image (gif)"
+msgstr ""
+
+msgctxt "#32053"
+msgid "Custom multi image (path)"
+msgstr ""
+
+msgctxt "#32054"
+msgid "Select view"
+msgstr ""

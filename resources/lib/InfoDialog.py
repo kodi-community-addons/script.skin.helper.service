@@ -49,9 +49,6 @@ class GUI( xbmcgui.WindowXMLDialog ):
                 self._close_dialog( 'browse_tvshow' )
             elif self.content == 'episodes':
                 self._close_dialog( 'play_episode' )
-        elif controlId == 6:
-            if self.content == 'movies':
-                self._close_dialog( 'play_trailer' )
 
     def onFocus( self, controlId ):
         pass

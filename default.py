@@ -56,7 +56,7 @@ class Main:
             
             elif action == "VIDEOSEARCH":
                 from resources.lib.SearchDialog import SearchDialog
-                searchDialog = SearchDialog("script-skin_helper_service-CustomSearch.xml", ADDON_PATH, "default", "1080i")
+                searchDialog = SearchDialog("script-skin_helper_service-CustomSearch.xml", ADDON_PATH, "Default", "1080i")
                 searchDialog.doModal()
                 del searchDialog
             
