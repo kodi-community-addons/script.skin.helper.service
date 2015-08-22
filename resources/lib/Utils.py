@@ -61,7 +61,7 @@ def getJSON(method,params):
     if(jsonobject.has_key('result')):
         return jsonobject['result']
     else:
-        logMsg("no result " + str(jsonobject))
+        logMsg("no result " + str(jsonobject),0)
         return None
 
 def try_decode(text, encoding="utf-8"):

@@ -29,7 +29,7 @@ The script does not have it's own settings dialog. The script is controlled by t
 Important settings:
 
 | setting name 		| how to set 		| description                           |
-|:---------------------- | :------------------------------------- | :----------- |
+|:-------------- | :--------------- | :---------------------------------------- |
 |SkinHelper.EnableExtraFanart	| Skin.ToggleSetting(SkinHelper.EnableExtraFanart)	| enables the extrafanart background scanner |
 |SkinHelper.CustomStudioImagesPath | Skin.SetString(SkinHelper.CustomStudioImagesPath,[PATH])| if you want the user (or yourself as skinner) be able to set the path to the studio logos. If empty it will try to locate the images (later to be replaced with the new image resource packs in Kodi 16)|
 |SkinHelper.ShowInfoAtPlaybackStart	| Skin.SetNumeric(SkinHelper.ShowInfoAtPlaybackStart)	| Show OSD info panel at playback start for number of seconds (0 disables this) |
@@ -52,11 +52,18 @@ ________________________________________________________________________________
 
 
 #### General window Properties
-The window properties can be called in your skin like this: $INFO[Window(Home).Property(propertyname)]
-```
-Window(Home).Property(SkinHelper.skinTitle)  --> your skin name including the version
-Window(Home).Property(SkinHelper.skinVersion) --> only the version of your skin
-```
+| property 			| description |
+|:-----------------------------	| :----------- |
+|Window(Home).Property(SkinHelper.skinTitle) | your skin name including the version |
+|Window(Home).Property(SkinHelper.skinVersion) | only the version of your skin |
+|Window(Home).Property(SkinHelper.TotalAddons) | total number of all installed addons |
+|Window(Home).Property(SkinHelper.TotalAudioAddons) | total number of installed Audio addons |
+|Window(Home).Property(SkinHelper.TotalVideoAddons) | total number of installed Video addons |
+|Window(Home).Property(SkinHelper.TotalProgramAddons) | total number of installed Program addons |
+|Window(Home).Property(SkinHelper.TotalPicturesAddons) | total number of installed Picture addons |
+|Window(Home).Property(SkinHelper.TotalFavourites) | total number of favourites |
+|Window(Home).Property(SkinHelper.TotalTVChannels) | total number of TV channels in the PVR |
+|Window(Home).Property(SkinHelper.TotalRadioChannels) | total number of Radio channels in the PVR |
 ________________________________________________________________________________________________________
 #### Video library window properties
 Some additional window properties that can be used in the video library. 

@@ -340,9 +340,7 @@ def getFavourites(limit):
                     break
                     
     except Exception as e: 
-        print "exception ?"
-        print e
-        pass        
+        logMsg("ERROR in PluginContent.getFavourites ! --> " + str(e), 0)       
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 def getPVRChannels(limit):
@@ -363,14 +361,12 @@ def getPVRChannels(limit):
                 for item in json_query['result']['channels']:
                     channelname = item["label"]
                     channelid = item["channelid"]
-                    print item
                     # Get current show for the channel
                     json_query = xbmc.executeJSONRPC( '{ "jsonrpc": "2.0",  "id": 1, "method": "PVR.GetBroadcasts", "params": {"channelid": %d, "properties": [ "title", "plot", "plotoutline", "starttime", "endtime", "runtime", "progress", "progresspercentage", "genre", "episodename", "episodenum", "episodepart", "firstaired", "hastimer", "isactive", "parentalrating", "wasactive", "thumbnail" ], "limits": {"end": 1} } }' %( item[ "channelid" ] ) )
                     json_query = unicode(json_query, 'utf-8', errors='ignore')
                     json_query = json.loads(json_query)
                     if json_query.has_key( "result" ) and json_query[ "result" ].has_key( "broadcasts" ):
                         for item in json_query['result']['broadcasts']:
-                            print item
                             image = getPVRProgramThumb(item["title"] + " " + channelname)
                             path="plugin://script.skin.helper.service/?action=launchpvr&path=" + str(channelid)
                             li = xbmcgui.ListItem(item["title"], path=path)

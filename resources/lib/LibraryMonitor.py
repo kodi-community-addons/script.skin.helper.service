@@ -75,7 +75,6 @@ class LibraryMonitor(threading.Thread):
             #monitor home widget
             elif xbmc.getCondVisibility("Window.IsActive(home)") and WINDOW.getProperty("SkinHelper.WidgetContainer"):
                 widgetContainer = WINDOW.getProperty("SkinHelper.WidgetContainer")
-                print "widgetContainer-->"+ widgetContainer
                 self.liPath = xbmc.getInfoLabel("Container(%s).ListItem.Path" %widgetContainer)
                 liLabel = xbmc.getInfoLabel("Container(%s).ListItem.Label"%widgetContainer)
                 if ((liLabel != lastListItemLabel) and xbmc.getCondVisibility("!Container(%s).Scrolling" %widgetContainer)):

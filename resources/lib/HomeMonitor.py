@@ -49,6 +49,7 @@ class HomeMonitor(threading.Thread):
             #do some background stuff every 30 minutes
             if (xbmc.getCondVisibility("!Window.IsActive(fullscreenvideo)")):
                 if (self.delayedTaskInterval >= 1800):
+                    self.genericWindowProps()
                     pluginContent.buildWidgetsListing()
                     self.checkNetflixReady()
                     self.updatePlexlinks()
@@ -186,3 +187,53 @@ class HomeMonitor(threading.Thread):
                 dialog.notification(xbmc.getLocalizedString(31295), WINDOW.getProperty("NextAired.TodayShow"), xbmcgui.NOTIFICATION_WARNING, 8000)
                 self.lastNextAiredNotificationCheck = currentHour
     
+    def genericWindowProps(self):
+        
+        #GET TOTAL ADDONS COUNT       
+        allAddonsCount = 0
+        media_array = getJSON('Addons.GetAddons','{ }')
+        if media_array != None and media_array.has_key('addons'):
+            for item in media_array['addons']:
+                allAddonsCount += 1
+        WINDOW.setProperty("SkinHelper.TotalAddons",str(allAddonsCount))
+        
+        addontypes = []
+        addontypes.append( ["executable", "SkinHelper.TotalProgramAddons", 0] )
+        addontypes.append( ["video", "SkinHelper.TotalVideoAddons", 0] )
+        addontypes.append( ["audio", "SkinHelper.TotalAudioAddons", 0] )
+        addontypes.append( ["image", "SkinHelper.TotalPicturesAddons", 0] )
+
+        for type in addontypes:
+            media_array = getJSON('Addons.GetAddons','{ "content": "%s" }' %type[0])
+            if media_array != None and media_array.has_key('addons'):
+                for item in media_array['addons']:
+                    type[2] += 1
+            WINDOW.setProperty(type[1],str(type[2]))    
+                
+        #GET FAVOURITES COUNT        
+        allFavouritesCount = 0
+        media_array = getJSON('Favourites.GetFavourites','{ }')
+        if media_array != None and media_array.has_key('favourites'):
+            for item in media_array['favourites']:
+                allFavouritesCount += 1
+        WINDOW.setProperty("SkinHelper.TotalFavourites",str(allFavouritesCount))
+
+        #GET TV CHANNELS COUNT        
+        allTvChannelsCount = 0
+        media_array = getJSON('PVR.GetChannels','{"channelgroupid": "alltv" }' )
+        if media_array != None and media_array.has_key('channels'):
+            for item in media_array['channels']:
+                allTvChannelsCount += 1
+        WINDOW.setProperty("SkinHelper.TotalTVChannels",str(allTvChannelsCount))        
+
+        #GET RADIO CHANNELS COUNT        
+        allRadioChannelsCount = 0
+        media_array = getJSON('PVR.GetChannels','{"channelgroupid": "allradio" }' )
+        if media_array != None and media_array.has_key('channels'):
+            for item in media_array['channels']:
+                allRadioChannelsCount += 1
+        WINDOW.setProperty("SkinHelper.TotalRadioChannels",str(allRadioChannelsCount))        
+               
+
+
+               
