@@ -240,11 +240,12 @@ For example to display a thumb of the selected TV program in MyPVRChannels.xml:
 <control type="multiimage">
 	<width>300</width>
 	<height>300</height>
-	<imagepath diffuse="home/home_matte.png">plugin://script.skin.helper.service/?action=getthumb&path=$INFO[ListItem.Title] $INFO[ListItem.ChannelName]</imagepath>
+	<imagepath>plugin://script.skin.helper.service/?action=getthumb&path=$INFO[ListItem.Title] $INFO[ListItem.ChannelName]</imagepath>
 	<aspectratio>keep</aspectratio>
 </control>
 ```
 
+When the script is called it will also fill a window property with the image: SkinHelper.ListItemThumb
 
 ________________________________________________________________________________________________________
 
