@@ -33,7 +33,7 @@ def doMainListing():
     addDirectoryItem(ADDON.getLocalizedString(32005), "plugin://script.skin.helper.service/?action=recentmedia&limit=100")
     addDirectoryItem(ADDON.getLocalizedString(32006), "plugin://script.skin.helper.service/?action=similarmovies&limit=100")
     addDirectoryItem(ADDON.getLocalizedString(32007), "plugin://script.skin.helper.service/?action=inprogressandrecommendedmedia&limit=100")
-    addDirectoryItem("smart pvr channels", "plugin://script.skin.helper.service/?action=pvrchannelssmart&limit=10")
+    #addDirectoryItem("smart pvr channels", "plugin://script.skin.helper.service/?action=pvrchannelssmart&limit=10")
     
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
@@ -135,7 +135,8 @@ def buildWidgetsListing():
         allWidgets = eval(WINDOW.getProperty("allwidgets"))
     
     #skin provided playlists
-    paths = ["special://skin/playlists/","special://skin/extras/widgetplaylists"]
+    paths = ["special://skin/playlists/","special://skin/extras/widgetplaylists/"]
+    playlistsFound = []
     for path in paths:
         if xbmcvfs.exists(path):
             media_array = getJSON('Files.GetDirectory','{ "directory": "%s", "media": "files" }' %path)
@@ -143,7 +144,7 @@ def buildWidgetsListing():
                 for item in media_array['files']:
                     if item["file"].endswith(".xsp"):
                         playlist = item["file"] + "&amp;reload=$INFO[Window(Home).Property(widgetreload)]"
-                        contents = xbmcvfs.File(playlist, 'r')
+                        contents = xbmcvfs.File(item["file"], 'r')
                         contents_data = contents.read().decode('utf-8')
                         contents.close()
                         xmldata = xmltree.fromstring(contents_data.encode('utf-8'))
@@ -161,7 +162,8 @@ def buildWidgetsListing():
                         else:
                             mediaLibrary = "VideoLibrary"
                         path = "ActivateWindow(%s,%s,return)" %(mediaLibrary, playlist)
-                        allWidgets["skinplaylists"] = [label, path, playlist, image, type]
+                        playlistsFound.append([label, path, playlist, image, type])
+    allWidgets["skinplaylists"] = playlistsFound
         
     #addons that provide dynamic content for widgets
     #will only be loaded once so no cache refreshes
@@ -179,7 +181,7 @@ def buildWidgetsListing():
                     curWindow = xbmc.getInfoLabel("$INFO[Window.Property(xmlfile)]")
                     if curWindow.endswith("Nav.xml") or curWindow == "AddonBrowser.xml" or curWindow.startswith("MyPVR"):
                         return
-                    content = item["file"] + "&amp;reload=$INFO[Window(Home).Property(widgetreload)]"
+                    content = item["file"] + "&reload=$INFO[Window(Home).Property(widgetreload)]"
                     label = item["label"]
                     type, image = detectPluginContent(item["file"])
                     if type:
@@ -189,7 +191,18 @@ def buildWidgetsListing():
                             mediaLibrary = "VideoLibrary"
                         path = "ActivateWindow(%s,%s,return)" %(mediaLibrary, content)
                         foundWidgets.append([label, path, content, image, type])
-                allWidgets[addon[1]] = foundWidgets
+            if addon[1] == "extendedinfo":
+                #some additional entrypoints for extendedinfo...
+                entrypoints = ["plugin://script.extendedinfo?info=youtubeusersearch&&id=Eurogamer","plugin://script.extendedinfo?info=youtubeusersearch&&id=Engadget","plugin://script.extendedinfo?info=youtubeusersearch&&id=MobileTechReview"]
+                for entry in entrypoints:
+                    content = entry
+                    label = entry.split("id=")[1]
+                    type = "video"
+                    mediaLibrary = "VideoLibrary"
+                    path = "ActivateWindow(%s,%s,return)" %(mediaLibrary, content)
+                    foundWidgets.append([label, path, content, "", type])
+
+            allWidgets[addon[1]] = foundWidgets
     
     #widgets from favourites
     json_query_string = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "Favourites.GetFavourites", "params": {"type": null, "properties": ["path", "thumbnail", "window", "windowparameter"]}, "id": "1"}')
@@ -214,30 +227,25 @@ def buildWidgetsListing():
             allWidgets["favourites"] = foundWidgets
                         
     #some other widgets (by their direct endpoint) such as smartish widgets and PVR
-    otherWidgets = []
-    foundWidgets = []
-    if xbmc.getCondVisibility("PVR.HasTVChannels"):
-        otherWidgets.append(["pvr://recordings","pvr", "TV Recordings", "pvr"])
-        otherWidgets.append(["pvr://tvchannels","pvr", "TV Channels", "pvr"])
-    if xbmc.getCondVisibility("System.HasAddon(service.smartish.widgets) + Skin.HasSetting(enable.smartish.widgets)"):
-        otherWidgets.append(["plugin://service.smartish.widgets?type=movies&amp;reload=$INFO[Window.Property(smartish.movies)]","movies", "Smart(ish) Movies widget", "smartishwidgets"])
-        otherWidgets.append(["plugin://service.smartish.widgets?type=episodes&amp;reload=$INFO[Window.Property(smartish.episodes)]","episodes", "Smart(ish) Episodes widget", "smartishwidgets"])
-        otherWidgets.append(["plugin://service.smartish.widgets?type=pvr&amp;reload=$INFO[Window.Property(smartish.pvr)]","pvr", "Smart(ish) PVR widget", "smartishwidgets"])
-        otherWidgets.append(["plugin://service.smartish.widgets?type=albums&amp;reload=$INFO[Window.Property(smartish.albums)]","albums", "Smart(ish) Albums widget", "smartishwidgets"])
+    otherWidgets = ["pvr","smartishwidgets"]
     for widget in otherWidgets:
-        content = widget[0]
-        type = widget[1]
-        image = ""
-        label = widget[2]
-        mediaLibrary = "VideoLibrary"
-        path = "ActivateWindow(%s,%s,return)" %(mediaLibrary, content)
-        foundWidgets.append([label, path, content, image, type])
-        allWidgets[widget[3]] = foundWidgets
+        if not allWidgets.has_key(widget):
+            foundWidgets = []
+            if widget=="pvr" and xbmc.getCondVisibility("PVR.HasTVChannels"):
+                mediaLibrary = "VideoLibrary"
+                path = "ActivateWindow(%s,%s,return)" %(mediaLibrary, content)
+                foundWidgets.append(["TV Recordings", "ActivateWindow(VideoLibrary,pvr://recordings,return)", "pvr://recordings", "", "pvr"])
+                foundWidgets.append(["TV Channels", "ActivateWindow(VideoLibrary,pvr://tvchannels,return)", "pvr://tvchannels", "", "pvr"])   
+            if widget=="smartishwidgets" and xbmc.getCondVisibility("System.HasAddon(service.smartish.widgets) + Skin.HasSetting(enable.smartish.widgets)"):
+                foundWidgets.append(["Smart(ish) Movies widget", "ActivateWindow(VideoLibrary,plugin://service.smartish.widgets?type=movies&reload=$INFO[Window.Property(smartish.movies)],return)", "plugin://service.smartish.widgets?type=movies&reload=$INFO[Window.Property(smartish.movies)]", "", "movies"])
+                foundWidgets.append(["Smart(ish) Episodes widget", "ActivateWindow(VideoLibrary,plugin://service.smartish.widgets?type=episodes&reload=$INFO[Window.Property(smartish.episodes)],return)", "plugin://service.smartish.widgets?type=episodes&reload=$INFO[Window.Property(smartish.episodes)]", "", "episodes"])
+                foundWidgets.append(["Smart(ish) PVR widget", "ActivateWindow(VideoLibrary,plugin://service.smartish.widgets?type=pvr&reload=$INFO[Window.Property(smartish.pvr)],return)", "plugin://service.smartish.widgets?type=pvr&reload=$INFO[Window.Property(smartish.pvr)]", "", "pvr"])
+                foundWidgets.append(["Smart(ish) Albums widget", "ActivateWindow(VideoLibrary,plugin://service.smartish.widgets?type=albums&reload=$INFO[Window.Property(smartish.albums)],return)", "plugin://service.smartish.widgets?type=albums&reload=$INFO[Window.Property(smartish.albums)]", "", "albums"])
+            allWidgets[widget] = foundWidgets
             
     WINDOW.setProperty("allwidgets",repr(allWidgets))    
        
 def getWidgets(itemstoInclude = None):
-    
     xbmcplugin.setContent(int(sys.argv[1]), 'files')
     
     if itemstoInclude:
@@ -254,7 +262,18 @@ def getWidgets(itemstoInclude = None):
     if allWidgets:
         allWidgets = eval(allWidgets)
         for widgetType in itemstoInclude:
-            if allWidgets.has_key(widgetType):
+            if widgetType == "smartshortcuts":
+                allSmartShortcuts = WINDOW.getProperty("allSmartShortcuts")
+                if allSmartShortcuts:
+                    for node in eval (allSmartShortcuts):
+                        if "emby" in node or "plex" in node or "netflix" in node:
+                            #create main folder entry
+                            addSmartShortcutDirectoryItem(node)
+                        else:
+                            label = "$INFO[Window(Home).Property(%s.title)]" %node
+                            #create final listitem entry (playlist, favorites)
+                            addSmartShortcutDirectoryItem(node,False, node)
+            elif allWidgets.has_key(widgetType):
                 widgets = allWidgets[widgetType]
                 for widget in widgets:
                     li = xbmcgui.ListItem(widget[0], path=widget[1])
@@ -379,74 +398,16 @@ def getPVRChannels(limit):
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 def getThumb(searchphrase):
+    WINDOW.clearProperty("SkinHelper.ListItemThumb")
     image = searchThumb(searchphrase)
+    if image:
+        WINDOW.setProperty("SkinHelper.ListItemThumb",image)
+    else:
+        WINDOW.clearProperty("SkinHelper.ListItemThumb")
     li = xbmcgui.ListItem(searchphrase, path=image)
     xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=image, listitem=li)
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
           
-def searchThumb(searchphrase):
-    #get's a thumb image for the given search phrase
-       
-    image = ""
-    if searchphrase:
-        cache = WINDOW.getProperty("SkinHelperThumbs")
-        if cache:
-            cache = eval(cache)
-        else:
-            cache = {}
-        
-        if cache.has_key(searchphrase):
-            return cache[searchphrase]
-        else:
-            
-            #lookup TMDB
-            image = getTMDBimage(searchphrase)
-            
-            #lookup with Google images
-            if not image:
-                search = searchphrase.split()
-                search = '%20'.join(map(str, search))
-                url = 'http://ajax.googleapis.com/ajax/services/search/images?v=1.0&q=%s&safe=off' % search
-                search_results = urllib2.urlopen(url)
-                js = json.loads(search_results.read().decode("utf-8"))
-                results = js['responseData']['results']
-                for i in results: rest = i['unescapedUrl']
-                if ".jpg" in rest or ".png" in rest:
-                    image = rest
-            
-            # Do lookup with youtube addon - to be replaced with something better
-            if not image:
-                #safety check: prevent multiple youtube searches at once...
-                waitForYouTubeCount = 0
-                while WINDOW.getProperty("youtubescanrunning") == "running":
-                    xbmc.sleep(250)
-                    waitForYouTubeCount += 1
-                    if waitForYouTubeCount == 25:
-                        return ""
-                
-                WINDOW.setProperty("youtubescanrunning","running")
-                libPath = "plugin://plugin.video.youtube/kodion/search/query/?q=%s" %searchphrase
-                media_array = None
-                media_array = getJSON('Files.GetDirectory','{ "properties": ["title","art"], "directory": "' + libPath + '", "media": "files" }')
-                if(media_array != None and media_array.has_key('files')):
-                    for media in media_array['files']:
-                        if not media["filetype"] == "directory":
-                            if media.has_key('art'):
-                                if media['art'].has_key('thumb'):
-                                    image = media['art']['thumb'].replace("image://","")
-                                    image=urllib.unquote(image).decode('utf8')
-                                    if image.endswith("/"):
-                                        image = image[:-1]
-                                    break
-                WINDOW.clearProperty("youtubescanrunning")
-    
-    if image:
-        if ".jpg/" in image:
-            image = image.split(".jpg/")[0] + ".jpg"
-        cache[searchphrase] = image
-        WINDOW.setProperty("SkinHelperThumbs", repr(cache))
-    return image
-
 def getNextEpisodes(limit):
     if not limit:
         limit = 25

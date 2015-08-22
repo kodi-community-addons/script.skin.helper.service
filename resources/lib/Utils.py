@@ -344,3 +344,65 @@ def getTMDBimage(title):
     else:
         return None
     
+def searchThumb(searchphrase):
+    #get's a thumb image for the given search phrase
+       
+    image = ""
+    if searchphrase:
+        cache = WINDOW.getProperty("SkinHelperThumbs")
+        if cache:
+            cache = eval(cache)
+        else:
+            cache = {}
+        
+        if cache.has_key(searchphrase):
+            return cache[searchphrase]
+        else:
+            
+            #lookup TMDB
+            image = getTMDBimage(searchphrase)
+            
+            #lookup with Google images
+            if not image:
+                search = searchphrase.split()
+                search = '%20'.join(map(str, search))
+                url = 'http://ajax.googleapis.com/ajax/services/search/images?v=1.0&q=%s&safe=off' % search
+                search_results = urllib2.urlopen(url)
+                js = json.loads(search_results.read().decode("utf-8"))
+                results = js['responseData']['results']
+                for i in results: rest = i['unescapedUrl']
+                if ".jpg" in rest or ".png" in rest:
+                    image = rest
+            
+            # Do lookup with youtube addon - to be replaced with something better
+            if not image:
+                #safety check: prevent multiple youtube searches at once...
+                waitForYouTubeCount = 0
+                while WINDOW.getProperty("youtubescanrunning") == "running":
+                    xbmc.sleep(250)
+                    waitForYouTubeCount += 1
+                    if waitForYouTubeCount == 25:
+                        return ""
+                
+                WINDOW.setProperty("youtubescanrunning","running")
+                libPath = "plugin://plugin.video.youtube/kodion/search/query/?q=%s" %searchphrase
+                media_array = None
+                media_array = getJSON('Files.GetDirectory','{ "properties": ["title","art"], "directory": "' + libPath + '", "media": "files" }')
+                if(media_array != None and media_array.has_key('files')):
+                    for media in media_array['files']:
+                        if not media["filetype"] == "directory":
+                            if media.has_key('art'):
+                                if media['art'].has_key('thumb'):
+                                    image = media['art']['thumb'].replace("image://","")
+                                    image=urllib.unquote(image).decode('utf8')
+                                    if image.endswith("/"):
+                                        image = image[:-1]
+                                    break
+                WINDOW.clearProperty("youtubescanrunning")
+    
+    if image:
+        if ".jpg/" in image:
+            image = image.split(".jpg/")[0] + ".jpg"
+        cache[searchphrase] = image
+        WINDOW.setProperty("SkinHelperThumbs", repr(cache))
+    return image
