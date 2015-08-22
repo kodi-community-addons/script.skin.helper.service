@@ -37,6 +37,7 @@ class BackgroundsUpdater(threading.Thread):
         self.lastPicturesPath = xbmc.getInfoLabel("skin.string(SkinHelper.PicturesBackgroundPath)")
         self.cachePath = os.path.join(ADDON_DATA_PATH,"backgroundscache.json")
         self.SmartShortcutsCachePath = os.path.join(ADDON_DATA_PATH,"smartshotcutscache.json")
+        self.SkinHelperThumbsCachePath = os.path.join(ADDON_DATA_PATH,"SkinHelperThumbs.json")
 
         logMsg("BackgroundsUpdater - started")
         self.event =  threading.Event()
@@ -97,9 +98,16 @@ class BackgroundsUpdater(threading.Thread):
             xbmcvfs.mkdir(ADDON_DATA_PATH)
         
         self.allBackgrounds["blacklist"] = list(self.defBlacklist)
+        
+        #cache file for all backgrounds
         json.dump(self.allBackgrounds, open(self.cachePath,'w'))
         
+        #cache file for smart shortcuts
         json.dump(self.smartShortcuts, open(self.SmartShortcutsCachePath,'w'))
+        
+        #cache file for generated skinhelper thumbs
+        json.dump(WINDOW.getProperty("SkinHelperThumbs"), open(self.SkinHelperThumbsCachePath,'w'))
+        
         
     def getCacheFromFile(self):
         if xbmcvfs.exists(self.cachePath):
@@ -111,7 +119,11 @@ class BackgroundsUpdater(threading.Thread):
         
         if xbmcvfs.exists(self.SmartShortcutsCachePath):
             with open(self.SmartShortcutsCachePath) as data_file:    
-                self.smartShortcuts = json.load(data_file)    
+                self.smartShortcuts = json.load(data_file)
+
+        if xbmcvfs.exists(self.SkinHelperThumbsCachePath):
+            with open(self.SkinHelperThumbsCachePath) as data_file:    
+                WINDOW.setProperty("SkinHelperThumbs",json.load(data_file))    
                 
     def setImageFromPath(self, windowProp, libPath, fallbackImage=None, customJson=None):
         image = fallbackImage

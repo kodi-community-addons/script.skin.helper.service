@@ -27,7 +27,7 @@ class Main:
     
     def __init__(self):
         
-        logMsg('started loading script entry',0)
+        logMsg('started loading script entry')
         params = self.getParams()
         
         if params:

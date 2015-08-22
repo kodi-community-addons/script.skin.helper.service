@@ -13,14 +13,14 @@ class Main:
     
     def __init__(self):
         
-        logMsg('started loading pluginentry')
+        logMsg('started loading pluginentry',0)
         
         #get params
         action = None
         limit = None
         path = None
         params = urlparse.parse_qs(sys.argv[2][1:])
-        logMsg("Parameter string: %s" % sys.argv[2])
+        logMsg("Parameter string: %s" % sys.argv[2],0)
 
         try:
             action = params['action'][0].upper()
@@ -60,6 +60,8 @@ class Main:
                 getBackgrounds()
             elif action == "WIDGETS":
                 getWidgets(path)
+            elif action == "GETTHUMB":
+                getThumb(path)
             elif action == "WIDGETS":
                 getWidgets(path)
             elif action == "LAUNCHPVR":

@@ -7,7 +7,7 @@ import xbmcaddon
 import xbmcvfs
 import os, sys
 import time
-import urllib
+import urllib,urllib2
 import xml.etree.ElementTree as xmltree
 from xml.dom.minidom import parse
 import json
@@ -367,7 +367,7 @@ def getPVRChannels(limit):
                     json_query = json.loads(json_query)
                     if json_query.has_key( "result" ) and json_query[ "result" ].has_key( "broadcasts" ):
                         for item in json_query['result']['broadcasts']:
-                            image = getPVRProgramThumb(item["title"] + " " + channelname)
+                            image = searchThumb(item["title"] + " " + channelname)
                             path="plugin://script.skin.helper.service/?action=launchpvr&path=" + str(channelid)
                             li = xbmcgui.ListItem(item["title"], path=path)
                             li.setThumbnailImage(image)
@@ -378,34 +378,73 @@ def getPVRChannels(limit):
     
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
-def getPVRProgramThumb(showtitle):
-    cache = WINDOW.getProperty("PVRProgramThumbs")
+def getThumb(searchphrase):
+    image = searchThumb(searchphrase)
+    li = xbmcgui.ListItem(searchphrase, path=image)
+    xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=image, listitem=li)
+    xbmcplugin.endOfDirectory(int(sys.argv[1]))
+          
+def searchThumb(searchphrase):
+    #get's a thumb image for the given search phrase
+       
     image = ""
-    if cache:
-        cache = eval(cache)
-    else:
-        cache = {}
-    
-    if cache.has_key(showtitle):
-        return cache[showtitle]
-    else:
-        #lookup with youtube addon - to be replaced with something better
-        libPath = "plugin://plugin.video.youtube/kodion/search/query/?q=%s" %showtitle
-        media_array = None
-        allTrailers = []
-        media_array = getJSON('Files.GetDirectory','{ "properties": ["title","art","plot"], "directory": "' + libPath + '", "media": "files", "limits": {"end":5} }')
-        if(media_array != None and media_array.has_key('files')):
-            for media in media_array['files']:
+    if searchphrase:
+        cache = WINDOW.getProperty("SkinHelperThumbs")
+        if cache:
+            cache = eval(cache)
+        else:
+            cache = {}
+        
+        if cache.has_key(searchphrase):
+            return cache[searchphrase]
+        else:
+            
+            #lookup TMDB
+            image = getTMDBimage(searchphrase)
+            
+            #lookup with Google images
+            if not image:
+                search = searchphrase.split()
+                search = '%20'.join(map(str, search))
+                url = 'http://ajax.googleapis.com/ajax/services/search/images?v=1.0&q=%s&safe=off' % search
+                search_results = urllib2.urlopen(url)
+                js = json.loads(search_results.read().decode("utf-8"))
+                results = js['responseData']['results']
+                for i in results: rest = i['unescapedUrl']
+                if ".jpg" in rest or ".png" in rest:
+                    image = rest
+            
+            # Do lookup with youtube addon - to be replaced with something better
+            if not image:
+                #safety check: prevent multiple youtube searches at once...
+                waitForYouTubeCount = 0
+                while WINDOW.getProperty("youtubescanrunning") == "running":
+                    xbmc.sleep(250)
+                    waitForYouTubeCount += 1
+                    if waitForYouTubeCount == 25:
+                        return ""
                 
-                if not media["filetype"] == "directory":
-                    label = media["label"]
-                    label2 = media["plot"]
-                    if media.has_key('art'):
-                        if media['art'].has_key('thumb'):
-                            image = (media['art']['thumb'])
-
-    cache[showtitle] = image
-    WINDOW.setProperty("PVRProgramThumbs", repr(cache))
+                WINDOW.setProperty("youtubescanrunning","running")
+                libPath = "plugin://plugin.video.youtube/kodion/search/query/?q=%s" %searchphrase
+                media_array = None
+                media_array = getJSON('Files.GetDirectory','{ "properties": ["title","art"], "directory": "' + libPath + '", "media": "files" }')
+                if(media_array != None and media_array.has_key('files')):
+                    for media in media_array['files']:
+                        if not media["filetype"] == "directory":
+                            if media.has_key('art'):
+                                if media['art'].has_key('thumb'):
+                                    image = media['art']['thumb'].replace("image://","")
+                                    image=urllib.unquote(image).decode('utf8')
+                                    if image.endswith("/"):
+                                        image = image[:-1]
+                                    break
+                WINDOW.clearProperty("youtubescanrunning")
+    
+    if image:
+        if ".jpg/" in image:
+            image = image.split(".jpg/")[0] + ".jpg"
+        cache[searchphrase] = image
+        WINDOW.setProperty("SkinHelperThumbs", repr(cache))
     return image
 
 def getNextEpisodes(limit):
@@ -874,3 +913,5 @@ def getFavouriteMedia(limit):
         else:
             WINDOW.clearProperty("widget.favouritemedia.hascontent")
         
+
+    

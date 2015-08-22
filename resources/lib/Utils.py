@@ -8,6 +8,8 @@ import xbmc
 import json
 import urlparse
 import sys
+import urllib,urllib2,re
+import base64
 
 ADDON = xbmcaddon.Addon()
 ADDON_ID = ADDON.getAddonInfo('id')
@@ -22,7 +24,7 @@ SETTING = ADDON.getSetting
 def logMsg(msg, level = 1):
     doDebugLog = False
     if doDebugLog == True or level == 0:
-        xbmc.log("Skin Helper Service --> " + try_decode(msg))
+        xbmc.log("Skin Helper Service --> " + msg)
 
 def getLocalizedString(label_id):
     if 31000 <= label_id <= 33000:
@@ -280,3 +282,65 @@ def detectPluginContent(plugin):
                     return ("movies", image)
 
     return None, None
+    
+def getTMDBimage(title):
+    
+    apiKey = base64.b64decode("NDc2N2I0YjJiYjk0YjEwNGZhNTUxNWM1ZmY0ZTFmZWM=")
+    opener = urllib2.build_opener()
+    userAgent = "Mozilla/5.0 (Windows NT 5.1; rv:25.0) Gecko/20100101 Firefox/25.0"
+    opener.addheaders = [('User-agent', userAgent)]
+    
+    coverUrl = None
+    fanartUrl = None
+    
+    videoTypes = ["tv","movie"]
+    for videoType in videoTypes:
+        if videoType == "tv":
+            content = opener.open("http://api.themoviedb.org/3/search/"+videoType+"?api_key="+apiKey+"&query="+urllib.quote_plus(title.strip())+"&language=en").read()
+            resultCount = re.compile('"total_results":(.+?)').findall(content)
+            if resultCount[0] == str(0):
+                #try again without the date as sometimes Netflix get the year wrong
+                content = opener.open("http://api.themoviedb.org/3/search/"+videoType+"?api_key="+apiKey+"&query="+urllib.quote_plus(title.strip())+"&language=en").read()
+                resultCount = re.compile('"total_results":(.+?)').findall(content)
+                if resultCount[0] == str(0):
+                    if '(' in title:
+                        title = title[:title.find('(')]
+                        content = opener.open("http://api.themoviedb.org/3/search/"+videoType+"?api_key="+apiKey+"&query="+urllib.quote_plus(title.strip())+"&language=en").read()    
+                    elif ':' in title:
+                        title = title[:title.find(':')]
+                        content = opener.open("http://api.themoviedb.org/3/search/"+videoType+"?api_key="+apiKey+"&query="+urllib.quote_plus(title.strip())+"&language=en").read()
+        else:
+            content = opener.open("http://api.themoviedb.org/3/search/"+videoType+"?api_key="+apiKey+"&query="+urllib.quote_plus(title.strip())+"&language=en").read()
+            resultCount = re.compile('"total_results":(.+?)').findall(content)
+            if resultCount[0] == str(0):
+                content = opener.open("http://api.themoviedb.org/3/search/"+videoType+"?api_key="+apiKey+"&query="+urllib.quote_plus(title.strip())+"&language=en").read()
+                resultCount = re.compile('"total_results":(.+?)').findall(content)
+                if resultCount[0] == str(0):
+                    if '(' in title:
+                        title = title[:title.find('(')]
+                        content = opener.open("http://api.themoviedb.org/3/search/"+videoType+"?api_key="+apiKey+"&query="+urllib.quote_plus(title.strip())+"&language=en").read()
+                    elif ':' in title:
+                        title = title[:title.find(':')]
+                        content = opener.open("http://api.themoviedb.org/3/search/"+videoType+"?api_key="+apiKey+"&query="+urllib.quote_plus(title.strip())+"&language=en").read()
+
+        match = re.compile('"poster_path":"(.+?)"', re.DOTALL).findall(content)
+        # maybe its a mini-series (TMDb calls them movies)
+        if not match and videoType == "tv":
+            content = opener.open("http://api.themoviedb.org/3/search/movie?api_key="+apiKey+"&query="+urllib.quote_plus(title.strip())+"&language=en").read()
+            match = re.compile('"poster_path":"(.+?)"', re.DOTALL).findall(content)
+
+        if match:
+            coverUrl = "http://image.tmdb.org/t/p/original"+match[0]
+            break
+        match = re.compile('"backdrop_path":"(.+?)"', re.DOTALL).findall(content)
+        if match:
+            fanartUrl = "http://image.tmdb.org/t/p/original"+match[0]
+            break
+    
+    if coverUrl:
+        return coverUrl
+    elif fanartUrl:
+        return fanartUrl
+    else:
+        return None
+    
