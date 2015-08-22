@@ -116,7 +116,6 @@ class LibraryMonitor(threading.Thread):
                 WINDOW.clearProperty("SkinHelper.Music.LogoArt") 
                 WINDOW.clearProperty("SkinHelper.Music.DiscArt")
                 WINDOW.clearProperty("SkinHelper.Music.Info")
-                WINDOW.setProperty("SkinHelper.ExtraFanArtPath","")
                 
             xbmc.sleep(150)
             self.delayedTaskInterval += 0.15
@@ -138,6 +137,18 @@ class LibraryMonitor(threading.Thread):
         WINDOW.clearProperty('SkinHelper.MovieSet.Year')
         WINDOW.clearProperty('SkinHelper.MovieSet.Count')
         WINDOW.clearProperty('SkinHelper.MovieSet.Plot')
+        totalNodes = 50
+        for i in range(totalNodes):
+            if not WINDOW.getProperty('SkinHelper.MovieSet.' + str(i) + '.Title'):
+                break
+            WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.Title')
+            WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.FanArt')
+            WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.Landscape')
+            WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.DiscArt')
+            WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.ClearLogo')
+            WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.ClearArt')
+            WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.Banner')
+        
             
         if xbmc.getCondVisibility("SubString(ListItem.Path,videodb://movies/sets/,left)"):
             
@@ -153,11 +164,9 @@ class LibraryMonitor(threading.Thread):
                 
                 #save to cache
                 self.moviesetCache[dbId] = json_response
-                
-                #clear_properties()
-                if ("setdetails" in json_response):
+                if "setdetails" in json_response:
                     
-                    count = 1
+                    count = 0
                     unwatchedcount = 0
                     watchedcount = 0
                     runtime = 0
@@ -181,7 +190,15 @@ class LibraryMonitor(threading.Thread):
                         
                         art = item['art']
                         set_fanart.append(art.get('fanart', ''))
-                        title_list += "[I]" + item['label'] + " (" + str(item['year']) + ")[/I][CR]"
+                        WINDOW.setProperty('SkinHelper.MovieSet.' + str(count) + '.Title',item['label'])
+                        WINDOW.setProperty('SkinHelper.MovieSet.' + str(count) + '.Poster',art.get('poster', ''))
+                        WINDOW.setProperty('SkinHelper.MovieSet.' + str(count) + '.FanArt',art.get('fanart', ''))
+                        WINDOW.setProperty('SkinHelper.MovieSet.' + str(count) + '.Landscape',art.get('landscape', ''))
+                        WINDOW.setProperty('SkinHelper.MovieSet.' + str(count) + '.DiscArt',art.get('discart', ''))
+                        WINDOW.setProperty('SkinHelper.MovieSet.' + str(count) + '.ClearLogo',art.get('clearlogo', ''))
+                        WINDOW.setProperty('SkinHelper.MovieSet.' + str(count) + '.ClearArt',art.get('clearart', ''))
+                        WINDOW.setProperty('SkinHelper.MovieSet.' + str(count) + '.Banner',art.get('banner', ''))
+                        title_list += item['label'] + " (" + str(item['year']) + ")[CR]"
                         if item['plotoutline']:
                             plot += "[B]" + item['label'] + " (" + str(item['year']) + ")[/B][CR]" + item['plotoutline'] + "[CR][CR]"
                         else:
@@ -206,6 +223,7 @@ class LibraryMonitor(threading.Thread):
                         WINDOW.setProperty('SkinHelper.MovieSet.ExtendedPlot', plot)
                     WINDOW.setProperty('SkinHelper.MovieSet.Title', title_list)
                     WINDOW.setProperty('SkinHelper.MovieSet.Runtime', str(runtime / 60))
+                    self.setDuration(str(runtime / 60))
                     durationString = self.getDurationString(runtime / 60)
                     if durationString:
                         WINDOW.setProperty('SkinHelper.MovieSet.Duration', durationString[2])
@@ -227,21 +245,21 @@ class LibraryMonitor(threading.Thread):
                     
                     #rotate fanart from movies in set while listitem is in focus
                     if xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnableExtraFanart)"):
-                        count = 5
+                        fanartcount = 5
                         delaycount = 5
                         backgroundDelayStr = xbmc.getInfoLabel("skin.string(extrafanartdelay)")
                         if backgroundDelayStr:
-                            count = int(backgroundDelayStr)
+                            fanartcount = int(backgroundDelayStr)
                             delaycount = int(backgroundDelayStr)
                         while dbId == xbmc.getInfoLabel("ListItem.DBID") and set_fanart != []:
                             
-                            if count == delaycount:
+                            if fanartcount == delaycount:
                                 random.shuffle(set_fanart)
                                 WINDOW.setProperty('SkinHelper.ExtraFanArtPath', set_fanart[0])
-                                count = 0
+                                fanartcount = 0
                             else:
                                 xbmc.sleep(1000)
-                                count += 1
+                                fanartcount += 1
 
     def setAddonName(self):
         # set addon name as property

@@ -110,7 +110,7 @@ If the selected listitem in the videolibrary is a movie set, some additional win
 
 | property 			| description |
 | :----------------------------	| :----------- |
-| Window(Home).Property(SkinHelper.MovieSet.Title) | Title of the movie set |
+| Window(Home).Property(SkinHelper.MovieSet.Title) | All titles in the movie set, separated by [CR] |
 | Window(Home).Property(SkinHelper.MovieSet.Runtime) | Total runtime (in minutes) of the movie set |
 | Window(Home).Property(SkinHelper.MovieSet.Duration) | Formatted duration hours:minutes of the movieset total runtime |
 | Window(Home).Property(SkinHelper.MovieSet.Duration.Hours) | Only the hours part of the formatted duration |
@@ -127,8 +127,18 @@ If the selected listitem in the videolibrary is a movie set, some additional win
 | Window(Home).Property(SkinHelper.MovieSet.Count) | Total movies in the set |
 | Window(Home).Property(SkinHelper.MovieSet.WatchedCount) | Total watched movies in the set |
 | Window(Home).Property(SkinHelper.MovieSet.UnWatchedCount) | Total unwatched movies in the set |
+| Window(Home).Property(SkinHelper.ExtraFanArtPath) | Rotating fanart images from movies in the set |
+| Window(Home).Property(SkinHelper.MovieSet.X.Title) | Title of Movie X in the set |
+| Window(Home).Property(SkinHelper.MovieSet.X.Poster) | Poster image of Movie X in the set |
+| Window(Home).Property(SkinHelper.MovieSet.X.FanArt) | FanArt image of Movie X in the set |
+| Window(Home).Property(SkinHelper.MovieSet.X.Landscape) | Landscape image of Movie X in the set |
+| Window(Home).Property(SkinHelper.MovieSet.X.Banner) | Banner image of Movie X in the set |
+| Window(Home).Property(SkinHelper.MovieSet.X.DiscArt) | DiscArt image of Movie X in the set |
+| Window(Home).Property(SkinHelper.MovieSet.X.ClearLogo) | Clearlogo image of Movie X in the set |
+| Window(Home).Property(SkinHelper.MovieSet.X.ClearArt) | ClearArt image of Movie X in the set |
 
-both SkinHelper.ExtraFanArtPath and SkinHelper.ListItemStudioLogo will also be provided (if available) for the movie set
+For the individual items (MovieSet.X) replace X with the number of the movie in the set. Start counting at 0 and movies are ordered by year.
+The ListItemStudioLogo and ListItemDuration properties will also be provided (if available) for the movie set.
 
 ________________________________________________________________________________________________________
 
@@ -226,7 +236,7 @@ ________________________________________________________________________________
 The script has a feature to automatically retrieve a thumb/image for a specific search query
 It will first query TMDB, if that fails Google images and if that fails it will try youtube to get a thumb.
 This might come in handy if you want to provide a thumb for the currently selected show in the PVR channel list for example.
-Note 1: The script will build a cache in the background to prevent to many queries to google/youtube.
+Note 1: The script will build a cache in the background to prevent too many queries to google/youtube.
 Note 2: There is no way to guarantee which aspect ratio the retrieved image has, so use scale or keep as aspect ratio to display the images.
 
 How to use ?
