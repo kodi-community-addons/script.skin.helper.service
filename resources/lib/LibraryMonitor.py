@@ -577,7 +577,7 @@ class LibraryMonitor(threading.Thread):
                 else:    
                     folderPath = folderPath.replace("musicdb://artists/","")
                     dbid = folderPath.split("/")[0]
-                json_response = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "AudioLibrary.GetSongs", "params": { "filter":{"artistid": %s}, "properties": [ "file","artistid","track" ] }, "id": "libSongs"}'%int(dbid))
+                json_response = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "AudioLibrary.GetSongs", "params": { "filter":{"artistid": %s}, "properties": [ "file","artistid","track","title" ] }, "id": "libSongs"}'%int(dbid))
             
             elif xbmc.getCondVisibility("Container.Content(albums) | SubString(ListItem.FolderPath,musicdb://albums)"):
                 if "/artists/" in folderPath:
