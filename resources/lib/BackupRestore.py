@@ -39,14 +39,15 @@ def backup(filterString=None):
             if xbmcvfs.exists(guisettings_path):
                 logMsg("guisettings.xml found")
                 doc = parse(guisettings_path)
-                skinsettings = doc.documentElement.getElementsByTagName('setting')
+                skinsettings = doc.documentElement.getElementsByTagName('skinsettings')[0]
+                skinsettings = skinsettings.getElementsByTagName('setting')
                 newlist = []
                 for count, skinsetting in enumerate(skinsettings):
                     if skinsetting.childNodes:
                         value = skinsetting.childNodes[0].nodeValue
                     else:
                         value = ""
-                    if skinsetting.attributes['name'].nodeValue.startswith(xbmc.getSkinDir()):
+                    if skinsetting.attributes['name'].nodeValue.startswith(xbmc.getSkinDir()+"."):
                         name = skinsetting.attributes['name'].nodeValue
                         name = name.replace(xbmc.getSkinDir()+".","")
                         if not filter:
@@ -80,7 +81,13 @@ def backup(filterString=None):
                             destfile = skinshortcuts_path + file
                             logMsg("source --> " + sourcefile)
                             logMsg("destination --> " + destfile)
-                            xbmcvfs.copy(sourcefile,destfile)    
+                            xbmcvfs.copy(sourcefile,destfile)
+                        if file == xbmc.getSkinDir() + ".properties":
+                            sourcefile = skinshortcuts_path_source + file
+                            destfile = skinshortcuts_path + file.replace(xbmc.getSkinDir(), "SKINPROPERTIES")
+                            logMsg("source --> " + sourcefile)
+                            logMsg("destination --> " + destfile)
+                            xbmcvfs.copy(sourcefile,destfile)
                 
                 #save guisettings
                 text_file_path = os.path.join(temp_path, "guisettings.txt")
@@ -92,7 +99,7 @@ def backup(filterString=None):
                 i = datetime.now()
                 
                 #zip the backup
-                backup_name = xbmc.getSkinDir().replace("skin.","") + "_SKIN_BACKUP_" + i.strftime('%Y%m%d-%H%M')
+                backup_name = xbmc.getSkinDir().decode('utf-8').replace("skin.","") + "_SKIN_BACKUP_" + i.strftime('%Y%m%d-%H%M')
                 zip_temp = xbmc.translatePath('special://temp/' + backup_name)
                 zip_final = backup_path + backup_name + ".zip"
                 zip(temp_path,zip_temp)
@@ -166,7 +173,13 @@ def restore():
                         logMsg("source --> " + sourcefile)
                         logMsg("destination --> " + destfile)
                         xbmcvfs.copy(sourcefile,destfile)    
-            
+                    elif file == "SKINPROPERTIES.properties":
+                        sourcefile = skinshortcuts_path_source + file
+                        destfile = skinshortcuts_path_dest + file.replace("SKINPROPERTIES",xbmc.getSkinDir())
+                        logMsg("source --> " + sourcefile)
+                        logMsg("destination --> " + destfile)
+                        xbmcvfs.copy(sourcefile,destfile)
+                        
             #read guisettings
             text_file_path = os.path.join(temp_path, "guisettings.txt")
             f = open(text_file_path,"r")
@@ -177,12 +190,12 @@ def restore():
             for count, skinsetting in enumerate(importstring):
                 if progressDialog.iscanceled():
                     return
-
-                progressDialog.update((count * 100) / len(importstring), ADDON.getLocalizedString(32033) + ' %s' % skinsetting[1])
-                
+                    
                 #some legacy...
-                setting = skinsetting[1].replace("TITANSKIN.", "")
-                
+                setting = skinsetting[1].replace("TITANSKIN.helix", "").replace("TITANSKIN.", "")
+
+                progressDialog.update((count * 100) / len(importstring), ADDON.getLocalizedString(32033) + ' %s' % setting)
+
                 if skinsetting[0] == "string":
                     if skinsetting[2] is not "":
                         xbmc.executebuiltin("Skin.SetString(%s,%s)" % (setting, skinsetting[2]))

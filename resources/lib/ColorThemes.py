@@ -303,7 +303,7 @@ def createColorTheme():
             if skinsetting.attributes['name'].nodeValue.startswith(xbmc.getSkinDir() + "."):
                 name = skinsetting.attributes['name'].nodeValue
                 if "color" in name.lower() or "opacity" in name.lower() or "texture" in name.lower():
-                    name = name.replace(xbmc.getSkinDir(),"")
+                    name = name.replace(xbmc.getSkinDir()+".","")
                     newlist.append((skinsetting.attributes['type'].nodeValue, name, value))
             
         #save guisettings

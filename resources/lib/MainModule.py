@@ -2,7 +2,6 @@ import xbmcplugin
 import xbmcgui
 import xbmc
 import xbmcaddon
-import shutil
 import xbmcaddon
 import xbmcvfs
 import os, sys
