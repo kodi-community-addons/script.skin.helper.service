@@ -137,6 +137,7 @@ def buildWidgetsListing():
     paths = ["special://skin/playlists/","special://skin/extras/widgetplaylists/"]
     playlistsFound = []
     for path in paths:
+        path = xbmc.translatePath(path).decode('utf-8')
         if xbmcvfs.exists(path):
             media_array = getJSON('Files.GetDirectory','{ "directory": "%s", "media": "files" }' %path)
             if media_array != None and media_array.has_key('files'):
@@ -182,14 +183,15 @@ def buildWidgetsListing():
                         return
                     content = item["file"] + "&reload=$INFO[Window(Home).Property(widgetreload)]"
                     label = item["label"]
-                    type, image = detectPluginContent(item["file"])
-                    if type:
-                        if type == "albums" or type == "artists" or type == "songs":
-                            mediaLibrary = "MusicLibrary"
-                        else:
-                            mediaLibrary = "VideoLibrary"
-                        path = "ActivateWindow(%s,%s,return)" %(mediaLibrary, content)
-                        foundWidgets.append([label, path, content, image, type])
+                    type = "video"
+                    if "movie" in content or "box" in content or "dvd" in content or "rentals" in content:
+                        type = "movies"
+                    if "show" in content:
+                        type = "tvshows"
+                    image = None
+                    mediaLibrary = "VideoLibrary"
+                    path = "ActivateWindow(%s,%s,return)" %(mediaLibrary, content)
+                    foundWidgets.append([label, path, content, image, type])
             if addon[1] == "extendedinfo":
                 #some additional entrypoints for extendedinfo...
                 entrypoints = ["plugin://script.extendedinfo?info=youtubeusersearch&&id=Eurogamer","plugin://script.extendedinfo?info=youtubeusersearch&&id=Engadget","plugin://script.extendedinfo?info=youtubeusersearch&&id=MobileTechReview"]
@@ -213,16 +215,17 @@ def buildWidgetsListing():
                 matchFound = False
                 if "windowparameter" in fav:
                     content = fav["windowparameter"]
-                    window = fav["window"]
-                    label = fav["title"]
-                    type, image = detectPluginContent(content)
-                    if window == "music":
-                        mediaLibrary = "MusicLibrary"
-                    else:
-                        mediaLibrary = "VideoLibrary"
-                    path = "ActivateWindow(%s,%s,return)" %(mediaLibrary, content)
-                    if type:
-                        foundWidgets.append([label, path, content, image, type])
+                    if not "type=play" in content:
+                        window = fav["window"]
+                        label = fav["title"]
+                        type, image = detectPluginContent(content)
+                        if window == "music":
+                            mediaLibrary = "MusicLibrary"
+                        else:
+                            mediaLibrary = "VideoLibrary"
+                        path = "ActivateWindow(%s,%s,return)" %(mediaLibrary, content)
+                        if type:
+                            foundWidgets.append([label, path, content, image, type])
             allWidgets["favourites"] = foundWidgets
                         
     #some other widgets (by their direct endpoint) such as smartish widgets and PVR
