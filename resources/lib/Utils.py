@@ -354,7 +354,7 @@ def searchThumb(searchphrase):
         if cache.has_key(searchphrase):
             return cache[searchphrase]
         else:
-            
+            WINDOW.setProperty("getthumbbusy","busy")
             #lookup TMDB
             image = getTMDBimage(searchphrase)
             
@@ -401,4 +401,5 @@ def searchThumb(searchphrase):
             image = image.split(".jpg/")[0] + ".jpg"
         cache[searchphrase] = image
         WINDOW.setProperty("SkinHelperThumbs", repr(cache))
+    WINDOW.clearProperty("getthumbbusy")
     return image

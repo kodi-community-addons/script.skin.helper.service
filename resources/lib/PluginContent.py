@@ -401,6 +401,9 @@ def getPVRChannels(limit):
 
 def getThumb(searchphrase):
     WINDOW.clearProperty("SkinHelper.ListItemThumb")
+    
+    while xbmc.getCondVisibility("Container.Scrolling") or WINDOW.getProperty("getthumbbusy")=="busy":
+        xbmc.sleep(150)
     image = searchThumb(searchphrase)
     if image:
         WINDOW.setProperty("SkinHelper.ListItemThumb",image)
