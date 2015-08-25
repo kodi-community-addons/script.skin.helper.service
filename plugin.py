@@ -64,6 +64,14 @@ class Main:
                 getThumb(path)
             elif action == "WIDGETS":
                 getWidgets(path)
+            elif action == "GETCAST":
+                movie=params.get("movie",None)
+                if movie: movie = movie[0]
+                tvshow=params.get("tvshow",None)
+                if tvshow: tvshow = tvshow[0]
+                movieset=params.get("movieset",None)
+                if movieset: movieset = movieset[0]
+                getCast(movie,tvshow,movieset)
             elif action == "LAUNCHPVR":
                 if path:
                     xbmc.executeJSONRPC('{ "jsonrpc": "2.0", "id": 0, "method": "Player.Open", "params": { "item": {"channelid": ' + path + '} } }')
