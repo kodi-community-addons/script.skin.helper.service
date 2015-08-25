@@ -70,14 +70,15 @@ Some additional window properties that can be used in the video library.
 
 | property 			| description |
 |:-----------------------------	| :----------- |
-|Window(Home).Property(SkinHelper.ExtraFanArtPath) | will return the extrafanart path for the listitem, empty if none is found. This window property is only available when browsing the video library and when the following Skin Bool is true: SkinHelper.EnableExtraFanart|
+|Window(Home).Property(SkinHelper.ExtraFanArtPath) | will return the extrafanart path for the listitem (to be used with multiimage control), empty if none is found. This window property is only available when browsing the video library and when the following Skin Bool is true: SkinHelper.EnableExtraFanart|
+|Window(Home).Property(SkinHelper.Player.ExtraFanArt.X) | Get extrafanart image X, only available when extrafanart is enabled. Start counting from 0 |
+|Window(Home).Property(SkinHelper.Player.AddonName) | If you want to display the name of the addon in the player |
 |Window(Home).Property(SkinHelper.Player.AddonName) | If you want to display the name of the addon in the player |
 | Window(Home).Property(SkinHelper.ListItemDuration) | Formatted duration hours:minutes of the current listitem total runtime |
 | Window(Home).Property(SkinHelper.ListItemDuration.Hours) | Only the hours part of the current listitem duration |
 | Window(Home).Property(SkinHelper.ListItemDuration.Minutes) | Only the minutes part of the current listitem duration |
 
 ________________________________________________________________________________________________________
-
 
 
 ________________________________________________________________________________________________________

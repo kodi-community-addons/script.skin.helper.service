@@ -732,13 +732,24 @@ class LibraryMonitor(threading.Thread):
         if xbmc.getCondVisibility("Window.IsActive(movieinformation)"):
             return
         
+        #always clear the individual fanart items first
+        totalNodes = 50
+        for i in range(totalNodes):
+            if not WINDOW.getProperty('SkinHelper.ExtraFanArt.' + str(i)):
+                break
+            WINDOW.clearProperty('SkinHelper.ExtraFanArt.' + str(i))
+        
         #get the item from cache first
         if self.extraFanartcache.has_key(self.liPath):
-            if self.extraFanartcache[self.liPath] == "None":
+            if self.extraFanartcache[self.liPath][0] == "None":
                 WINDOW.setProperty("SkinHelper.ExtraFanArtPath","")
                 return
             else:
-                WINDOW.setProperty("SkinHelper.ExtraFanArtPath",self.extraFanartcache[self.liPath])
+                WINDOW.setProperty("SkinHelper.ExtraFanArtPath",self.extraFanartcache[self.liPath][0])
+                count = 0
+                for file in self.extraFanartcache[self.liPath][1]:
+                    WINDOW.setProperty("SkinHelper.ExtraFanArt." + str(count),file)
+                    count +=1  
                 return
         
         if not xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnableExtraFanart) + [Window.IsActive(videolibrary) | Window.IsActive(movieinformation)] + !Container.Scrolling"):
@@ -767,17 +778,23 @@ class LibraryMonitor(threading.Thread):
                         
                 if xbmcvfs.exists(efaPath):
                     dirs, files = xbmcvfs.listdir(efaPath)
-                    if files.count > 1:
-                        efaFound = True
-                        
+                    count = 0
+                    extraFanArtfiles = []
+                    for file in files:
+                        if file.lower().endswith(".jpg"):
+                            efaFound = True
+                            WINDOW.setProperty("SkinHelper.ExtraFanArt." + str(count),efaPath+file)
+                            extraFanArtfiles.append(efaPath+file)
+                            count +=1  
+       
                 if (efaPath != None and efaFound == True):
                     if lastPath != efaPath:
                         WINDOW.setProperty("SkinHelper.ExtraFanArtPath",efaPath)
-                        self.extraFanartcache[self.liPath] = efaPath
+                        self.extraFanartcache[self.liPath] = [efaPath, extraFanArtfiles]
                         lastPath = efaPath       
                 else:
                     WINDOW.setProperty("SkinHelper.ExtraFanArtPath","")
-                    self.extraFanartcache[self.liPath] = "None"
+                    self.extraFanartcache[self.liPath] = ["None",[]]
                     lastPath = None
         else:
             WINDOW.setProperty("SkinHelper.ExtraFanArtPath","")
