@@ -154,6 +154,7 @@ Some additional window properties that can be used in the music library.
 | Window(Home).Property(SkinHelper.Music.LogoArt) | Will return the Artist's logo image for the current selected item in the list. |
 | Window(Home).Property(SkinHelper.Music.DiscArt) | Will return the Album's cd art image for the current selected item in the list. |
 | Window(Home).Property(SkinHelper.Music.Info) | Returns the album's description or if empty the artist info. Can be used at both album- and songlevel.  |
+| Window(Home).Property(SkinHelper.Music.TrackList) | Returns the all tracks for the selected album or artist, separated by [CR] in the format tracknumber - title  |
 
 
 ________________________________________________________________________________________________________

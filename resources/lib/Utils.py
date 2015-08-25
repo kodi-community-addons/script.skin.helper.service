@@ -26,11 +26,6 @@ def logMsg(msg, level = 1):
     if doDebugLog == True or level == 0:
         xbmc.log("Skin Helper Service --> " + msg)
 
-def getLocalizedString(label_id):
-    if 31000 <= label_id <= 33000:
-        return ADDON.getLocalizedString(label_id)
-    else:
-        return xbmc.getLocalizedString(label_id)        
         
 def getContentPath(libPath):
     if "$INFO" in libPath and not "reload=" in libPath:
@@ -64,6 +59,7 @@ def getJSON(method,params):
         return jsonobject['result']
     else:
         logMsg("no result " + str(jsonobject),0)
+        logMsg('{ "jsonrpc" : "2.0" , "method" : "' + method + '" , "params" : ' + params + ' , "id":1 }',0)
         return None
 
 def try_decode(text, encoding="utf-8"):
