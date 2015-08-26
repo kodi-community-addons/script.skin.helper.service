@@ -918,14 +918,14 @@ def getCast(movie=None,tvshow=None,movieset=None):
         if json_result.has_key('result') and json_result['result'].has_key('tvshows'):
             item = json_result['result']['tvshows'][0]
     elif movieset and itemId:
-        json_query_string = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetMovieSetDetails", "params": { "setid": %d, "properties": [ "title", "cast" ] }, "id": "1"}' %itemId)
+        json_query_string = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetMovieSetDetails", "params": { "setid": %d, "properties": [ "title" ] }, "id": "1"}' %itemId)
         json_result = json.loads(json_query_string.decode('utf-8','replace'))
         if json_result.has_key('result') and json_result['result'].has_key('setdetails'):
             movieset = json_result['result']['setdetails']
             if movieset.has_key("movies"):
                 moviesetmovies = movieset['movies']      
     elif movieset and not itemId:
-        json_query_string = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetMovieSets", "params": { "filter": {"operator":"is", "field":"title", "value":"%s"}, "properties": [ "title", "cast" ] }, "id": "1"}' %tvshow)
+        json_query_string = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetMovieSets", "params": { "filter": {"operator":"is", "field":"title", "value":"%s"}, "properties": [ "title" ] }, "id": "1"}' %tvshow)
         json_result = json.loads(json_query_string.decode('utf-8','replace'))
         if json_result.has_key('result') and json_result['result'].has_key('sets '):
             movieset = json_result['result']['sets '][0]

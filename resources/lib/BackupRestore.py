@@ -17,6 +17,45 @@ from xml.dom.minidom import parse
 
 doDebugLog = False
 
+def getSkinSettings(filter=None):
+    newlist = []
+    if KODI_VERSION < 16:
+        guisettings_path = xbmc.translatePath('special://profile/guisettings.xml').decode("utf-8")
+    else:
+        guisettings_path = xbmc.translatePath('special://profile/addon_data/%s/settings.xml' %xbmc.getSkinDir()).decode("utf-8")
+    if xbmcvfs.exists(guisettings_path):
+        logMsg("guisettings.xml found")
+        doc = parse(guisettings_path)
+        skinsettings = doc.documentElement.getElementsByTagName('setting')
+        
+        for count, skinsetting in enumerate(skinsettings):
+            
+            if KODI_VERSION < 16:
+                settingname = skinsetting.attributes['name'].nodeValue
+            else:
+                settingname = skinsetting.attributes['id'].nodeValue
+            
+            #only get settings for the current skin                    
+            if ( KODI_VERSION < 16 and settingname.startswith(xbmc.getSkinDir()+".")) or KODI_VERSION >= 16:
+                
+                if skinsetting.childNodes:
+                    settingvalue = skinsetting.childNodes[0].nodeValue
+                else:
+                    settingvalue = ""
+                
+                settingname = settingname.replace(xbmc.getSkinDir()+".","")
+                if not filter:
+                    newlist.append((skinsetting.attributes['type'].nodeValue, settingname, settingvalue))
+                else:
+                    #filter
+                    for filteritem in filter:
+                        if filteritem.lower() in settingname.lower():
+                            newlist.append((skinsetting.attributes['type'].nodeValue, settingname, settingvalue))
+    else:
+        xbmcgui.Dialog().ok(ADDON.getLocalizedString(32028), ADDON.getLocalizedString(32030))
+        logMsg("skin settings file not found")
+    
+    return newlist
 
 def backup(filterString=None):
     try:
@@ -35,39 +74,8 @@ def backup(filterString=None):
         backup_path = get_browse_dialog(dlg_type=3,heading=ADDON.getLocalizedString(32018))
         if backup_path and backup_path != "protocol://":
             
-            if KODI_VERSION < 16:
-                guisettings_path = xbmc.translatePath('special://profile/guisettings.xml').decode("utf-8")
-            else:
-                guisettings_path = xbmc.translatePath('special://profile/addon_data/%s/settings.xml' %xbmc.getSkinDir()).decode("utf-8")
-            
-            if xbmcvfs.exists(guisettings_path):
-                logMsg("guisettings.xml found")
-                doc = parse(guisettings_path)
-                skinsettings = doc.documentElement.getElementsByTagName('setting')
-                newlist = []
-                for count, skinsetting in enumerate(skinsettings):
-                    
-                    if KODI_VERSION < 16:
-                        settingname = skinsetting.attributes['name'].nodeValue
-                    else:
-                        settingname = skinsetting.attributes['id'].nodeValue
-                    
-                    #only get settings for the current skin                    
-                    if ( KODI_VERSION < 16 and settingname.startswith(xbmc.getSkinDir()+".")) or KODI_VERSION >= 16:
-                        
-                        if skinsetting.childNodes:
-                            settingvalue = skinsetting.childNodes[0].nodeValue
-                        else:
-                            settingvalue = ""
-                        
-                        settingname = settingname.replace(xbmc.getSkinDir()+".","")
-                        if not filter:
-                            newlist.append((skinsetting.attributes['type'].nodeValue, settingname, settingvalue))
-                        else:
-                            #filter
-                            for filteritem in filter:
-                                if filteritem.lower() in settingname.lower():
-                                    newlist.append((skinsetting.attributes['type'].nodeValue, settingname, settingvalue))
+                #get the skinsettings
+                newlist = getSkinSettings(filter)
 
                 if not xbmcvfs.exists(backup_path):
                     xbmcvfs.mkdir(backup_path)
@@ -123,10 +131,6 @@ def backup(filterString=None):
                 xbmcvfs.delete(zip_temp + ".zip")
                 
                 xbmcgui.Dialog().ok(ADDON.getLocalizedString(32028), ADDON.getLocalizedString(32029))
-                
-            else:
-                xbmcgui.Dialog().ok(ADDON.getLocalizedString(32028), ADDON.getLocalizedString(32030))
-                logMsg("guisettings.xml not found")
     
     except Exception as e:
         xbmcgui.Dialog().ok(ADDON.getLocalizedString(32028), ADDON.getLocalizedString(32030))

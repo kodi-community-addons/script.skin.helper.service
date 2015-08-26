@@ -36,24 +36,29 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
         currentSkinTheme = xbmc.getInfoLabel("Skin.CurrentTheme")
         
         for count, skinsetting in enumerate(importstring):
-            if skinsetting[0] == ("SKINTHEME"):
+            if skinsetting[0] == "SKINTHEME":
                 skintheme = skinsetting[1]
-            
-            #some legacy..
-            if skinsetting[1].startswith("TITANSKIN"):
-                setting = skinsetting[1].replace("TITANSKIN.", "")
-            
-            if skinsetting[0] == "string":
-                if skinsetting[2] is not "":
-                    xbmc.executebuiltin("Skin.SetString(%s,%s)" % (setting, skinsetting[2]))
-                else:
-                    xbmc.executebuiltin("Skin.Reset(%s)" % setting)
-            elif skinsetting[0] == "bool":
-                if skinsetting[2] == "true":
-                    xbmc.executebuiltin("Skin.SetBool(%s)" % setting)
-                else:
-                    xbmc.executebuiltin("Skin.Reset(%s)" % setting)
-            xbmc.sleep(30)
+            elif skinsetting[0] == "THEMENAME":
+                xbmc.executebuiltin("Skin.SetString(SkinHelper.LastColorTheme,%s)" % skinsetting[1])
+            elif skinsetting[0] == "DESCRIPTION":
+                xbmc.executebuiltin("Skin.SetString(SkinHelper.LastColorTheme.Description,%s)" % skinsetting[1])
+            else:    
+                #some legacy..
+                setting = skinsetting[1]
+                if setting.startswith("TITANSKIN"): setting = setting.replace("TITANSKIN.", "")
+                if setting.startswith("."): setting = setting[1:]
+                
+                if skinsetting[0] == "string":
+                    if skinsetting[2] is not "":
+                        xbmc.executebuiltin("Skin.SetString(%s,%s)" % (setting, skinsetting[2]))
+                    else:
+                        xbmc.executebuiltin("Skin.Reset(%s)" % setting)
+                elif skinsetting[0] == "bool":
+                    if skinsetting[2] == "true":
+                        xbmc.executebuiltin("Skin.SetBool(%s)" % setting)
+                    else:
+                        xbmc.executebuiltin("Skin.Reset(%s)" % setting)
+                xbmc.sleep(30)
         
         #change the skintheme if needed
         if currentSkinTheme != skintheme:
@@ -283,28 +288,12 @@ def createColorTheme():
         xbmcvfs.copy(custom_thumbnail, os.path.join(userThemesPath, themeName + ".jpg"))
 
     #read the guisettings file to get all skin settings
-    from xml.dom.minidom import parse
-    guisettings_path = xbmc.translatePath('special://profile/guisettings.xml').decode("utf-8")
-    if xbmcvfs.exists(guisettings_path):
-        doc = parse(guisettings_path)
-        skinsettings = doc.documentElement.getElementsByTagName('setting')
-        newlist = []
+    import BackupRestore as backup
+    newlist = backup.getSkinSettings(["color","opacity","texture"])
+    if newlist:
         newlist.append(("THEMENAME", themeName))
         newlist.append(("DESCRIPTION", ADDON.getLocalizedString(32025)))
         newlist.append(("SKINTHEME", xbmc.getInfoLabel("Skin.CurrentTheme")))
-
-        for count, skinsetting in enumerate(skinsettings):
-            if skinsetting.childNodes:
-                value = skinsetting.childNodes[0].nodeValue
-            else:
-                value = ""
-            
-            #only get properties from the current skin
-            if skinsetting.attributes['name'].nodeValue.startswith(xbmc.getSkinDir() + "."):
-                name = skinsetting.attributes['name'].nodeValue
-                if "color" in name.lower() or "opacity" in name.lower() or "texture" in name.lower():
-                    name = name.replace(xbmc.getSkinDir()+".","")
-                    newlist.append((skinsetting.attributes['type'].nodeValue, name, value))
             
         #save guisettings
         text_file_path = os.path.join(userThemesPath, themeName + ".theme")
