@@ -13,6 +13,7 @@ import zipfile
 import shutil
 from Utils import *
 import random
+from xml.dom.minidom import parse
 
 doDebugLog = False
 
@@ -22,41 +23,51 @@ def backup(filterString=None):
         
         if filterString:
             if "|" in filterString:
-                filter = filter.split("|")
+                filter = filterString.split("|")
             else:
                 filter = []
                 filter.append(filterString)
         else:
-            filter = []
+            filter = None
         
         #get backup destination
         backup_path = None
         backup_path = get_browse_dialog(dlg_type=3,heading=ADDON.getLocalizedString(32018))
         if backup_path and backup_path != "protocol://":
-        
-            from xml.dom.minidom import parse
-            guisettings_path = xbmc.translatePath('special://profile/guisettings.xml').decode("utf-8")
+            
+            if KODI_VERSION < 16:
+                guisettings_path = xbmc.translatePath('special://profile/guisettings.xml').decode("utf-8")
+            else:
+                guisettings_path = xbmc.translatePath('special://profile/addon_data/%s/settings.xml' %xbmc.getSkinDir()).decode("utf-8")
+            
             if xbmcvfs.exists(guisettings_path):
                 logMsg("guisettings.xml found")
                 doc = parse(guisettings_path)
-                skinsettings = doc.documentElement.getElementsByTagName('skinsettings')[0]
-                skinsettings = skinsettings.getElementsByTagName('setting')
+                skinsettings = doc.documentElement.getElementsByTagName('setting')
                 newlist = []
                 for count, skinsetting in enumerate(skinsettings):
-                    if skinsetting.childNodes:
-                        value = skinsetting.childNodes[0].nodeValue
+                    
+                    if KODI_VERSION < 16:
+                        settingname = skinsetting.attributes['name'].nodeValue
                     else:
-                        value = ""
-                    if skinsetting.attributes['name'].nodeValue.startswith(xbmc.getSkinDir()+"."):
-                        name = skinsetting.attributes['name'].nodeValue
-                        name = name.replace(xbmc.getSkinDir()+".","")
+                        settingname = skinsetting.attributes['id'].nodeValue
+                    
+                    #only get settings for the current skin                    
+                    if ( KODI_VERSION < 16 and settingname.startswith(xbmc.getSkinDir()+".")) or KODI_VERSION >= 16:
+                        
+                        if skinsetting.childNodes:
+                            settingvalue = skinsetting.childNodes[0].nodeValue
+                        else:
+                            settingvalue = ""
+                        
+                        settingname = settingname.replace(xbmc.getSkinDir()+".","")
                         if not filter:
-                            newlist.append((skinsetting.attributes['type'].nodeValue, name, value))
+                            newlist.append((skinsetting.attributes['type'].nodeValue, settingname, settingvalue))
                         else:
                             #filter
                             for filteritem in filter:
-                                if filteritem in name:
-                                    newlist.append((skinsetting.attributes['type'].nodeValue, name, value))
+                                if filteritem.lower() in settingname.lower():
+                                    newlist.append((skinsetting.attributes['type'].nodeValue, settingname, settingvalue))
 
                 if not xbmcvfs.exists(backup_path):
                     xbmcvfs.mkdir(backup_path)
@@ -71,7 +82,7 @@ def backup(filterString=None):
                 skinshortcuts_path = temp_path + "skinshortcuts/"
                 skinshortcuts_path_source = xbmc.translatePath('special://profile/addon_data/script.skinshortcuts/').decode("utf-8")
                 logMsg(skinshortcuts_path_source)
-                if xbmcvfs.exists(skinshortcuts_path_source):
+                if xbmcvfs.exists(skinshortcuts_path_source) and not filter:
                     if not xbmcvfs.exists(skinshortcuts_path):
                         xbmcvfs.mkdir(skinshortcuts_path)
                     dirs, files = xbmcvfs.listdir(skinshortcuts_path_source)
@@ -120,6 +131,7 @@ def backup(filterString=None):
     except Exception as e:
         xbmcgui.Dialog().ok(ADDON.getLocalizedString(32028), ADDON.getLocalizedString(32030))
         logMsg("ERROR while creating backup ! --> " + str(e), 0)
+        raise
 
 
         

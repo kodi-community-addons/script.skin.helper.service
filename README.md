@@ -504,7 +504,7 @@ The script comes with a backup/restore feature. It supports backup of ALL skin s
 - Restore all settings from file
 - Reset the skin to default settings (wipe all settings)
 
-#####To backup the skin settings (including any skinshortcuts shortcuts):
+#####To backup the skin settings (including preferences for skinshortcuts):
 ```
 RunScript(script.skin.helper.service,action=backup)             
 ```
@@ -514,7 +514,7 @@ Can be usefull if you want to use the backup function for something else in your
 To use the filter you have to add the filter= argument and supply one or more phrases (separated by |)
 For example:
 RunScript(script.skin.helper.service,action=backup,filter=color|view|font)    
-Note that the filter is case sensitive
+The filter is not case sensitive
 
 #####To restore the skin settings:
 ```
