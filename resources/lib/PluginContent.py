@@ -215,7 +215,7 @@ def buildWidgetsListing():
                 matchFound = False
                 if "windowparameter" in fav:
                     content = fav["windowparameter"]
-                    if not "=play" in content:
+                    if not "=play" in content.lower():
                         window = fav["window"]
                         label = fav["title"]
                         type, image = detectPluginContent(content)

@@ -474,8 +474,8 @@ class BackgroundsUpdater(threading.Thread):
                         for count, favourite in enumerate(listing):
                             name = favourite.attributes[ 'name' ].nodeValue
                             path = favourite.childNodes [ 0 ].nodeValue
-                            content = getContentPath(path)
-                            if (path.startswith("ActivateWindow(Videos") or path.startswith("ActivateWindow(10025") or path.startswith("ActivateWindow(videos") or path.startswith("ActivateWindow(Music") or path.startswith("ActivateWindow(10502")) and not "script://" in path and not "mode=9" in path and not "search" in path and not "=play" in path:
+                            content = getContentPath(path).lower()
+                            if (path.startswith("activateWindow(videos") or path.startswith("activateWindow(10025") or path.startswith("activateWindow(videos") or path.startswith("activateWindow(music") or path.startswith("activateWindow(10502")) and not "script://" in path and not "mode=9" in path and not "search" in path and not "=play" in path:
                                 if self.setImageFromPath("favorite." + str(favoritesCount) + ".image",path):
                                     WINDOW.setProperty("favorite." + str(favoritesCount) + ".label", name)
                                     WINDOW.setProperty("favorite." + str(favoritesCount) + ".title", name)
