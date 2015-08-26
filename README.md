@@ -536,16 +536,20 @@ use the parameter [LIMIT] to define the number of items to show in the list. def
 
 #####Next Episodes
 ```
-plugin://script.skin.helper.service/?action=nextepisodes&limit=[LIMIT]
+plugin://script.skin.helper.service/?action=nextepisodes&limit=[LIMIT]&reload=$INFO[Window(Home).Property(widgetreload)]
 ```
 Provides a list of the nextup episodes. This can be the first episode in progress from a tv show or the next unwatched from a in progress show.
+Note: the reload parameter is needed to auto refresh the widget when the content has changed.
+Note 2: If you want to use these commands in the skinshortcuts overrides.xml you have to replace & with &amp;
 ________________________________________________________________________________________________________
 
 #####Recommended Movies
 ```
-plugin://script.skin.helper.service/?action=recommendedmovies&limit=[LIMIT]
+plugin://script.skin.helper.service/?action=recommendedmovies&limit=[LIMIT]&reload=$INFO[Window(Home).Property(widgetreload)]
 ```
 Provides a list of the in progress movies AND recommended movies based on rating.
+Note: the reload parameter is needed to auto refresh the widget when the content has changed.
+Note 2: If you want to use these commands in the skinshortcuts overrides.xml you have to replace & with &amp;
 ________________________________________________________________________________________________________
 
 #####Recommended Media
@@ -553,6 +557,8 @@ ________________________________________________________________________________
 plugin://script.skin.helper.service/?action=recommendedmedia&limit=[LIMIT]
 ```
 Provides a list of recommended media (movies, tv shows, music)
+Note: You can optionally provide the reload= parameter if you want to refresh the widget on library changes.
+Note 2: If you want to use these commands in the skinshortcuts overrides.xml you have to replace & with &amp;
 
 ________________________________________________________________________________________________________
 
@@ -561,6 +567,8 @@ ________________________________________________________________________________
 plugin://script.skin.helper.service/?action=recentmedia&limit=[LIMIT]
 ```
 Provides a list of recently added media (movies, tv shows, music, tv recordings, musicvideos)
+Note: You can optionally provide the reload= parameter if you want to refresh the widget on library changes.
+Note 2: If you want to use these commands in the skinshortcuts overrides.xml you have to replace & with &amp;
 
 ________________________________________________________________________________________________________
 
@@ -570,38 +578,46 @@ plugin://script.skin.helper.service/?action=similarmovies&limit=[LIMIT]
 ```
 This will provide a list with movies that are similar to a random watched movie from the library.
 TIP: The listitem provided by this list will have a property "originaltitle" which contains the movie from which this list is generated. That way you can create a "Because you watched $INFO[Container.ListItem.Property(originaltitle)]" label....
+Note: You can optionally provide the reload= parameter if you want to refresh the widget on library changes. If you want to refresh the widget on other circumstances just provide any changing info with the reload parameter, such as the window title or some window Property which you change on X interval.
+Note 2: If you want to use these commands in the skinshortcuts overrides.xml you have to replace & with &amp;
 
 ________________________________________________________________________________________________________
 
 #####In progress Media
 ```
-plugin://script.skin.helper.service/?action=inprogressmedia&limit=[LIMIT]
+plugin://script.skin.helper.service/?action=inprogressmedia&limit=[LIMIT]&reload=$INFO[Window(Home).Property(widgetreload)]
 ```
 Provides a list of all in progress media (movies, tv shows, music, musicvideos)
+Note: the reload parameter is needed to auto refresh the widget when the content has changed.
+Note 2: If you want to use these commands in the skinshortcuts overrides.xml you have to replace & with &amp;
 
 ________________________________________________________________________________________________________
 
 #####In progress and Recommended Media
 ```
-plugin://script.skin.helper.service/?action=inprogressandrecommendedmedia&limit=[LIMIT]
+plugin://script.skin.helper.service/?action=inprogressandrecommendedmedia&limit=[LIMIT]&reload=$INFO[Window(Home).Property(widgetreload)]
 ```
 This combines in progress media and recommended media, usefull to prevent an empty widget when no items are in progress.
-
+Note: the reload parameter is needed to auto refresh the widget when the content has changed.
+Note 2: If you want to use these commands in the skinshortcuts overrides.xml you have to replace & with &amp;
 ________________________________________________________________________________________________________
 
 #####Favourite Media
 ```
-plugin://script.skin.helper.service/?action=favouritemedia&limit=[LIMIT]
+plugin://script.skin.helper.service/?action=favouritemedia&limit=[LIMIT]&reload=[YOURCUSTOMPROPERTY]
 ```
 Provides a list of all media items that are added as favourite (movies, tv shows, songs, musicvideos)
-
+Note: If you want the widget to refresh when the favourites have changed It's recommended to use the reload= parameter in combination with a window property. For example set a window prop in the onunload event of home.xml and clear it in the onload event of home.xml or the other way around.
+Note 2: If you want to use these commands in the skinshortcuts overrides.xml you have to replace & with &amp;
 ________________________________________________________________________________________________________
 
 #####Favourites
 ```
-plugin://script.skin.helper.service/?action=favourites&limit=[LIMIT]
+plugin://script.skin.helper.service/?action=favourites&limit=[LIMIT]&reload=[YOURCUSTOMPROPERTY]
 ```
-Provides the Kodi favourites as list content
+Provides the Kodi favourites as list content.
+Note: If you want the widget to refresh when the favourites have changed It's recommended to use the reload= parameter in combination with a window property. For example set a window prop in the onunload event of home.xml and clear it in the onload event of home.xml or the other way around.
+Note 2: If you want to use these commands in the skinshortcuts overrides.xml you have to replace & with &amp;
 
 ________________________________________________________________________________________________________
 
