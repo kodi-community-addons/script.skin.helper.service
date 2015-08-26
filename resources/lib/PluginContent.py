@@ -879,12 +879,12 @@ def getFavouriteMedia(limit):
         else:
             WINDOW.clearProperty("widget.favouritemedia.hascontent")
         
-
 def getCast(movie=None,tvshow=None,movieset=None):
-    
     
     itemId = None
     item = {}
+    castList = []
+    moviesetmovies = None
     try:
         if movieset:
             itemId = int(movieset)
@@ -919,37 +919,39 @@ def getCast(movie=None,tvshow=None,movieset=None):
             item = json_result['result']['tvshows'][0]
     elif movieset and itemId:
         json_query_string = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetMovieSetDetails", "params": { "setid": %d, "properties": [ "title", "cast" ] }, "id": "1"}' %itemId)
-        castList = []
         json_result = json.loads(json_query_string.decode('utf-8','replace'))
         if json_result.has_key('result') and json_result['result'].has_key('setdetails'):
             movieset = json_result['result']['setdetails']
             if movieset.has_key("movies"):
-                for movie in movieset['movies']:
-                    for cast in movie["cast"]:
-                        if not cast["name"] in castList:
-                            liz = xbmcgui.ListItem(label=cast["name"],label2=cast["role"],iconImage=cast["thumbnail"])
-                            liz.setProperty('IsPlayable', 'false')
-                            xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url="", listitem=liz, isFolder=True)
-                            castList.append(cast["name"])           
+                moviesetmovies = movieset['movies']:        
     elif movieset and not itemId:
         json_query_string = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetMovieSets", "params": { "filter": {"operator":"is", "field":"title", "value":"%s"}, "properties": [ "title", "cast" ] }, "id": "1"}' %tvshow)
         json_result = json.loads(json_query_string.decode('utf-8','replace'))
         if json_result.has_key('result') and json_result['result'].has_key('sets '):
             movieset = json_result['result']['sets '][0]
             if movieset.has_key("movies"):
-                for movie in movieset['movies']:
-                    for cast in movie["cast"]:
-                        if not cast["name"] in castList:
-                            liz = xbmcgui.ListItem(label=cast["name"],label2=cast["role"],iconImage=cast["thumbnail"])
-                            liz.setProperty('IsPlayable', 'false')
-                            xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url="", listitem=liz, isFolder=True)
-                            castList.append(cast["name"])
+                moviesetmovies = movieset['movies']:
     
+    #process cast for regular movie or show
     if item and item.has_key("cast"):
         for cast in item["cast"]:
             liz = xbmcgui.ListItem(label=cast["name"],label2=cast["role"],iconImage=cast["thumbnail"])
             liz.setProperty('IsPlayable', 'false')
             xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url="", listitem=liz, isFolder=True)
+    
+    #process cast for all movies in a movieset
+    elif moviesetmovies:
+        for setmovie in moviesetmovies:
+            json_query_string = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetMovieDetails", "params": { "movieid": %d, "properties": [ "title", "cast" ] }, "id": "1"}' %setmovie["movieid"])
+            json_result = json.loads(json_query_string.decode('utf-8','replace'))
+            if json_result.has_key('result') and json_result['result'].has_key('moviedetails'):
+                item = json_result['result']['moviedetails']
+                for cast in item["cast"]:
+                    if not cast["name"] in castList:
+                        liz = xbmcgui.ListItem(label=cast["name"],label2=cast["role"],iconImage=cast["thumbnail"])
+                        liz.setProperty('IsPlayable', 'false')
+                        xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url="", listitem=liz, isFolder=True)
+                        castList.append(cast["name"])
             
      
     xbmcplugin.endOfDirectory(int(sys.argv[1]))    
