@@ -611,6 +611,15 @@ Note: If you want the widget to refresh when the favourites have changed It's re
 Note 2: If you want to use these commands in the skinshortcuts overrides.xml you have to replace & with &amp;
 ________________________________________________________________________________________________________
 
+#####My TV Shows Airing today
+```
+plugin://script.skin.helper.service/?action=nextairedtvshows&reload=[YOURCUSTOMPROPERTY]
+```
+Provides a list of the shows from the library that are airing today - requires script.tv.show.next.aired
+Note: The widget will only be retrieved once a day. If you wan to refresh it more often it's recommended to use the reload= parameter in combination with a window property. For example set a window prop in the onunload event of home.xml and clear it in the onload event of home.xml or the other way around.
+Note 2: If you want to use these commands in the skinshortcuts overrides.xml you have to replace & with '&amp;'
+________________________________________________________________________________________________________
+
 #####Favourites
 ```
 plugin://script.skin.helper.service/?action=favourites&limit=[LIMIT]&reload=[YOURCUSTOMPROPERTY]

@@ -235,3 +235,7 @@ msgstr ""
 msgctxt "#32054"
 msgid "Select view"
 msgstr ""
+
+msgctxt "#32055"
+msgid "My TV Shows Airing today"
+msgstr ""

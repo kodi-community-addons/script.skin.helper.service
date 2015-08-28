@@ -478,24 +478,26 @@ class LibraryMonitor(threading.Thread):
                 viewId=view.attrib['value']
         
         return viewId    
-
+    
     def checkMusicArt(self):
-        dbID = xbmc.getInfoLabel("ListItem.Label") + xbmc.getInfoLabel("ListItem.Artist") + xbmc.getInfoLabel("ListItem.Album")
+        
+        dbID = xbmc.getInfoLabel("ListItem.Artist") + xbmc.getInfoLabel("ListItem.Album")
         cacheFound = False
 
         if self.lastMusicDbId == dbID:
             return
         
-        WINDOW.setProperty("SkinHelper.ExtraFanArtPath","") 
-        WINDOW.clearProperty("SkinHelper.Music.BannerArt") 
-        WINDOW.clearProperty("SkinHelper.Music.LogoArt") 
-        WINDOW.clearProperty("SkinHelper.Music.DiscArt")
-        WINDOW.clearProperty("SkinHelper.Music.Info")
-        WINDOW.clearProperty("SkinHelper.Music.TrackList")
-        
+        logMsg("checkMusicArt dbID--> " + dbID,0)
+
         self.lastMusicDbId = dbID
         
         if xbmc.getInfoLabel("ListItem.Label") == ".." or not xbmc.getInfoLabel("ListItem.FolderPath").startswith("musicdb"):
+            WINDOW.setProperty("SkinHelper.ExtraFanArtPath","") 
+            WINDOW.clearProperty("SkinHelper.Music.BannerArt") 
+            WINDOW.clearProperty("SkinHelper.Music.LogoArt") 
+            WINDOW.clearProperty("SkinHelper.Music.DiscArt")
+            WINDOW.clearProperty("SkinHelper.Music.Info")
+            WINDOW.clearProperty("SkinHelper.Music.TrackList")
             return
         
         #get the items from cache first
@@ -541,10 +543,8 @@ class LibraryMonitor(threading.Thread):
             else:
                 WINDOW.setProperty("SkinHelper.Music.TrackList",self.musicArtCache[dbID + "SkinHelper.Music.TrackList"])
 
-        
         if not cacheFound:
-            
-            WINDOW.setProperty("fromcache","false")
+            logMsg("checkMusicArt no cache found for dbID--> " + dbID,0)
             path = None
             json_response = None
             cdArt = None
@@ -554,51 +554,19 @@ class LibraryMonitor(threading.Thread):
             Info = None
             TrackList = ""
             folderPath = xbmc.getInfoLabel("ListItem.FolderPath")
-            
-            if xbmc.getCondVisibility("Container.Content(songs) | Container.Content(singles) | SubString(ListItem.FolderPath,musicdb://songs) | SubString(ListItem.FolderPath,musicdb://singles)"):
-                if "singles/" in folderPath:
-                    folderPath = folderPath.replace("musicdb://singles/","")
-                    dbid = folderPath.replace(".mp3","").replace(".flac","").replace(".wav","").replace(".wma","").replace(".m4a","").replace(".dsf","").replace(".mka","").replace("?singles=true","")
-                if "songs/" in folderPath:
-                    folderPath = folderPath.replace("musicdb://songs/","")
-                    dbid = folderPath.replace(".mp3","").replace(".flac","").replace(".wav","").replace(".wma","").replace(".m4a","").replace(".dsf","").replace(".mka","")
-                elif "top100/" in folderPath:
-                    folderPath = folderPath.replace("musicdb://top100/songs/","")
-                    dbid = folderPath.replace(".mp3","").replace(".flac","").replace(".wav","").replace(".wma","").replace(".m4a","").replace(".dsf","").replace(".mka","")
-                elif "artists/" in folderPath:
-                    folderPath = folderPath.replace("musicdb://artists/","")
-                    folderPath = folderPath.split("/")[2]
-                    dbid = folderPath.split(".")[0]
+            dbid = xbmc.getInfoLabel("ListItem.DBID")
+            if xbmc.getCondVisibility("Container.Content(songs) | Container.Content(singles) | SubString(ListItem.FolderPath,.)"):
+                logMsg("checkMusicArt - container content is songs or singles",0)
                 if dbid:
                     json_response = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "AudioLibrary.GetSongDetails", "params": { "songid": %s, "properties": [ "file","artistid","albumid","comment" ] }, "id": "libSongs"}'%int(dbid))
                 
-            elif xbmc.getCondVisibility("Container.Content(artists) | SubString(ListItem.FolderPath,musicdb://artists)"):
-                if "/genres/" in folderPath:
-                    folderPath = folderPath.replace("musicdb://genres/","")
-                    dbid = folderPath.split("/")[1]
-                else:    
-                    folderPath = folderPath.replace("musicdb://artists/","")
-                    dbid = folderPath.split("/")[0]   
+            elif xbmc.getCondVisibility("[Container.Content(artists) | SubString(ListItem.FolderPath,musicdb://artists)] + !SubString(ListItem.FolderPath,artistid=)"):
+                logMsg("checkMusicArt - container content is artists",0)
                 if dbid:    
                     json_response = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "AudioLibrary.GetSongs", "params": { "filter":{"artistid": %s}, "properties": [ "file","artistid","track","title" ] }, "id": "libSongs"}'%int(dbid))
             
-            elif xbmc.getCondVisibility("Container.Content(albums) | SubString(ListItem.FolderPath,musicdb://albums)"):
-                if "/artists/" in folderPath:
-                    folderPath = folderPath.replace("musicdb://artists/","")
-                    dbid = folderPath.split("/")[1]
-                elif "/genres/" in folderPath:
-                    folderPath = folderPath.replace("musicdb://genres/","")
-                    dbid = folderPath.split("/")[1]
-                elif "/years/" in folderPath:
-                    folderPath = folderPath.replace("musicdb://years/","")
-                    dbid = folderPath.split("/")[1]
-                else:
-                    folderPath = folderPath.replace("musicdb://albums/","")
-                    folderPath = folderPath.replace("musicdb://recentlyaddedalbums/","")
-                    folderPath = folderPath.replace("musicdb://recentlyplayedalbums/","")
-                    folderPath = folderPath.replace("musicdb://top100/albums/","")
-                    folderPath = folderPath.replace("musicdb://genres/","")
-                    dbid = folderPath.split("/")[0]
+            elif xbmc.getCondVisibility("Container.Content(albums) | SubString(ListItem.FolderPath,musicdb://albums) | SubString(ListItem.FolderPath,artistid=)"):
+                logMsg("checkMusicArt - container content is albums",0)
                 if dbid:
                     json_response = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "AudioLibrary.GetSongs", "params": { "filter":{"albumid": %s}, "properties": [ "file","artistid","track","title" ] }, "id": "libSongs"}'%int(dbid))
             

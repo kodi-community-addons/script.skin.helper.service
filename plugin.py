@@ -24,12 +24,15 @@ class Main:
             if path: path = path[0]
             limit=params.get("limit",None)
             if limit: limit = int(limit[0])
-            action=params.get("action",25)
+            else: limit = 25
+            action=params.get("action",None)
             if action: action = action[0].upper()
         
             if action:           
                 if action == "NEXTEPISODES":
                     getNextEpisodes(limit)
+                if action == "NEXTAIREDTVSHOWS":
+                    getNextAiredTvShows(limit)
                 elif action == "RECOMMENDEDMOVIES":
                     getRecommendedMovies(limit)
                 elif action == "RECOMMENDEDMEDIA":

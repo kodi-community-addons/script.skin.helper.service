@@ -61,7 +61,7 @@ def getJSON(method,params):
     else:
         logMsg("no result " + str(jsonobject),0)
         logMsg('{ "jsonrpc" : "2.0" , "method" : "' + method + '" , "params" : ' + params + ' , "id":1 }',0)
-        return None
+        return {}
 
 def try_decode(text, encoding="utf-8"):
     if isinstance(text, str):
