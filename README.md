@@ -535,7 +535,8 @@ The script also has a plugin entrypoint to provide some dynamic content that can
 use the parameter [LIMIT] to define the number of items to show in the list. defaults to 25 if the parameter is not supplied.
 
 ```
-Note 2: If you want to use these commands in the skinshortcuts overrides.xml you have to replace & with &amp;
+Important Note: If you want to use these commands in the skinshortcuts overrides.xml,
+you have to replace & with &amp;
 ```
 
 #####Next Episodes
