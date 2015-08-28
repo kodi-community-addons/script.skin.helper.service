@@ -137,6 +137,9 @@ If the selected listitem in the videolibrary is a movie set, some additional win
 | Window(Home).Property(SkinHelper.MovieSet.X.DiscArt) | DiscArt image of Movie X in the set |
 | Window(Home).Property(SkinHelper.MovieSet.X.ClearLogo) | Clearlogo image of Movie X in the set |
 | Window(Home).Property(SkinHelper.MovieSet.X.ClearArt) | ClearArt image of Movie X in the set |
+| Window(Home).Property(SkinHelper.MovieSet.X.AspectRatio) | AspectRatio of Movie X in the set |
+| Window(Home).Property(SkinHelper.MovieSet.X.Resolution) | Resolution of Movie X in the set |
+| Window(Home).Property(SkinHelper.MovieSet.X.Codec) | Codec of Movie X in the set |
 
 For the individual items (MovieSet.X) replace X with the number of the movie in the set. Start counting at 0 and movies are ordered by year.
 The ListItemStudioLogo and ListItemDuration properties will also be provided (if available) for the movie set.

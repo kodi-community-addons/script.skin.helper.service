@@ -148,6 +148,10 @@ class LibraryMonitor(threading.Thread):
             WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.ClearLogo')
             WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.ClearArt')
             WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.Banner')
+            WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.Rating')
+            WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.Resolution')
+            WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.AspectRatio')
+            WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.Codec')
         
             
         if xbmc.getCondVisibility("SubString(ListItem.Path,videodb://movies/sets/,left)"):
@@ -198,6 +202,17 @@ class LibraryMonitor(threading.Thread):
                         WINDOW.setProperty('SkinHelper.MovieSet.' + str(count) + '.ClearLogo',art.get('clearlogo', ''))
                         WINDOW.setProperty('SkinHelper.MovieSet.' + str(count) + '.ClearArt',art.get('clearart', ''))
                         WINDOW.setProperty('SkinHelper.MovieSet.' + str(count) + '.Banner',art.get('banner', ''))
+                        WINDOW.setProperty('SkinHelper.MovieSet.' + str(count) + '.Rating',str(item.get('rating', '')))
+                        if "streamdetails" in item:
+                            for key, value in item['streamdetails'].iteritems():
+                                for stream in value:
+                                    if stream.get("width",""):
+                                        WINDOW.setProperty('SkinHelper.MovieSet.' + str(count) + '.Resolution',str(stream["width"]))
+                                    if stream.get("codec",""):
+                                        WINDOW.setProperty('SkinHelper.MovieSet.' + str(count) + '.Codec',str(stream["codec"]))    
+                                    if stream.get("aspect",""):
+                                        WINDOW.setProperty('SkinHelper.MovieSet.' + str(count) + '.AspectRatio',str(round(stream["aspect"], 2)))
+
                         title_list += item['label'] + " (" + str(item['year']) + ")[CR]"
                         if item['plotoutline']:
                             plot += "[B]" + item['label'] + " (" + str(item['year']) + ")[/B][CR]" + item['plotoutline'] + "[CR][CR]"
