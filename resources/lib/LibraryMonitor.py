@@ -206,8 +206,8 @@ class LibraryMonitor(threading.Thread):
                         if "streamdetails" in item:
                             for key, value in item['streamdetails'].iteritems():
                                 for stream in value:
-                                    if stream.get("width",""):
-                                        WINDOW.setProperty('SkinHelper.MovieSet.' + str(count) + '.Resolution',str(stream["width"]))
+                                    if stream.get("height",""):
+                                        WINDOW.setProperty('SkinHelper.MovieSet.' + str(count) + '.Resolution',str(stream["height"]))
                                     if stream.get("codec",""):
                                         WINDOW.setProperty('SkinHelper.MovieSet.' + str(count) + '.Codec',str(stream["codec"]))    
                                     if stream.get("aspect",""):

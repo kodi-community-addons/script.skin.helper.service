@@ -136,9 +136,7 @@ def backup(filterString=None):
         xbmcgui.Dialog().ok(ADDON.getLocalizedString(32028), ADDON.getLocalizedString(32030))
         logMsg("ERROR while creating backup ! --> " + str(e), 0)
         raise
-
-
-        
+     
 def restore():
     
     try:
@@ -228,12 +226,14 @@ def restore():
             xbmc.sleep(500)
             shutil.rmtree(temp_path)
             xbmcgui.Dialog().ok(ADDON.getLocalizedString(32032), ADDON.getLocalizedString(32034))
+            
+            #legacy: convert any old settings from Titan skin, to be removed in the future...
+            if xbmc.getSkinDir().startswith("skin.titan"):
+                xbmc.executebuiltin("RunScript(script.titanskin.helpers,migrate)")
     
     except Exception as e:
         xbmcgui.Dialog().ok(ADDON.getLocalizedString(32032), ADDON.getLocalizedString(32035))
         logMsg("ERROR while restoring backup ! --> " + str(e), 0)
-
-
 
 def zip(src, dst):
     zf = zipfile.ZipFile("%s.zip" % (dst), "w", zipfile.ZIP_DEFLATED)
@@ -247,7 +247,6 @@ def zip(src, dst):
             zf.write(absname, arcname)
     zf.close()
        
-
 def reset():
     yeslabel=xbmc.getLocalizedString(107)
     nolabel=xbmc.getLocalizedString(106)
@@ -260,8 +259,7 @@ def reset():
         xbmc.executebuiltin("Skin.ResetSettings")
         xbmc.sleep(250)
         xbmc.executebuiltin("ReloadSkin")
-       
-        
+             
 def save_to_file(content, filename, path=""):
     if path == "":
         text_file_path = get_browse_dialog() + filename + ".txt"
@@ -285,8 +283,7 @@ def read_from_file(path=""):
         return fc
     else:
         return False
-
-        
+       
 def get_browse_dialog(default="protocol://", heading="Browse", dlg_type=3, shares="files", mask="", use_thumbs=False, treat_as_folder=False):
     dialog = xbmcgui.Dialog()
     value = dialog.browse(dlg_type, heading, shares, mask, use_thumbs, treat_as_folder, default)

@@ -60,6 +60,10 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
                         xbmc.executebuiltin("Skin.Reset(%s)" % setting)
                 xbmc.sleep(30)
         
+        #legacy: convert any old color themes from Titan skin, to be removed in the future...
+        if xbmc.getSkinDir().startswith("skin.titan"):
+            xbmc.executebuiltin("RunScript(script.titanskin.helpers,migratecolors)")
+        
         #change the skintheme if needed
         if currentSkinTheme != skintheme:
             xbmc.executebuiltin("Skin.Theme(-1)")
