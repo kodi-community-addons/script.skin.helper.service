@@ -214,8 +214,9 @@ class HomeMonitor(threading.Thread):
         allFavouritesCount = 0
         media_array = getJSON('Favourites.GetFavourites','{ }')
         if media_array != None and media_array.has_key('favourites'):
-            for item in media_array['favourites']:
-                allFavouritesCount += 1
+			if media_array['favourites']:
+				for item in media_array['favourites']:
+					allFavouritesCount += 1
         WINDOW.setProperty("SkinHelper.TotalFavourites",str(allFavouritesCount))
 
         #GET TV CHANNELS COUNT        
@@ -223,7 +224,8 @@ class HomeMonitor(threading.Thread):
         media_array = getJSON('PVR.GetChannels','{"channelgroupid": "alltv" }' )
         if media_array != None and media_array.has_key('channels'):
             for item in media_array['channels']:
-                allTvChannelsCount += 1
+				if media_array['channels']:
+					allTvChannelsCount += 1
         WINDOW.setProperty("SkinHelper.TotalTVChannels",str(allTvChannelsCount))        
 
         #GET RADIO CHANNELS COUNT        
@@ -231,7 +233,8 @@ class HomeMonitor(threading.Thread):
         media_array = getJSON('PVR.GetChannels','{"channelgroupid": "allradio" }' )
         if media_array != None and media_array.has_key('channels'):
             for item in media_array['channels']:
-                allRadioChannelsCount += 1
+				if media_array['channels']:
+					allRadioChannelsCount += 1
         WINDOW.setProperty("SkinHelper.TotalRadioChannels",str(allRadioChannelsCount))        
                
 
