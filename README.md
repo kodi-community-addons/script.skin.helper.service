@@ -77,6 +77,7 @@ Some additional window properties that can be used in the video library.
 | Window(Home).Property(SkinHelper.ListItemDuration) | Formatted duration hours:minutes of the current listitem total runtime |
 | Window(Home).Property(SkinHelper.ListItemDuration.Hours) | Only the hours part of the current listitem duration |
 | Window(Home).Property(SkinHelper.ListItemDuration.Minutes) | Only the minutes part of the current listitem duration |
+|Window(Home).Property(SkinHelper.ListItemGenres) | Will return all genres seperated by [CR] |
 
 ________________________________________________________________________________________________________
 
@@ -102,6 +103,7 @@ The script handles this logic to locate the fanart:
 |Window(Home).Property(SkinHelper.ListItemStudioLogo) | Will return the full image path of the (default/white) studio logo for the current selected item in a list. |
 |Window(Home).Property(SkinHelper.ListItemStudioLogoColor) | Will return the full image path of the coloured studio logo for the current selected item in a list. |
 |Window(Home).Property(SkinHelper.ListItemStudio) | Will just return the first studio of the listitem if you want to locate the images yourself. |
+|Window(Home).Property(SkinHelper.ListItemStudios) | Will return all studios seperated by [CR] |
 
 Note: If you also want to have the Studio logo and Duration Properties for your homescreen widgets, you need to set a Window Property "SkinHelper.WidgetContainer" with the ID of your widget container:
 For example in home.xml: <onload>SetProperty(SkinHelper.WidgetContainer,301)</onload>
@@ -651,7 +653,7 @@ Icon = Thumb of the actor
 
 You can use the name of the Movie or the DBID to perform the lookup.
 
-
+There will also a Window Property be set when you use the above query to the script: SkinHelper.ListItemCast --> It will return the cast list seperated by [CR]
 ________________________________________________________________________________________________________
 ________________________________________________________________________________________________________
 

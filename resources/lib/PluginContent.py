@@ -1033,6 +1033,7 @@ def getCast(movie=None,tvshow=None,movieset=None):
     itemId = None
     item = {}
     allCast = []
+    castNames = list()
     moviesetmovies = None
     try:
         if movieset:
@@ -1054,6 +1055,7 @@ def getCast(movie=None,tvshow=None,movieset=None):
         for cast in cachedata:
             liz = xbmcgui.ListItem(label=cast[0],label2=cast[1],iconImage=cast[2])
             liz.setProperty('IsPlayable', 'false')
+            castNames.append(cast[0])
             xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url="", listitem=liz, isFolder=True)
     else:
         #retrieve data from json api...
@@ -1099,6 +1101,7 @@ def getCast(movie=None,tvshow=None,movieset=None):
                 liz = xbmcgui.ListItem(label=cast["name"],label2=cast["role"],iconImage=cast["thumbnail"])
                 liz.setProperty('IsPlayable', 'false')
                 allCast.append([cast["name"],cast["role"],cast["thumbnail"]])
+                castNames.append(cast["name"])
                 xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url="", listitem=liz, isFolder=True)
         
         #process cast for all movies in a movieset
@@ -1114,8 +1117,13 @@ def getCast(movie=None,tvshow=None,movieset=None):
                             liz = xbmcgui.ListItem(label=cast["name"],label2=cast["role"],iconImage=cast["thumbnail"])
                             liz.setProperty('IsPlayable', 'false')
                             allCast.append([cast["name"],cast["role"],cast["thumbnail"]])
+                            castNames.append(cast["name"])
                             xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url="", listitem=liz, isFolder=True)
                             moviesetCastList.append(cast["name"])
             
-    WINDOW.setProperty(cachedataStr,repr(allCast)) 
+        WINDOW.setProperty(cachedataStr,repr(allCast))
+    
+    
+    WINDOW.setProperty('SkinHelper.ListItemCast', "[CR]".join(castNames))
+    
     xbmcplugin.endOfDirectory(int(sys.argv[1]))    

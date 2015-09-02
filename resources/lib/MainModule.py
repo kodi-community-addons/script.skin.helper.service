@@ -294,4 +294,13 @@ def selectView(contenttype="other", currentView=None, displayNone=False, display
     if selectedItem != -1:
         id = allViews[selectedItem].getProperty("id")
         return id
-    
+
+def toggleKodiSetting(settingname):
+    #toggle kodi setting
+    curValue = xbmc.getCondVisibility("system.getbool(%s)"%settingname)
+    if curValue == True:
+        newValue = "false"
+    else:
+        newValue = "true"
+    xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"Settings.SetSettingValue","params":{"setting":"%s","value":%s}}' %(settingname,newValue))
+   

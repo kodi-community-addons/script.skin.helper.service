@@ -49,7 +49,11 @@ class Main:
             
             elif action == "SETFORCEDVIEW":
                 contenttype = params.get("CONTENTTYPE",None)
-                setForcedView(contenttype)    
+                setForcedView(contenttype)
+            
+            elif action == "TOGGLEKODISETTING":
+                kodisetting = params.get("SETTING")
+                toggleKodiSetting(kodisetting)
             
             elif action == "ENABLEVIEWS":
                 enableViews()

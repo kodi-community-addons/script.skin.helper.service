@@ -100,6 +100,7 @@ class LibraryMonitor(threading.Thread):
                     try:
                         self.setDuration()
                         self.setStudioLogo()
+                        self.setGenre()
                         self.focusEpisode()
                         self.checkExtraFanArt()
                         self.setMovieSetDetails()
@@ -247,6 +248,7 @@ class LibraryMonitor(threading.Thread):
                     WINDOW.setProperty('SkinHelper.MovieSet.Writer', " / ".join(writer))
                     WINDOW.setProperty('SkinHelper.MovieSet.Director', " / ".join(director))
                     WINDOW.setProperty('SkinHelper.MovieSet.Genre', " / ".join(genre))
+                    self.setGenre(" / ".join(genre))
                     WINDOW.setProperty('SkinHelper.MovieSet.Country', " / ".join(country))
                     studioString = " / ".join(studio)
                     WINDOW.setProperty('SkinHelper.MovieSet.Studio', studioString)
@@ -285,6 +287,19 @@ class LibraryMonitor(threading.Thread):
                 WINDOW.setProperty("SkinHelper.Player.AddonName", AddonName)
             else:
                 WINDOW.clearProperty("SkinHelper.Player.AddonName")
+    
+    def setGenre(self, genre=None):
+        if not genre:
+            genre = xbmc.getInfoLabel('ListItem.Genre')
+        
+        genres = []
+        if "/" in genre:
+            genres = genre.split(" / ")
+        else:
+            genres.append(genre)
+        
+        WINDOW.setProperty('SkinHelper.ListItemGenres', "[CR]".join(genres))
+        
     
     def setStudioLogo(self, studio=None):
         if not studio:
@@ -326,6 +341,9 @@ class LibraryMonitor(threading.Thread):
             WINDOW.setProperty("SkinHelper.ListItemStudioLogoColor", studiologo)
         else:
             WINDOW.clearProperty("SkinHelper.ListItemStudioLogoColor")
+        
+        #set formatted studio logo
+        WINDOW.setProperty('SkinHelper.ListItemStudios', "[CR]".join(studios))
                 
     def getStudioLogos(self):
         #fill list with all studio logos

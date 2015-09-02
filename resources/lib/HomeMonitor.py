@@ -49,10 +49,10 @@ class HomeMonitor(threading.Thread):
             #do some background stuff every 30 minutes
             if (xbmc.getCondVisibility("!Window.IsActive(fullscreenvideo)")):
                 if (self.delayedTaskInterval >= 1800):
+                    self.updatePlexlinks()
                     self.genericWindowProps()
                     pluginContent.buildWidgetsListing()
                     self.checkNetflixReady()
-                    self.updatePlexlinks()
                     self.checkNotifications()
                     self.delayedTaskInterval = 0
             
