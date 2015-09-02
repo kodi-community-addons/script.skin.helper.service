@@ -22,6 +22,9 @@ def getSkinSettings(filter=None):
     if KODI_VERSION < 16:
         guisettings_path = xbmc.translatePath('special://profile/guisettings.xml').decode("utf-8")
     else:
+        #workaround - reload skin to get guisettings
+        xbmc.executebuiltin("Reloadskin")
+        xbmc.sleep(1500)
         guisettings_path = xbmc.translatePath('special://profile/addon_data/%s/settings.xml' %xbmc.getSkinDir()).decode("utf-8")
     if xbmcvfs.exists(guisettings_path):
         logMsg("guisettings.xml found")
@@ -68,6 +71,9 @@ def backup(filterString=None):
                 filter.append(filterString)
         else:
             filter = None
+
+        
+        
         
         #get backup destination
         backup_path = None
