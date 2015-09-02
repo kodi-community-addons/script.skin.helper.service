@@ -543,7 +543,6 @@ def getNextAiredTvShows(limit):
     
     xbmcplugin.addDirectoryItems(int(sys.argv[1]), directoryItems)                
     xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
-
     
 def getRecommendedMovies(limit):
     count = 0
@@ -1033,73 +1032,90 @@ def getCast(movie=None,tvshow=None,movieset=None):
     
     itemId = None
     item = {}
-    castList = []
+    allCast = []
     moviesetmovies = None
     try:
         if movieset:
+            cachedataStr = "movieset.castcache-" + str(movieset)
             itemId = int(movieset)
         if tvshow:
+            cachedataStr = "tvshow.castcache-" + str(tvshow)
             itemId = int(tvshow)
         else:
+            cachedataStr = "movie.castcache-" + str(movie)
             itemId = int(movie)
     except:
         pass
-
-    if movie and itemId:
-        json_query_string = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetMovieDetails", "params": { "movieid": %d, "properties": [ "title", "cast" ] }, "id": "1"}' %itemId)
-        json_result = json.loads(json_query_string.decode('utf-8','replace'))
-        if json_result.has_key('result') and json_result['result'].has_key('moviedetails'):
-            item = json_result['result']['moviedetails']
-    elif movie and not itemId:
-        json_query_string = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetMovies", "params": { "filter": {"operator":"is", "field":"title", "value":"%s"}, "properties": [ "title", "cast" ] }, "id": "1"}' %movie)
-        json_result = json.loads(json_query_string.decode('utf-8','replace'))
-        if json_result.has_key('result') and json_result['result'].has_key('movies'):
-            item = json_result['result']['movies'][0]
-    elif tvshow and itemId:
-        json_query_string = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetTVShowDetails", "params": { "tvshowid": %d, "properties": [ "title", "cast" ] }, "id": "1"}' %itemId)
-        json_result = json.loads(json_query_string.decode('utf-8','replace'))
-        if json_result.has_key('result') and json_result['result'].has_key('tvshowdetails'):
-            item = json_result['result']['tvshowdetails']
-    elif tvshow and not itemId:
-        json_query_string = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetTvShows", "params": { "filter": {"operator":"is", "field":"title", "value":"%s"}, "properties": [ "title", "cast" ] }, "id": "1"}' %tvshow)
-        json_result = json.loads(json_query_string.decode('utf-8','replace'))
-        if json_result.has_key('result') and json_result['result'].has_key('tvshows'):
-            item = json_result['result']['tvshows'][0]
-    elif movieset and itemId:
-        json_query_string = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetMovieSetDetails", "params": { "setid": %d, "properties": [ "title" ] }, "id": "1"}' %itemId)
-        json_result = json.loads(json_query_string.decode('utf-8','replace'))
-        if json_result.has_key('result') and json_result['result'].has_key('setdetails'):
-            movieset = json_result['result']['setdetails']
-            if movieset.has_key("movies"):
-                moviesetmovies = movieset['movies']      
-    elif movieset and not itemId:
-        json_query_string = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetMovieSets", "params": { "filter": {"operator":"is", "field":"title", "value":"%s"}, "properties": [ "title" ] }, "id": "1"}' %tvshow)
-        json_result = json.loads(json_query_string.decode('utf-8','replace'))
-        if json_result.has_key('result') and json_result['result'].has_key('sets '):
-            movieset = json_result['result']['sets '][0]
-            if movieset.has_key("movies"):
-                moviesetmovies = movieset['movies']
     
-    #process cast for regular movie or show
-    if item and item.has_key("cast"):
-        for cast in item["cast"]:
-            liz = xbmcgui.ListItem(label=cast["name"],label2=cast["role"],iconImage=cast["thumbnail"])
+    cachedata = WINDOW.getProperty(cachedataStr)
+    if cachedata:
+        #get data from cache
+        cachedata = eval(cachedata)
+        for cast in cachedata:
+            liz = xbmcgui.ListItem(label=cast[0],label2=cast[1],iconImage=cast[2])
             liz.setProperty('IsPlayable', 'false')
             xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url="", listitem=liz, isFolder=True)
+    else:
+        #retrieve data from json api...
     
-    #process cast for all movies in a movieset
-    elif moviesetmovies:
-        for setmovie in moviesetmovies:
-            json_query_string = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetMovieDetails", "params": { "movieid": %d, "properties": [ "title", "cast" ] }, "id": "1"}' %setmovie["movieid"])
+        if movie and itemId:
+            json_query_string = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetMovieDetails", "params": { "movieid": %d, "properties": [ "title", "cast" ] }, "id": "1"}' %itemId)
             json_result = json.loads(json_query_string.decode('utf-8','replace'))
             if json_result.has_key('result') and json_result['result'].has_key('moviedetails'):
                 item = json_result['result']['moviedetails']
-                for cast in item["cast"]:
-                    if not cast["name"] in castList:
-                        liz = xbmcgui.ListItem(label=cast["name"],label2=cast["role"],iconImage=cast["thumbnail"])
-                        liz.setProperty('IsPlayable', 'false')
-                        xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url="", listitem=liz, isFolder=True)
-                        castList.append(cast["name"])
+        elif movie and not itemId:
+            json_query_string = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetMovies", "params": { "filter": {"operator":"is", "field":"title", "value":"%s"}, "properties": [ "title", "cast" ] }, "id": "1"}' %movie)
+            json_result = json.loads(json_query_string.decode('utf-8','replace'))
+            if json_result.has_key('result') and json_result['result'].has_key('movies'):
+                item = json_result['result']['movies'][0]
+        elif tvshow and itemId:
+            json_query_string = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetTVShowDetails", "params": { "tvshowid": %d, "properties": [ "title", "cast" ] }, "id": "1"}' %itemId)
+            json_result = json.loads(json_query_string.decode('utf-8','replace'))
+            if json_result.has_key('result') and json_result['result'].has_key('tvshowdetails'):
+                item = json_result['result']['tvshowdetails']
+        elif tvshow and not itemId:
+            json_query_string = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetTvShows", "params": { "filter": {"operator":"is", "field":"title", "value":"%s"}, "properties": [ "title", "cast" ] }, "id": "1"}' %tvshow)
+            json_result = json.loads(json_query_string.decode('utf-8','replace'))
+            if json_result.has_key('result') and json_result['result'].has_key('tvshows'):
+                item = json_result['result']['tvshows'][0]
+        elif movieset and itemId:
+            json_query_string = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetMovieSetDetails", "params": { "setid": %d, "properties": [ "title" ] }, "id": "1"}' %itemId)
+            json_result = json.loads(json_query_string.decode('utf-8','replace'))
+            if json_result.has_key('result') and json_result['result'].has_key('setdetails'):
+                movieset = json_result['result']['setdetails']
+                if movieset.has_key("movies"):
+                    moviesetmovies = movieset['movies']      
+        elif movieset and not itemId:
+            json_query_string = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetMovieSets", "params": { "filter": {"operator":"is", "field":"title", "value":"%s"}, "properties": [ "title" ] }, "id": "1"}' %tvshow)
+            json_result = json.loads(json_query_string.decode('utf-8','replace'))
+            if json_result.has_key('result') and json_result['result'].has_key('sets '):
+                movieset = json_result['result']['sets '][0]
+                if movieset.has_key("movies"):
+                    moviesetmovies = movieset['movies']
+        
+        #process cast for regular movie or show
+        if item and item.has_key("cast"):
+            for cast in item["cast"]:
+                liz = xbmcgui.ListItem(label=cast["name"],label2=cast["role"],iconImage=cast["thumbnail"])
+                liz.setProperty('IsPlayable', 'false')
+                allCast.append([cast["name"],cast["role"],cast["thumbnail"]])
+                xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url="", listitem=liz, isFolder=True)
+        
+        #process cast for all movies in a movieset
+        elif moviesetmovies:
+            moviesetCastList = []
+            for setmovie in moviesetmovies:
+                json_query_string = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetMovieDetails", "params": { "movieid": %d, "properties": [ "title", "cast" ] }, "id": "1"}' %setmovie["movieid"])
+                json_result = json.loads(json_query_string.decode('utf-8','replace'))
+                if json_result.has_key('result') and json_result['result'].has_key('moviedetails'):
+                    item = json_result['result']['moviedetails']
+                    for cast in item["cast"]:
+                        if not cast["name"] in moviesetCastList:
+                            liz = xbmcgui.ListItem(label=cast["name"],label2=cast["role"],iconImage=cast["thumbnail"])
+                            liz.setProperty('IsPlayable', 'false')
+                            allCast.append([cast["name"],cast["role"],cast["thumbnail"]])
+                            xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url="", listitem=liz, isFolder=True)
+                            moviesetCastList.append(cast["name"])
             
-     
+    WINDOW.setProperty(cachedataStr,repr(allCast)) 
     xbmcplugin.endOfDirectory(int(sys.argv[1]))    
