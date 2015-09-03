@@ -47,6 +47,8 @@ def getSkinSettings(filter=None):
                     settingvalue = ""
                 
                 settingname = settingname.replace(xbmc.getSkinDir()+".","")
+                if settingname.startswith("beta.") or settingname.startswith("helix."):
+                    continue
                 if not filter:
                     newlist.append((skinsetting.attributes['type'].nodeValue, settingname, settingvalue))
                 else:

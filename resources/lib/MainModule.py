@@ -166,7 +166,10 @@ def enableViews():
     del w        
 
 def setForcedView(contenttype):
+    print "setforcedview called for " + contenttype
     currentView = xbmc.getInfoLabel("Skin.String(SkinHelper.ForcedViews.%s)" %contenttype)
+    if not currentView:
+        currentView = "0"
     selectedItem = selectView(contenttype, currentView, True, True)
     
     if selectedItem != -1 and selectedItem != None:
@@ -274,12 +277,12 @@ def selectView(contenttype="other", currentView=None, displayNone=False, display
             id = view.attributes[ 'value' ].nodeValue
             if displayViewId:
                 label = label + " (" + str(id) + ")"
-            type = view.attributes[ 'type' ].nodeValue
+            type = view.attributes[ 'type' ].nodeValue.lower()
             if label.lower() == currentView.lower() or id == currentView:
                 currentViewSelectId = itemcount
                 if displayNone == True:
                     currentViewSelectId += 1
-            if (type == "all" or contenttype in type) and not xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.View.Disabled.%s)" %id):
+            if (type == "all" or contenttype.lower() in type) and not xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.View.Disabled.%s)" %id):
                 image = "special://skin/extras/viewthumbs/%s.jpg" %id
                 listitem = xbmcgui.ListItem(label=label, iconImage=image)
                 listitem.setProperty("id",id)
