@@ -901,7 +901,7 @@ full example:
 ```xml
 <overrides>
 	<groupings>
-		<shortcut label="Smart Shortcuts" type="32010">||BROWSE||script.skin.helper.service/?action=smartshortcuts</shortcut>
+		<shortcut label="$ADDON[script.skin.helper.service 32062]" type="32010">||BROWSE||script.skin.helper.service/?action=smartshortcuts</shortcut>
 	</groupings>
 </overrides>	
 ```

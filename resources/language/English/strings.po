@@ -263,3 +263,11 @@ msgstr ""
 msgctxt "#32061"
 msgid "Please select a background image"
 msgstr ""
+
+msgctxt "#32062"
+msgid "Smart Shortcuts"
+msgstr ""
+
+msgctxt "#32063"
+msgid "Default Widgets"
+msgstr ""
