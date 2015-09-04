@@ -211,7 +211,9 @@ def setView():
         contenttype = "programs"
     elif xbmc.getCondVisibility("Window.IsActive(pictures)"):
         contenttype = "pictures"
-    
+    elif xbmc.getCondVisibility("SubString(Window.Property(xmlfile),MyPVR,left)"):
+        contenttype = "pvr"
+        
     currentView = xbmc.getInfoLabel("Container.Viewmode")
     selectedItem = selectView(contenttype, currentView)
     currentForcedView = xbmc.getInfoLabel("Skin.String(SkinHelper.ForcedViews.%s)" %contenttype)

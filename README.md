@@ -166,6 +166,21 @@ Some additional window properties that can be used in the music library.
 ________________________________________________________________________________________________________
 
 
+#### PVR window properties
+Some additional window properties that can be used in the PVR windows. 
+
+| property 			| description |
+| :----------------------------	| :----------- |
+| Window(Home).Property(SkinHelper.PVR.Poster) | Will return the IMDB poster image for the currently selected show/movie (only if found) |
+| Window(Home).Property(SkinHelper.PVR.FanArt) | Will return the IMDB fanart image for the currently selected show/movie (only if found) |
+| Window(Home).Property(SkinHelper.PVR.Thumb) | Will return a random thumb (google search) for the currently selected show/movie (only if found) |
+| Window(Home).Property(SkinHelper.PVR.ChannelLogo) | Will return the channel logo for the currently selected channel (only if found) |
+
+
+________________________________________________________________________________________________________
+
+
+
 
 #### Backgrounds provided by the script
 The script has a background scanner to provide some rotating fanart backgrounds which can be used in your skin as backgrounds. The backgrounds are available in window properties.

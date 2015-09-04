@@ -38,18 +38,44 @@ class LibraryMonitor(threading.Thread):
     def __init__(self, *args):
         
         logMsg("LibraryMonitor - started")
+        self.cachePath = os.path.join(ADDON_DATA_PATH,"librarycache.json")
         self.event =  threading.Event()
         threading.Thread.__init__(self, *args)    
     
     def stop(self):
         logMsg("LibraryMonitor - stop called",0)
+        self.saveCacheToFile()
         self.exit = True
         self.event.set()
 
+    def saveCacheToFile(self):
+        #safety check: does the config directory exist?
+        if not xbmcvfs.exists(ADDON_DATA_PATH + os.sep):
+            xbmcvfs.mkdir(ADDON_DATA_PATH)
+        
+        libraryCache = {}
+        libraryCache["moviesetCache"] = self.moviesetCache
+        libraryCache["extraFanartcache"] = self.extraFanartcache
+        libraryCache["musicArtCache"] = self.musicArtCache
+        libraryCache["pvrArtCache"] = self.pvrArtCache
+        #cache file for all backgrounds
+        json.dump(libraryCache, open(self.cachePath,'w'))
+    
+    def getCacheFromFile(self):
+        #TODO --> clear the cache in some conditions
+        if xbmcvfs.exists(self.cachePath):
+            with open(self.cachePath) as data_file:    
+                data = json.load(data_file)
+                self.moviesetCache = data["moviesetCache"]
+                self.extraFanartcache = data["extraFanartcache"]
+                self.musicArtCache = data["musicArtCache"]
+                self.pvrArtCache = data["pvrArtCache"]
+    
     def run(self):
 
         lastListItemLabel = None
         KodiMonitor = xbmc.Monitor()
+        self.getCacheFromFile()
 
         while (self.exit != True):
             
@@ -87,7 +113,7 @@ class LibraryMonitor(threading.Thread):
                     # update the listitem stuff
                     try:
                         self.setDuration()
-                        self.setPVRThumb()
+                        self.setPVRThumbs()
                         self.setGenre()
                     except Exception as e:
                         logMsg("ERROR in LibraryMonitor ! --> " + str(e), 0)
@@ -320,7 +346,7 @@ class LibraryMonitor(threading.Thread):
         
         WINDOW.setProperty('SkinHelper.ListItemGenres', "[CR]".join(genres))
         
-    def setPVRThumb(self):
+    def setPVRThumbs(self):
         title = xbmc.getInfoLabel("ListItem.Title")
         channel = xbmc.getInfoLabel("ListItem.ChannelName")
         dbID = title + channel
