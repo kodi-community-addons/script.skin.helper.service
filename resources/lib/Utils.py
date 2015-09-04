@@ -66,7 +66,7 @@ def getJSON(method,params):
 def try_decode(text, encoding="utf-8"):
     if isinstance(text, str):
         try:
-            return text.decode(encoding)
+            return text.encode(encoding)
         except:
             pass
     return text       
@@ -82,7 +82,7 @@ def setSkinVersion():
 def createListItem(item):
        
     liz = xbmcgui.ListItem(item['title'])
-    liz.setInfo( type="Video", infoLabels={ "Title": item['title'] })
+    liz.setInfo( type="Video", infoLabels={ "Title": try_decode(item['title']) })
     liz.setProperty('IsPlayable', 'true')
     season = None
     episode = None
@@ -92,7 +92,7 @@ def createListItem(item):
     
     if "file" in item:
         liz.setPath(item['file'])
-        liz.setProperty("path", item['file'])
+        liz.setProperty("path", try_decode(item['file']))
     
     if "episode" in item:
         episode = "%.2d" % float(item['episode'])
@@ -130,7 +130,7 @@ def createListItem(item):
     
     
     if "plot" in item:
-        plot = item['plot']
+        plot = try_decode(item['plot'])
     elif "comment" in item:
         plot = item['comment']
     else:
@@ -139,13 +139,13 @@ def createListItem(item):
     liz.setInfo( type="Video", infoLabels={ "Plot": plot })
     
     if "artist" in item:
-        liz.setInfo( type="Video", infoLabels={ "Artist": item['artist'] })
+        liz.setInfo( type="Video", infoLabels={ "Artist": try_decode(item['artist']) })
         
     if "votes" in item:
         liz.setInfo( type="Video", infoLabels={ "votes": item['votes'] })
     
     if "trailer" in item:
-        liz.setInfo( type="Video", infoLabels={ "trailer": item['trailer'] })
+        liz.setInfo( type="Video", infoLabels={ "trailer": try_decode(item['trailer']) })
         liz.setProperty("trailer", item['trailer'])
         
     if "dateadded" in item:
@@ -155,7 +155,7 @@ def createListItem(item):
         liz.setInfo( type="Video", infoLabels={ "album": item['album'] })
         
     if "plotoutline" in item:
-        liz.setInfo( type="Video", infoLabels={ "plotoutline ": item['plotoutline'] })
+        liz.setInfo( type="Video", infoLabels={ "plotoutline ": try_decode(item['plotoutline']) })
         
     if "studio" in item:
         liz.setInfo( type="Video", infoLabels={ "studio": " / ".join(item['studio']) })
@@ -167,7 +167,7 @@ def createListItem(item):
         liz.setInfo( type="Video", infoLabels={ "mpaa": item['mpaa'] })
         
     if "tagline" in item:
-        liz.setInfo( type="Video", infoLabels={ "tagline": item['tagline'] })
+        liz.setInfo( type="Video", infoLabels={ "tagline": try_decode(item['tagline']) })
     
     if "showtitle" in item:
         liz.setInfo( type="Video", infoLabels={ "TVshowTitle": item['showtitle'] })
@@ -278,7 +278,7 @@ def detectPluginContent(plugin):
                 elif (item["imdbnumber"] or item["mpaa"] or item["trailer"] or item["studio"]):
                     return ("movies", image)
 
-    return None, None
+    return (None, None)
     
 def getTMDBimage(title):
     
@@ -296,7 +296,7 @@ def getTMDBimage(title):
             content = opener.open("http://api.themoviedb.org/3/search/"+videoType+"?api_key="+apiKey+"&query="+urllib.quote_plus(title.strip())+"&language=en").read()
             resultCount = re.compile('"total_results":(.+?)').findall(content)
             if resultCount[0] == str(0):
-                #try again without the date as sometimes Netflix get the year wrong
+                #try again without the date
                 content = opener.open("http://api.themoviedb.org/3/search/"+videoType+"?api_key="+apiKey+"&query="+urllib.quote_plus(title.strip())+"&language=en").read()
                 resultCount = re.compile('"total_results":(.+?)').findall(content)
                 if resultCount[0] == str(0):
@@ -321,27 +321,81 @@ def getTMDBimage(title):
                         content = opener.open("http://api.themoviedb.org/3/search/"+videoType+"?api_key="+apiKey+"&query="+urllib.quote_plus(title.strip())+"&language=en").read()
 
         match = re.compile('"poster_path":"(.+?)"', re.DOTALL).findall(content)
+        match2 = None
         # maybe its a mini-series (TMDb calls them movies)
         if not match and videoType == "tv":
             content = opener.open("http://api.themoviedb.org/3/search/movie?api_key="+apiKey+"&query="+urllib.quote_plus(title.strip())+"&language=en").read()
             match = re.compile('"poster_path":"(.+?)"', re.DOTALL).findall(content)
+            match2 = re.compile('"backdrop_path":"(.+?)"', re.DOTALL).findall(content)
 
         if match:
             coverUrl = "http://image.tmdb.org/t/p/original"+match[0]
-            break
         match = re.compile('"backdrop_path":"(.+?)"', re.DOTALL).findall(content)
         if match:
             fanartUrl = "http://image.tmdb.org/t/p/original"+match[0]
+        elif match2:
+            fanartUrl = "http://image.tmdb.org/t/p/original"+match2[0]
+        
+        if coverUrl and fanartUrl:
             break
+
+    return (coverUrl, fanartUrl)
+
+def searchChannelLogo(searchphrase):
+    #get's a thumb image for the given search phrase
+       
+    image = ""
+    if searchphrase:
+        cache = WINDOW.getProperty("SkinHelperThumbs")
+        if cache:
+            cache = eval(cache)
+        else:
+            cache = {}
+        
+        if cache.has_key(searchphrase):
+            return cache[searchphrase]
+        else:
+            WINDOW.setProperty("getthumbbusy","busy")
+            
+            #lookup with thelogodb
+            search = searchphrase.split()
+            search = '%20'.join(map(str, search))
+            url = 'http://www.thelogodb.com/api/json/v1/1/tvchannel.php?s=' + search
+            search_results = urllib2.urlopen(url)
+            js = json.loads(search_results.read().decode("utf-8"))
+            if js and js.has_key('channels'):
+                results = js['channels']
+                if results:
+                    for i in results: 
+                        rest = i['strLogoWide']
+                        if ".jpg" in rest or ".png" in rest:
+                            image = rest
+                            break
+                
+            if not image:
+                search = searchphrase.replace(" HD","").split()
+                search = '%20'.join(map(str, search))
+                url = 'http://www.thelogodb.com/api/json/v1/1/tvchannel.php?s=' + search
+                search_results = urllib2.urlopen(url)
+                js = json.loads(search_results.read().decode("utf-8"))
+                if js and js.has_key('channels'):
+                    results = js['channels']
+                    if results:
+                        for i in results: 
+                            rest = i['strLogoWide']
+                            if ".jpg" in rest or ".png" in rest:
+                                image = rest
+                                break
+
+    if image:
+        if ".jpg/" in image:
+            image = image.split(".jpg/")[0] + ".jpg"
+        cache[searchphrase] = image
+        WINDOW.setProperty("SkinHelperThumbs", repr(cache))
+    WINDOW.clearProperty("getthumbbusy")
+    return image
     
-    if coverUrl:
-        return coverUrl
-    elif fanartUrl:
-        return fanartUrl
-    else:
-        return None
-    
-def searchThumb(searchphrase):
+def searchThumb(searchphrase, searchphrase2=""):
     #get's a thumb image for the given search phrase
        
     image = ""
@@ -357,10 +411,11 @@ def searchThumb(searchphrase):
         else:
             WINDOW.setProperty("getthumbbusy","busy")
             #lookup TMDB
-            image = getTMDBimage(searchphrase)
+            image = getTMDBimage(searchphrase)[0]
             
             #lookup with Google images
             if not image:
+                searchphrase = searchphrase + searchphrase2
                 search = searchphrase.split()
                 search = '%20'.join(map(str, search))
                 url = 'http://ajax.googleapis.com/ajax/services/search/images?v=1.0&q=%s&safe=off' % search
@@ -371,7 +426,7 @@ def searchThumb(searchphrase):
                 if ".jpg" in rest or ".png" in rest:
                     image = rest
             
-            # Do lookup with youtube addon - to be replaced with something better
+            # Do lookup with youtube addon as last resort
             if not image:
                 #safety check: prevent multiple youtube searches at once...
                 waitForYouTubeCount = 0

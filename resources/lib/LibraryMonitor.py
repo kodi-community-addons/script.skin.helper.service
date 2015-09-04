@@ -25,6 +25,7 @@ class LibraryMonitor(threading.Thread):
     unwatched = 1
     lastEpPath = ""
     lastMusicDbId = None
+    lastpvrDbId = None
     allStudioLogos = {}
     allStudioLogosColor = {}
     LastCustomStudioImagesPath = None
@@ -32,6 +33,7 @@ class LibraryMonitor(threading.Thread):
     moviesetCache = {}
     extraFanartcache = {}
     musicArtCache = {}
+    pvrArtCache = {}
     
     def __init__(self, *args):
         
@@ -71,6 +73,24 @@ class LibraryMonitor(threading.Thread):
                     self.checkMusicArt()
                 except Exception as e:
                     logMsg("ERROR in checkMusicArt ! --> " + str(e), 0)
+            
+            # monitor listitem props when PVR is active
+            elif (xbmc.getCondVisibility("SubString(Window.Property(xmlfile),MyPVR,left)")):
+                
+                self.liPath = xbmc.getInfoLabel("ListItem.Path")
+                liLabel = xbmc.getInfoLabel("ListItem.Label")
+                if ((liLabel != lastListItemLabel) and xbmc.getCondVisibility("!Container.Scrolling")):
+                    
+                    self.liPathLast = self.liPath
+                    lastListItemLabel = liLabel
+                    
+                    # update the listitem stuff
+                    try:
+                        self.setDuration()
+                        self.setPVRThumb()
+                        self.setGenre()
+                    except Exception as e:
+                        logMsg("ERROR in LibraryMonitor ! --> " + str(e), 0)
             
             #monitor home widget
             elif xbmc.getCondVisibility("Window.IsActive(home)") and WINDOW.getProperty("SkinHelper.WidgetContainer"):
@@ -300,7 +320,99 @@ class LibraryMonitor(threading.Thread):
         
         WINDOW.setProperty('SkinHelper.ListItemGenres', "[CR]".join(genres))
         
-    
+    def setPVRThumb(self):
+        title = xbmc.getInfoLabel("ListItem.Title")
+        channel = xbmc.getInfoLabel("ListItem.ChannelName")
+        dbID = title + channel
+        cacheFound = False
+
+        if self.lastMusicDbId == dbID:
+            return
+            
+        logMsg("setPVRThumb dbID--> " + dbID)
+        
+        WINDOW.clearProperty("SkinHelper.PVR.Thumb") 
+        WINDOW.clearProperty("SkinHelper.PVR.FanArt") 
+        WINDOW.clearProperty("SkinHelper.PVR.ChannelLogo")
+        WINDOW.clearProperty("SkinHelper.PVR.Poster")
+        
+        if xbmc.getInfoLabel("ListItem.Label") == "..":
+            return
+            
+        #get the items from cache first
+        if self.pvrArtCache.has_key(dbID + "SkinHelper.PVR.Thumb"):
+            cacheFound = True
+            if self.pvrArtCache[dbID + "SkinHelper.PVR.Thumb"] == "None":
+                WINDOW.clearProperty("SkinHelper.PVR.Thumb")   
+            else:
+                WINDOW.setProperty("SkinHelper.PVR.Thumb",self.pvrArtCache[dbID + "SkinHelper.PVR.Thumb"])
+
+        if self.pvrArtCache.has_key(dbID + "SkinHelper.PVR.FanArt"):
+            cacheFound = True
+            if self.pvrArtCache[dbID + "SkinHelper.PVR.FanArt"] == "None":
+                WINDOW.clearProperty("SkinHelper.PVR.FanArt")   
+            else:
+                WINDOW.setProperty("SkinHelper.PVR.FanArt",self.pvrArtCache[dbID + "SkinHelper.PVR.FanArt"])
+        
+        if self.pvrArtCache.has_key(dbID + "SkinHelper.PVR.Poster"):
+            cacheFound = True
+            if self.pvrArtCache[dbID + "SkinHelper.PVR.Poster"] == "None":
+                WINDOW.clearProperty("SkinHelper.PVR.Poster")   
+            else:
+                WINDOW.setProperty("SkinHelper.PVR.Poster",self.pvrArtCache[dbID + "SkinHelper.PVR.Poster"])
+        
+        if self.pvrArtCache.has_key(dbID + "SkinHelper.PVR.ChannelLogo"):
+            cacheFound = True
+            if self.pvrArtCache[dbID + "SkinHelper.PVR.ChannelLogo"] == "None":
+                WINDOW.clearProperty("SkinHelper.PVR.ChannelLogo")   
+            else:
+                WINDOW.setProperty("SkinHelper.PVR.ChannelLogo",self.pvrArtCache[dbID + "SkinHelper.PVR.ChannelLogo"])
+        
+        if not cacheFound:
+            logMsg("setPVRThumb no cache found for dbID--> " + dbID)
+            thumb = None
+            fanart = None
+            logo = None
+            poster = None
+            
+            poster, fanart = getTMDBimage(title)
+            thumb = searchThumb(title + " " + channel)
+            if channel == xbmc.getInfoLabel("$INFO[ListItem.Label]"):
+                logo = xbmc.getInfoLabel("$INFO[ListItem.Icon]")
+            
+            #get logo from studio logos
+            if not logo:
+                logo = self.setStudioLogo(channel)
+            if not logo:
+                #fallback to channelDB
+                logo = searchChannelLogo(channel)
+            
+            if thumb:
+                WINDOW.setProperty("SkinHelper.PVR.Thumb",thumb)
+                self.pvrArtCache[dbID + "SkinHelper.PVR.Thumb"] = thumb
+            else:
+                WINDOW.setProperty("SkinHelper.PVR.Thumb","")
+                self.pvrArtCache[dbID + "SkinHelper.PVR.Thumb"] = "None"
+            
+            if fanart:
+                WINDOW.setProperty("SkinHelper.PVR.FanArt",fanart)
+                self.pvrArtCache[dbID + "SkinHelper.PVR.FanArt"] = fanart
+            else:
+                WINDOW.setProperty("SkinHelper.PVR.FanArt","")
+                self.pvrArtCache[dbID + "SkinHelper.PVR.FanArt"] = "None"
+            if poster:
+                WINDOW.setProperty("SkinHelper.PVR.Poster",poster)
+                self.pvrArtCache[dbID + "SkinHelper.PVR.Poster"] = poster
+            else:
+                WINDOW.setProperty("SkinHelper.PVR.Poster","")
+                self.pvrArtCache[dbID + "SkinHelper.PVR.Poster"] = "None"
+            if logo:
+                WINDOW.setProperty("SkinHelper.PVR.ChannelLogo",logo)
+                self.pvrArtCache[dbID + "SkinHelper.PVR.ChannelLogo"] = logo
+            else:
+                WINDOW.setProperty("SkinHelper.PVR.ChannelLogo","")
+                self.pvrArtCache[dbID + "SkinHelper.PVR.ChannelLogo"] = "None"
+            
     def setStudioLogo(self, studio=None):
         if not studio:
             studio = xbmc.getInfoLabel('ListItem.Studio')
@@ -330,7 +442,18 @@ class LibraryMonitor(threading.Thread):
                     if self.allStudioLogos.has_key(studio):
                         studiologo = self.allStudioLogos[studio]
                     if self.allStudioLogosColor.has_key(studio):
-                        studiologoColor = self.allStudioLogosColor[studio]    
+                        studiologoColor = self.allStudioLogosColor[studio]
+            
+            if not studiologo and not studiologoColor:
+                #find logo by substituting characters for pvr channels
+                if " HD" in studio:
+                    studio = studio.replace(" HD","")
+                elif " " in studio:
+                    studio = studio.replace(" ","")
+                if self.allStudioLogos.has_key(studio):
+                    studiologo = self.allStudioLogos[studio]
+                if self.allStudioLogosColor.has_key(studio):
+                    studiologoColor = self.allStudioLogosColor[studio]  
         
         if studiologo:
             WINDOW.setProperty("SkinHelper.ListItemStudioLogo", studiologo)
@@ -344,6 +467,7 @@ class LibraryMonitor(threading.Thread):
         
         #set formatted studio logo
         WINDOW.setProperty('SkinHelper.ListItemStudios', "[CR]".join(studios))
+        return studiologo
                 
     def getStudioLogos(self):
         #fill list with all studio logos
@@ -469,7 +593,16 @@ class LibraryMonitor(threading.Thread):
     def setDuration(self,currentDuration=None):
         if not currentDuration:
             currentDuration = xbmc.getInfoLabel("ListItem.Duration")
-            
+        
+        if ":" in currentDuration:
+            durLst = currentDuration.split(":")
+            if len(durLst) == 1:
+                currentDuration = "0"
+            elif len(durLst) == 2:
+                currentDuration = durLst[0]
+            elif len(durLst) == 3:
+                currentDuration = str((int(durLst[0])*60) + int(durLst[1]))
+                
         # monitor listitem to set duration
         if currentDuration:
             durationString = self.getDurationString(currentDuration)
@@ -520,7 +653,7 @@ class LibraryMonitor(threading.Thread):
         if self.lastMusicDbId == dbID:
             return
         
-        logMsg("checkMusicArt dbID--> " + dbID,0)
+        logMsg("checkMusicArt dbID--> " + dbID)
 
         self.lastMusicDbId = dbID
         
