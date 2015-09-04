@@ -281,60 +281,27 @@ def detectPluginContent(plugin):
     return (None, None)
     
 def getTMDBimage(title):
-    
     apiKey = base64.b64decode("NDc2N2I0YjJiYjk0YjEwNGZhNTUxNWM1ZmY0ZTFmZWM=")
     opener = urllib2.build_opener()
     userAgent = "Mozilla/5.0 (Windows NT 5.1; rv:25.0) Gecko/20100101 Firefox/25.0"
     opener.addheaders = [('User-agent', userAgent)]
-    
     coverUrl = None
     fanartUrl = None
-    
+    title = '"%s"'%title
     videoTypes = ["tv","movie"]
     for videoType in videoTypes:
-        if videoType == "tv":
-            content = opener.open("http://api.themoviedb.org/3/search/"+videoType+"?api_key="+apiKey+"&query="+urllib.quote_plus(title.strip())+"&language=en").read()
-            resultCount = re.compile('"total_results":(.+?)').findall(content)
-            if resultCount[0] == str(0):
-                #try again without the date
-                content = opener.open("http://api.themoviedb.org/3/search/"+videoType+"?api_key="+apiKey+"&query="+urllib.quote_plus(title.strip())+"&language=en").read()
-                resultCount = re.compile('"total_results":(.+?)').findall(content)
-                if resultCount[0] == str(0):
-                    if '(' in title:
-                        title = title[:title.find('(')]
-                        content = opener.open("http://api.themoviedb.org/3/search/"+videoType+"?api_key="+apiKey+"&query="+urllib.quote_plus(title.strip())+"&language=en").read()    
-                    elif ':' in title:
-                        title = title[:title.find(':')]
-                        content = opener.open("http://api.themoviedb.org/3/search/"+videoType+"?api_key="+apiKey+"&query="+urllib.quote_plus(title.strip())+"&language=en").read()
-        else:
-            content = opener.open("http://api.themoviedb.org/3/search/"+videoType+"?api_key="+apiKey+"&query="+urllib.quote_plus(title.strip())+"&language=en").read()
-            resultCount = re.compile('"total_results":(.+?)').findall(content)
-            if resultCount[0] == str(0):
-                content = opener.open("http://api.themoviedb.org/3/search/"+videoType+"?api_key="+apiKey+"&query="+urllib.quote_plus(title.strip())+"&language=en").read()
-                resultCount = re.compile('"total_results":(.+?)').findall(content)
-                if resultCount[0] == str(0):
-                    if '(' in title:
-                        title = title[:title.find('(')]
-                        content = opener.open("http://api.themoviedb.org/3/search/"+videoType+"?api_key="+apiKey+"&query="+urllib.quote_plus(title.strip())+"&language=en").read()
-                    elif ':' in title:
-                        title = title[:title.find(':')]
-                        content = opener.open("http://api.themoviedb.org/3/search/"+videoType+"?api_key="+apiKey+"&query="+urllib.quote_plus(title.strip())+"&language=en").read()
-
-        match = re.compile('"poster_path":"(.+?)"', re.DOTALL).findall(content)
-        match2 = None
-        # maybe its a mini-series (TMDb calls them movies)
-        if not match and videoType == "tv":
-            content = opener.open("http://api.themoviedb.org/3/search/movie?api_key="+apiKey+"&query="+urllib.quote_plus(title.strip())+"&language=en").read()
-            match = re.compile('"poster_path":"(.+?)"', re.DOTALL).findall(content)
-            match2 = re.compile('"backdrop_path":"(.+?)"', re.DOTALL).findall(content)
-
-        if match:
-            coverUrl = "http://image.tmdb.org/t/p/original"+match[0]
-        match = re.compile('"backdrop_path":"(.+?)"', re.DOTALL).findall(content)
-        if match:
-            fanartUrl = "http://image.tmdb.org/t/p/original"+match[0]
-        elif match2:
-            fanartUrl = "http://image.tmdb.org/t/p/original"+match2[0]
+        content = opener.open("http://api.themoviedb.org/3/search/"+videoType+"?api_key="+apiKey+"&query="+urllib.quote_plus(title.strip())+"&language=en").read()
+        coverUrl = re.compile('"poster_path":"(.+?)"', re.DOTALL).findall(content)
+        fanartUrl = re.compile('"backdrop_path":"(.+?)"', re.DOTALL).findall(content)
+        
+        if coverUrl:
+            coverUrl = "http://image.tmdb.org/t/p/original"+coverUrl[0]
+            try: opener.open(coverUrl).read()
+            except: pass
+        if fanartUrl:
+            fanartUrl = "http://image.tmdb.org/t/p/original"+fanartUrl[0]
+            try: opener.open(fanartUrl).read()
+            except: pass
         
         if coverUrl and fanartUrl:
             break
@@ -355,7 +322,6 @@ def searchChannelLogo(searchphrase):
         if cache.has_key(searchphrase):
             return cache[searchphrase]
         else:
-            WINDOW.setProperty("getthumbbusy","busy")
             
             #lookup with thelogodb
             search = searchphrase.split()
@@ -368,9 +334,10 @@ def searchChannelLogo(searchphrase):
                 if results:
                     for i in results: 
                         rest = i['strLogoWide']
-                        if ".jpg" in rest or ".png" in rest:
-                            image = rest
-                            break
+                        if rest:
+                            if ".jpg" in rest or ".png" in rest:
+                                image = rest
+                                break
                 
             if not image:
                 search = searchphrase.replace(" HD","").split()
@@ -383,16 +350,32 @@ def searchChannelLogo(searchphrase):
                     if results:
                         for i in results: 
                             rest = i['strLogoWide']
-                            if ".jpg" in rest or ".png" in rest:
-                                image = rest
-                                break
+                            if rest:
+                                if ".jpg" in rest or ".png" in rest:
+                                    image = rest
+                                    break
 
     if image:
         if ".jpg/" in image:
             image = image.split(".jpg/")[0] + ".jpg"
         cache[searchphrase] = image
         WINDOW.setProperty("SkinHelperThumbs", repr(cache))
-    WINDOW.clearProperty("getthumbbusy")
+    return image
+
+def searchGoogleImage(searchphrase):
+    image = None
+    search = searchphrase.split()
+    search = '%20'.join(map(str, search))
+    url = 'http://ajax.googleapis.com/ajax/services/search/images?v=1.0&q=%s&safe=off' % search
+    search_results = urllib2.urlopen(url)
+    js = json.loads(search_results.read().decode("utf-8"))
+    results = js['responseData']['results']
+    for i in results: 
+        rest = i['unescapedUrl']
+        if rest:
+            if ".jpg" in rest or ".png" in rest:
+                image = rest
+                break
     return image
     
 def searchThumb(searchphrase, searchphrase2=""):
@@ -416,15 +399,7 @@ def searchThumb(searchphrase, searchphrase2=""):
             #lookup with Google images
             if not image:
                 searchphrase = searchphrase + searchphrase2
-                search = searchphrase.split()
-                search = '%20'.join(map(str, search))
-                url = 'http://ajax.googleapis.com/ajax/services/search/images?v=1.0&q=%s&safe=off' % search
-                search_results = urllib2.urlopen(url)
-                js = json.loads(search_results.read().decode("utf-8"))
-                results = js['responseData']['results']
-                for i in results: rest = i['unescapedUrl']
-                if ".jpg" in rest or ".png" in rest:
-                    image = rest
+                image = searchGoogleImage(searchphrase)
             
             # Do lookup with youtube addon as last resort
             if not image:

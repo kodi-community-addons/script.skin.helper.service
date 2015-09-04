@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
-import sys
+import sys, traceback
 import xbmc
 import xbmcplugin
 import xbmcaddon
@@ -99,6 +99,7 @@ class LibraryMonitor(threading.Thread):
                     self.checkMusicArt()
                 except Exception as e:
                     logMsg("ERROR in checkMusicArt ! --> " + str(e), 0)
+                    traceback.print_exc()
             
             # monitor listitem props when PVR is active
             elif (xbmc.getCondVisibility("SubString(Window.Property(xmlfile),MyPVR,left)")):
@@ -117,6 +118,8 @@ class LibraryMonitor(threading.Thread):
                         self.setGenre()
                     except Exception as e:
                         logMsg("ERROR in LibraryMonitor ! --> " + str(e), 0)
+                        traceback.print_exc()
+
             
             #monitor home widget
             elif xbmc.getCondVisibility("Window.IsActive(home)") and WINDOW.getProperty("SkinHelper.WidgetContainer"):
@@ -131,6 +134,7 @@ class LibraryMonitor(threading.Thread):
                         self.setStudioLogo(xbmc.getInfoLabel("Container(%s).ListItem.Studio" %widgetContainer))
                     except Exception as e:
                         logMsg("ERROR in LibraryMonitor widgets ! --> " + str(e), 0)
+                        traceback.print_exc()
             
             # monitor listitem props when videolibrary is active
             elif (xbmc.getCondVisibility("[Window.IsActive(videolibrary) | Window.IsActive(movieinformation)] + !Window.IsActive(fullscreenvideo)")):
@@ -153,6 +157,7 @@ class LibraryMonitor(threading.Thread):
                         self.setAddonName()
                     except Exception as e:
                         logMsg("ERROR in LibraryMonitor ! --> " + str(e), 0)
+                        traceback.print_exc()
   
             else:
                 #reset window props
@@ -402,7 +407,7 @@ class LibraryMonitor(threading.Thread):
             poster = None
             
             poster, fanart = getTMDBimage(title)
-            thumb = searchThumb(title + " " + channel)
+            thumb = searchGoogleImage(title + " " + channel)
             if channel == xbmc.getInfoLabel("$INFO[ListItem.Label]"):
                 logo = xbmc.getInfoLabel("$INFO[ListItem.Icon]")
             
