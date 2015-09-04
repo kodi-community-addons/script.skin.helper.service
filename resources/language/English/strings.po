@@ -239,3 +239,27 @@ msgstr ""
 msgctxt "#32055"
 msgid "My TV Shows Airing today"
 msgstr ""
+
+msgctxt "#32056"
+msgid "Configure conditional backgrounds"
+msgstr ""
+
+msgctxt "#32057"
+msgid "Setup backgrounds that will be activated on specified dates"
+msgstr ""
+
+msgctxt "#32058"
+msgid "Please enter a name for your conditional background"
+msgstr ""
+
+msgctxt "#32059"
+msgid "Conditional background override"
+msgstr ""
+
+msgctxt "#32060"
+msgid "Error while writing changes. Make sure you have filled in all fields correctly."
+msgstr ""
+
+msgctxt "#32061"
+msgid "Please select a background image"
+msgstr ""

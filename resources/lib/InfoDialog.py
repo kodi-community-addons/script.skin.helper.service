@@ -23,8 +23,6 @@ class GUI( xbmcgui.WindowXMLDialog ):
 
         if self.content == 'movies':
             self.listitem.setProperty("type","movie")
-            if not self.listitem.getProperty('trailer'):
-                self.getControl( 6 ).setVisible( False )
         
         elif self.content == 'tvshows':
             self.listitem.setProperty("type","tvshow")

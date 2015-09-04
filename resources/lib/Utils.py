@@ -26,7 +26,6 @@ def logMsg(msg, level = 1):
     doDebugLog = False
     if doDebugLog == True or level == 0:
         xbmc.log("Skin Helper Service --> " + msg)
-
         
 def getContentPath(libPath):
     if "$INFO" in libPath and not "reload=" in libPath:
@@ -82,7 +81,7 @@ def setSkinVersion():
 def createListItem(item):
        
     liz = xbmcgui.ListItem(item['title'])
-    liz.setInfo( type="Video", infoLabels={ "Title": try_decode(item['title']) })
+    liz.setInfo( type="Video", infoLabels={ "Title": item['title'] })
     liz.setProperty('IsPlayable', 'true')
     season = None
     episode = None
@@ -92,7 +91,7 @@ def createListItem(item):
     
     if "file" in item:
         liz.setPath(item['file'])
-        liz.setProperty("path", try_decode(item['file']))
+        liz.setProperty("path", item['file'])
     
     if "episode" in item:
         episode = "%.2d" % float(item['episode'])
@@ -114,7 +113,7 @@ def createListItem(item):
     if "songid" in item:
         liz.setProperty("DBID", str(item['songid']))
         liz.setIconImage('DefaultAudio.png')
-        liz.setLabel2(str(item['artist'][0]))
+        liz.setLabel2(item['artist'][0])
     
     if "channel" in item:
         liz.setLabel2(str(item['channel']))
@@ -130,7 +129,7 @@ def createListItem(item):
     
     
     if "plot" in item:
-        plot = try_decode(item['plot'])
+        plot = item['plot']
     elif "comment" in item:
         plot = item['comment']
     else:
@@ -139,13 +138,13 @@ def createListItem(item):
     liz.setInfo( type="Video", infoLabels={ "Plot": plot })
     
     if "artist" in item:
-        liz.setInfo( type="Video", infoLabels={ "Artist": try_decode(item['artist']) })
+        liz.setInfo( type="Video", infoLabels={ "Artist": item['artist'] })
         
     if "votes" in item:
         liz.setInfo( type="Video", infoLabels={ "votes": item['votes'] })
     
     if "trailer" in item:
-        liz.setInfo( type="Video", infoLabels={ "trailer": try_decode(item['trailer']) })
+        liz.setInfo( type="Video", infoLabels={ "trailer": item['trailer'] })
         liz.setProperty("trailer", item['trailer'])
         
     if "dateadded" in item:
@@ -155,7 +154,7 @@ def createListItem(item):
         liz.setInfo( type="Video", infoLabels={ "album": item['album'] })
         
     if "plotoutline" in item:
-        liz.setInfo( type="Video", infoLabels={ "plotoutline ": try_decode(item['plotoutline']) })
+        liz.setInfo( type="Video", infoLabels={ "plotoutline ": item['plotoutline'] })
         
     if "studio" in item:
         liz.setInfo( type="Video", infoLabels={ "studio": " / ".join(item['studio']) })
@@ -167,7 +166,7 @@ def createListItem(item):
         liz.setInfo( type="Video", infoLabels={ "mpaa": item['mpaa'] })
         
     if "tagline" in item:
-        liz.setInfo( type="Video", infoLabels={ "tagline": try_decode(item['tagline']) })
+        liz.setInfo( type="Video", infoLabels={ "tagline": item['tagline'] })
     
     if "showtitle" in item:
         liz.setInfo( type="Video", infoLabels={ "TVshowTitle": item['showtitle'] })

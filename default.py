@@ -77,6 +77,12 @@ class Main:
                 colorThemes.doModal()
                 del colorThemes
             
+            elif action == "CONDITIONALBACKGROUNDS":
+                from resources.lib.ConditionalBackgrounds import ConditionalBackgrounds
+                conditionalBackgrounds = ConditionalBackgrounds("DialogSelect.xml", ADDON_PATH)
+                conditionalBackgrounds.doModal()
+                del conditionalBackgrounds
+            
             elif action == "CREATECOLORTHEME":
                 import resources.lib.ColorThemes as colorThemes
                 colorThemes.createColorTheme()

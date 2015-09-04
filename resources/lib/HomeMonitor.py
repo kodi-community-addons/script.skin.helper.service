@@ -79,7 +79,7 @@ class HomeMonitor(threading.Thread):
                 WINDOW.setProperty("netflixready","ready")
             else:
                 WINDOW.clearProperty("netflixready")
-                
+        
     def updatePlexlinks(self):
         
         if xbmc.getCondVisibility("System.HasAddon(plugin.video.plexbmc) + Skin.HasSetting(SmartShortcuts.plex)"): 

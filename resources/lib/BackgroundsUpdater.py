@@ -15,7 +15,7 @@ import xml.etree.ElementTree as xmltree
 import base64
 import json
 import urllib
-
+import ConditionalBackgrounds as conditionalBackgrounds
 from Utils import *
 
 class BackgroundsUpdater(threading.Thread):
@@ -29,9 +29,10 @@ class BackgroundsUpdater(threading.Thread):
     smartShortcuts = {}
     cachePath = None
     SmartShortcutsCachePath = None
-    delayedTaskInterval = 30
+    normalTaskInterval = 30
     refreshSmartshortcuts = False
     lastWindow = None
+    conditionalBackgrounds = []
     
     def __init__(self, *args):
         self.lastPicturesPath = xbmc.getInfoLabel("skin.string(SkinHelper.PicturesBackgroundPath)")
@@ -81,16 +82,15 @@ class BackgroundsUpdater(threading.Thread):
                 
                 # Update home backgrounds every interval (default 60 seconds)
                 if backgroundDelay != 0:
-                    if (self.delayedTaskInterval >= backgroundDelay):
-                        self.delayedTaskInterval = 0
+                    if (self.normalTaskInterval >= backgroundDelay):
+                        self.normalTaskInterval = 0
                         try:
                             self.UpdateBackgrounds()
                         except Exception as e:
                             logMsg("ERROR in UpdateBackgrounds ! --> " + str(e), 0)
-
             
             xbmc.sleep(150)
-            self.delayedTaskInterval += 0.15
+            self.normalTaskInterval += 0.15
                                
     def saveCacheToFile(self):
         #safety check: does the config directory exist?
@@ -107,8 +107,7 @@ class BackgroundsUpdater(threading.Thread):
         
         #cache file for generated skinhelper thumbs
         json.dump(WINDOW.getProperty("SkinHelperThumbs"), open(self.SkinHelperThumbsCachePath,'w'))
-        
-        
+                
     def getCacheFromFile(self):
         if xbmcvfs.exists(self.cachePath):
             with open(self.cachePath) as data_file:    
@@ -317,6 +316,9 @@ class BackgroundsUpdater(threading.Thread):
     def UpdateBackgrounds(self):
         
         allSmartShortcuts = []
+        
+        #conditional background
+        WINDOW.setProperty("SkinHelper.ConditionalBackground", conditionalBackgrounds.getActiveConditionalBackground())
         
         #all movies  
         self.setImageFromPath("SkinHelper.AllMoviesBackground","SkinHelper.AllMoviesBackground","",['VideoLibrary.GetMovies','{ "properties": ["title","art"], "limits": {"end":50}, "sort": { "order": "ascending", "method": "random", "ignorearticle": true } }'])
