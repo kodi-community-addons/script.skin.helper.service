@@ -30,7 +30,7 @@ class LibraryMonitor(threading.Thread):
     allStudioLogosColor = {}
     LastCustomStudioImagesPath = None
     delayedTaskInterval = 1800
-    widgetTaskInterval = 30
+    widgetTaskInterval = 0
     moviesetCache = {}
     extraFanartcache = {}
     musicArtCache = {}
@@ -87,9 +87,9 @@ class LibraryMonitor(threading.Thread):
                     self.getStudioLogos()
                     self.delayedTaskInterval = 0                   
             
-            #reload some widgets every 5 minutes
+            #reload some widgets every 10 minutes
             if (xbmc.getCondVisibility("!Window.IsActive(videolibrary) + !Window.IsActive(musiclibrary) + !Window.IsActive(fullscreenvideo)")):
-                if (self.widgetTaskInterval >= 30):
+                if (self.widgetTaskInterval >= 600):
                     WINDOW.setProperty("widgetreload2", datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
                     self.widgetTaskInterval = 0
 
