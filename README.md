@@ -308,6 +308,9 @@ example 2: Search for artist videos in DialogAlbumInfo.xml
 RunScript(script.skin.helper.service,action=searchyoutube,title=$INFO[ListItem.Artist], header=Videos for $INFO[ListItem.Artist])             
 ```
 
+________________________________________________________________________________________________________
+
+
 
 #### Busy spinner selector
 Allows the user to select a busy spinner from some predefined ones in your skin. It supports both multiimage (folder with images) and single image (.gif) spinners. The user can provide his own texture(s) or select from predefined spinners in the skin.
@@ -339,7 +342,40 @@ Make sure that you use a multiimage control in DialogBusy.xml. Example code:
 ```
 
 
+________________________________________________________________________________________________________
 
+#### Conditional Background overrides
+Allows the user to globally override the skin's background on certain date conditions.
+For example setup a christmas background at late december etc.
+By launching this script entrypoint the user will be presented with a dialog to add, delete and edit conditional overrides.
+
+```
+RunScript(script.skin.helper.service,action=conditionalbackgrounds)             
+```
+
+#####To use the conditional background in your skin
+If a background is active the window property "Window(home).Property(SkinHelper.ConditionalBackground)" will be filled by the service.
+
+
+________________________________________________________________________________________________________
+
+#### Toggle Kodi setting
+Can be used to set/unset a specific Kodi system setting (boolean).
+
+```
+RunScript(script.skin.helper.service,action=togglekodisetting,setting=[NAME OF THE SETTING IN GUISETTINGS])             
+```
+You must supply the name of the setting as can be found in guisettings.xml or the Json API
+
+#####Example: Toggle the RSS feed
+```
+<!--toggle rss feed-->
+<control type="radiobutton" id="123456">
+    <label>Show RSS Feed</label>
+    <onclick>XBMC.RunScript(script.skin.helper.service,action=togglekodisetting,setting=lookandfeel.enablerssfeeds)</onclick>
+    <selected>system.getbool(lookandfeel.enablerssfeeds)</selected>
+</control>
+```
 
 ________________________________________________________________________________________________________
 
