@@ -244,10 +244,8 @@ def buildWidgetsListing():
         if not allWidgets.has_key(widget):
             foundWidgets = []
             if widget=="pvr" and xbmc.getCondVisibility("PVR.HasTVChannels"):
-                mediaLibrary = "VideoLibrary"
-                path = "ActivateWindow(%s,%s,return)" %(mediaLibrary, content)
-                foundWidgets.append(["$LOCALIZE[19017]", "ActivateWindow(VideoLibrary,pvr://recordings,return)", "pvr://recordings", "", "pvr"])
-                foundWidgets.append(["$LOCALIZE[19023]", "ActivateWindow(VideoLibrary,pvr://tvchannels,return)", "pvr://channels/tv/all channels", "", "pvr"])   
+                foundWidgets.append(["$LOCALIZE[19023]", "ActivateWindow(VideoLibrary,plugin://script.skin.helper.service/?action=pvrchannels&limit=25&reload=$INFO[Window(home).Property(widgetreload2)],return)", "plugin://script.skin.helper.service/?action=pvrchannels&limit=25&reload=$INFO[Window(home).Property(widgetreload2)]", "", "pvr"])
+                foundWidgets.append(["$LOCALIZE[19017]", "ActivateWindow(VideoLibrary,plugin://script.skin.helper.service/?action=pvrrecordings&limit=25&reload=$INFO[Window(home).Property(widgetreload2)],return)", "plugin://script.skin.helper.service/?action=pvrrecordings&limit=25&reload=$INFO[Window(home).Property(widgetreload2)]", "", "pvr"])   
             if widget=="smartishwidgets" and xbmc.getCondVisibility("System.HasAddon(service.smartish.widgets) + Skin.HasSetting(enable.smartish.widgets)"):
                 foundWidgets.append(["Smart(ish) Movies widget", "ActivateWindow(VideoLibrary,plugin://service.smartish.widgets?type=movies&reload=$INFO[Window.Property(smartish.movies)],return)", "plugin://service.smartish.widgets?type=movies&reload=$INFO[Window.Property(smartish.movies)]", "", "movies"])
                 foundWidgets.append(["Smart(ish) Episodes widget", "ActivateWindow(VideoLibrary,plugin://service.smartish.widgets?type=episodes&reload=$INFO[Window.Property(smartish.episodes)],return)", "plugin://service.smartish.widgets?type=episodes&reload=$INFO[Window.Property(smartish.episodes)]", "", "episodes"])
@@ -381,39 +379,89 @@ def getFavourites(limit):
         logMsg("ERROR in PluginContent.getFavourites ! --> " + str(e), 0)       
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
-def getPVRChannels(limit):
-    xbmcplugin.setContent(int(sys.argv[1]), 'files')
-    
-    # Perform a JSON query to get all tv channel groups
-    json_query = xbmc.executeJSONRPC('{"jsonrpc": "2.0",  "id": 1, "method": "PVR.GetChannelGroups", "params": {"channeltype": "tv"}}' )
+def getPVRRecordings(limit):
+    xbmcplugin.setContent(int(sys.argv[1]), 'livetv')
+
+    pvrArtCache = WINDOW.getProperty("SkinHelper.pvrArtCache")
+    if pvrArtCache:
+        pvrArtCache = eval(pvrArtCache)
+    else:
+        pvrArtCache = {}
+        
+    json_query = xbmc.executeJSONRPC('{"jsonrpc": "2.0",  "id": 1, "method": "PVR.GetRecordings", "params": { "properties": [ "art", "channel", "directory", "endtime", "file", "genre", "icon", "playcount", "plot", "plotoutline", "resume", "runtime", "starttime", "streamurl", "title" ], "limits": {"end": %d}}}' %( limit ) )
     json_query = unicode(json_query, 'utf-8', errors='ignore')
     json_query = json.loads(json_query)
+    if json_query.has_key('result') and json_query['result'].has_key('recordings'):
+        for item in json_query['result']['recordings']:
+            channelname = item["channel"]
+            pvrArtCache,thumb,fanart,poster,logo = getPVRThumbs(pvrArtCache, item["title"], channelname)
+            path=item["file"]
+            li = xbmcgui.ListItem()
+            li.setLabel(channelname)
+            li.setLabel2(item['title'])
+            li.setInfo( type="Video", infoLabels={ "Title": item['title'] })
+            li.setProperty("StartTime",item['starttime'])
+            li.setProperty("ChannelIcon",logo)
+            li.setProperty("ChannelName",channelname)
+            li.setInfo( type="Video", infoLabels={ "genre": " / ".join(item['genre']) })
+            li.setInfo( type="Video", infoLabels={ "duration": item['runtime'] })
+            li.setInfo( type="Video", infoLabels={ "Playcount": item['playcount'] })
+            li.setProperty("resumetime", str(item['resume']['position']))
+            li.setProperty("totaltime", str(item['resume']['total']))
+            li.setThumbnailImage(thumb)
+            li.setIconImage(item["icon"])
+            li.setInfo( type="Video", infoLabels={ "Plot": item['plot'] })
+            li.setProperty('IsPlayable', 'true')
+            li.setArt({ 'poster': poster, 'fanart' : fanart })
 
-    if json_query.has_key('result') and json_query['result'].has_key('channelgroups'):
-        for group in json_query['result']['channelgroups']:
-            # Perform a JSON query to get all channels
-            json_query = xbmc.executeJSONRPC('{"jsonrpc": "2.0",  "id": 1, "method": "PVR.GetChannels", "params": {"channelgroupid": %d, "properties": [ "thumbnail", "channeltype", "hidden", "locked", "channel", "lastplayed" ], "limits": {"end": 5}}}' %( group[ "channelgroupid" ] ) )
-            json_query = unicode(json_query, 'utf-8', errors='ignore')
-            json_query = json.loads(json_query)
-            if json_query.has_key('result') and json_query['result'].has_key('channels'):
-                for item in json_query['result']['channels']:
-                    channelname = item["label"]
-                    channelid = item["channelid"]
-                    # Get current show for the channel
-                    json_query = xbmc.executeJSONRPC( '{ "jsonrpc": "2.0",  "id": 1, "method": "PVR.GetBroadcasts", "params": {"channelid": %d, "properties": [ "title", "plot", "plotoutline", "starttime", "endtime", "runtime", "progress", "progresspercentage", "genre", "episodename", "episodenum", "episodepart", "firstaired", "hastimer", "isactive", "parentalrating", "wasactive", "thumbnail" ], "limits": {"end": 1} } }' %( item[ "channelid" ] ) )
-                    json_query = unicode(json_query, 'utf-8', errors='ignore')
-                    json_query = json.loads(json_query)
-                    if json_query.has_key( "result" ) and json_query[ "result" ].has_key( "broadcasts" ):
-                        for item in json_query['result']['broadcasts']:
-                            image = searchThumb(item["title"] + " " + channelname)
-                            path="plugin://script.skin.helper.service/?action=launchpvr&path=" + str(channelid)
-                            li = xbmcgui.ListItem(item["title"], path=path)
-                            li.setThumbnailImage(image)
-                            li.setProperty('IsPlayable', 'false')
-                            xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=path, listitem=li, isFolder=True)
-                    if xbmc.abortRequested:
-                        return None, None
+            xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=path, listitem=li, isFolder=False)
+    WINDOW.setProperty("SkinHelper.pvrArtCache",repr(pvrArtCache))
+    xbmcplugin.endOfDirectory(int(sys.argv[1]))    
     
+def getPVRChannels(limit):
+    xbmcplugin.setContent(int(sys.argv[1]), 'livetv')
+
+    pvrArtCache = WINDOW.getProperty("SkinHelper.pvrArtCache")
+    if pvrArtCache:
+        pvrArtCache = eval(pvrArtCache)
+    else:
+        pvrArtCache = {}
+        
+    # Perform a JSON query to get all channels
+    json_query = xbmc.executeJSONRPC('{"jsonrpc": "2.0",  "id": 1, "method": "PVR.GetChannels", "params": {"channelgroupid": 1, "properties": [ "thumbnail", "channeltype", "hidden", "locked", "channel", "lastplayed", "broadcastnow" ], "limits": {"end": %d}}}' %( limit ) )
+    json_query = unicode(json_query, 'utf-8', errors='ignore')
+    json_query = json.loads(json_query)
+    if json_query.has_key('result') and json_query['result'].has_key('channels'):
+        for item in json_query['result']['channels']:
+            channelname = item["label"]
+            channelid = item["channelid"]
+            channelicon = item['thumbnail']
+            currentprogram = item['broadcastnow']
+            pvrArtCache,thumb,fanart,poster,logo = getPVRThumbs(pvrArtCache, currentprogram["title"], channelname)
+            if not channelicon:
+                channelicon = logo
+            path="plugin://script.skin.helper.service/?action=launchpvr&path=" + str(channelid)
+        
+            li = xbmcgui.ListItem()
+            li.setLabel(channelname)
+            li.setLabel2(currentprogram['title'])
+            li.setInfo( type="Video", infoLabels={ "Title": currentprogram['title'] })
+            li.setProperty("StartTime",currentprogram['starttime'].split(" ")[1])
+            li.setProperty("EndTime",currentprogram['endtime'].split(" ")[1])
+            li.setProperty("ChannelIcon",channelicon)
+            li.setProperty("ChannelName",channelname)
+            li.setInfo( type="Video", infoLabels={ "premiered": currentprogram['firstaired'] })
+            li.setInfo( type="Video", infoLabels={ "genre": " / ".join(currentprogram['genre']) })
+            li.setInfo( type="Video", infoLabels={ "duration": currentprogram['runtime'] })
+            li.setInfo( type="Video", infoLabels={ "rating": str(currentprogram['rating']) })
+            li.setThumbnailImage(thumb)
+            li.setIconImage(channelicon)
+            li.setInfo( type="Video", infoLabels={ "Plot": currentprogram['plot'] })
+            li.setProperty('IsPlayable', 'false')
+            li.setArt({ 'poster': poster, 'fanart' : fanart })
+
+            xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=path, listitem=li, isFolder=False)
+    WINDOW.setProperty("SkinHelper.pvrArtCache",repr(pvrArtCache))
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 def getThumb(searchphrase):

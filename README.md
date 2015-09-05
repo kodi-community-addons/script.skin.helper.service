@@ -629,29 +629,48 @@ ________________________________________________________________________________
 
 #####Favourite Media
 ```
-plugin://script.skin.helper.service/?action=favouritemedia&limit=[LIMIT]&reload=[YOURCUSTOMPROPERTY]
+plugin://script.skin.helper.service/?action=favouritemedia&limit=[LIMIT]&reload=$INFO[Window(Home).Property(widgetreload2)]
 ```
 Provides a list of all media items that are added as favourite (movies, tv shows, songs, musicvideos)
-Note: If you want the widget to refresh when the favourites have changed It's recommended to use the reload= parameter in combination with a window property. For example set a window prop in the onunload event of home.xml and clear it in the onload event of home.xml or the other way around.
+Note: By providing the reload-parameter set to the widgetreload2 property, the widget will be updated every 10 minutes.
 
 ________________________________________________________________________________________________________
 
 #####My TV Shows Airing today
 ```
-plugin://script.skin.helper.service/?action=nextairedtvshows&reload=[YOURCUSTOMPROPERTY]
+plugin://script.skin.helper.service/?action=nextairedtvshows&reload=$INFO[Window(Home).Property(widgetreload2)]
 ```
 Provides a list of the shows from the library that are airing today - requires script.tv.show.next.aired
-Note: The widget will only be retrieved once a day. If you wan to refresh it more often it's recommended to use the reload= parameter in combination with a window property. For example set a window prop in the onunload event of home.xml and clear it in the onload event of home.xml or the other way around.
+Note: By providing the reload-parameter set to the widgetreload2 property, the widget will be updated every 10 minutes.
+
+
+________________________________________________________________________________________________________
+
+#####PVR TV Channels widget
+```
+plugin://script.skin.helper.service/?action=pvrchannels&limit=[LIMIT]&reload=$INFO[Window(Home).Property(widgetreload2)]
+```
+Provides the Kodi TV channels as list content, enriched with thumbs, poster, channelicon and fanart (where possible).
+Note: By providing the reload-parameter set to the widgetreload2 property, the widget will be updated every 10 minutes.
+
+________________________________________________________________________________________________________
+
+#####PVR TV Recordings widget
+```
+plugin://script.skin.helper.service/?action=pvrrecordings&limit=[LIMIT]&reload=$INFO[Window(Home).Property(widgetreload2)]
+```
+Provides the Kodi TV Recordings as list content, enriched with thumbs, poster, channelicon and fanart (where possible).
+Note: By providing the reload-parameter set to the widgetreload2 property, the widget will be updated every 10 minutes.
+
 
 ________________________________________________________________________________________________________
 
 #####Favourites
 ```
-plugin://script.skin.helper.service/?action=favourites&limit=[LIMIT]&reload=[YOURCUSTOMPROPERTY]
+plugin://script.skin.helper.service/?action=favourites&limit=[LIMIT]&reload=$INFO[Window(Home).Property(widgetreload2)]
 ```
 Provides the Kodi favourites as list content.
-Note: If you want the widget to refresh when the favourites have changed It's recommended to use the reload= parameter in combination with a window property. For example set a window prop in the onunload event of home.xml and clear it in the onload event of home.xml or the other way around.
-
+Note: By providing the reload-parameter set to the widgetreload2 property, the widget will be updated every 10 minutes.
 
 ________________________________________________________________________________________________________
 
@@ -951,7 +970,7 @@ extendedinfo --> All widgets that are provided by the Extended info script
 
 smartshortcuts --> all smartshortcuts
 
-pvr --> pvr widgets
+pvr --> pvr widgets provided by the script
 
 smartishwidgets --> widget supplied by the smartish widgets addon
 

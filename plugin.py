@@ -47,8 +47,10 @@ class Main:
                     getInProgressAndRecommendedMedia(limit)
                 elif action == "FAVOURITEMEDIA":
                     getFavouriteMedia(limit)
-                elif action == "PVRCHANNELSSMART":
-                    getPVRChannels(limit) 
+                elif action == "PVRCHANNELS":
+                    getPVRChannels(limit)
+                elif action == "PVRRECORDINGS":
+                    getPVRRecordings(limit)
                 elif action == "FAVOURITES":
                     getFavourites(limit)
                 elif action == "SMARTSHORTCUTS":

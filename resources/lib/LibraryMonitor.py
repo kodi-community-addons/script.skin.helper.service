@@ -30,6 +30,7 @@ class LibraryMonitor(threading.Thread):
     allStudioLogosColor = {}
     LastCustomStudioImagesPath = None
     delayedTaskInterval = 1800
+    widgetTaskInterval = 30
     moviesetCache = {}
     extraFanartcache = {}
     musicArtCache = {}
@@ -70,6 +71,7 @@ class LibraryMonitor(threading.Thread):
                 self.extraFanartcache = data["extraFanartcache"]
                 self.musicArtCache = data["musicArtCache"]
                 self.pvrArtCache = data["pvrArtCache"]
+                WINDOW.setProperty("SkinHelper.pvrArtCache",repr(self.pvrArtCache))
     
     def run(self):
 
@@ -85,6 +87,12 @@ class LibraryMonitor(threading.Thread):
                     self.getStudioLogos()
                     self.delayedTaskInterval = 0                   
             
+            #reload some widgets every 5 minutes
+            if (xbmc.getCondVisibility("!Window.IsActive(videolibrary) + !Window.IsActive(musiclibrary) + !Window.IsActive(fullscreenvideo)")):
+                if (self.widgetTaskInterval >= 30):
+                    WINDOW.setProperty("widgetreload2", datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+                    self.widgetTaskInterval = 0
+
             #flush cache if videolibrary has changed
             if WINDOW.getProperty("widgetrefresh") == "refresh":
                 self.moviesetCache = {}
@@ -171,6 +179,7 @@ class LibraryMonitor(threading.Thread):
                 
             xbmc.sleep(150)
             self.delayedTaskInterval += 0.15
+            self.widgetTaskInterval += 0.15
                     
     def setMovieSetDetails(self):
         #get movie set details -- thanks to phil65 - used this idea from his skin info script
@@ -370,79 +379,18 @@ class LibraryMonitor(threading.Thread):
         if xbmc.getInfoLabel("ListItem.Label") == "..":
             return
             
-        #get the items from cache first
-        if self.pvrArtCache.has_key(dbID + "SkinHelper.PVR.Thumb"):
-            cacheFound = True
-            if self.pvrArtCache[dbID + "SkinHelper.PVR.Thumb"] == "None":
-                WINDOW.clearProperty("SkinHelper.PVR.Thumb")   
-            else:
-                WINDOW.setProperty("SkinHelper.PVR.Thumb",self.pvrArtCache[dbID + "SkinHelper.PVR.Thumb"])
-
-        if self.pvrArtCache.has_key(dbID + "SkinHelper.PVR.FanArt"):
-            cacheFound = True
-            if self.pvrArtCache[dbID + "SkinHelper.PVR.FanArt"] == "None":
-                WINDOW.clearProperty("SkinHelper.PVR.FanArt")   
-            else:
-                WINDOW.setProperty("SkinHelper.PVR.FanArt",self.pvrArtCache[dbID + "SkinHelper.PVR.FanArt"])
+        self.pvrArtCache,thumb,fanart,poster,logo = getPVRThumbs(self.pvrArtCache, title, channel)
         
-        if self.pvrArtCache.has_key(dbID + "SkinHelper.PVR.Poster"):
-            cacheFound = True
-            if self.pvrArtCache[dbID + "SkinHelper.PVR.Poster"] == "None":
-                WINDOW.clearProperty("SkinHelper.PVR.Poster")   
-            else:
-                WINDOW.setProperty("SkinHelper.PVR.Poster",self.pvrArtCache[dbID + "SkinHelper.PVR.Poster"])
-        
-        if self.pvrArtCache.has_key(dbID + "SkinHelper.PVR.ChannelLogo"):
-            cacheFound = True
-            if self.pvrArtCache[dbID + "SkinHelper.PVR.ChannelLogo"] == "None":
-                WINDOW.clearProperty("SkinHelper.PVR.ChannelLogo")   
-            else:
-                WINDOW.setProperty("SkinHelper.PVR.ChannelLogo",self.pvrArtCache[dbID + "SkinHelper.PVR.ChannelLogo"])
-        
-        if not cacheFound:
-            logMsg("setPVRThumb no cache found for dbID--> " + dbID)
-            thumb = None
-            fanart = None
-            logo = None
-            poster = None
-            
-            poster, fanart = getTMDBimage(title)
-            thumb = searchGoogleImage(title + " " + channel)
-            if channel == xbmc.getInfoLabel("$INFO[ListItem.Label]"):
+        if channel == xbmc.getInfoLabel("$INFO[ListItem.Label]"):
+            icon = xbmc.getInfoLabel("$INFO[ListItem.Icon]")
+            if icon:
                 logo = xbmc.getInfoLabel("$INFO[ListItem.Icon]")
-            
-            #get logo from studio logos
-            if not logo:
-                logo = self.setStudioLogo(channel)
-            if not logo:
-                #fallback to channelDB
-                logo = searchChannelLogo(channel)
-            
-            if thumb:
-                WINDOW.setProperty("SkinHelper.PVR.Thumb",thumb)
-                self.pvrArtCache[dbID + "SkinHelper.PVR.Thumb"] = thumb
-            else:
-                WINDOW.setProperty("SkinHelper.PVR.Thumb","")
-                self.pvrArtCache[dbID + "SkinHelper.PVR.Thumb"] = "None"
-            
-            if fanart:
-                WINDOW.setProperty("SkinHelper.PVR.FanArt",fanart)
-                self.pvrArtCache[dbID + "SkinHelper.PVR.FanArt"] = fanart
-            else:
-                WINDOW.setProperty("SkinHelper.PVR.FanArt","")
-                self.pvrArtCache[dbID + "SkinHelper.PVR.FanArt"] = "None"
-            if poster:
-                WINDOW.setProperty("SkinHelper.PVR.Poster",poster)
-                self.pvrArtCache[dbID + "SkinHelper.PVR.Poster"] = poster
-            else:
-                WINDOW.setProperty("SkinHelper.PVR.Poster","")
-                self.pvrArtCache[dbID + "SkinHelper.PVR.Poster"] = "None"
-            if logo:
-                WINDOW.setProperty("SkinHelper.PVR.ChannelLogo",logo)
-                self.pvrArtCache[dbID + "SkinHelper.PVR.ChannelLogo"] = logo
-            else:
-                WINDOW.setProperty("SkinHelper.PVR.ChannelLogo","")
-                self.pvrArtCache[dbID + "SkinHelper.PVR.ChannelLogo"] = "None"
+        
+        WINDOW.setProperty("SkinHelper.PVR.Thumb",thumb)
+        WINDOW.setProperty("SkinHelper.PVR.FanArt",fanart)
+        WINDOW.setProperty("SkinHelper.PVR.ChannelLogo",logo)
+        WINDOW.setProperty("SkinHelper.PVR.Poster",poster)
+
             
     def setStudioLogo(self, studio=None):
         if not studio:

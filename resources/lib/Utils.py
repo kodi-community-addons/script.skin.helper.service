@@ -289,9 +289,21 @@ def getTMDBimage(title):
     title = '"%s"'%title
     videoTypes = ["tv","movie"]
     for videoType in videoTypes:
-        content = opener.open("http://api.themoviedb.org/3/search/"+videoType+"?api_key="+apiKey+"&query="+urllib.quote_plus(title.strip())+"&language=en").read()
-        coverUrl = re.compile('"poster_path":"(.+?)"', re.DOTALL).findall(content)
-        fanartUrl = re.compile('"backdrop_path":"(.+?)"', re.DOTALL).findall(content)
+        try:
+            content = opener.open("http://api.themoviedb.org/3/search/"+videoType+"?api_key="+apiKey+"&query="+urllib.quote_plus(title.strip())+"&language=en").read()
+            coverUrl = re.compile('"poster_path":"(.+?)"', re.DOTALL).findall(content)
+            fanartUrl = re.compile('"backdrop_path":"(.+?)"', re.DOTALL).findall(content)
+        except Exception as e:
+            if "429" in str(e):
+                #delay and request again
+                xbmc.sleep(250)
+                try:
+                    content = opener.open("http://api.themoviedb.org/3/search/"+videoType+"?api_key="+apiKey+"&query="+urllib.quote_plus(title.strip())+"&language=en").read()
+                    coverUrl = re.compile('"poster_path":"(.+?)"', re.DOTALL).findall(content)
+                    fanartUrl = re.compile('"backdrop_path":"(.+?)"', re.DOTALL).findall(content)
+                except: pass
+            else:
+                logMsg("ERROR in getTMDBimage ! --> " + str(e), 0)
         
         if coverUrl:
             coverUrl = "http://image.tmdb.org/t/p/original"+coverUrl[0]
@@ -302,11 +314,71 @@ def getTMDBimage(title):
             try: opener.open(fanartUrl).read()
             except: pass
         
+        if not coverUrl:
+            coverUrl = None
+            
+        if not fanartUrl:
+            fanartUrl = None
+
         if coverUrl and fanartUrl:
             break
 
     return (coverUrl, fanartUrl)
 
+def getPVRThumbs(pvrArtCache,title,channel):
+    dbID = title + channel
+    cacheFound = False
+    thumb = ""
+    fanart = ""
+    logo = ""
+    poster = ""
+
+    logMsg("getPVRThumb dbID--> " + dbID)
+        
+    #get the items from cache first
+    if pvrArtCache.has_key(dbID + "SkinHelper.PVR.Thumb"):
+        cacheFound = True
+        thumb = pvrArtCache[dbID + "SkinHelper.PVR.Thumb"]
+        if thumb == "None":
+            thumb = None
+
+    if pvrArtCache.has_key(dbID + "SkinHelper.PVR.FanArt"):
+        cacheFound = True
+        fanart = pvrArtCache[dbID + "SkinHelper.PVR.FanArt"]
+        if fanart == "None":
+            fanart = None
+    
+    if pvrArtCache.has_key(dbID + "SkinHelper.PVR.Poster"):
+        cacheFound = True
+        poster = pvrArtCache[dbID + "SkinHelper.PVR.Poster"]
+        if poster == "None":
+            poster = None
+    
+    if pvrArtCache.has_key(dbID + "SkinHelper.PVR.ChannelLogo"):
+        cacheFound = True
+        logo = pvrArtCache[dbID + "SkinHelper.PVR.ChannelLogo"]
+        if logo == "None":
+            logo = None
+    
+    if not cacheFound:
+        logMsg("getPVRThumb no cache found for dbID--> " + dbID)
+        
+        poster, fanart = getTMDBimage(title)
+        thumb = searchGoogleImage(title + " " + channel)
+        
+        #get logo from studio logos
+        logo = searchChannelLogo(channel)
+        
+        pvrArtCache[dbID + "SkinHelper.PVR.Thumb"] = thumb
+        pvrArtCache[dbID + "SkinHelper.PVR.FanArt"] = fanart
+        pvrArtCache[dbID + "SkinHelper.PVR.Poster"] = poster
+        pvrArtCache[dbID + "SkinHelper.PVR.ChannelLogo"] = logo
+    else:
+        logMsg("getPVRThumb cache found for dbID--> " + dbID)
+    
+    return (pvrArtCache,thumb,fanart,poster,logo)
+   
+    
 def searchChannelLogo(searchphrase):
     #get's a thumb image for the given search phrase
        
@@ -363,18 +435,21 @@ def searchChannelLogo(searchphrase):
 
 def searchGoogleImage(searchphrase):
     image = None
-    search = searchphrase.split()
-    search = '%20'.join(map(str, search))
-    url = 'http://ajax.googleapis.com/ajax/services/search/images?v=1.0&q=%s&safe=off' % search
-    search_results = urllib2.urlopen(url)
-    js = json.loads(search_results.read().decode("utf-8"))
-    results = js['responseData']['results']
-    for i in results: 
-        rest = i['unescapedUrl']
-        if rest:
-            if ".jpg" in rest or ".png" in rest:
-                image = rest
-                break
+    try:
+        search = searchphrase.split()
+        search = '%20'.join(map(str, search))
+        url = 'http://ajax.googleapis.com/ajax/services/search/images?v=1.0&q=%s&safe=off' % search
+        search_results = urllib2.urlopen(url)
+        js = json.loads(search_results.read().decode("utf-8"))
+        if js:
+            results = js['responseData']['results']
+            for i in results: 
+                rest = i['unescapedUrl']
+                if rest:
+                    if ".jpg" in rest or ".png" in rest:
+                        image = rest
+                        break
+    except: pass
     return image
     
 def searchThumb(searchphrase, searchphrase2=""):
