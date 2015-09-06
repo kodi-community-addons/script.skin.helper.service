@@ -428,7 +428,7 @@ def getPVRChannels(limit):
         pvrArtCache = {}
         
     # Perform a JSON query to get all channels
-    json_query = xbmc.executeJSONRPC('{"jsonrpc": "2.0",  "id": 1, "method": "PVR.GetChannels", "params": {"channelgroupid": 1, "properties": [ "thumbnail", "channeltype", "hidden", "locked", "channel", "lastplayed", "broadcastnow" ], "limits": {"end": %d}}}' %( limit ) )
+    json_query = xbmc.executeJSONRPC('{"jsonrpc": "2.0",  "id": 1, "method": "PVR.GetChannels", "params": {"channelgroupid": "alltv", "properties": [ "thumbnail", "channeltype", "hidden", "locked", "channel", "lastplayed", "broadcastnow" ], "limits": {"end": %d}}}' %( limit ) )
     json_query = unicode(json_query, 'utf-8', errors='ignore')
     json_query = json.loads(json_query)
     if json_query.has_key('result') and json_query['result'].has_key('channels'):
@@ -436,31 +436,32 @@ def getPVRChannels(limit):
             channelname = item["label"]
             channelid = item["channelid"]
             channelicon = item['thumbnail']
-            currentprogram = item['broadcastnow']
-            pvrArtCache,thumb,fanart,poster,logo = getPVRThumbs(pvrArtCache, currentprogram["title"], channelname)
-            if not channelicon:
-                channelicon = logo
-            path="plugin://script.skin.helper.service/?action=launchpvr&path=" + str(channelid)
-        
-            li = xbmcgui.ListItem()
-            li.setLabel(channelname)
-            li.setLabel2(currentprogram['title'])
-            li.setInfo( type="Video", infoLabels={ "Title": currentprogram['title'] })
-            li.setProperty("StartTime",currentprogram['starttime'].split(" ")[1])
-            li.setProperty("EndTime",currentprogram['endtime'].split(" ")[1])
-            li.setProperty("ChannelIcon",channelicon)
-            li.setProperty("ChannelName",channelname)
-            li.setInfo( type="Video", infoLabels={ "premiered": currentprogram['firstaired'] })
-            li.setInfo( type="Video", infoLabels={ "genre": " / ".join(currentprogram['genre']) })
-            li.setInfo( type="Video", infoLabels={ "duration": currentprogram['runtime'] })
-            li.setInfo( type="Video", infoLabels={ "rating": str(currentprogram['rating']) })
-            li.setThumbnailImage(thumb)
-            li.setIconImage(channelicon)
-            li.setInfo( type="Video", infoLabels={ "Plot": currentprogram['plot'] })
-            li.setProperty('IsPlayable', 'false')
-            li.setArt({ 'poster': poster, 'fanart' : fanart })
+            if item.has_key('broadcastnow'):
+                currentprogram = item['broadcastnow']
+                pvrArtCache,thumb,fanart,poster,logo = getPVRThumbs(pvrArtCache, currentprogram["title"], channelname)
+                if not channelicon:
+                    channelicon = logo
+                path="plugin://script.skin.helper.service/?action=launchpvr&path=" + str(channelid)
+            
+                li = xbmcgui.ListItem()
+                li.setLabel(channelname)
+                li.setLabel2(currentprogram['title'])
+                li.setInfo( type="Video", infoLabels={ "Title": currentprogram['title'] })
+                li.setProperty("StartTime",currentprogram['starttime'].split(" ")[1])
+                li.setProperty("EndTime",currentprogram['endtime'].split(" ")[1])
+                li.setProperty("ChannelIcon",channelicon)
+                li.setProperty("ChannelName",channelname)
+                li.setInfo( type="Video", infoLabels={ "premiered": currentprogram['firstaired'] })
+                li.setInfo( type="Video", infoLabels={ "genre": " / ".join(currentprogram['genre']) })
+                li.setInfo( type="Video", infoLabels={ "duration": currentprogram['runtime'] })
+                li.setInfo( type="Video", infoLabels={ "rating": str(currentprogram['rating']) })
+                li.setThumbnailImage(thumb)
+                li.setIconImage(channelicon)
+                li.setInfo( type="Video", infoLabels={ "Plot": currentprogram['plot'] })
+                li.setProperty('IsPlayable', 'false')
+                li.setArt({ 'poster': poster, 'fanart' : fanart })
 
-            xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=path, listitem=li, isFolder=False)
+                xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=path, listitem=li, isFolder=False)
     WINDOW.setProperty("SkinHelper.pvrArtCache",repr(pvrArtCache))
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
