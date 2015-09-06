@@ -5,6 +5,8 @@ import xbmcplugin
 import xbmcaddon
 import xbmcgui
 import xbmc
+import xbmcvfs
+import os
 import json
 import urlparse
 import sys
@@ -377,7 +379,21 @@ def getPVRThumbs(pvrArtCache,title,channel):
         logMsg("getPVRThumb cache found for dbID--> " + dbID)
     
     return (pvrArtCache,thumb,fanart,poster,logo)
-   
+
+def createSmartShortcutSubmenu(windowProp,iconimage):
+    try:
+        if xbmcvfs.exists("special://skin/shortcuts/"):
+            shortcutFile = xbmc.translatePath("special://home/addons/script.skinshortcuts/resources/shortcuts/info-window-home-property-%s-title.DATA.xml" %windowProp.replace(".","-")).decode("utf-8")
+            templatefile = os.path.join(ADDON_PATH,"resources","smartshortcuts","smartshortcuts-submenu-template.xml")
+            if not xbmcvfs.exists(shortcutFile):
+                with open(templatefile, 'r') as f:
+                    data = f.read()
+                data = data.replace("WINDOWPROP",windowProp)
+                data = data.replace("ICONIMAGE",iconimage)
+                with open(shortcutFile, 'w') as f:
+                    f.write(data)
+    except Exception as e:
+        logMsg("ERROR in createSmartShortcutSubmenu ! --> " + str(e), 0)
     
 def searchChannelLogo(searchphrase):
     #get's a thumb image for the given search phrase

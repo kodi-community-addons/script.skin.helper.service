@@ -387,6 +387,7 @@ class BackgroundsUpdater(threading.Thread):
                                 self.setImageFromPath("emby.nodes.%s%s.image"%(str(i),contentString),path)
                                 if contentString == "": 
                                     allSmartShortcuts.append("emby.nodes." + str(i) )
+                                    createSmartShortcutSubmenu("emby.nodes." + str(i),"special://home/addons/plugin.video.emby/icon.png")
                                 
                     self.smartShortcuts["emby"] = nodes
                                         
@@ -528,6 +529,7 @@ class BackgroundsUpdater(threading.Thread):
                                     self.setImageFromPath("plexbmc.%s%s.image"%(str(i),contentString),path)
                                     if contentString == "":
                                         allSmartShortcuts.append("plexbmc." + str(i) )
+                                        createSmartShortcutSubmenu("plexbmc." + str(i),"special://home/addons/plugin.video.plexbmc/icon.png")
                             else:
                                 break
                 
@@ -579,6 +581,7 @@ class BackgroundsUpdater(threading.Thread):
                 imagespath = "plugin://plugin.video.netflixbmc/?mode=listViewingActivity&thumb=&type=both&url&widget=true"
                 type = "media"
                 nodes.append( (key, label, content, path, type, imagespath ) )
+                createSmartShortcutSubmenu("netflix.generic","special://home/addons/plugin.video.netflixbmc/icon.png")
                 
                 #generic netflix mylist
                 key = "netflix.generic.mylist"
@@ -620,6 +623,7 @@ class BackgroundsUpdater(threading.Thread):
                 imagespath = "plugin://plugin.video.netflixbmc/?mode=listViewingActivity&thumb=&type=movie&url&widget=true"
                 type = "movies"
                 nodes.append( (key, label, content, path, type, imagespath ) )
+                createSmartShortcutSubmenu("netflix.movies","special://home/addons/plugin.video.netflixbmc/icon.png")
                 
                 #netflix movies mylist
                 key = "netflix.movies.mylist"
@@ -661,6 +665,7 @@ class BackgroundsUpdater(threading.Thread):
                 imagespath = "plugin://plugin.video.netflixbmc/?mode=listViewingActivity&thumb=&type=movie&url&widget=true"
                 type = "tvshows"
                 nodes.append( (key, label, content, path, type, imagespath ) )
+                createSmartShortcutSubmenu("netflix.tvshows","special://home/addons/plugin.video.netflixbmc/icon.png")
                 
                 #netflix tvshows mylist
                 key = "netflix.tvshows.mylist"
