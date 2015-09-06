@@ -271,3 +271,19 @@ msgstr ""
 msgctxt "#32063"
 msgid "Default Widgets"
 msgstr ""
+
+msgctxt "#32064"
+msgid "Do you want to setup a single background or a folder with multiple backgrounds ?"
+msgstr ""
+
+msgctxt "#32065"
+msgid "Single"
+msgstr ""
+
+msgctxt "#32066"
+msgid "Multiple"
+msgstr ""
+
+msgctxt "#32067"
+msgid "Select image folder path"
+msgstr ""

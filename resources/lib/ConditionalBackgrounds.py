@@ -92,11 +92,12 @@ class ConditionalBackgrounds(xbmcgui.WindowXMLDialog):
         
     def onClick(self, controlID):
         error = False
-        item = self.backgroundsList.getSelectedItem()
-        id = int(item.getProperty("id"))
-        currentvalues = self.allBackgrounds[id]
-                
+        
         if(controlID == 6):
+            # edit 
+            item = self.backgroundsList.getSelectedItem()
+            id = int(item.getProperty("id"))
+            currentvalues = self.allBackgrounds[id]
             name = xbmcgui.Dialog().input(ADDON.getLocalizedString(32058),currentvalues["name"], type=xbmcgui.INPUT_ALPHANUM)
             background = currentvalues["background"]
             startdate = xbmcgui.Dialog().input(xbmc.getLocalizedString(19128) + " (yyyy-mm-dd)",currentvalues["startdate"], type=xbmcgui.INPUT_ALPHANUM)
@@ -115,10 +116,13 @@ class ConditionalBackgrounds(xbmcgui.WindowXMLDialog):
                 self.refreshListing()
         
         if controlID == 5:
-            
+            # add
             dateToday = datetime.datetime.now().strftime(dateFormat)
             name = xbmcgui.Dialog().input(ADDON.getLocalizedString(32058), type=xbmcgui.INPUT_ALPHANUM)
-            background = xbmcgui.Dialog().browse( 2 , ADDON.getLocalizedString(32061), 'files')
+            if xbmcgui.Dialog().yesno(ADDON.getLocalizedString(32056),ADDON.getLocalizedString(32064), nolabel=ADDON.getLocalizedString(32066),yeslabel=ADDON.getLocalizedString(32065)):
+                background = xbmcgui.Dialog().browse( 2 , ADDON.getLocalizedString(32061), 'files', mask='.jpg|.png')
+            else:
+                background = xbmcgui.Dialog().browse( 0 , ADDON.getLocalizedString(32067), 'files')
             startdate = xbmcgui.Dialog().input(xbmc.getLocalizedString(19128) + " (yyyy-mm-dd)",dateToday, type=xbmcgui.INPUT_ALPHANUM)
             enddate = xbmcgui.Dialog().input(xbmc.getLocalizedString(19129) + " (yyyy-mm-dd)",dateToday, type=xbmcgui.INPUT_ALPHANUM)
             try:
@@ -136,6 +140,8 @@ class ConditionalBackgrounds(xbmcgui.WindowXMLDialog):
         
         if controlID == 7:
             #delete
+            item = self.backgroundsList.getSelectedItem()
+            id = int(item.getProperty("id"))
             dialog = xbmcgui.Dialog()
             if dialog.yesno(xbmc.getLocalizedString(122) + " " + item.getLabel() + " ?", xbmc.getLocalizedString(125)):
                 del self.allBackgrounds[int(item.getProperty("id"))]
