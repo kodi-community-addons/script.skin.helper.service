@@ -234,10 +234,6 @@ def restore():
             xbmc.sleep(500)
             shutil.rmtree(temp_path)
             xbmcgui.Dialog().ok(ADDON.getLocalizedString(32032), ADDON.getLocalizedString(32034))
-            
-            #legacy: convert any old settings from Titan skin, to be removed in the future...
-            if xbmc.getSkinDir().startswith("skin.titan"):
-                xbmc.executebuiltin("RunScript(script.titanskin.helpers,migrate)")
     
     except Exception as e:
         xbmcgui.Dialog().ok(ADDON.getLocalizedString(32032), ADDON.getLocalizedString(32035))
