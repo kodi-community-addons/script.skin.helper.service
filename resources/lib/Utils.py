@@ -118,7 +118,7 @@ def createListItem(item):
         liz.setLabel2(item['artist'][0])
     
     if "channel" in item:
-        liz.setLabel2(str(item['channel']))
+        liz.setLabel2(item['channel'])
         
     if "movieid" in item:
         liz.setProperty("DBID", str(item['movieid']))

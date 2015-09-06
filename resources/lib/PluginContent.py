@@ -442,15 +442,19 @@ def getPVRChannels(limit):
                 if not channelicon:
                     channelicon = logo
                 path="plugin://script.skin.helper.service/?action=launchpvr&path=" + str(channelid)
-            
+                print item
                 li = xbmcgui.ListItem()
                 li.setLabel(channelname)
                 li.setLabel2(currentprogram['title'])
                 li.setInfo( type="Video", infoLabels={ "Title": currentprogram['title'] })
                 li.setProperty("StartTime",currentprogram['starttime'].split(" ")[1])
+                li.setProperty("StartDate",currentprogram['starttime'].split(" ")[0])
                 li.setProperty("EndTime",currentprogram['endtime'].split(" ")[1])
+                li.setProperty("EndDate",currentprogram['endtime'].split(" ")[0])
                 li.setProperty("ChannelIcon",channelicon)
                 li.setProperty("ChannelName",channelname)
+                li.setProperty("EpisodeName",currentprogram['episodename'])
+                li.setProperty("Progress",str(currentprogram['progresspercentage']).split(".")[0])
                 li.setInfo( type="Video", infoLabels={ "premiered": currentprogram['firstaired'] })
                 li.setInfo( type="Video", infoLabels={ "genre": " / ".join(currentprogram['genre']) })
                 li.setInfo( type="Video", infoLabels={ "duration": currentprogram['runtime'] })
