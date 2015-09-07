@@ -694,9 +694,16 @@ def buildRecommendedMediaListing(limit,ondeckContent=False,recommendedContent=Tr
     count = 0
     allTitles = list()
     allItems = []
+    
+    pvrArtCache = WINDOW.getProperty("SkinHelper.pvrArtCache")
+    if pvrArtCache:
+        pvrArtCache = eval(pvrArtCache)
+    else:
+        pvrArtCache = {}
+    
     if ondeckContent:
         allOndeckItems = []
-        
+
         #netflix in progress
         if xbmc.getCondVisibility("System.HasAddon(plugin.video.netflixbmc) + Skin.HasSetting(SmartShortcuts.netflix)") and WINDOW.getProperty("netflixready") == "ready":
             json_query_string = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "Files.GetDirectory", "params": { "directory": "plugin://plugin.video.netflixbmc/?mode=listSliderVideos&thumb&type=both&widget=true&url=slider_0", "media": "files", "properties": [ "title", "playcount", "plot", "file", "rating", "resume", "art", "streamdetails", "year", "mpaa", "runtime", "writer", "cast", "dateadded", "lastplayed", "tagline" ] }, "id": "1"}')
@@ -745,6 +752,9 @@ def buildRecommendedMediaListing(limit,ondeckContent=False,recommendedContent=Tr
             for item in json_result['result']['recordings']:
                 lastplayed = None
                 if not item["title"] in allTitles and item["playcount"] == 0:
+                    pvrArtCache,thumb,fanart,poster,logo = getPVRThumbs(pvrArtCache, item["title"], item["channel"])
+                    art = { 'poster': poster, 'fanart' : fanart, 'thumb': thumb }
+                    item["art"] = art
                     allOndeckItems.append((lastplayed,item))
                     allTitles.append(item["title"])
           
@@ -805,7 +815,8 @@ def buildRecommendedMediaListing(limit,ondeckContent=False,recommendedContent=Tr
         from operator import itemgetter
         allItems += sorted(allRecommendedItems,key=itemgetter(0),reverse=True)
      
-            
+    
+    WINDOW.setProperty("SkinHelper.pvrArtCache",repr(pvrArtCache))
     return allItems
 
 def getInProgressAndRecommendedMedia(limit):
@@ -892,6 +903,12 @@ def getRecentMedia(limit):
     allTitles = list()
     xbmcplugin.setContent(int(sys.argv[1]), 'movies')
     
+    pvrArtCache = WINDOW.getProperty("SkinHelper.pvrArtCache")
+    if pvrArtCache:
+        pvrArtCache = eval(pvrArtCache)
+    else:
+        pvrArtCache = {}
+    
     # Get a list of all the recent Movies (unwatched and not in progress)
     json_query_string = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetMovies", "params": { "sort": { "order": "descending", "method": "dateadded" }, "filter": {"and": [{"operator":"is", "field":"playcount", "value":"0"},{"operator":"false", "field":"inprogress", "value":""}]}, "properties": [ "title", "playcount", "studio", "plot", "file", "rating", "resume", "art", "streamdetails", "year", "mpaa", "runtime", "writer", "cast", "dateadded", "lastplayed", "tagline" ], "limits":{"end":15} }, "id": "1"}')
     json_result = json.loads(json_query_string.decode('utf-8','replace'))
@@ -941,6 +958,9 @@ def getRecentMedia(limit):
         for item in json_result['result']['recordings']:
             lastplayed = item["endtime"]
             if not item["title"] in allTitles and item["playcount"] == 0:
+                pvrArtCache,thumb,fanart,poster,logo = getPVRThumbs(pvrArtCache, item["title"], item["channel"])
+                art = { 'poster': poster, 'fanart' : fanart, 'thumb': thumb }
+                item["art"] = art
                 allItems.append((lastplayed,item))
                 allTitles.append(item["title"])
     
@@ -957,13 +977,10 @@ def getRecentMedia(limit):
         if count == limit:
             break       
     
+    WINDOW.setProperty("SkinHelper.pvrArtCache",repr(pvrArtCache))
     
     xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
-    
-    if count > 0:
-        WINDOW.setProperty("widget.recentmedia.hascontent", "true")
-    else:
-        WINDOW.clearProperty("widget.recentmedia.hascontent")
+
  
 def getFavouriteMedia(limit):
     count = 0

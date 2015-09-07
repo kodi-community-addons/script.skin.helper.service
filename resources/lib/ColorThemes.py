@@ -31,12 +31,34 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
         f = open(file,"r")
         importstring = json.load(f)
         f.close()
-        
+        skintheme = None
+        skincolor = None
+        skinfont = None
         currentSkinTheme = xbmc.getInfoLabel("Skin.CurrentTheme")
+        
+        currentSkinFont = None
+        json_response = xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"Settings.GetSettingValue","params":{"setting":"lookandfeel.font"}}')
+        jsonobject = json.loads(json_response.decode('utf-8','replace'))
+        if(jsonobject.has_key('result')):
+            if(jsonobject["result"].has_key('value')):
+                currentSkinFont = jsonobject["result"]["value"]
+        
+        currentSkinColors = None
+        json_response = xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"Settings.GetSettingValue","params":{"setting":"lookandfeel.skincolors"}}')
+        jsonobject = json.loads(json_response.decode('utf-8','replace'))
+        if(jsonobject.has_key('result')):
+            if(jsonobject["result"].has_key('value')):
+                currentSkinColors = jsonobject["result"]["value"]
+        
+        #xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"Settings.SetSettingValue","params":{"setting":"lookandfeel.skintheme","value":"skin.titan"}}')
         
         for count, skinsetting in enumerate(importstring):
             if skinsetting[0] == "SKINTHEME":
                 skintheme = skinsetting[1]
+            elif skinsetting[0] == "SKINCOLORS":
+                skincolor = skinsetting[1]
+            elif skinsetting[0] == "SKINFONT":
+                skinfont = skinsetting[1]
             elif skinsetting[0] == "THEMENAME":
                 xbmc.executebuiltin("Skin.SetString(SkinHelper.LastColorTheme,%s)" % skinsetting[1])
             elif skinsetting[0] == "DESCRIPTION":
@@ -60,8 +82,12 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
                 xbmc.sleep(30)
         
         #change the skintheme if needed - TODO: use json api to change the theme and font
-        if currentSkinTheme != skintheme:
-            xbmc.executebuiltin("Skin.Theme(-1)")
+        if skintheme and currentSkinTheme != skintheme:
+            xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"Settings.SetSettingValue","params":{"setting":"lookandfeel.skintheme","value":"%s"}}' %skintheme)
+        if skincolor and currentSkinColors != skincolor:
+            xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"Settings.SetSettingValue","params":{"setting":"lookandfeel.skincolors","value":"%s"}}' %skincolor)
+        if skinfont and currentSkinFont != skinfont:
+            xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"Settings.SetSettingValue","params":{"setting":"lookandfeel.font","value":"%s"}}' %skinfont)
 
     def backupColorTheme(self, themeName, themeFile):
         import zipfile
@@ -281,12 +307,30 @@ def restoreColorTheme():
         xbmcgui.Dialog().ok(ADDON.getLocalizedString(32022), ADDON.getLocalizedString(32021))
         
 def createColorTheme():
-    userThemesPath = os.path.join(userThemesDir,"themes") + os.sep    
+    userThemesPath = os.path.join(userThemesDir,"themes") + os.sep   
+    
+    currentSkinFont = None
+    json_response = xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"Settings.GetSettingValue","params":{"setting":"lookandfeel.font"}}')
+    jsonobject = json.loads(json_response.decode('utf-8','replace'))
+    if(jsonobject.has_key('result')):
+        if(jsonobject["result"].has_key('value')):
+            currentSkinFont = jsonobject["result"]["value"]
+    
+    currentSkinColors = None
+    json_response = xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"Settings.GetSettingValue","params":{"setting":"lookandfeel.skincolors"}}')
+    jsonobject = json.loads(json_response.decode('utf-8','replace'))
+    if(jsonobject.has_key('result')):
+        if(jsonobject["result"].has_key('value')):
+            currentSkinColors = jsonobject["result"]["value"]
+    
+    
     #user has to enter name for the theme
     dialog = xbmcgui.Dialog()
     themeName = dialog.input(ADDON.getLocalizedString(32023), type=xbmcgui.INPUT_ALPHANUM)
     if not themeName:
         return
+        
+        
     
     #add screenshot
     dialog = xbmcgui.Dialog()
@@ -297,11 +341,15 @@ def createColorTheme():
 
     #read the guisettings file to get all skin settings
     import BackupRestore as backup
-    newlist = backup.getSkinSettings(["color","opacity","texture"])
+    newlist = backup.getSkinSettings(["color","opacity","texture","panel"])
     if newlist:
+        
+
         newlist.append(("THEMENAME", themeName))
         newlist.append(("DESCRIPTION", ADDON.getLocalizedString(32025)))
         newlist.append(("SKINTHEME", xbmc.getInfoLabel("Skin.CurrentTheme")))
+        newlist.append(("SKINFONT", currentSkinFont))
+        newlist.append(("SKINCOLORS", currentSkinColors))
             
         #save guisettings
         text_file_path = os.path.join(userThemesPath, themeName + ".theme")
