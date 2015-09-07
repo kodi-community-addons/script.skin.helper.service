@@ -26,8 +26,7 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
         
         self.userThemesPath = os.path.join(userThemesDir,"themes") + os.sep
         self.skinThemesPath = xbmc.translatePath("special://skin/extras/skinthemes")
-
-        
+       
     def loadColorTheme(self,file):
         f = open(file,"r")
         importstring = json.load(f)
@@ -102,6 +101,15 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
         themeNameNew = dialog.input('Enter a name for the theme', themeNameOld, type=xbmcgui.INPUT_ALPHANUM)
         if not themeNameNew:
             return
+            
+        f = open(os.path.join(self.userThemesPath,themeNameOld + ".theme"),"r")
+        data = f.read()
+        f.close()
+        
+        f = open(os.path.join(self.userThemesPath,themeNameOld + ".theme"),"w")
+        data = data.replace(themeNameOld, themeNameNew)
+        f.write(data)
+        f.close()
         
         xbmcvfs.rename(os.path.join(self.userThemesPath,themeNameOld + ".jpg"), os.path.join(self.userThemesPath,themeNameNew + ".jpg"))
         xbmcvfs.rename(os.path.join(self.userThemesPath,themeNameOld + ".theme"), os.path.join(self.userThemesPath,themeNameNew + ".theme"))
