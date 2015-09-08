@@ -81,7 +81,7 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
                         xbmc.executebuiltin("Skin.Reset(%s)" % setting)
                 xbmc.sleep(30)
         
-        #change the skintheme if needed - TODO: use json api to change the theme and font
+        #change the skintheme, color and font if needed 
         if skintheme and currentSkinTheme != skintheme:
             xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"Settings.SetSettingValue","params":{"setting":"lookandfeel.skintheme","value":"%s"}}' %skintheme)
         if skincolor and currentSkinColors != skincolor:
@@ -173,7 +173,6 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
                         desc = skinsetting[1]
                     if skinsetting[0] == ("THEMENAME"):
                         label = skinsetting[1]
-
                 listitem = xbmcgui.ListItem(label=label, iconImage=icon)
                 listitem.setProperty("filename",os.path.join(self.skinThemesPath,file))
                 listitem.setProperty("description",desc)
