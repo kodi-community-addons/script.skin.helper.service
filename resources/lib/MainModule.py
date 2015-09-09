@@ -56,11 +56,11 @@ def selectOverlayTexture():
         dialog = xbmcgui.Dialog()
         custom_texture = dialog.browse( 2 , ADDON.getLocalizedString(32016), 'files')
         if custom_texture:
-            xbmc.executebuiltin("Skin.SetString(ColorThemeTexture,Custom)")
-            xbmc.executebuiltin("Skin.SetString(CustomColorThemeTexture,%s)" % custom_texture)
+            xbmc.executebuiltin("Skin.SetString(BackgroundOverlayTexture,Custom)")
+            xbmc.executebuiltin("Skin.SetString(CustomBackgroundOverlayTexture,%s)" % custom_texture)
     else:
-        xbmc.executebuiltin("Skin.SetString(ColorThemeTexture,%s)" % overlaysList[ret])
-        xbmc.executebuiltin("Skin.Reset(CustomColorThemeTexture)")
+        xbmc.executebuiltin("Skin.SetString(BackgroundOverlayTexture,%s)" % overlaysList[ret])
+        xbmc.executebuiltin("Skin.Reset(CustomBackgroundOverlayTexture)")
 
 def selectBusyTexture():
     
@@ -166,7 +166,6 @@ def enableViews():
     del w        
 
 def setForcedView(contenttype):
-    print "setforcedview called for " + contenttype
     currentView = xbmc.getInfoLabel("Skin.String(SkinHelper.ForcedViews.%s)" %contenttype)
     if not currentView:
         currentView = "0"
@@ -233,22 +232,21 @@ def searchYouTube(title,windowHeader=""):
     media_array = None
     allResults = []
     media_array = getJSON('Files.GetDirectory','{ "properties": ["title","art","plot"], "directory": "%s", "media": "files", "limits": {"end":25} }' %libPath)
-    if(media_array != None and media_array.has_key('files')):
-        for media in media_array['files']:
-            
-            if not media["filetype"] == "directory":
-                label = media["label"]
-                label2 = media["plot"]
-                image = None
-                if media.has_key('art'):
-                    if media['art'].has_key('thumb'):
-                        image = (media['art']['thumb'])
-                        
-                path = media["file"]
-                listitem = xbmcgui.ListItem(label=label, label2=label2, iconImage=image)
-                listitem.setProperty("path",path)
-                listitem.setProperty("icon",image)
-                allResults.append(listitem)
+    for media in media_array:
+        
+        if not media["filetype"] == "directory":
+            label = media["label"]
+            label2 = media["plot"]
+            image = None
+            if media.has_key('art'):
+                if media['art'].has_key('thumb'):
+                    image = (media['art']['thumb'])
+                    
+            path = media["file"]
+            listitem = xbmcgui.ListItem(label=label, label2=label2, iconImage=image)
+            listitem.setProperty("path",path)
+            listitem.setProperty("icon",image)
+            allResults.append(listitem)
 
     w = dialogs.DialogSelectBig( "DialogSelect.xml", ADDON_PATH, listing=allResults, windowtitle=windowHeader,multiselect=False )
     xbmc.executebuiltin( "Dialog.Close(busydialog)" )

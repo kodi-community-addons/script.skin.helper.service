@@ -229,7 +229,7 @@ class LibraryMonitor(threading.Thread):
                 
                 #save to cache
                 self.moviesetCache[dbId] = json_response
-                if "setdetails" in json_response:
+                if json_response:
                     
                     count = 0
                     unwatchedcount = 0
@@ -244,9 +244,9 @@ class LibraryMonitor(threading.Thread):
                     years = []
                     plot = ""
                     title_list = ""
-                    title_header = "[B]" + str(json_response['setdetails']['limits']['total']) + " " + xbmc.getLocalizedString(20342) + "[/B][CR]"
+                    title_header = "[B]" + str(json_response['limits']['total']) + " " + xbmc.getLocalizedString(20342) + "[/B][CR]"
                     set_fanart = []
-                    for item in json_response['setdetails']['movies']:
+                    for item in json_response['movies']:
                         
                         if item["playcount"] == 0:
                             unwatchedcount += 1
@@ -293,7 +293,7 @@ class LibraryMonitor(threading.Thread):
                             studio += [s for s in item["studio"] if s and s not in studio]
                         years.append(str(item['year']))
                     WINDOW.setProperty('SkinHelper.MovieSet.Plot', plot)
-                    if json_response['setdetails']['limits']['total'] > 1:
+                    if json_response['limits']['total'] > 1:
                         WINDOW.setProperty('SkinHelper.MovieSet.ExtendedPlot', title_header + title_list + "[CR]" + plot)
                     else:
                         WINDOW.setProperty('SkinHelper.MovieSet.ExtendedPlot', plot)
@@ -316,7 +316,7 @@ class LibraryMonitor(threading.Thread):
                    
                     WINDOW.setProperty('SkinHelper.MovieSet.Years', " / ".join(years))
                     WINDOW.setProperty('SkinHelper.MovieSet.Year', years[0] + " - " + years[-1])
-                    WINDOW.setProperty('SkinHelper.MovieSet.Count', str(json_response['setdetails']['limits']['total']))
+                    WINDOW.setProperty('SkinHelper.MovieSet.Count', str(json_response['limits']['total']))
                     WINDOW.setProperty('SkinHelper.MovieSet.WatchedCount', str(watchedcount))
                     WINDOW.setProperty('SkinHelper.MovieSet.UnWatchedCount', str(unwatchedcount))
                     

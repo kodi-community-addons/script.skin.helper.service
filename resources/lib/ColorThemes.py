@@ -28,6 +28,7 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
         self.skinThemesPath = xbmc.translatePath("special://skin/extras/skinthemes")
        
     def loadColorTheme(self,file):
+        xbmc.executebuiltin( "ActivateWindow(busydialog)" )
         f = open(file,"r")
         importstring = json.load(f)
         f.close()
@@ -49,8 +50,6 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
         if(jsonobject.has_key('result')):
             if(jsonobject["result"].has_key('value')):
                 currentSkinColors = jsonobject["result"]["value"]
-        
-        #xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"Settings.SetSettingValue","params":{"setting":"lookandfeel.skintheme","value":"skin.titan"}}')
         
         for count, skinsetting in enumerate(importstring):
             if skinsetting[0] == "SKINTHEME":
@@ -88,7 +87,8 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
             xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"Settings.SetSettingValue","params":{"setting":"lookandfeel.skincolors","value":"%s"}}' %skincolor)
         if skinfont and currentSkinFont != skinfont:
             xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"Settings.SetSettingValue","params":{"setting":"lookandfeel.font","value":"%s"}}' %skinfont)
-
+        xbmc.executebuiltin( "Dialog.Close(busydialog)" )
+    
     def backupColorTheme(self, themeName, themeFile):
         import zipfile
         backup_path = get_browse_dialog(dlg_type=3,heading=ADDON.getLocalizedString(32018))
@@ -119,26 +119,24 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
         xbmcvfs.delete(os.path.join(self.userThemesPath,themeName + ".theme"))
         self.refreshListing()
         
-    def renameColorTheme(self,file):
-        file = file.split(os.sep)[-1]
-        themeNameOld = file.replace(".theme","")
-        
+    def renameColorTheme(self,file,themeNameOld):
+
         dialog = xbmcgui.Dialog()
         themeNameNew = dialog.input('Enter a name for the theme', themeNameOld, type=xbmcgui.INPUT_ALPHANUM)
         if not themeNameNew:
             return
             
-        f = open(os.path.join(self.userThemesPath,themeNameOld + ".theme"),"r")
+        f = open(file,"r")
         data = f.read()
         f.close()
         
-        f = open(os.path.join(self.userThemesPath,themeNameOld + ".theme"),"w")
+        f = open(file,"w")
         data = data.replace(themeNameOld, themeNameNew)
         f.write(data)
         f.close()
         
-        xbmcvfs.rename(os.path.join(self.userThemesPath,themeNameOld + ".jpg"), os.path.join(self.userThemesPath,themeNameNew + ".jpg"))
-        xbmcvfs.rename(os.path.join(self.userThemesPath,themeNameOld + ".theme"), os.path.join(self.userThemesPath,themeNameNew + ".theme"))
+        xbmcvfs.rename(file.replace(".theme",".jpg"), os.path.join(self.userThemesPath,themeNameNew + ".jpg"))
+        xbmcvfs.rename(file, os.path.join(self.userThemesPath,themeNameNew + ".theme"))
         self.refreshListing()
     
     def setIconForColorTheme(self,file):
@@ -160,6 +158,8 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
         #clear list first
         self.themesList.reset()
         
+        activetheme = xbmc.getInfoLabel("$INFO[Skin.String(SkinHelper.LastColorTheme)]")
+        
         #get all skin defined themes
         dirs, files = xbmcvfs.listdir(self.skinThemesPath)
         for file in files:
@@ -173,9 +173,14 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
                         desc = skinsetting[1]
                     if skinsetting[0] == ("THEMENAME"):
                         label = skinsetting[1]
-                listitem = xbmcgui.ListItem(label=label, iconImage=icon)
+                if label == activetheme:
+                    listlabel = label + " " + xbmc.getLocalizedString(461)
+                else:
+                    listlabel = label
+                listitem = xbmcgui.ListItem(label=listlabel, iconImage=icon)
                 listitem.setProperty("filename",os.path.join(self.skinThemesPath,file))
                 listitem.setProperty("description",desc)
+                listitem.setProperty("themename",label)
                 listitem.setProperty("Addon.Summary",desc)
                 listitem.setLabel2(desc)
                 listitem.setProperty("type","skin")
@@ -188,9 +193,14 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
             if file.endswith(".theme"):
                 label = file
                 label = file.replace(".theme","")
+                if label == activetheme:
+                    listlabel = label + " " + xbmc.getLocalizedString(461)
+                else:
+                    listlabel = label
                 icon = os.path.join(self.userThemesPath,label + ".jpg")
                 desc = "user defined theme"
-                listitem = xbmcgui.ListItem(label=label, iconImage=icon)
+                listitem = xbmcgui.ListItem(label=listlabel, iconImage=icon)
+                listitem.setProperty("themename",label)
                 listitem.setProperty("filename",os.path.join(self.userThemesPath,file))
                 listitem.setProperty("description",desc)
                 listitem.setProperty("Addon.Summary",desc)
@@ -235,6 +245,7 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
             dialog = xbmcgui.Dialog()
             item = self.themesList.getSelectedItem()
             themeFile = item.getProperty("filename")
+            themeName = item.getProperty("themename")
             menuOptions = []
             menuOptions.append(xbmc.getLocalizedString(424))
             themeType = item.getProperty("type")
@@ -249,7 +260,7 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
             elif ret == 1:
                 self.removeColorTheme(themeFile)
             elif ret == 2:
-                self.renameColorTheme(themeFile)
+                self.renameColorTheme(themeFile,themeName)
             elif ret == 3:
                 self.setIconForColorTheme(themeFile)
             elif ret == 4:
@@ -329,7 +340,7 @@ def createColorTheme():
     if not themeName:
         return
         
-        
+    xbmc.executebuiltin("Skin.SetString(SkinHelper.LastColorTheme,%s)" %themeName)    
     
     #add screenshot
     dialog = xbmcgui.Dialog()

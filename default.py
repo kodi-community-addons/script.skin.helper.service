@@ -91,7 +91,7 @@ class Main:
                 import resources.lib.ColorThemes as colorThemes
                 colorThemes.restoreColorTheme()
             
-            elif action == "COLORTHEMETEXTURE":    
+            elif action == "OVERLAYTEXTURE":    
                 selectOverlayTexture()
             
             elif action == "BUSYTEXTURE":    

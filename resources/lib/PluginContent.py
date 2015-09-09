@@ -146,28 +146,27 @@ def buildWidgetsListing():
             foundWidgets = []
             if xbmc.getCondVisibility("System.HasAddon(%s)" %addon[0]):
                 media_array = getJSON('Files.GetDirectory','{ "directory": "plugin://%s", "media": "files" }' %addon[0])
-                if media_array != None and media_array.has_key('files'):
-                    for item in media_array['files']:
-                        #safety check: check if no library windows are active to prevent any addons setting the view
-                        curWindow = xbmc.getInfoLabel("$INFO[Window.Property(xmlfile)]")
-                        if curWindow.endswith("Nav.xml") or curWindow == "AddonBrowser.xml" or curWindow.startswith("MyPVR"):
-                            return
-                        content = item["file"]
-                        if not "reload=" in content and not addon[0] == "script.extendedinfo":
-                            content = content + "&reload=$INFO[Window(Home).Property(widgetreload)]"
-                        content = content.replace("&limit=100","&limit=25")
-                        label = item["label"]
-                        type = "video"
-                        if "movie" in content or "box" in content or "dvd" in content or "rentals" in content:
-                            type = "movies"
-                        if "show" in content:
-                            type = "tvshows"
-                        image = None
-                        if not addon[1] == "extendedinfo":
-                            type, image = detectPluginContent(item["file"])
-                        mediaLibrary = "VideoLibrary"
-                        path = "ActivateWindow(%s,%s,return)" %(mediaLibrary, content)
-                        foundWidgets.append([label, path, content, image, type])
+                for item in media_array:
+                    #safety check: check if no library windows are active to prevent any addons setting the view
+                    curWindow = xbmc.getInfoLabel("$INFO[Window.Property(xmlfile)]")
+                    if curWindow.endswith("Nav.xml") or curWindow == "AddonBrowser.xml" or curWindow.startswith("MyPVR"):
+                        return
+                    content = item["file"]
+                    if not "reload=" in content and not addon[0] == "script.extendedinfo":
+                        content = content + "&reload=$INFO[Window(Home).Property(widgetreload)]"
+                    content = content.replace("&limit=100","&limit=25")
+                    label = item["label"]
+                    type = "video"
+                    if "movie" in content or "box" in content or "dvd" in content or "rentals" in content:
+                        type = "movies"
+                    if "show" in content:
+                        type = "tvshows"
+                    image = None
+                    if not addon[1] == "extendedinfo":
+                        type, image = detectPluginContent(item["file"])
+                    mediaLibrary = "VideoLibrary"
+                    path = "ActivateWindow(%s,%s,return)" %(mediaLibrary, content)
+                    foundWidgets.append([label, path, content, image, type])
                 if addon[1] == "extendedinfo":
                     #some additional entrypoints for extendedinfo...
                     entrypoints = ["plugin://script.extendedinfo?info=youtubeusersearch&&id=Eurogamer","plugin://script.extendedinfo?info=youtubeusersearch&&id=Engadget","plugin://script.extendedinfo?info=youtubeusersearch&&id=MobileTechReview"]
@@ -187,56 +186,52 @@ def buildWidgetsListing():
     for path in paths:
         if xbmcvfs.exists(path):
             media_array = getJSON('Files.GetDirectory','{ "directory": "%s", "media": "files" }' %path)
-            if media_array != None and media_array.has_key('files'):
-                for item in media_array['files']:
-                    if item["file"].endswith(".xsp"):
-                        playlist = item["file"]
-                        contents = xbmcvfs.File(item["file"], 'r')
-                        contents_data = contents.read().decode('utf-8')
-                        contents.close()
-                        xmldata = xmltree.fromstring(contents_data.encode('utf-8'))
-                        type = "unknown"
-                        label = item["label"]
-                        type2, image = detectPluginContent(item["file"])
-                        for line in xmldata.getiterator():
-                            if line.tag == "smartplaylist":
-                                type = line.attrib['type']
-                            if line.tag == "name":
-                                label = line.text
-                                
-                        if type == "albums" or type == "artists" or type == "songs":
-                            mediaLibrary = "MusicLibrary"
-                        else:
-                            mediaLibrary = "VideoLibrary"
-                        path = "ActivateWindow(%s,%s,return)" %(mediaLibrary, playlist)
-                        playlistsFound.append([label, path, playlist, image, type])
+            for item in media_array:
+                if item["file"].endswith(".xsp"):
+                    playlist = item["file"]
+                    contents = xbmcvfs.File(item["file"], 'r')
+                    contents_data = contents.read().decode('utf-8')
+                    contents.close()
+                    xmldata = xmltree.fromstring(contents_data.encode('utf-8'))
+                    type = "unknown"
+                    label = item["label"]
+                    type2, image = detectPluginContent(item["file"])
+                    for line in xmldata.getiterator():
+                        if line.tag == "smartplaylist":
+                            type = line.attrib['type']
+                        if line.tag == "name":
+                            label = line.text
+                            
+                    if type == "albums" or type == "artists" or type == "songs":
+                        mediaLibrary = "MusicLibrary"
+                    else:
+                        mediaLibrary = "VideoLibrary"
+                    path = "ActivateWindow(%s,%s,return)" %(mediaLibrary, playlist)
+                    playlistsFound.append([label, path, playlist, image, type])
     allWidgets["skinplaylists"] = playlistsFound
         
     
     #widgets from favourites
-    json_query_string = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "Favourites.GetFavourites", "params": {"type": null, "properties": ["path", "thumbnail", "window", "windowparameter"]}, "id": "1"}')
-    json_result = json.loads(json_query_string.decode('utf-8','replace'))
-    if json_result.has_key('result'):
-        foundWidgets = []
-        if json_result['result'].has_key('favourites') and json_result['result']['favourites']:
-            for fav in json_result['result']['favourites']:
-                matchFound = False
-                if "windowparameter" in fav:
-                    content = fav["windowparameter"]
-                    if content.startswith("plugin://") and not content.endswith("/"):
-                        content = content + "&reload=$INFO[Window(Home).Property(widgetreload)]"
-                    if not "=play" in content.lower():
-                        window = fav["window"]
-                        label = fav["title"]
-                        type, image = detectPluginContent(content)
-                        if window == "music":
-                            mediaLibrary = "MusicLibrary"
-                        else:
-                            mediaLibrary = "VideoLibrary"
-                        path = "ActivateWindow(%s,%s,return)" %(mediaLibrary, content)
-                        if type:
-                            foundWidgets.append([label, path, content, image, type])
-            allWidgets["favourites"] = foundWidgets
+    json_result = getJSON('Favourites.GetFavourites', '{"type": null, "properties": ["path", "thumbnail", "window", "windowparameter"]}')
+    foundWidgets = []
+    for fav in json_result:
+        matchFound = False
+        if "windowparameter" in fav:
+            content = fav["windowparameter"]
+            if content.startswith("plugin://") and not content.endswith("/"):
+                content = content + "&reload=$INFO[Window(Home).Property(widgetreload)]"
+            if not "=play" in content.lower():
+                window = fav["window"]
+                label = fav["title"]
+                type, image = detectPluginContent(content)
+                if window == "music":
+                    mediaLibrary = "MusicLibrary"
+                else:
+                    mediaLibrary = "VideoLibrary"
+                path = "ActivateWindow(%s,%s,return)" %(mediaLibrary, content)
+                if type:
+                    foundWidgets.append([label, path, content, image, type])
+    allWidgets["favourites"] = foundWidgets
                         
     #some other widgets (by their direct endpoint) such as smartish widgets and PVR
     otherWidgets = ["pvr","smartishwidgets","static"]
@@ -388,33 +383,30 @@ def getPVRRecordings(limit):
     else:
         pvrArtCache = {}
         
-    json_query = xbmc.executeJSONRPC('{"jsonrpc": "2.0",  "id": 1, "method": "PVR.GetRecordings", "params": { "properties": [ "art", "channel", "directory", "endtime", "file", "genre", "icon", "playcount", "plot", "plotoutline", "resume", "runtime", "starttime", "streamurl", "title" ], "limits": {"end": %d}}}' %( limit ) )
-    json_query = unicode(json_query, 'utf-8', errors='ignore')
-    json_query = json.loads(json_query)
-    if json_query.has_key('result') and json_query['result'].has_key('recordings'):
-        for item in json_query['result']['recordings']:
-            channelname = item["channel"]
-            pvrArtCache,thumb,fanart,poster,logo = getPVRThumbs(pvrArtCache, item["title"], channelname)
-            path=item["file"]
-            li = xbmcgui.ListItem()
-            li.setLabel(channelname)
-            li.setLabel2(item['title'])
-            li.setInfo( type="Video", infoLabels={ "Title": item['title'] })
-            li.setProperty("StartTime",item['starttime'])
-            li.setProperty("ChannelIcon",logo)
-            li.setProperty("ChannelName",channelname)
-            li.setInfo( type="Video", infoLabels={ "genre": " / ".join(item['genre']) })
-            li.setInfo( type="Video", infoLabels={ "duration": item['runtime'] })
-            li.setInfo( type="Video", infoLabels={ "Playcount": item['playcount'] })
-            li.setProperty("resumetime", str(item['resume']['position']))
-            li.setProperty("totaltime", str(item['resume']['total']))
-            li.setThumbnailImage(thumb)
-            li.setIconImage(item["icon"])
-            li.setInfo( type="Video", infoLabels={ "Plot": item['plot'] })
-            li.setProperty('IsPlayable', 'true')
-            li.setArt({ 'poster': poster, 'fanart' : fanart })
+    json_query = getJSON('PVR.GetRecordings', '{ "properties": [ %s ], "limits": {"end": %d}}' %( fields_pvrrecordings, limit))
+    for item in json_query:
+        channelname = item["channel"]
+        pvrArtCache,thumb,fanart,poster,logo = getPVRThumbs(pvrArtCache, item["title"], channelname)
+        path=item["file"]
+        li = xbmcgui.ListItem()
+        li.setLabel(channelname)
+        li.setLabel2(item['title'])
+        li.setInfo( type="Video", infoLabels={ "Title": item['title'] })
+        li.setProperty("StartTime",item['starttime'])
+        li.setProperty("ChannelIcon",logo)
+        li.setProperty("ChannelName",channelname)
+        li.setInfo( type="Video", infoLabels={ "genre": " / ".join(item['genre']) })
+        li.setInfo( type="Video", infoLabels={ "duration": item['runtime'] })
+        li.setInfo( type="Video", infoLabels={ "Playcount": item['playcount'] })
+        li.setProperty("resumetime", str(item['resume']['position']))
+        li.setProperty("totaltime", str(item['resume']['total']))
+        li.setThumbnailImage(thumb)
+        li.setIconImage(item["icon"])
+        li.setInfo( type="Video", infoLabels={ "Plot": item['plot'] })
+        li.setProperty('IsPlayable', 'true')
+        li.setArt({ 'poster': poster, 'fanart' : fanart })
 
-            xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=path, listitem=li, isFolder=False)
+        xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=path, listitem=li, isFolder=False)
     WINDOW.setProperty("SkinHelper.pvrArtCache",repr(pvrArtCache))
     xbmcplugin.endOfDirectory(int(sys.argv[1]))    
     
@@ -428,44 +420,40 @@ def getPVRChannels(limit):
         pvrArtCache = {}
         
     # Perform a JSON query to get all channels
-    json_query = xbmc.executeJSONRPC('{"jsonrpc": "2.0",  "id": 1, "method": "PVR.GetChannels", "params": {"channelgroupid": "alltv", "properties": [ "thumbnail", "channeltype", "hidden", "locked", "channel", "lastplayed", "broadcastnow" ], "limits": {"end": %d}}}' %( limit ) )
-    json_query = unicode(json_query, 'utf-8', errors='ignore')
-    json_query = json.loads(json_query)
-    if json_query.has_key('result') and json_query['result'].has_key('channels'):
-        for item in json_query['result']['channels']:
-            channelname = item["label"]
-            channelid = item["channelid"]
-            channelicon = item['thumbnail']
-            if item.has_key('broadcastnow'):
-                currentprogram = item['broadcastnow']
-                pvrArtCache,thumb,fanart,poster,logo = getPVRThumbs(pvrArtCache, currentprogram["title"], channelname)
-                if not channelicon:
-                    channelicon = logo
-                path="plugin://script.skin.helper.service/?action=launchpvr&path=" + str(channelid)
-                print item
-                li = xbmcgui.ListItem()
-                li.setLabel(channelname)
-                li.setLabel2(currentprogram['title'])
-                li.setInfo( type="Video", infoLabels={ "Title": currentprogram['title'] })
-                li.setProperty("StartTime",currentprogram['starttime'].split(" ")[1])
-                li.setProperty("StartDate",currentprogram['starttime'].split(" ")[0])
-                li.setProperty("EndTime",currentprogram['endtime'].split(" ")[1])
-                li.setProperty("EndDate",currentprogram['endtime'].split(" ")[0])
-                li.setProperty("ChannelIcon",channelicon)
-                li.setProperty("ChannelName",channelname)
-                li.setProperty("EpisodeName",currentprogram['episodename'])
-                li.setProperty("Progress",str(currentprogram['progresspercentage']).split(".")[0])
-                li.setInfo( type="Video", infoLabels={ "premiered": currentprogram['firstaired'] })
-                li.setInfo( type="Video", infoLabels={ "genre": " / ".join(currentprogram['genre']) })
-                li.setInfo( type="Video", infoLabels={ "duration": currentprogram['runtime'] })
-                li.setInfo( type="Video", infoLabels={ "rating": str(currentprogram['rating']) })
-                li.setThumbnailImage(thumb)
-                li.setIconImage(channelicon)
-                li.setInfo( type="Video", infoLabels={ "Plot": currentprogram['plot'] })
-                li.setProperty('IsPlayable', 'false')
-                li.setArt({ 'poster': poster, 'fanart' : fanart })
+    json_query = getJSON('PVR.GetChannels', '{"channelgroupid": "alltv", "properties": [ "thumbnail", "channeltype", "hidden", "locked", "channel", "lastplayed", "broadcastnow" ], "limits": {"end": %d}}' %( limit ) )
+    for item in json_query:
+        channelname = item["label"]
+        channelid = item["channelid"]
+        channelicon = item['thumbnail']
+        if item.has_key('broadcastnow'):
+            currentprogram = item['broadcastnow']
+            pvrArtCache,thumb,fanart,poster,logo = getPVRThumbs(pvrArtCache, currentprogram["title"], channelname)
+            if not channelicon:
+                channelicon = logo
+            path="plugin://script.skin.helper.service/?action=launchpvr&path=" + str(channelid)
+            li = xbmcgui.ListItem()
+            li.setLabel(channelname)
+            li.setLabel2(currentprogram['title'])
+            li.setInfo( type="Video", infoLabels={ "Title": currentprogram['title'] })
+            li.setProperty("StartTime",currentprogram['starttime'].split(" ")[1])
+            li.setProperty("StartDate",currentprogram['starttime'].split(" ")[0])
+            li.setProperty("EndTime",currentprogram['endtime'].split(" ")[1])
+            li.setProperty("EndDate",currentprogram['endtime'].split(" ")[0])
+            li.setProperty("ChannelIcon",channelicon)
+            li.setProperty("ChannelName",channelname)
+            li.setProperty("EpisodeName",currentprogram['episodename'])
+            li.setProperty("Progress",str(currentprogram['progresspercentage']).split(".")[0])
+            li.setInfo( type="Video", infoLabels={ "premiered": currentprogram['firstaired'] })
+            li.setInfo( type="Video", infoLabels={ "genre": " / ".join(currentprogram['genre']) })
+            li.setInfo( type="Video", infoLabels={ "duration": currentprogram['runtime'] })
+            li.setInfo( type="Video", infoLabels={ "rating": str(currentprogram['rating']) })
+            li.setThumbnailImage(thumb)
+            li.setIconImage(channelicon)
+            li.setInfo( type="Video", infoLabels={ "Plot": currentprogram['plot'] })
+            li.setProperty('IsPlayable', 'false')
+            li.setArt({ 'poster': poster, 'fanart' : fanart })
 
-                xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=path, listitem=li, isFolder=False)
+            xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=path, listitem=li, isFolder=False)
     WINDOW.setProperty("SkinHelper.pvrArtCache",repr(pvrArtCache))
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
@@ -487,36 +475,26 @@ def buildNextEpisodesListing(limit):
     count = 0
     allItems = []
     # First we get a list of all the in-progress TV shows
-    json_query_string = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetTVShows", "params": { "sort": { "order": "descending", "method": "lastplayed" }, "filter": {"and": [{"operator":"true", "field":"inprogress", "value":""}]}, "properties": [ "title", "studio", "mpaa", "file", "art" ] }, "id": "1"}')
-    json_result = json.loads(json_query_string.decode('utf-8','replace'))
+    json_result = getJSON('VideoLibrary.GetTVShows', '{ "sort": { "order": "descending", "method": "lastplayed" }, "filter": {"and": [{"operator":"true", "field":"inprogress", "value":""}]}, "properties": [ "title", "studio", "mpaa", "file", "art" ] }')
     # If we found any, find the oldest unwatched show for each one.
-    if json_result.has_key('result') and json_result['result'].has_key('tvshows'):
-        for item in json_result['result']['tvshows']:
-            json_query2 = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetEpisodes", "params": { "tvshowid": %d, "sort": {"method":"episode"}, "filter": {"and": [ {"field": "playcount", "operator": "lessthan", "value":"1"}, {"field": "season", "operator": "greaterthan", "value": "0"} ]}, "properties": [ "title", "playcount", "season", "episode", "showtitle", "plot", "file", "rating", "resume", "tvshowid", "art", "streamdetails", "firstaired", "runtime", "writer", "cast", "dateadded", "lastplayed" ], "limits":{"end":1}}, "id": "1"}' %item['tvshowid'])
-            if json_query2:
-                json_query2 = json.loads(json_query2.decode('utf-8','replace'))
-                if json_query2.has_key('result') and json_query2['result'].has_key('episodes'):
-                    for item in json_query2['result']['episodes']:
-                        allItems.append(item)
-                        count +=1
-                        if count == limit:
-                            break
+    for item in json_result:
+        json_episodes = getJSON('VideoLibrary.GetEpisodes', '{ "tvshowid": %d, "sort": {"method":"episode"}, "filter": {"and": [ {"field": "playcount", "operator": "lessthan", "value":"1"}, {"field": "season", "operator": "greaterthan", "value": "0"} ]}, "properties": [ %s ], "limits":{"end":1}}' %(item['tvshowid'],fields_episodes))
+        for item in json_episodes:
+            allItems.append(item)
+            count +=1
+            if count == limit:
+                break
                             
     if count >= limit:
         # Fill the list with first episodes of unwatched tv shows
-        json_query_string = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetTVShows", "params": { "sort": { "order": "ascending", "method": "dateadded" }, "filter": {"and": [{"operator":"false", "field":"inprogress", "value":""}]}, "properties": [ "title", "studio", "mpaa", "file", "art" ] }, "id": "1"}')
-        json_result = json.loads(json_query_string.decode('utf-8','replace'))
-        if json_result.has_key('result') and json_result['result'].has_key('tvshows'):
-            for item in json_result['result']['tvshows']:
-                json_query2 = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetEpisodes", "params": { "tvshowid": %d, "sort": {"method":"episode"}, "filter": {"and": [ {"field": "playcount", "operator": "lessthan", "value":"1"}, {"field": "season", "operator": "greaterthan", "value": "0"} ]}, "properties": [ "title", "playcount", "season", "episode", "showtitle", "plot", "file", "rating", "resume", "tvshowid", "art", "streamdetails", "firstaired", "runtime", "writer", "cast", "dateadded", "lastplayed" ], "limits":{"end":1}}, "id": "1"}' %item['tvshowid'])
-                if json_query2:
-                    json_query2 = json.loads(json_query2.decode('utf-8','replace'))
-                    if json_query2.has_key('result') and json_query2['result'].has_key('episodes'):
-                        for item in json_query2['result']['episodes']:
-                            allItems.append(item)
-                            count +=1
-                            if count == limit:
-                                break
+        json_result = getJSON('VideoLibrary.GetTVShows', '{ "sort": { "order": "ascending", "method": "dateadded" }, "filter": {"and": [{"operator":"false", "field":"inprogress", "value":""}]}, "properties": [ "title", "studio", "mpaa", "file", "art" ] }')
+        for item in json_result:
+            json_episodes = getJSON('VideoLibrary.GetEpisodes', '{ "tvshowid": %d, "sort": {"method":"episode"}, "filter": {"and": [ {"field": "playcount", "operator": "lessthan", "value":"1"}, {"field": "season", "operator": "greaterthan", "value": "0"} ]}, "properties": [ %s ], "limits":{"end":1}}' %(item['tvshowid'],fields_episodes))
+            for item in json_episodes:
+                allItems.append(item)
+                count +=1
+                if count == limit:
+                    break
     if allItems:
         reloadcache = WINDOW.getProperty("widgetreload")
         WINDOW.setProperty("skinhelper-nextepisodes-" + reloadcache, repr(allItems))
@@ -554,9 +532,9 @@ def buildNextAiredTvShowsListing(limit):
         nextairedTotal = int(nextairedTotal)
         for count in range(nextairedTotal):
             tvshow = WINDOW.getProperty("NextAired.%s.Label"%str(count))
-            json_result = getJSON('VideoLibrary.GetTvShows','{ "filter": {"operator":"is", "field":"title", "value":"%s"}, "properties": [ "title", "playcount", "plot", "file", "rating", "art", "year", "genre", "mpaa", "cast", "dateadded", "lastplayed" ] }' %tvshow)
-            if json_result.has_key('tvshows'):
-                item = json_result['tvshows'][0]
+            json_result = getJSON('VideoLibrary.GetTvShows','{ "filter": {"operator":"is", "field":"title", "value":"%s"}, "properties": [ %s ] }' %(tvshow,fields_tvshows))
+            if len(json_result) > 0:
+                item = json_result[0]
                 path = "videodb://tvshows/titles/%s/" %str(item["tvshowid"])
                 item["airtime"] = WINDOW.getProperty("NextAired.%s.AirTime"%str(count))
                 item["title"] = WINDOW.getProperty("NextAired.%s.NextTitle"%str(count))
@@ -624,24 +602,22 @@ def buildRecommendedMoviesListing(limit):
     count = 0
     allItems = []
     # First we get a list of all the in-progress Movies
-    json_result = getJSON('VideoLibrary.GetMovies','{ "sort": { "order": "descending", "method": "lastplayed" }, "filter": {"and": [{"operator":"true", "field":"inprogress", "value":""}]}, "properties": [ "title", "playcount", "plot", "file", "rating", "resume", "studio", "art", "streamdetails", "year", "runtime", "writer", "cast", "dateadded", "lastplayed" ] }')
+    json_result = getJSON('VideoLibrary.GetMovies','{ "sort": { "order": "descending", "method": "lastplayed" }, "filter": {"and": [{"operator":"true", "field":"inprogress", "value":""}]}, "properties": [ %s ] }' %fields_movies)
     # If we found any, find the oldest unwatched show for each one.
-    if json_result.has_key('movies'):
-        for item in json_result['movies']:
-            if count >= limit:
-                break
-            allItems.append(item)
-            count +=1
+    for item in json_result:
+        if count >= limit:
+            break
+        allItems.append(item)
+        count +=1
 
     # Fill the list with random items with a score higher then 7
-    json_result = getJSON('VideoLibrary.GetMovies','{ "sort": { "order": "descending", "method": "random" }, "filter": {"and": [{"operator":"is", "field":"playcount", "value":"0"},{"operator":"greaterthan", "field":"rating", "value":"7"}]}, "properties": [ "title", "playcount", "plot", "studio", "file", "rating", "resume", "art", "streamdetails", "year", "runtime", "writer", "cast", "dateadded", "lastplayed" ] }')
+    json_result = getJSON('VideoLibrary.GetMovies','{ "sort": { "order": "descending", "method": "random" }, "filter": {"and": [{"operator":"is", "field":"playcount", "value":"0"},{"operator":"greaterthan", "field":"rating", "value":"7"}]}, "properties": [ %s ] }' %fields_movies)
     # If we found any, find the oldest unwatched show for each one.
-    if json_result.has_key('movies'):
-        for item in json_result['movies']:
-            if count >= limit:
-                break
-            allItems.append(item)
-            count +=1
+    for item in json_result:
+        if count >= limit:
+            break
+        allItems.append(item)
+        count +=1
     if allItems:        
         reloadcache = WINDOW.getProperty("widgetreload")
         WINDOW.setProperty("skinhelper-recommendedmovies-" + reloadcache, repr(allItems))
@@ -653,22 +629,18 @@ def getSimilarMovies(limit):
     allTitles = list()
     xbmcplugin.setContent(int(sys.argv[1]), 'movies')
     #picks a random watched movie and finds similar movies in the library
-    json_query_string = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetMovies", "params": { "sort": { "order": "descending", "method": "random" }, "filter": {"operator":"isnot", "field":"playcount", "value":"0"}, "properties": [ "title", "rating", "genre"],"limits":{"end":1}}, "id": "1"}')
-    json_result = json.loads(json_query_string.decode('utf-8','replace'))
-    if json_result.has_key('result') and json_result['result'].has_key('movies'):
-        for item in json_result['result']['movies']:
-            genres = item["genre"]
-            originalTitle = item["title"]
-            #get all movies from the same genre
-            for genre in genres:
-                json_query_string = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetMovies", "params": { "sort": { "order": "descending", "method": "random" }, "filter": {"and": [{"operator":"is", "field":"genre", "value":"' + genre.encode('utf-8') + '"}, {"operator":"is", "field":"playcount", "value":"0"}]}, "properties": [ "title", "playcount", "plot", "file", "genre", "rating", "resume", "art", "streamdetails", "year", "mpaa", "runtime", "writer", "cast", "dateadded", "lastplayed", "tagline" ],"limits":{"end":10} }, "id": "1"}')
-                json_result = json.loads(json_query_string.decode('utf-8','replace'))
-                if json_result.has_key('result') and json_result['result'].has_key('movies'):
-                    for item in json_result['result']['movies']:
-                        if not item["title"] in allTitles and not item["title"] == originalTitle:
-                            rating = item["rating"]
-                            allItems.append((rating,item))
-                            allTitles.append(item["title"])
+    json_result = getJSON('VideoLibrary.GetMovies', '{ "sort": { "order": "descending", "method": "random" }, "filter": {"operator":"isnot", "field":"playcount", "value":"0"}, "properties": [ "title", "rating", "genre"],"limits":{"end":1}}')
+    for item in json_result:
+        genres = item["genre"]
+        originalTitle = item["title"]
+        #get all movies from the same genre
+        for genre in genres:
+            json_result = getJSON('VideoLibrary.GetMovies', '{ "sort": { "order": "descending", "method": "random" }, "filter": {"and": [{"operator":"is", "field":"genre", "value":"%s"}, {"operator":"is", "field":"playcount", "value":"0"}]}, "properties": [ %s ],"limits":{"end":10} }' %(genre,fields_movies))
+            for item in json_result:
+                if not item["title"] in allTitles and not item["title"] == originalTitle:
+                    rating = item["rating"]
+                    allItems.append((rating,item))
+                    allTitles.append(item["title"])
     
     #sort the list by rating 
     from operator import itemgetter
@@ -706,74 +678,58 @@ def buildRecommendedMediaListing(limit,ondeckContent=False,recommendedContent=Tr
 
         #netflix in progress
         if xbmc.getCondVisibility("System.HasAddon(plugin.video.netflixbmc) + Skin.HasSetting(SmartShortcuts.netflix)") and WINDOW.getProperty("netflixready") == "ready":
-            json_query_string = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "Files.GetDirectory", "params": { "directory": "plugin://plugin.video.netflixbmc/?mode=listSliderVideos&thumb&type=both&widget=true&url=slider_0", "media": "files", "properties": [ "title", "playcount", "plot", "file", "rating", "resume", "art", "streamdetails", "year", "mpaa", "runtime", "writer", "cast", "dateadded", "lastplayed", "tagline" ] }, "id": "1"}')
-            json_result = json.loads(json_query_string.decode('utf-8','replace'))
-            if json_result.has_key('result') and json_result['result'].has_key('files'):
-                for item in json_result['result']['files']:
-                    lastplayed = item["lastplayed"]
-                    if not item["title"] in allTitles:
-                        allOndeckItems.append((lastplayed,item))
-                        allTitles.append(item["title"])
-        
-        # Get a list of all the in-progress Movies
-        json_query_string = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetMovies", "params": { "sort": { "order": "descending", "method": "lastplayed" }, "filter": {"and": [{"operator":"true", "field":"inprogress", "value":""}]}, "properties": [ "title", "playcount", "plot", "file", "rating", "resume", "art", "streamdetails", "year", "mpaa", "runtime", "writer", "cast", "dateadded", "lastplayed", "tagline" ] }, "id": "1"}')
-        json_result = json.loads(json_query_string.decode('utf-8','replace'))
-        if json_result.has_key('result') and json_result['result'].has_key('movies'):
-            for item in json_result['result']['movies']:
+            json_result = getJSON('Files.GetDirectory', '{ "directory": "plugin://plugin.video.netflixbmc/?mode=listSliderVideos&thumb&type=both&widget=true&url=slider_0", "media": "files", "properties": [ %s ] }' %fields_files)
+            for item in json_result:
                 lastplayed = item["lastplayed"]
                 if not item["title"] in allTitles:
                     allOndeckItems.append((lastplayed,item))
                     allTitles.append(item["title"])
         
+        # Get a list of all the in-progress Movies
+        json_result = getJSON('VideoLibrary.GetMovies', '{ "sort": { "order": "descending", "method": "lastplayed" }, "filter": {"and": [{"operator":"true", "field":"inprogress", "value":""}]}, "properties": [ %s ] }' %fields_movies)
+        for item in json_result:
+            lastplayed = item["lastplayed"]
+            if not item["title"] in allTitles:
+                allOndeckItems.append((lastplayed,item))
+                allTitles.append(item["title"])
+        
         # Get a list of all the in-progress MusicVideos
-        json_query_string = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetMusicVideos", "params": { "sort": { "order": "descending", "method": "lastplayed" }, "limits": { "start" : 0, "end": 25 }, "properties": [ "title", "playcount", "plot", "file", "resume", "art", "streamdetails", "year", "runtime", "dateadded", "lastplayed" ] }, "id": "1"}')
-        json_result = json.loads(json_query_string.decode('utf-8','replace'))
-        if json_result.has_key('result') and json_result['result'].has_key('musicvideos'):
-            for item in json_result['result']['musicvideos']:
-                lastplayed = item["lastplayed"]
-                if not item["title"] in allTitles and item["resume"]["position"] != 0:
-                    allOndeckItems.append((lastplayed,item))
-                    allTitles.append(item["title"])
+        json_result = getJSON('VideoLibrary.GetMusicVideos', '{ "sort": { "order": "descending", "method": "lastplayed" }, "limits": { "start" : 0, "end": 25 }, "properties": [ %s ] }' %fields_musicvideos)
+        for item in json_result:
+            lastplayed = item["lastplayed"]
+            if not item["title"] in allTitles and item["resume"]["position"] != 0:
+                allOndeckItems.append((lastplayed,item))
+                allTitles.append(item["title"])
         
         # Get a list of all the in-progress music songs
-        json_query_string = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "AudioLibrary.GetRecentlyPlayedSongs", "params": { "sort": { "order": "descending", "method": "lastplayed" }, "limits": { "start" : 0, "end": 5 }, "properties": [ "artist", "title", "rating", "fanart", "thumbnail", "duration", "playcount", "comment", "file", "album", "lastplayed" ] }, "id": "1"}')
-        json_result = json.loads(json_query_string.decode('utf-8','replace'))
-        if json_result.has_key('result') and json_result['result'].has_key('songs'):
-            for item in json_result['result']['songs']:
-                lastplayed = item["lastplayed"]
-                if not item["title"] in allTitles and lastplayed and item["thumbnail"]:
-                    allOndeckItems.append((lastplayed,item))
-                    allTitles.append(item["title"])
+        json_result = getJSON('AudioLibrary.GetRecentlyPlayedSongs', '{ "sort": { "order": "descending", "method": "lastplayed" }, "limits": { "start" : 0, "end": 5 }, "properties": [ %s ] }' %fields_songs)
+        for item in json_result:
+            lastplayed = item["lastplayed"]
+            if not item["title"] in allTitles and lastplayed and item["thumbnail"]:
+                allOndeckItems.append((lastplayed,item))
+                allTitles.append(item["title"])
         
         # Get a list of all the in-progress tv recordings   
-        json_query_string = xbmc.executeJSONRPC('{"jsonrpc": "2.0",  "id": 1, "method": "PVR.GetRecordings", "params": {"properties": [ "title", "plot", "plotoutline", "genre", "playcount", "resume", "channel", "starttime", "endtime", "runtime", "lifetime", "icon", "art", "streamurl", "file", "directory" ]}}' )
-        json_result = json.loads(json_query_string.decode('utf-8','replace'))
-        if json_result.has_key('result') and json_result['result'].has_key('recordings'):
-            for item in json_result['result']['recordings']:
-                lastplayed = None
-                if not item["title"] in allTitles and item["playcount"] == 0:
-                    pvrArtCache,thumb,fanart,poster,logo = getPVRThumbs(pvrArtCache, item["title"], item["channel"])
-                    art = { 'poster': poster, 'fanart' : fanart, 'thumb': thumb }
-                    item["art"] = art
-                    allOndeckItems.append((lastplayed,item))
-                    allTitles.append(item["title"])
+        json_result = getJSON('PVR.GetRecordings', '{"properties": [ %s ]}' %fields_pvrrecordings)
+        for item in json_result:
+            lastplayed = None
+            if not item["title"] in allTitles and item["playcount"] == 0:
+                pvrArtCache,thumb,fanart,poster,logo = getPVRThumbs(pvrArtCache, item["title"], item["channel"])
+                art = { 'poster': poster, 'fanart' : fanart, 'thumb': thumb }
+                item["art"] = art
+                allOndeckItems.append((lastplayed,item))
+                allTitles.append(item["title"])
           
 
         # NextUp episodes
-        json_query_string = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetTVShows", "params": { "sort": { "order": "descending", "method": "lastplayed" }, "filter": {"and": [{"operator":"true", "field":"inprogress", "value":""}]}, "properties": [ "title", "studio", "mpaa", "file", "art" ] }, "id": "1"}')
-        json_result = json.loads(json_query_string.decode('utf-8','replace'))
-        # If we found any, find the oldest unwatched show for each one.
-        if json_result.has_key('result') and json_result['result'].has_key('tvshows'):
-            for item in json_result['result']['tvshows']:
-                json_query2 = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetEpisodes", "params": { "tvshowid": %d, "sort": {"method":"episode"}, "filter": {"and": [ {"field": "playcount", "operator": "lessthan", "value":"1"}, {"field": "season", "operator": "greaterthan", "value": "0"} ]}, "properties": [ "title", "playcount", "season", "episode", "showtitle", "plot", "file", "rating", "resume", "tvshowid", "art", "streamdetails", "firstaired", "runtime", "writer", "cast", "dateadded", "lastplayed" ], "limits":{"end":1}}, "id": "1"}' %item['tvshowid'])
-                if json_query2:
-                    json_query2 = json.loads(json_query2)
-                    if json_query2.has_key('result') and json_query2['result'].has_key('episodes'):
-                        for item in json_query2['result']['episodes']:
-                            lastplayed = item["lastplayed"]
-                            if not item["title"] in allTitles:
-                                allOndeckItems.append((lastplayed,item))
-                                allTitles.append(item["title"])         
+        json_result = getJSON('VideoLibrary.GetTVShows', '{ "sort": { "order": "descending", "method": "lastplayed" }, "filter": {"and": [{"operator":"true", "field":"inprogress", "value":""}]}, "properties": [ "title" ] }')
+        for item in json_result:
+            json_query2 = getJSON('VideoLibrary.GetEpisodes', '{ "tvshowid": %d, "sort": {"method":"episode"}, "filter": {"and": [ {"field": "playcount", "operator": "lessthan", "value":"1"}, {"field": "season", "operator": "greaterthan", "value": "0"} ]}, "properties": [ %s ], "limits":{"end":1}}' %(item['tvshowid'], fields_episodes))
+            for item in json_query2:
+                lastplayed = item["lastplayed"]
+                if not item["title"] in allTitles:
+                    allOndeckItems.append((lastplayed,item))
+                    allTitles.append(item["title"])         
         
         #sort the list with in progress items by lastplayed date   
         from operator import itemgetter
@@ -784,32 +740,25 @@ def buildRecommendedMediaListing(limit,ondeckContent=False,recommendedContent=Tr
         allRecommendedItems = []
                         
         # Random movies with a score higher then 7
-        json_query_string = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetMovies", "params": { "sort": { "order": "descending", "method": "random" }, "filter": {"and": [{"operator":"is", "field":"playcount", "value":"0"},{"operator":"greaterthan", "field":"rating", "value":"7"}]}, "properties": [ "title", "playcount", "plot", "file", "rating", "resume", "art", "genre", "streamdetails", "year", "runtime", "writer", "cast", "dateadded", "lastplayed" ], "limits":{"end":25} }, "id": "1"}')
-        json_result = json.loads(json_query_string.decode('utf-8','replace'))
-        if json_result.has_key('result') and json_result['result'].has_key('movies'):
-            for item in json_result['result']['movies']:
-                rating = item["rating"]
-                if not item["title"] in set(allTitles):
-                    allRecommendedItems.append((rating,item))
-                    allTitles.append(item["title"])
+        json_result = getJSON('VideoLibrary.GetMovies', '{ "sort": { "order": "descending", "method": "random" }, "filter": {"and": [{"operator":"is", "field":"playcount", "value":"0"},{"operator":"greaterthan", "field":"rating", "value":"7"}]}, "properties": [ %s ], "limits":{"end":25} }' %fields_movies)
+        for item in json_result:
+            rating = item["rating"]
+            if not item["title"] in set(allTitles):
+                allRecommendedItems.append((rating,item))
+                allTitles.append(item["title"])
                     
         # Random tvshows with a score higher then 7
-        json_query_string = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetTVShows", "params": { "sort": { "order": "descending", "method": "random" }, "filter": {"and": [{"operator":"is", "field":"playcount", "value":"0"},{"operator":"greaterthan", "field":"rating", "value":"7"}]}, "properties": [ "title", "playcount", "plot", "file", "rating", "art", "year", "genre", "mpaa", "cast", "dateadded", "lastplayed" ],"limits":{"end":25} }, "id": "1"}')
-        json_result = json.loads(json_query_string.decode('utf-8','replace'))
-        if json_result.has_key('result') and json_result['result'].has_key('tvshows'):
-            for item in json_result['result']['tvshows']:
-                rating = item["rating"]
-                if not item["title"] in set(allTitles):
-                    
-                    #get the first unwatched episode for this show
-                    json_query2 = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetEpisodes", "params": { "tvshowid": %d, "sort": {"method":"episode"}, "filter": {"and": [ {"field": "playcount", "operator": "lessthan", "value":"1"}, {"field": "season", "operator": "greaterthan", "value": "0"} ]}, "properties": [ "title", "file" ], "limits":{"end":1}}, "id": "1"}' %item['tvshowid'])
-                    if json_query2:
-                        json_query2 = json.loads(json_query2.decode('utf-8','replace'))
-                        if json_query2.has_key('result') and json_query2['result'].has_key('episodes'):
-                            item2 = json_query2['result']['episodes'][0]
-                            item["file"] = item2["file"]
-                            allRecommendedItems.append((rating,item))
-                            allTitles.append(item["title"])
+        json_result = getJSON('VideoLibrary.GetTVShows', '{ "sort": { "order": "descending", "method": "random" }, "filter": {"and": [{"operator":"is", "field":"playcount", "value":"0"},{"operator":"greaterthan", "field":"rating", "value":"7"}]}, "properties": [ %s ],"limits":{"end":25} }' %fields_tvshows)
+        for item in json_result:
+            rating = item["rating"]
+            if not item["title"] in set(allTitles):
+                
+                #get the first unwatched episode for this show
+                json_query2 = getJSON('VideoLibrary.GetEpisodes', '{ "tvshowid": %d, "sort": {"method":"episode"}, "filter": {"and": [ {"field": "playcount", "operator": "lessthan", "value":"1"}, {"field": "season", "operator": "greaterthan", "value": "0"} ]}, "properties": [ "title", "file" ], "limits":{"end":1}}' %item['tvshowid'])
+                if json_query2:
+                    item["file"] = json_query2[0]["file"]
+                    allRecommendedItems.append((rating,item))
+                    allTitles.append(item["title"])
                     
         #sort the list with recommended items by rating 
         from operator import itemgetter
@@ -910,59 +859,49 @@ def getRecentMedia(limit):
         pvrArtCache = {}
     
     # Get a list of all the recent Movies (unwatched and not in progress)
-    json_query_string = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetMovies", "params": { "sort": { "order": "descending", "method": "dateadded" }, "filter": {"and": [{"operator":"is", "field":"playcount", "value":"0"},{"operator":"false", "field":"inprogress", "value":""}]}, "properties": [ "title", "playcount", "studio", "plot", "file", "rating", "resume", "art", "streamdetails", "year", "mpaa", "runtime", "writer", "cast", "dateadded", "lastplayed", "tagline" ], "limits":{"end":15} }, "id": "1"}')
-    json_result = json.loads(json_query_string.decode('utf-8','replace'))
-    if json_result.has_key('result') and json_result['result'].has_key('movies'):
-        for item in json_result['result']['movies']:
-            dateadded = item["dateadded"]
-            if not item["title"] in allTitles:
-                allItems.append((dateadded,item))
-                allTitles.append(item["title"])
+    json_result = getJSON('VideoLibrary.GetMovies', '{ "sort": { "order": "descending", "method": "dateadded" }, "filter": {"and": [{"operator":"is", "field":"playcount", "value":"0"},{"operator":"false", "field":"inprogress", "value":""}]}, "properties": [ %s ], "limits":{"end":15} }' %fields_movies)
+    for item in json_result:
+        dateadded = item["dateadded"]
+        if not item["title"] in allTitles:
+            allItems.append((dateadded,item))
+            allTitles.append(item["title"])
     
     # Get a list of all the recent MusicVideos (unwatched and not in progress)
-    json_query_string = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetMusicVideos", "params": { "limits": { "start" : 0, "end": 15 },"sort": { "order": "descending", "method": "dateadded" }, "filter": {"operator":"is", "field":"playcount", "value":"0"}, "properties": [ "title", "playcount", "plot", "file", "resume", "art", "streamdetails", "year", "runtime", "dateadded", "lastplayed" ] }, "id": "1"}')
-    json_result = json.loads(json_query_string.decode('utf-8','replace'))
-    if json_result.has_key('result') and json_result['result'].has_key('musicvideos'):
-        for item in json_result['result']['musicvideos']:
-            dateadded = item["dateadded"]
-            if not item["title"] in allTitles and item["resume"]["position"] == 0:
-                allItems.append((dateadded,item))
-                allTitles.append(item["title"])
+    json_result = getJSON('VideoLibrary.GetMusicVideos', '{ "limits": { "start" : 0, "end": 15 },"sort": { "order": "descending", "method": "dateadded" }, "filter": {"operator":"is", "field":"playcount", "value":"0"}, "properties": [ %s ] }' %fields_musicvideos)
+    for item in json_result:
+        dateadded = item["dateadded"]
+        if not item["title"] in allTitles and item["resume"]["position"] == 0:
+            allItems.append((dateadded,item))
+            allTitles.append(item["title"])
     
     # Get a list of all the recent music songs
-    json_query_string = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "AudioLibrary.GetSongs", "params": { "limits": { "start" : 0, "end": 15 }, "sort": {"order": "descending", "method": "dateadded" }, "filter": {"operator":"is", "field":"playcount", "value":"0"}, "properties": [ "artist", "title", "rating", "fanart", "thumbnail", "duration", "playcount", "comment", "file", "album", "lastplayed" ] }, "id": "1"}')
-    json_result = json.loads(json_query_string.decode('utf-8','replace'))
-    if json_result.has_key('result') and json_result['result'].has_key('songs'):
-        for item in json_result['result']['songs']:
-            dateadded = ""
-            if not item["title"] in allTitles and item["thumbnail"]:
-                allItems.append((dateadded,item))
-                allTitles.append(item["title"])
+    json_result = getJSON('AudioLibrary.GetSongs', '{ "limits": { "start" : 0, "end": 15 }, "sort": {"order": "descending", "method": "dateadded" }, "filter": {"operator":"is", "field":"playcount", "value":"0"}, "properties": [ %s ] }' %fields_songs)
+    for item in json_result:
+        dateadded = ""
+        if not item["title"] in allTitles and item["thumbnail"]:
+            allItems.append((dateadded,item))
+            allTitles.append(item["title"])
     
     
     # Get a list of all the recent episodes (unwatched and not in progress)
-    json_query_string = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetEpisodes", "params": { "sort": { "order": "descending", "method": "dateadded" }, "filter": {"and": [{"operator":"is", "field":"playcount", "value":"0"},{"operator":"false", "field":"inprogress", "value":""}]}, "properties": [ "title", "playcount", "season", "episode", "showtitle", "plot", "file", "rating", "resume", "tvshowid", "art", "streamdetails", "firstaired", "runtime", "writer", "cast", "dateadded", "lastplayed" ], "limits":{"end":15} }, "id": "1"}')
-    json_result = json.loads(json_query_string.decode('utf-8','replace'))
-    if json_result.has_key('result') and json_result['result'].has_key('episodes'):
-        for item in json_result['result']['episodes']:
-            dateadded = item["dateadded"]
-            if not item["title"] in allTitles:
-                allItems.append((dateadded,item))
-                allTitles.append(item["title"])
+    json_result = getJSON('VideoLibrary.GetEpisodes', '{ "sort": { "order": "descending", "method": "dateadded" }, "filter": {"and": [{"operator":"is", "field":"playcount", "value":"0"},{"operator":"false", "field":"inprogress", "value":""}]}, "properties": [ %s ], "limits":{"end":15} }' %fields_episodes)
+    for item in json_result:
+        dateadded = item["dateadded"]
+        if not item["title"] in allTitles:
+            allItems.append((dateadded,item))
+            allTitles.append(item["title"])
             
     
     # Get a list of all the unwatched tv recordings   
-    json_query_string = xbmc.executeJSONRPC('{"jsonrpc": "2.0",  "id": 1, "method": "PVR.GetRecordings", "params": {"properties": [ "title", "plot", "plotoutline", "genre", "playcount", "resume", "channel", "starttime", "endtime", "runtime", "lifetime", "icon", "art", "streamurl", "file", "directory" ]}}' )
-    json_result = json.loads(json_query_string.decode('utf-8','replace'))
-    if json_result.has_key('result') and json_result['result'].has_key('recordings'):
-        for item in json_result['result']['recordings']:
-            lastplayed = item["endtime"]
-            if not item["title"] in allTitles and item["playcount"] == 0:
-                pvrArtCache,thumb,fanart,poster,logo = getPVRThumbs(pvrArtCache, item["title"], item["channel"])
-                art = { 'poster': poster, 'fanart' : fanart, 'thumb': thumb }
-                item["art"] = art
-                allItems.append((lastplayed,item))
-                allTitles.append(item["title"])
+    json_result = getJSON('PVR.GetRecordings', '{"properties": [ %s ]}' %fields_pvrrecordings)
+    for item in json_result:
+        lastplayed = item["endtime"]
+        if not item["title"] in allTitles and item["playcount"] == 0:
+            pvrArtCache,thumb,fanart,poster,logo = getPVRThumbs(pvrArtCache, item["title"], item["channel"])
+            art = { 'poster': poster, 'fanart' : fanart, 'thumb': thumb }
+            item["art"] = art
+            allItems.append((lastplayed,item))
+            allTitles.append(item["title"])
     
     #sort the list with in recent items by lastplayed date   
     from operator import itemgetter
@@ -981,7 +920,6 @@ def getRecentMedia(limit):
     
     xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
 
- 
 def getFavouriteMedia(limit):
     count = 0
     allItems = []
@@ -990,108 +928,90 @@ def getFavouriteMedia(limit):
     
     #netflix favorites
     if xbmc.getCondVisibility("System.HasAddon(plugin.video.netflixbmc) + Skin.HasSetting(SmartShortcuts.netflix)") and WINDOW.getProperty("netflixready") == "ready":
-        json_query_string = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "Files.GetDirectory", "params": { "directory": "plugin://plugin.video.netflixbmc/?mode=listSliderVideos&thumb&type=both&widget=true&url=slider_38", "media": "files", "properties": [ "title", "playcount", "plot", "file", "rating", "resume", "art", "streamdetails", "year", "mpaa", "runtime", "writer", "cast", "dateadded", "lastplayed", "tagline" ] }, "id": "1"}')
-        json_result = json.loads(json_query_string.decode('utf-8','replace'))
-        if json_result.has_key('result') and json_result['result'].has_key('files'):
-            for item in json_result['result']['files']:
-                liz = createListItem(item)
-                xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=item['file'], listitem=liz)
+        json_result = getJSON('Files.GetDirectory', '{ "directory": "plugin://plugin.video.netflixbmc/?mode=listSliderVideos&thumb&type=both&widget=true&url=slider_38", "media": "files", "properties": [ %s ] }' %fields_files)
+        for item in json_result:
+            liz = createListItem(item)
+            xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=item['file'], listitem=liz)
     
     #emby favorites
     if xbmc.getCondVisibility("System.HasAddon(plugin.video.emby) + Skin.HasSetting(SmartShortcuts.emby)"):
-        json_query_string = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetMovies", "params": { "filter": {"operator":"contains", "field":"tag", "value":"Favorite movies"}, "properties": [ "title", "playcount", "plot", "file", "rating", "resume", "art", "streamdetails", "year", "mpaa", "runtime", "writer", "cast", "dateadded", "lastplayed", "tagline" ] }, "id": "1"}')
-        json_result = json.loads(json_query_string.decode('utf-8','replace'))
-        if json_result.has_key('result') and json_result['result'].has_key('movies'):
-            for item in json_result['result']['movies']:
-                liz = createListItem(item)
-                xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=item['file'], listitem=liz)
+        json_result = getJSON('VideoLibrary.GetMovies', '{ "filter": {"operator":"contains", "field":"tag", "value":"Favorite movies"}, "properties": [ %s ] }' %fields_movies)
+        for item in json_result:
+            liz = createListItem(item)
+            xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=item['file'], listitem=liz)
         
-        json_query_string = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetTvShows", "params": { "filter": {"operator":"contains", "field":"tag", "value":"Favorite tvshows"}, "properties": [ "title", "playcount", "plot", "file", "rating", "art", "premiered", "genre", "cast", "dateadded", "lastplayed" ] }, "id": "1"}')
-        json_result = json.loads(json_query_string.decode('utf-8','replace'))
-        if json_result.has_key('result') and json_result['result'].has_key('tvshows'):
-            for item in json_result['result']['tvshows']:
-                liz = createListItem(item)
-                tvshowpath = "ActivateWindow(Videos,videodb://tvshows/titles/%s/,return)" %str(item["tvshowid"])
-                tvshowpath="plugin://script.skin.helper.service?LAUNCHAPP&&&" + tvshowpath
-                liz.setProperty('IsPlayable', 'false')
-                xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=tvshowpath, listitem=liz)
+        json_result = getJSON('VideoLibrary.GetTvShows', '{ "filter": {"operator":"contains", "field":"tag", "value":"Favorite tvshows"}, "properties": [ %s ] }' %fields_tvshows)
+        for item in json_result:
+            liz = createListItem(item)
+            tvshowpath = "ActivateWindow(Videos,videodb://tvshows/titles/%s/,return)" %str(item["tvshowid"])
+            tvshowpath="plugin://script.skin.helper.service?LAUNCHAPP&&&" + tvshowpath
+            liz.setProperty('IsPlayable', 'false')
+            xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=tvshowpath, listitem=liz)
+    
+    #Kodi favourites
+    json_result = getJSON('Favourites.GetFavourites', '{"type": null, "properties": ["path", "thumbnail", "window", "windowparameter"]}')
+    for fav in json_result:
+        matchFound = False
+        if "windowparameter" in fav:
+            if fav["windowparameter"].startswith("videodb://tvshows/titles"):
+                #it's a tv show
+                try:
+                    tvshowid = int(fav["windowparameter"].split("/")[-2])
+                except: continue
+                json_result = getJSON('VideoLibrary.GetTVShowDetails', '{ "tvshowid": %d, "properties": [ %s ]}' %(tvshowid, fields_tvshows))
+                if json_result:
+                    matchFound = True
+                    liz = createListItem(json_result)
+                    tvshowpath = "ActivateWindow(Videos,%s,return)" %fav["windowparameter"]
+                    tvshowpath="plugin://script.skin.helper.service?LAUNCHAPP&&&" + tvshowpath
+                    liz.setProperty('IsPlayable', 'false')
+                    xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=tvshowpath, listitem=liz)                   
+        if fav["type"] == "media":
+            path = fav["path"]
+            if isinstance(path, unicode):
+                path = path.encode("utf-8")
+            if "/" in path:
+                sep = "/"
+            else:
+                sep = "\\"
+            path = try_decode(path)
+            pathpart = path.split(sep)[-1] #apparently only the filename can be used for the search
+            #is this a movie?
+            json_result = getJSON('VideoLibrary.GetMovies', '{ "filter": {"operator":"contains", "field":"filename", "value":"%s"}, "properties": [ %s ] }' %(pathpart,fields_movies))
+            for item in json_result:
+                if item['file'] == path:
+                    matchFound = True
+                    liz = createListItem(item)
+                    xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=item['file'], listitem=liz)
             
-    json_query_string = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "Favourites.GetFavourites", "params": {"type": null, "properties": ["path", "thumbnail", "window", "windowparameter"]}, "id": "1"}')
-    json_result = json.loads(json_query_string.decode('utf-8','replace'))
-    if json_result.has_key('result'):
-        if json_result['result'].has_key('favourites') and json_result['result']['favourites']:
-            for fav in json_result['result']['favourites']:
-                matchFound = False
-                if "windowparameter" in fav:
-                    if fav["windowparameter"].startswith("videodb://tvshows/titles"):
-                        #it's a tv show
-                        try:
-                            tvshowid = int(fav["windowparameter"].split("/")[-2])
-                        except: continue
-                        json_query_string = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetTVShowDetails", "params": { "tvshowid": %d, "properties": [ "title", "playcount", "plot", "file", "rating", "art", "premiered", "genre", "cast", "dateadded", "lastplayed" ]}, "id": "1"}' %tvshowid)
-                        json_result = json.loads(json_query_string.decode('utf-8','replace'))
-                        if json_result.has_key('result') and json_result['result'].has_key('tvshowdetails'):
-                            matchFound = True
-                            item = json_result['result']["tvshowdetails"]
-                            liz = createListItem(item)
-                            tvshowpath = "ActivateWindow(Videos,%s,return)" %fav["windowparameter"]
-                            tvshowpath="plugin://script.skin.helper.service?LAUNCHAPP&&&" + tvshowpath
-                            liz.setProperty('IsPlayable', 'false')
-                            xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=tvshowpath, listitem=liz)                   
-                if fav["type"] == "media":
-                    path = fav["path"]
-                    if isinstance(path, unicode):
-                        path = path.encode("utf-8")
-                    if "/" in path:
-                        sep = "/"
-                    else:
-                        sep = "\\"
-                    path = try_decode(path)
-                    pathpart = path.split(sep)[-1] #apparently only the filename can be used for the search
-                    #is this a movie?
-                    json_query_string = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetMovies", "params": { "filter": {"operator":"contains", "field":"filename", "value":"' + pathpart + '"}, "properties": [ "title", "playcount", "plot", "file", "rating", "resume", "art", "streamdetails", "year", "mpaa", "runtime", "writer", "cast", "dateadded", "lastplayed", "tagline" ] }, "id": "1"}')
-                    json_result = json.loads(json_query_string.decode('utf-8','replace'))
-                    if json_result.has_key('result') and json_result['result'].has_key('movies'):
-                        for item in json_result['result']['movies']:
-                            if item['file'] == path:
-                                matchFound = True
-                                liz = createListItem(item)
-                                xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=item['file'], listitem=liz)
-                    
-                    if matchFound == False:
-                        #is this an episode ?
-                        json_query_string = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetEpisodes", "params": { "filter": {"operator":"contains", "field":"filename", "value":"' + pathpart + '"}, "properties": [ "title", "playcount", "season", "episode", "showtitle", "plot", "file", "rating", "resume", "tvshowid", "art", "streamdetails", "firstaired", "runtime", "writer", "cast", "dateadded", "lastplayed" ] }, "id": "1"}')
-                        json_result = json.loads(json_query_string.decode('utf-8','replace'))
-                        if json_result.has_key('result') and json_result['result'].has_key('episodes'):
-                            for item in json_result['result']['episodes']:
-                                if item['file'] == path:
-                                    matchFound = True
-                                    liz = createListItem(item)
-                                    xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=item['file'], listitem=liz)
-                    if matchFound == False:
-                        #is this a song?
-                        json_query_string = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "AudioLibrary.GetSongs", "params": { "filter": {"operator":"contains", "field":"filename", "value":"' + pathpart + '"}, "properties": [ "artist", "title", "rating", "fanart", "thumbnail", "duration", "playcount", "comment", "file", "album", "lastplayed" ] }, "id": "1"}')
-                        json_result = json.loads(json_query_string.decode('utf-8','replace'))
-                        if json_result.has_key('result') and json_result['result'].has_key('songs'):
-                            for item in json_result['result']['songs']:
-                                if item['file'] == path:
-                                    matchFound = True
-                                    liz = createListItem(item)
-                                    xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=item['file'], listitem=liz)
-                                    
-                    if matchFound == False:
-                        #is this a musicvideo?
-                        json_query_string = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetMusicVideos", "params": { "filter": {"operator":"contains", "field":"filename", "value":"' + pathpart + '"}, "properties": [ "title", "playcount", "plot", "file", "resume", "art", "streamdetails", "year", "runtime", "dateadded", "lastplayed" ] }, "id": "1"}')
-                        json_result = json.loads(json_query_string.decode('utf-8','replace'))
-                        if json_result.has_key('result') and json_result['result'].has_key('musicvideos'):
-                            for item in json_result['result']['musicvideos']:
-                                if item['file'] == path:
-                                    matchFound = True
-                                    liz = createListItem(item)
-                                    xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=item['file'], listitem=liz)
-                    
-                    if matchFound:
-                        count +=1
+            if matchFound == False:
+                #is this an episode ?
+                json_result = getJSON('VideoLibrary.GetEpisodes', '{ "filter": {"operator":"contains", "field":"filename", "value":"%s"}, "properties": [ %s ] }' %(pathpart,fields_episodes))
+                for item in json_result:
+                    if item['file'] == path:
+                        matchFound = True
+                        liz = createListItem(item)
+                        xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=item['file'], listitem=liz)
+            if matchFound == False:
+                #is this a song?
+                json_result = getJSON('AudioLibrary.GetSongs', '{ "filter": {"operator":"contains", "field":"filename", "value":"%s"}, "properties": [ %s ] }' %(pathpart, fields_songs))
+                for item in json_result:
+                    if item['file'] == path:
+                        matchFound = True
+                        liz = createListItem(item)
+                        xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=item['file'], listitem=liz)
+                            
+            if matchFound == False:
+                #is this a musicvideo?
+                json_result = getJSON('VideoLibrary.GetMusicVideos', '{ "filter": {"operator":"contains", "field":"filename", "value":"%s"}, "properties": [ %s ] }' %(pathpart, fields_musicvideos))
+                for item in json_result:
+                    if item['file'] == path:
+                        matchFound = True
+                        liz = createListItem(item)
+                        xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=item['file'], listitem=liz)
+            
+            if matchFound:
+                count +=1
         xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
         if count > 0:
             WINDOW.setProperty("widget.favouritemedia.hascontent", "true")
@@ -1131,39 +1051,27 @@ def getCast(movie=None,tvshow=None,movieset=None):
         #retrieve data from json api...
     
         if movie and itemId:
-            json_query_string = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetMovieDetails", "params": { "movieid": %d, "properties": [ "title", "cast" ] }, "id": "1"}' %itemId)
-            json_result = json.loads(json_query_string.decode('utf-8','replace'))
-            if json_result.has_key('result') and json_result['result'].has_key('moviedetails'):
-                item = json_result['result']['moviedetails']
+            json_result = getJSON('VideoLibrary.GetMovieDetails', '{ "movieid": %d, "properties": [ "title", "cast" ] }' %itemId)
+            if json_result: item = json_result
         elif movie and not itemId:
-            json_query_string = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetMovies", "params": { "filter": {"operator":"is", "field":"title", "value":"%s"}, "properties": [ "title", "cast" ] }, "id": "1"}' %movie)
-            json_result = json.loads(json_query_string.decode('utf-8','replace'))
-            if json_result.has_key('result') and json_result['result'].has_key('movies'):
-                item = json_result['result']['movies'][0]
+            json_result = getJSON('VideoLibrary.GetMovies', '{ "filter": {"operator":"is", "field":"title", "value":"%s"}, "properties": [ "title", "cast" ] }' %movie)
+            if json_result: item = json_result[0]
         elif tvshow and itemId:
-            json_query_string = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetTVShowDetails", "params": { "tvshowid": %d, "properties": [ "title", "cast" ] }, "id": "1"}' %itemId)
-            json_result = json.loads(json_query_string.decode('utf-8','replace'))
-            if json_result.has_key('result') and json_result['result'].has_key('tvshowdetails'):
-                item = json_result['result']['tvshowdetails']
+            json_result = getJSON('VideoLibrary.GetTVShowDetails', '{ "tvshowid": %d, "properties": [ "title", "cast" ] }' %itemId)
+            if json_result: item = json_result
         elif tvshow and not itemId:
-            json_query_string = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetTvShows", "params": { "filter": {"operator":"is", "field":"title", "value":"%s"}, "properties": [ "title", "cast" ] }, "id": "1"}' %tvshow)
-            json_result = json.loads(json_query_string.decode('utf-8','replace'))
-            if json_result.has_key('result') and json_result['result'].has_key('tvshows'):
-                item = json_result['result']['tvshows'][0]
+            json_result = getJSON('VideoLibrary.GetTvShows', '{ "filter": {"operator":"is", "field":"title", "value":"%s"}, "properties": [ "title", "cast" ] }' %tvshow)
+            if json_result: item = json_result[0]
         elif movieset and itemId:
-            json_query_string = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetMovieSetDetails", "params": { "setid": %d, "properties": [ "title" ] }, "id": "1"}' %itemId)
-            json_result = json.loads(json_query_string.decode('utf-8','replace'))
-            if json_result.has_key('result') and json_result['result'].has_key('setdetails'):
-                movieset = json_result['result']['setdetails']
-                if movieset.has_key("movies"):
-                    moviesetmovies = movieset['movies']      
+            json_result = getJSON('VideoLibrary.GetMovieSetDetails', '{ "setid": %d, "properties": [ "title" ] }' %itemId)
+            if json_result.has_key("movies"): moviesetmovies = json_result['movies']      
         elif movieset and not itemId:
-            json_query_string = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetMovieSets", "params": { "filter": {"operator":"is", "field":"title", "value":"%s"}, "properties": [ "title" ] }, "id": "1"}' %tvshow)
-            json_result = json.loads(json_query_string.decode('utf-8','replace'))
-            if json_result.has_key('result') and json_result['result'].has_key('sets '):
-                movieset = json_result['result']['sets '][0]
+            json_result = getJSON('VideoLibrary.GetMovieSets', '{ "filter": {"operator":"is", "field":"title", "value":"%s"}, "properties": [ "title" ] }' %tvshow)
+            if json_result: 
+                movieset = json_result[0]
                 if movieset.has_key("movies"):
                     moviesetmovies = movieset['movies']
+        
         
         #process cast for regular movie or show
         if item and item.has_key("cast"):
@@ -1178,11 +1086,9 @@ def getCast(movie=None,tvshow=None,movieset=None):
         elif moviesetmovies:
             moviesetCastList = []
             for setmovie in moviesetmovies:
-                json_query_string = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetMovieDetails", "params": { "movieid": %d, "properties": [ "title", "cast" ] }, "id": "1"}' %setmovie["movieid"])
-                json_result = json.loads(json_query_string.decode('utf-8','replace'))
-                if json_result.has_key('result') and json_result['result'].has_key('moviedetails'):
-                    item = json_result['result']['moviedetails']
-                    for cast in item["cast"]:
+                json_result = getJSON('VideoLibrary.GetMovieDetails', '{ "movieid": %d, "properties": [ "title", "cast" ] }' %setmovie["movieid"])
+                if json_result:
+                    for cast in json_result["cast"]:
                         if not cast["name"] in moviesetCastList:
                             liz = xbmcgui.ListItem(label=cast["name"],label2=cast["role"],iconImage=cast["thumbnail"])
                             liz.setProperty('IsPlayable', 'false')

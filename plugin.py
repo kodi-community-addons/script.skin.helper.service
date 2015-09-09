@@ -13,11 +13,11 @@ class Main:
     
     def __init__(self):
         
-        logMsg('started loading pluginentry',0)
+        logMsg('started loading pluginentry')
         
         #get params
         params = urlparse.parse_qs(sys.argv[2][1:])
-        logMsg("Parameter string: %s" % sys.argv[2],0)
+        logMsg("Parameter string: %s" % sys.argv[2])
         
         if params:        
             path=params.get("path",None)

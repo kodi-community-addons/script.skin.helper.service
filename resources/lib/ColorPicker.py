@@ -158,12 +158,15 @@ class ColorPicker(xbmcgui.WindowXMLDialog):
             colorname = ADDON.getLocalizedString(32013)
             xbmc.executebuiltin("Skin.SetString(" + self.skinString + '.name,'+ colorname + ')')
             xbmc.executebuiltin("Skin.SetString(" + self.skinString + ',None)')
+            xbmc.executebuiltin("Skin.Reset(" + self.skinString + '.base)')
             self.closeDialog()
         elif controlID == 3012:
             #save button clicked
             if self.skinString and colorstring:
                 xbmc.executebuiltin("Skin.SetString(" + self.skinString + '.name,'+ colorname + ')')
+                colorbase = "ff" + colorstring[2:]
                 xbmc.executebuiltin("Skin.SetString(" + self.skinString + ','+ colorstring + ')')
+                xbmc.executebuiltin("Skin.SetString(" + self.skinString + '.base,'+ colorbase + ')')
                 self.closeDialog()
           
         elif controlID == 3015:

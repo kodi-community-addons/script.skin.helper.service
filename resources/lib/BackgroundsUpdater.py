@@ -74,7 +74,7 @@ class BackgroundsUpdater(threading.Thread):
                     backgroundDelay = 30
                 
                 # force refresh smart shortcuts when skin settings launched (so user sees any newly added smartshortcuts)
-                currentWindow = xbmc.getInfoLabel("$INFO[Window.Property(xmlfile)]")
+                currentWindow = WINDOW.getProperty("xmlfile")
                 if ("skinshortcuts.xml" in currentWindow or "SkinSettings" in currentWindow) and currentWindow != self.lastWindow and self.refreshSmartshortcuts == False:
                     self.lastWindow = currentWindow
                     self.refreshSmartshortcuts = True
@@ -168,25 +168,17 @@ class BackgroundsUpdater(threading.Thread):
                 media_array = getJSON(customJson[0],customJson[1])
             else:
                 media_array = getJSON('Files.GetDirectory','{ "properties": ["title","art"], "directory": "%s", "media": "files", "limits": {"end":150}, "sort": { "order": "ascending", "method": "random", "ignorearticle": true } }' %libPath)
-            if media_array:
-                keyname = None
-                mediaTypes = ["files","movies","tvshows","episodes","artists","musicvideos","video"]
-                for key in media_array:
-                    if key in mediaTypes:
-                        keyname = key
-                        break
-                if keyname and media_array.has_key(keyname):
-                    for media in media_array[keyname]:
-                        if media.has_key('art') and not media['title'].lower() == "next page":
-                            if media['art'].has_key('fanart'):
-                                image = media['art']['fanart']
-                                images.append(image)
-                            if media['art'].has_key('tvshow.fanart'):
-                                image = media['art']['tvshow.fanart']
-                                images.append(image)
+            for media in media_array:
+                if media.has_key('art') and not media['title'].lower() == "next page":
+                    if media['art'].has_key('fanart'):
+                        image = media['art']['fanart']
+                        images.append(image)
+                    if media['art'].has_key('tvshow.fanart'):
+                        image = media['art']['tvshow.fanart']
+                        images.append(image)
             else:
                 logMsg("media array empty or error so add this path to blacklist..." + libPath)
-                if libPath.startswith("musicdb://") or libPath.startswith("videodb://") or libPath.startswith("library://") or libPath.endswith(".xsp") or libPath.startswith("plugin://plugin.video.emby"):
+                if customJson or libPath.startswith("musicdb://") or libPath.startswith("videodb://") or libPath.startswith("library://") or libPath.endswith(".xsp") or libPath.startswith("plugin://plugin.video.emby"):
                     #addpath to temporary blacklist
                     self.tempBlacklist.add(libPath)
                     WINDOW.setProperty(windowProp, image)
@@ -243,42 +235,41 @@ class BackgroundsUpdater(threading.Thread):
                 else:
                     #load picture sources
                     media_array = getJSON('Files.GetSources','{"media": "pictures"}')
-                    if(media_array != None and media_array.has_key('sources')):
-                        for source in media_array['sources']:
-                            if source.has_key('file'):
-                                if not "plugin://" in source["file"]:
-                                    dirs, files = xbmcvfs.listdir(source["file"])
-                                    if dirs:
-                                        #pick 10 random dirs
-                                        randomdirs = []
-                                        randomdirs.append(os.path.join(source["file"],random.choice(dirs)))
-                                        randomdirs.append(os.path.join(source["file"],random.choice(dirs)))
-                                        randomdirs.append(os.path.join(source["file"],random.choice(dirs)))
-                                        randomdirs.append(os.path.join(source["file"],random.choice(dirs)))
-                                        randomdirs.append(os.path.join(source["file"],random.choice(dirs)))
-                                        randomdirs.append(os.path.join(source["file"],random.choice(dirs)))
-                                        randomdirs.append(os.path.join(source["file"],random.choice(dirs)))
-                                        randomdirs.append(os.path.join(source["file"],random.choice(dirs)))
-                                        randomdirs.append(os.path.join(source["file"],random.choice(dirs)))
-                                        randomdirs.append(os.path.join(source["file"],random.choice(dirs)))
-                                        
-                                        #pick 5 images from each dir
-                                        for dir in randomdirs:
-                                            subdirs, files = xbmcvfs.listdir(dir)
-                                            count = 0
-                                            for file in files:
-                                                if ((file.endswith(".jpg") or file.endswith(".png") or file.endswith(".JPG") or file.endswith(".PNG")) and count < 5):
-                                                    image = os.path.join(dir,file)
-                                                    images.append(image)
-                                                    count += 1
-                                    if files:
-                                        #pick 10 images from root
+                    for source in media_array:
+                        if source.has_key('file'):
+                            if not "plugin://" in source["file"]:
+                                dirs, files = xbmcvfs.listdir(source["file"])
+                                if dirs:
+                                    #pick 10 random dirs
+                                    randomdirs = []
+                                    randomdirs.append(os.path.join(source["file"],random.choice(dirs)))
+                                    randomdirs.append(os.path.join(source["file"],random.choice(dirs)))
+                                    randomdirs.append(os.path.join(source["file"],random.choice(dirs)))
+                                    randomdirs.append(os.path.join(source["file"],random.choice(dirs)))
+                                    randomdirs.append(os.path.join(source["file"],random.choice(dirs)))
+                                    randomdirs.append(os.path.join(source["file"],random.choice(dirs)))
+                                    randomdirs.append(os.path.join(source["file"],random.choice(dirs)))
+                                    randomdirs.append(os.path.join(source["file"],random.choice(dirs)))
+                                    randomdirs.append(os.path.join(source["file"],random.choice(dirs)))
+                                    randomdirs.append(os.path.join(source["file"],random.choice(dirs)))
+                                    
+                                    #pick 5 images from each dir
+                                    for dir in randomdirs:
+                                        subdirs, files = xbmcvfs.listdir(dir)
                                         count = 0
                                         for file in files:
-                                            if ((file.endswith(".jpg") or file.endswith(".png") or file.endswith(".JPG") or file.endswith(".PNG")) and count < 10):
-                                                image = os.path.join(source["file"],file)
+                                            if ((file.endswith(".jpg") or file.endswith(".png") or file.endswith(".JPG") or file.endswith(".PNG")) and count < 5):
+                                                image = os.path.join(dir,file)
                                                 images.append(image)
                                                 count += 1
+                                if files:
+                                    #pick 10 images from root
+                                    count = 0
+                                    for file in files:
+                                        if ((file.endswith(".jpg") or file.endswith(".png") or file.endswith(".JPG") or file.endswith(".PNG")) and count < 10):
+                                            image = os.path.join(source["file"],file)
+                                            images.append(image)
+                                            count += 1
                 
                 #store images in the cache
                 self.allBackgrounds["pictures"] = images
@@ -416,32 +407,31 @@ class BackgroundsUpdater(threading.Thread):
                     for playlistpath in paths:
                         media_array = None
                         media_array = getJSON('Files.GetDirectory','{ "directory": "%s", "media": "files" }' % playlistpath[0] )
-                        if media_array != None and media_array.has_key('files'):
-                            for item in media_array['files']:
-                                if item["file"].endswith(".xsp"):
-                                    playlist = item["file"]
-                                    contents = xbmcvfs.File(playlist, 'r')
-                                    contents_data = contents.read().decode('utf-8')
-                                    contents.close()
-                                    xmldata = xmltree.fromstring(contents_data.encode('utf-8'))
-                                    type = "unknown"
-                                    label = item["label"]
-                                    if self.setImageFromPath("playlist." + str(playlistCount) + ".image",playlist):
-                                        for line in xmldata.getiterator():
-                                            if line.tag == "smartplaylist":
-                                                type = line.attrib['type']
-                                            if line.tag == "name":
-                                                label = line.text
-                                        path = "ActivateWindow(%s,%s,return)" %(playlistpath[1],playlist)
-                                        WINDOW.setProperty("playlist." + str(playlistCount) + ".label", label)
-                                        WINDOW.setProperty("playlist." + str(playlistCount) + ".title", label)
-                                        WINDOW.setProperty("playlist." + str(playlistCount) + ".action", path)
-                                        WINDOW.setProperty("playlist." + str(playlistCount) + ".path", path)
-                                        WINDOW.setProperty("playlist." + str(playlistCount) + ".content", playlist)
-                                        WINDOW.setProperty("playlist." + str(playlistCount) + ".type", type)
-                                        allSmartShortcuts.append("playlist." + str(playlistCount) )
-                                        playlists.append( (playlistCount, label, path, playlist, type ))
-                                        playlistCount += 1
+                        for item in media_array:
+                            if item["file"].endswith(".xsp"):
+                                playlist = item["file"]
+                                contents = xbmcvfs.File(playlist, 'r')
+                                contents_data = contents.read().decode('utf-8')
+                                contents.close()
+                                xmldata = xmltree.fromstring(contents_data.encode('utf-8'))
+                                type = "unknown"
+                                label = item["label"]
+                                if self.setImageFromPath("playlist." + str(playlistCount) + ".image",playlist):
+                                    for line in xmldata.getiterator():
+                                        if line.tag == "smartplaylist":
+                                            type = line.attrib['type']
+                                        if line.tag == "name":
+                                            label = line.text
+                                    path = "ActivateWindow(%s,%s,return)" %(playlistpath[1],playlist)
+                                    WINDOW.setProperty("playlist." + str(playlistCount) + ".label", label)
+                                    WINDOW.setProperty("playlist." + str(playlistCount) + ".title", label)
+                                    WINDOW.setProperty("playlist." + str(playlistCount) + ".action", path)
+                                    WINDOW.setProperty("playlist." + str(playlistCount) + ".path", path)
+                                    WINDOW.setProperty("playlist." + str(playlistCount) + ".content", playlist)
+                                    WINDOW.setProperty("playlist." + str(playlistCount) + ".type", type)
+                                    allSmartShortcuts.append("playlist." + str(playlistCount) )
+                                    playlists.append( (playlistCount, label, path, playlist, type ))
+                                    playlistCount += 1
                     
                     self.smartShortcuts["playlists"] = playlists
             except Exception as e:

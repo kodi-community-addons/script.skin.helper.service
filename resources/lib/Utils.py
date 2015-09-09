@@ -24,6 +24,16 @@ KODI_VERSION  = int(xbmc.getInfoLabel( "System.BuildVersion" ).split(".")[0])
 WINDOW = xbmcgui.Window(10000)
 SETTING = ADDON.getSetting
 
+fields_base = '"dateadded", "file", "lastplayed","plot", "title", "art", "playcount",'
+fields_file = fields_base + '"streamdetails", "director", "resume", "runtime",'
+fields_movies = fields_file + '"plotoutline", "sorttitle", "cast", "votes", "showlink", "top250", "trailer", "year", "country", "studio", "set", "genre", "mpaa", "setid", "rating", "tag", "tagline", "writer", "originaltitle", "imdbnumber"'
+fields_tvshows = fields_base + '"sorttitle", "mpaa", "premiered", "year", "episode", "watchedepisodes", "votes", "rating", "studio", "season", "genre", "cast", "episodeguide", "tag", "originaltitle", "imdbnumber"'
+fields_episodes = fields_file + '"cast", "productioncode", "rating", "votes", "episode", "showtitle", "tvshowid", "season", "firstaired", "writer", "originaltitle"'
+fields_musicvideos = fields_file + '"genre", "artist", "tag", "album", "track", "studio", "year"'
+fields_files = fields_file + fields_movies + ", " + fields_tvshows + ", " + fields_episodes
+fields_songs = '"artist", "title", "rating", "fanart", "thumbnail", "duration", "playcount", "comment", "file", "album", "lastplayed"'
+fields_pvrrecordings = '"art", "channel", "directory", "endtime", "file", "genre", "icon", "playcount", "plot", "plotoutline", "resume", "runtime", "starttime", "streamurl", "title"'
+
 def logMsg(msg, level = 1):
     doDebugLog = False
     if doDebugLog == True or level == 0:
@@ -54,14 +64,51 @@ def getContentPath(libPath):
 
 def getJSON(method,params):
     json_response = xbmc.executeJSONRPC('{ "jsonrpc" : "2.0" , "method" : "' + method + '" , "params" : ' + params + ' , "id":1 }')
-
     jsonobject = json.loads(json_response.decode('utf-8','replace'))
    
     if(jsonobject.has_key('result')):
-        return jsonobject['result']
+        jsonobject = jsonobject['result']
+        if jsonobject.has_key('files'):
+            return jsonobject['files']
+        elif jsonobject.has_key('movies'):
+            return jsonobject['movies']
+        elif jsonobject.has_key('tvshows'):
+            return jsonobject['tvshows']
+        elif jsonobject.has_key('episodes'):
+            return jsonobject['episodes']
+        elif jsonobject.has_key('musicvideos'):
+            return jsonobject['musicvideos']
+        elif jsonobject.has_key('channels'):
+            return jsonobject['channels']
+        elif jsonobject.has_key('recordings'):
+            return jsonobject['recordings']
+        elif jsonobject.has_key('songs'):
+            return jsonobject['songs']
+        elif jsonobject.has_key('favourites'):
+            return jsonobject['favourites']
+        elif jsonobject.has_key('tvshowdetails'):
+            return jsonobject['tvshowdetails']
+        elif jsonobject.has_key('moviedetails'):
+            return jsonobject['moviedetails']
+        elif jsonobject.has_key('setdetails'):
+            return jsonobject['setdetails']
+        elif jsonobject.has_key('sets'):
+            return jsonobject['sets']
+        elif jsonobject.has_key('video'):
+            return jsonobject['video']
+        elif jsonobject.has_key('artists'):
+            return jsonobject['artists']
+        elif jsonobject.has_key('sources'):
+            return jsonobject['sources']
+        elif jsonobject.has_key('addons'):
+            return jsonobject['addons']
+        else:
+            logMsg("invalid result " + str(jsonobject))
+            logMsg('{ "jsonrpc" : "2.0" , "method" : "' + method + '" , "params" : ' + params + ' , "id":1 }')
+            return {}
     else:
-        logMsg("no result " + str(jsonobject),0)
-        logMsg('{ "jsonrpc" : "2.0" , "method" : "' + method + '" , "params" : ' + params + ' , "id":1 }',0)
+        logMsg("no result " + str(jsonobject))
+        logMsg('{ "jsonrpc" : "2.0" , "method" : "' + method + '" , "params" : ' + params + ' , "id":1 }')
         return {}
 
 def try_decode(text, encoding="utf-8"):
@@ -243,41 +290,40 @@ def detectPluginContent(plugin):
         return None, None
     
     media_array = getJSON('Files.GetDirectory','{ "directory": "%s", "media": "files", "properties": ["title", "file", "thumbnail", "episode", "showtitle", "season", "album", "artist", "imdbnumber", "firstaired", "mpaa", "trailer", "studio", "art"], "limits": {"end":3} }' %plugin)
-    if media_array != None and media_array.has_key('files'):
-        for item in media_array['files']:
-            image = None
-            if item.has_key("art"):
-                if item["art"].has_key("fanart"):
-                    image = item["art"]["fanart"]
-                elif item["art"].has_key("tvshow.fanart"):
-                    image = item["art"]["tvshow.fanart"]
-            if not item.has_key("showtitle") and not item.has_key("artist"):
-                #these properties are only returned in the json response if we're looking at actual file content...
-                # if it's missing it means this is a main directory listing and no need to scan the underlying listitems.
-                return ("files", image)
-            if not item.has_key("showtitle") and item.has_key("artist"):
-                ##### AUDIO ITEMS ####
-                if item["artist"][0] == item["title"]:
-                    return ("artists", image)
-                elif item["album"] == item["title"]:
-                    return ("albums", image)
-                elif (item["type"] == "song" or (item["artist"] and item["album"])):
-                    return ("songs", image)
-            else:    
-                ##### VIDEO ITEMS ####
-                if (item["showtitle"] and not item["artist"]):
-                    #this is a tvshow, episode or season...
-                    if (item["season"] > -1 and item["episode"] == -1):
-                        return ("seasons", image)
-                    elif item["season"] > -1 and item["episode"] > -1:
-                        return ("episodes", image)
-                    else:
-                        return ("tvshows", image)
-                elif (item["artist"]):
-                    #this is a musicvideo!
-                    return ("musicvideos", image)
-                elif (item["imdbnumber"] or item["mpaa"] or item["trailer"] or item["studio"]):
-                    return ("movies", image)
+    for item in media_array:
+        image = None
+        if item.has_key("art"):
+            if item["art"].has_key("fanart"):
+                image = item["art"]["fanart"]
+            elif item["art"].has_key("tvshow.fanart"):
+                image = item["art"]["tvshow.fanart"]
+        if not item.has_key("showtitle") and not item.has_key("artist"):
+            #these properties are only returned in the json response if we're looking at actual file content...
+            # if it's missing it means this is a main directory listing and no need to scan the underlying listitems.
+            return ("files", image)
+        if not item.has_key("showtitle") and item.has_key("artist"):
+            ##### AUDIO ITEMS ####
+            if item["artist"][0] == item["title"]:
+                return ("artists", image)
+            elif item["album"] == item["title"]:
+                return ("albums", image)
+            elif (item["type"] == "song" or (item["artist"] and item["album"])):
+                return ("songs", image)
+        else:    
+            ##### VIDEO ITEMS ####
+            if (item["showtitle"] and not item["artist"]):
+                #this is a tvshow, episode or season...
+                if (item["season"] > -1 and item["episode"] == -1):
+                    return ("seasons", image)
+                elif item["season"] > -1 and item["episode"] > -1:
+                    return ("episodes", image)
+                else:
+                    return ("tvshows", image)
+            elif (item["artist"]):
+                #this is a musicvideo!
+                return ("musicvideos", image)
+            elif (item["imdbnumber"] or item["mpaa"] or item["trailer"] or item["studio"]):
+                return ("movies", image)
 
     return (None, None)
     
