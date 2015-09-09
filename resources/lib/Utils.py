@@ -85,7 +85,10 @@ def getJSON(method,params):
         elif jsonobject.has_key('songs'):
             return jsonobject['songs']
         elif jsonobject.has_key('favourites'):
-            return jsonobject['favourites']
+            if jsonobject['favourites']:
+                return jsonobject['favourites']
+            else:
+                return {}
         elif jsonobject.has_key('tvshowdetails'):
             return jsonobject['tvshowdetails']
         elif jsonobject.has_key('moviedetails'):
@@ -99,7 +102,10 @@ def getJSON(method,params):
         elif jsonobject.has_key('artists'):
             return jsonobject['artists']
         elif jsonobject.has_key('sources'):
-            return jsonobject['sources']
+            if jsonobject['sources']:
+                return jsonobject['sources']
+            else:
+                return {}
         elif jsonobject.has_key('addons'):
             return jsonobject['addons']
         else:
