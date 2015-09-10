@@ -141,6 +141,7 @@ class LibraryMonitor(threading.Thread):
                     try:
                         self.setDuration(xbmc.getInfoLabel("Container(%s).ListItem.Duration" %widgetContainer))
                         self.setStudioLogo(xbmc.getInfoLabel("Container(%s).ListItem.Studio" %widgetContainer))
+                        self.setDirector(xbmc.getInfoLabel("Container(%s).ListItem.Director" %widgetContainer))
                     except Exception as e:
                         logMsg("ERROR in LibraryMonitor widgets ! --> " + str(e), 0)
                         print_exc()
@@ -160,6 +161,7 @@ class LibraryMonitor(threading.Thread):
                         self.setDuration()
                         self.setStudioLogo()
                         self.setGenre()
+                        self.setDirector()
                         self.focusEpisode()
                         self.checkExtraFanArt()
                         self.setMovieSetDetails()
@@ -308,6 +310,7 @@ class LibraryMonitor(threading.Thread):
                         WINDOW.setProperty('SkinHelper.MovieSet.Duration.Minutes', durationString[1])
                     WINDOW.setProperty('SkinHelper.MovieSet.Writer', " / ".join(writer))
                     WINDOW.setProperty('SkinHelper.MovieSet.Director', " / ".join(director))
+                    self.setDirector(" / ".join(director))
                     WINDOW.setProperty('SkinHelper.MovieSet.Genre', " / ".join(genre))
                     self.setGenre(" / ".join(genre))
                     WINDOW.setProperty('SkinHelper.MovieSet.Country', " / ".join(country))
@@ -360,7 +363,19 @@ class LibraryMonitor(threading.Thread):
             genres.append(genre)
         
         WINDOW.setProperty('SkinHelper.ListItemGenres', "[CR]".join(genres))
+    
+    def setDirector(self, director=None):
+        if not director:
+            director = xbmc.getInfoLabel('ListItem.Director')
         
+        directors = []
+        if "/" in director:
+            directors = director.split(" / ")
+        else:
+            directors.append(director)
+        
+        WINDOW.setProperty('SkinHelper.ListItemDirectors', "[CR]".join(directors))
+    
     def setPVRThumbs(self):
         title = xbmc.getInfoLabel("ListItem.Title")
         channel = xbmc.getInfoLabel("ListItem.ChannelName")

@@ -77,7 +77,8 @@ Some additional window properties that can be used in the video library.
 | Window(Home).Property(SkinHelper.ListItemDuration) | Formatted duration hours:minutes of the current listitem total runtime |
 | Window(Home).Property(SkinHelper.ListItemDuration.Hours) | Only the hours part of the current listitem duration |
 | Window(Home).Property(SkinHelper.ListItemDuration.Minutes) | Only the minutes part of the current listitem duration |
-|Window(Home).Property(SkinHelper.ListItemGenres) | Will return all genres seperated by [CR] |
+|Window(Home).Property(SkinHelper.ListItemGenres) | Will return all genres of the current listitem seperated by [CR] |
+|Window(Home).Property(SkinHelper.ListItemDirectors) | Will return all directors of the current listitem seperated by [CR] |
 
 ________________________________________________________________________________________________________
 
