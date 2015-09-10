@@ -127,7 +127,7 @@ def backup(filterString=None):
                 
                 #zip the backup
                 backup_name = xbmc.getSkinDir().decode('utf-8').replace("skin.","") + "_SKIN_BACKUP_" + i.strftime('%Y%m%d-%H%M')
-                zip_temp = xbmc.translatePath('special://temp/' + backup_name)
+                zip_temp = xbmc.translatePath('special://temp/' + backup_name).decode("utf-8")
                 zip_final = backup_path + backup_name + ".zip"
                 zip(temp_path,zip_temp)
                 
@@ -169,7 +169,7 @@ def restore():
             else:
                 delim = "/"
             
-            zip_temp = xbmc.translatePath('special://temp/' + zip_path.split(delim)[-1])
+            zip_temp = xbmc.translatePath('special://temp/' + zip_path.split(delim)[-1]).decode("utf-8")
             xbmcvfs.copy(zip_path,zip_temp)
             zfile = zipfile.ZipFile(zip_temp)
             zfile.extractall(temp_path)

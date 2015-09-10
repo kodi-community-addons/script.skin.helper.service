@@ -974,7 +974,6 @@ def getFavouriteMedia(limit):
                 sep = "/"
             else:
                 sep = "\\"
-            path = try_decode(path)
             pathpart = path.split(sep)[-1] #apparently only the filename can be used for the search
             #is this a movie?
             json_result = getJSON('VideoLibrary.GetMovies', '{ "filter": {"operator":"contains", "field":"filename", "value":"%s"}, "properties": [ %s ] }' %(pathpart,fields_movies))

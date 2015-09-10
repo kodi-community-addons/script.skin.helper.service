@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import os
-import sys, traceback
+import sys
+from traceback import print_exc
 import xbmc
 import xbmcplugin
 import xbmcaddon
@@ -107,7 +108,7 @@ class LibraryMonitor(threading.Thread):
                     self.checkMusicArt()
                 except Exception as e:
                     logMsg("ERROR in checkMusicArt ! --> " + str(e), 0)
-                    traceback.print_exc()
+                    print_exc()
             
             # monitor listitem props when PVR is active
             elif (xbmc.getCondVisibility("SubString(Window.Property(xmlfile),MyPVR,left)")):
@@ -126,7 +127,7 @@ class LibraryMonitor(threading.Thread):
                         self.setGenre()
                     except Exception as e:
                         logMsg("ERROR in LibraryMonitor ! --> " + str(e), 0)
-                        traceback.print_exc()
+                        print_exc()
 
             
             #monitor home widget
@@ -142,7 +143,7 @@ class LibraryMonitor(threading.Thread):
                         self.setStudioLogo(xbmc.getInfoLabel("Container(%s).ListItem.Studio" %widgetContainer))
                     except Exception as e:
                         logMsg("ERROR in LibraryMonitor widgets ! --> " + str(e), 0)
-                        traceback.print_exc()
+                        print_exc()
             
             # monitor listitem props when videolibrary is active
             elif (xbmc.getCondVisibility("[Window.IsActive(videolibrary) | Window.IsActive(movieinformation)] + !Window.IsActive(fullscreenvideo)")):
@@ -165,7 +166,7 @@ class LibraryMonitor(threading.Thread):
                         self.setAddonName()
                     except Exception as e:
                         logMsg("ERROR in LibraryMonitor ! --> " + str(e), 0)
-                        traceback.print_exc()
+                        print_exc()
   
             else:
                 #reset window props
@@ -615,7 +616,7 @@ class LibraryMonitor(threading.Thread):
     def getViewId(self, viewString):
         # get all views from views-file
         viewId = None
-        skin_view_file = os.path.join(xbmc.translatePath('special://skin/extras'), "views.xml")
+        skin_view_file = os.path.join(xbmc.translatePath('special://skin/extras').decode("utf-8"), "views.xml")
         tree = etree.parse(skin_view_file)
         root = tree.getroot()
         for view in root.findall('view'):
@@ -703,56 +704,42 @@ class LibraryMonitor(threading.Thread):
             if xbmc.getCondVisibility("Container.Content(songs) | Container.Content(singles) | SubString(ListItem.FolderPath,.)"):
                 logMsg("checkMusicArt - container content is songs or singles",0)
                 if dbid:
-                    json_response = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "AudioLibrary.GetSongDetails", "params": { "songid": %s, "properties": [ "file","artistid","albumid","comment" ] }, "id": "libSongs"}'%int(dbid))
+                    json_response = getJSON('AudioLibrary.GetSongDetails', '{ "songid": %s, "properties": [ "file","artistid","albumid","comment" ] }'%int(dbid))
                 
             elif xbmc.getCondVisibility("[Container.Content(artists) | SubString(ListItem.FolderPath,musicdb://artists)] + !SubString(ListItem.FolderPath,artistid=)"):
                 logMsg("checkMusicArt - container content is artists",0)
                 if dbid:    
-                    json_response = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "AudioLibrary.GetSongs", "params": { "filter":{"artistid": %s}, "properties": [ "file","artistid","track","title" ] }, "id": "libSongs"}'%int(dbid))
+                    json_response = getJSON('AudioLibrary.GetSongs', '{ "filter":{"artistid": %s}, "properties": [ "file","artistid","track","title" ] }'%int(dbid))
             
             elif xbmc.getCondVisibility("Container.Content(albums) | SubString(ListItem.FolderPath,musicdb://albums) | SubString(ListItem.FolderPath,artistid=)"):
                 logMsg("checkMusicArt - container content is albums",0)
                 if dbid:
-                    json_response = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "AudioLibrary.GetSongs", "params": { "filter":{"albumid": %s}, "properties": [ "file","artistid","track","title" ] }, "id": "libSongs"}'%int(dbid))
+                    json_response = getJSON('AudioLibrary.GetSongs', '{ "filter":{"albumid": %s}, "properties": [ "file","artistid","track","title" ] }'%int(dbid))
             
             if json_response:
                 song = None
-                json_response = json.loads(json_response)
-                if json_response.has_key("result"):
-                    result = json_response["result"]
-                    if result.has_key("songs"):
-                        songs = result["songs"]
-                        if len(songs) > 0:
-                            song = songs[0]
-                            path = song["file"]
-                        #get track listing
-                        for song in songs:
-                            if song["track"]:
-                                TrackList += "%s - %s[CR]" %(str(song["track"]), song["title"])
-                            else:
-                                TrackList += "%s[CR]" %(song["title"])
-                            
-                    elif result.has_key("songdetails"):
-                        song = result["songdetails"]
-                        path = song["file"]
-                        if not Info:
-                            json_response2 = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "AudioLibrary.GetAlbumDetails", "params": { "albumid": %s, "properties": [ "musicbrainzalbumid","description" ] }, "id": "1"}'%song["albumid"])
-                            json_response2 = json.loads(json_response2)
-                            if json_response2.has_key("result"):
-                                result = json_response2["result"]
-                                if result.has_key("albumdetails"):
-                                    albumdetails = result["albumdetails"]
-                                    if albumdetails["description"]:
-                                        Info = albumdetails["description"]
-                    if not Info and song:
-                        json_response2 = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "AudioLibrary.GetArtistDetails", "params": { "artistid": %s, "properties": [ "musicbrainzartistid","description" ] }, "id": "1"}'%song["artistid"][0])
-                        json_response2 = json.loads(json_response2)
-                        if json_response2.has_key("result"):
-                            result = json_response2["result"]
-                            if result.has_key("artistdetails"):
-                                artistdetails = result["artistdetails"]
-                                if artistdetails["description"]:
-                                    Info = artistdetails["description"]
+                if type(json_response) is list:
+                    #get track listing
+                    for item in songs:
+                        if not song:
+                            song = item
+                            path = item["file"]
+                        if item["track"]:
+                            TrackList += "%s - %s[CR]" %(str(item["track"]), item["title"])
+                        else:
+                            TrackList += "%s[CR]" %(item["title"])
+                        
+                else:
+                    song = json_response
+                    path = song["file"]
+                    if not Info:
+                        json_response2 = getJSON('AudioLibrary.GetAlbumDetails','{ "albumid": %s, "properties": [ "musicbrainzalbumid","description" ] }'%song["albumid"])
+                        if json_response2.get("description",None):
+                            Info = albumdetails["description"]
+                if not Info and song:
+                    json_response2 = getJSON('AudioLibrary.GetArtistDetails", "params": { "artistid": %s, "properties": [ "musicbrainzartistid","description" ] }, "id": "1"}'%song["artistid"][0])
+                    if json_response2.get("description",None):
+                        Info = artistdetails["description"]
 
             if path:
                 if "\\" in path:

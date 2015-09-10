@@ -264,36 +264,27 @@ class BackgroundSearchThread(threading.Thread):
         search = urllib.quote(searchTerm)        
         
         # Process movies
-        json_query = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetMovies", "params": {"properties": ["title", "genre", "studio", "year", "tagline", "plot", "plotoutline", "runtime", "fanart", "thumbnail", "file", "trailer", "playcount", "rating", "mpaa", "director", "writer", "art", "cast", "streamdetails"], "limits": {"end":50}, "sort": { "method": "label" }, "filter": {"field":"title","operator":"contains","value":"%s"} }, "id": 1}' % search)
-        json_query = unicode(json_query, 'utf-8', errors='ignore')
-        json_response = json.loads(json_query)
-        if (json_response['result'] != None) and (json_response['result'].has_key('movies')):
-            for item in json_response['result']['movies']:
-                liz = createListItem(item)
-                liz.setProperty("json",repr(item))
-                movieResultsList.addItem(liz)
+        json_response = getJSON('VideoLibrary.GetMovies', '{"properties": [%s], "limits": {"end":50}, "sort": { "method": "label" }, "filter": {"field":"title","operator":"contains","value":"%s"} }' % (fields_movies,search))
+        for item in json_response:
+            liz = createListItem(item)
+            liz.setProperty("json",repr(item))
+            movieResultsList.addItem(liz)
 
         # Process TV Shows
-        json_query = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetTVShows", "params": {"properties": ["title", "genre", "studio", "premiered", "plot", "fanart", "thumbnail", "playcount", "year", "mpaa", "episode", "rating", "art", "cast"], "limits": {"end":50}, "sort": { "method": "label" }, "filter": {"field": "title", "operator": "contains", "value": "%s"} }, "id": 1}' % search)
-        json_query = unicode(json_query, 'utf-8', errors='ignore')
-        json_response = json.loads(json_query)
-        if (json_response['result'] != None) and (json_response['result'].has_key('tvshows')):
-            for item in json_response['result']['tvshows']:
-                liz = createListItem(item)
-                tvshowid = str(item['tvshowid'])
-                path = 'videodb://tvshows/titles/' + tvshowid + '/'
-                liz.setPath(path)
-                liz.setProperty("path", path)
-                liz.setProperty("json",repr(item))
-                seriesResultsList.addItem(liz)
+        json_response = getJSON('VideoLibrary.GetTVShows', '{"properties": [%s], "limits": {"end":50}, "sort": { "method": "label" }, "filter": {"field": "title", "operator": "contains", "value": "%s"} }' % (fields_tvshows,search))
+        for item in json_response:
+            liz = createListItem(item)
+            tvshowid = str(item['tvshowid'])
+            path = 'videodb://tvshows/titles/' + tvshowid + '/'
+            liz.setPath(path)
+            liz.setProperty("path", path)
+            liz.setProperty("json",repr(item))
+            seriesResultsList.addItem(liz)
 
         # Process episodes
-        json_query = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetEpisodes", "params": { "properties": ["title", "plot", "firstaired", "runtime", "season", "episode", "showtitle", "thumbnail", "fanart", "file", "playcount", "director", "rating", "art", "cast", "streamdetails"], "limits": {"end":50}, "sort": { "method": "title" }, "filter": {"field": "title", "operator": "contains", "value": "%s"} }, "id": 1}' % search)
-        json_query = unicode(json_query, 'utf-8', errors='ignore')
-        json_response = json.loads(json_query)
-        if (json_response['result'] != None) and (json_response['result'].has_key('episodes')):
-            for item in json_response['result']['episodes']:
-                liz = createListItem(item)
-                liz.setProperty("json",repr(item))
-                episodeResultsList.addItem(liz)
+        json_response = getJSON('VideoLibrary.GetEpisodes', '{ "properties": [%s], "limits": {"end":50}, "sort": { "method": "title" }, "filter": {"field": "title", "operator": "contains", "value": "%s"} }' % (fields_episodes,search))
+        for item in json_response:
+            liz = createListItem(item)
+            liz.setProperty("json",repr(item))
+            episodeResultsList.addItem(liz)
                 

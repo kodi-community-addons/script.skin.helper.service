@@ -3,6 +3,7 @@
 
 import os
 import sys
+from traceback import print_exc
 import xbmc
 import xbmcplugin
 import xbmcaddon
@@ -78,7 +79,11 @@ class BackgroundsUpdater(threading.Thread):
                 if ("skinshortcuts.xml" in currentWindow or "SkinSettings" in currentWindow) and currentWindow != self.lastWindow and self.refreshSmartshortcuts == False:
                     self.lastWindow = currentWindow
                     self.refreshSmartshortcuts = True
-                    self.UpdateBackgrounds()
+                    try:
+                        self.UpdateBackgrounds()
+                    except Exception as e:
+                        logMsg("ERROR in UpdateBackgrounds ! --> " + str(e), 0)
+                        print_exc()
                 
                 # Update home backgrounds every interval (default 60 seconds)
                 if backgroundDelay != 0:
@@ -88,6 +93,7 @@ class BackgroundsUpdater(threading.Thread):
                             self.UpdateBackgrounds()
                         except Exception as e:
                             logMsg("ERROR in UpdateBackgrounds ! --> " + str(e), 0)
+                            print_exc()
             
             xbmc.sleep(150)
             self.normalTaskInterval += 0.15

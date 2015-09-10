@@ -13,7 +13,7 @@ from operator import itemgetter
 from Utils import *
 
 skin = xbmcaddon.Addon(id=xbmc.getSkinDir())
-userThemesDir = xbmc.translatePath(skin.getAddonInfo('profile'))
+userThemesDir = xbmc.translatePath(skin.getAddonInfo('profile')).decode("utf-8")
 
 class ColorThemes(xbmcgui.WindowXMLDialog):
 
@@ -25,7 +25,7 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
         xbmcgui.WindowXMLDialog.__init__(self, *args, **kwargs)
         
         self.userThemesPath = os.path.join(userThemesDir,"themes") + os.sep
-        self.skinThemesPath = xbmc.translatePath("special://skin/extras/skinthemes")
+        self.skinThemesPath = xbmc.translatePath("special://skin/extras/skinthemes").decode("utf-8")
        
     def loadColorTheme(self,file):
         xbmc.executebuiltin( "ActivateWindow(busydialog)" )
@@ -96,7 +96,7 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
         if backup_path:
             backup_name = xbmc.getSkinDir().replace("skin.","") + "_COLORTHEME_" + themeName
             backup_path = os.path.join(backup_path,backup_name)
-            backup_path_temp = xbmc.translatePath('special://temp/' + backup_name)
+            backup_path_temp = xbmc.translatePath('special://temp/' + backup_name).decode("utf-8")
             
             zf = zipfile.ZipFile("%s.zip" % (backup_path_temp), "w", zipfile.ZIP_DEFLATED)
             

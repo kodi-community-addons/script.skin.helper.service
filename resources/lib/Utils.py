@@ -63,7 +63,7 @@ def getContentPath(libPath):
     return libPath
 
 def getJSON(method,params):
-    json_response = xbmc.executeJSONRPC('{ "jsonrpc" : "2.0" , "method" : "' + method + '" , "params" : ' + params + ' , "id":1 }')
+    json_response = xbmc.executeJSONRPC('{ "jsonrpc": "2.0", "method" : "%s", "params": %s, "id":1 }' %(method, try_encode(params)))
     jsonobject = json.loads(json_response.decode('utf-8','replace'))
    
     if(jsonobject.has_key('result')):
@@ -84,6 +84,12 @@ def getJSON(method,params):
             return jsonobject['recordings']
         elif jsonobject.has_key('songs'):
             return jsonobject['songs']
+        elif jsonobject.has_key('songdetails'):
+            return jsonobject['songdetails']
+        elif jsonobject.has_key('albumdetails'):
+            return jsonobject['albumdetails']
+        elif jsonobject.has_key('artistdetails'):
+            return jsonobject['artistdetails']
         elif jsonobject.has_key('favourites'):
             if jsonobject['favourites']:
                 return jsonobject['favourites']
@@ -117,13 +123,11 @@ def getJSON(method,params):
         logMsg('{ "jsonrpc" : "2.0" , "method" : "' + method + '" , "params" : ' + params + ' , "id":1 }')
         return {}
 
-def try_decode(text, encoding="utf-8"):
-    if isinstance(text, str):
-        try:
-            return text.encode(encoding)
-        except:
-            pass
-    return text       
+def try_encode(text, encoding="utf-8"):
+    try:
+        return text.encode(encoding)
+    except:
+        return text       
         
 def setSkinVersion():
     skin = xbmc.getSkinDir()
