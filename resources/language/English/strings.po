@@ -287,3 +287,7 @@ msgstr ""
 msgctxt "#32067"
 msgid "Select image folder path"
 msgstr ""
+
+msgctxt "#32068"
+msgid "Please enter a filename for your backup"
+msgstr ""

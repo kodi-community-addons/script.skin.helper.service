@@ -250,8 +250,9 @@ Additional use cases of the color picker:
 If you want to set a Window(home) Property instead of a skin settings:
 RunScript(script.skin.helper.service,action=colorpicker,winproperty=XXX)
 
-If you want to use the color picket to store the color in a shortcut-property from the skinshortcuts script, 
-include a button in your script-skinshortcuts.xml and execute this action:
+If you want to use the color picker to store the color in a shortcut-property from the skinshortcuts script, 
+include a button in your script-skinshortcuts.xml with this onclick-action:
+
 RunScript(script.skin.helper.service,action=colorpicker,shortcutproperty=XXX)
 
 ________________________________________________________________________________________________________
@@ -576,16 +577,24 @@ For example:
 RunScript(script.skin.helper.service,action=backup,filter=color|view|font)    
 The filter is not case sensitive
 
+If you want to silently perform a backup, you can supply the silent= parameter with the full path to the zipfile that has to be created.
+RunScript(script.skin.helper.service,action=backup,silent=mypath\backup.zip)    
+
+
 #####To restore the skin settings:
 ```
 RunScript(script.skin.helper.service,action=restore)             
 ```
 
+If you want to silently restore a backup, you can supply the silent= parameter with the full path to the zipfile that has to be restored.
+RunScript(script.skin.helper.service,action=restore,silent=mypath\backup.zip)    
+
+
 #####To reset the skin to defaults:
 ```
 RunScript(script.skin.helper.service,action=reset)             
 ```
-
+This will reset ALL skin settings
 
 ________________________________________________________________________________________________________
 ________________________________________________________________________________________________________

@@ -62,7 +62,7 @@ def getSkinSettings(filter=None):
     
     return newlist
 
-def backup(filterString=None):
+def backup(filterString=None,silent=None,promptfilename="false"):
     try:
         
         if filterString:
@@ -74,12 +74,14 @@ def backup(filterString=None):
         else:
             filter = None
 
-        
-        
-        
         #get backup destination
-        backup_path = None
-        backup_path = get_browse_dialog(dlg_type=3,heading=ADDON.getLocalizedString(32018))
+        backup_path = silent
+        filename = None
+        if not backup_path:
+            backup_path = get_browse_dialog(dlg_type=3,heading=ADDON.getLocalizedString(32018))
+            if promptfilename == "true":
+                dialog = xbmcgui.Dialog()
+                filename = dialog.input(ADDON.getLocalizedString(32068), type=xbmcgui.INPUT_ALPHANUM)
         if backup_path and backup_path != "protocol://":
             
                 #get the skinsettings
@@ -126,9 +128,18 @@ def backup(filterString=None):
                 i = datetime.now()
                 
                 #zip the backup
-                backup_name = xbmc.getSkinDir().decode('utf-8').replace("skin.","") + "_SKIN_BACKUP_" + i.strftime('%Y%m%d-%H%M')
+                if silent:
+                    backup_name = silent
+                elif filename:
+                    backup_name = filename
+                else:
+                    backup_name = xbmc.getSkinDir().decode('utf-8').replace("skin.","") + "_SKIN_BACKUP_" + i.strftime('%Y%m%d-%H%M')
                 zip_temp = xbmc.translatePath('special://temp/' + backup_name).decode("utf-8")
-                zip_final = backup_path + backup_name + ".zip"
+                
+                if silent:
+                    zip_final = silent
+                else:
+                    zip_final = backup_path + backup_name + ".zip"
                 zip(temp_path,zip_temp)
                 
                 #copy to final location
@@ -138,24 +149,32 @@ def backup(filterString=None):
                 shutil.rmtree(temp_path)
                 xbmcvfs.delete(zip_temp + ".zip")
                 
-                xbmcgui.Dialog().ok(ADDON.getLocalizedString(32028), ADDON.getLocalizedString(32029))
+                if not silent:
+                    xbmcgui.Dialog().ok(ADDON.getLocalizedString(32028), ADDON.getLocalizedString(32029))
     
     except Exception as e:
-        xbmcgui.Dialog().ok(ADDON.getLocalizedString(32028), ADDON.getLocalizedString(32030))
+        if not silent:
+            xbmcgui.Dialog().ok(ADDON.getLocalizedString(32028), ADDON.getLocalizedString(32030))
         logMsg("ERROR while creating backup ! --> " + str(e), 0)
         raise
      
-def restore():
+def restore(silent=None):
     
     try:
-        zip_path = None
-        zip_path = get_browse_dialog(dlg_type=1,heading=ADDON.getLocalizedString(32031),mask=".zip")
+        zip_path = silent
+        progressDialog = None
+        if not zip_path:
+            zip_path = get_browse_dialog(dlg_type=1,heading=ADDON.getLocalizedString(32031),mask=".zip")
         
         if zip_path and zip_path != "protocol://":
             logMsg("zip_path " + zip_path)
-            progressDialog = xbmcgui.DialogProgress(ADDON.getLocalizedString(32032))
-            progressDialog.create(ADDON.getLocalizedString(32032))
-            progressDialog.update(0, "unpacking backup...")
+            
+            if silent:
+                xbmc.executebuiltin( "ActivateWindow(busydialog)" )
+            else:
+                progressDialog = xbmcgui.DialogProgress(ADDON.getLocalizedString(32032))
+                progressDialog.create(ADDON.getLocalizedString(32032))
+                progressDialog.update(0, "unpacking backup...")
             
             #create temp path
             temp_path = xbmc.translatePath('special://temp/skinbackup/').decode("utf-8")
@@ -210,13 +229,16 @@ def restore():
             
             xbmc.sleep(200)
             for count, skinsetting in enumerate(importstring):
-                if progressDialog.iscanceled():
-                    return
+            
+                if progressDialog:
+                    if progressDialog.iscanceled():
+                        return
                     
                 #some legacy...
                 setting = skinsetting[1].replace("TITANSKIN.helix", "").replace("TITANSKIN.", "")
-
-                progressDialog.update((count * 100) / len(importstring), ADDON.getLocalizedString(32033) + ' %s' % setting)
+                
+                if progressDialog:
+                    progressDialog.update((count * 100) / len(importstring), ADDON.getLocalizedString(32033) + ' %s' % setting)
 
                 if skinsetting[0] == "string":
                     if skinsetting[2] is not "":
@@ -233,10 +255,12 @@ def restore():
             #cleanup temp
             xbmc.sleep(500)
             shutil.rmtree(temp_path)
-            xbmcgui.Dialog().ok(ADDON.getLocalizedString(32032), ADDON.getLocalizedString(32034))
+            if not silent:
+                xbmcgui.Dialog().ok(ADDON.getLocalizedString(32032), ADDON.getLocalizedString(32034))
     
     except Exception as e:
-        xbmcgui.Dialog().ok(ADDON.getLocalizedString(32032), ADDON.getLocalizedString(32035))
+        if not silent:
+            xbmcgui.Dialog().ok(ADDON.getLocalizedString(32032), ADDON.getLocalizedString(32035))
         logMsg("ERROR while restoring backup ! --> " + str(e), 0)
 
 def zip(src, dst):
