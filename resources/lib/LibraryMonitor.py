@@ -690,7 +690,7 @@ class LibraryMonitor(threading.Thread):
                 WINDOW.setProperty("SkinHelper.Music.TrackList",self.musicArtCache[dbID + "SkinHelper.Music.TrackList"])
 
         if not cacheFound:
-            logMsg("checkMusicArt no cache found for dbID--> " + dbID,0)
+            logMsg("checkMusicArt no cache found for dbID--> " + dbID)
             path = None
             json_response = None
             cdArt = None
@@ -702,17 +702,17 @@ class LibraryMonitor(threading.Thread):
             folderPath = xbmc.getInfoLabel("ListItem.FolderPath")
             dbid = xbmc.getInfoLabel("ListItem.DBID")
             if xbmc.getCondVisibility("Container.Content(songs) | Container.Content(singles) | SubString(ListItem.FolderPath,.)"):
-                logMsg("checkMusicArt - container content is songs or singles",0)
+                logMsg("checkMusicArt - container content is songs or singles")
                 if dbid:
                     json_response = getJSON('AudioLibrary.GetSongDetails', '{ "songid": %s, "properties": [ "file","artistid","albumid","comment" ] }'%int(dbid))
                 
             elif xbmc.getCondVisibility("[Container.Content(artists) | SubString(ListItem.FolderPath,musicdb://artists)] + !SubString(ListItem.FolderPath,artistid=)"):
-                logMsg("checkMusicArt - container content is artists",0)
+                logMsg("checkMusicArt - container content is artists")
                 if dbid:    
                     json_response = getJSON('AudioLibrary.GetSongs', '{ "filter":{"artistid": %s}, "properties": [ "file","artistid","track","title" ] }'%int(dbid))
             
             elif xbmc.getCondVisibility("Container.Content(albums) | SubString(ListItem.FolderPath,musicdb://albums) | SubString(ListItem.FolderPath,artistid=)"):
-                logMsg("checkMusicArt - container content is albums",0)
+                logMsg("checkMusicArt - container content is albums")
                 if dbid:
                     json_response = getJSON('AudioLibrary.GetSongs', '{ "filter":{"albumid": %s}, "properties": [ "file","artistid","track","title" ] }'%int(dbid))
             
@@ -720,7 +720,7 @@ class LibraryMonitor(threading.Thread):
                 song = None
                 if type(json_response) is list:
                     #get track listing
-                    for item in songs:
+                    for item in json_response:
                         if not song:
                             song = item
                             path = item["file"]
@@ -735,11 +735,11 @@ class LibraryMonitor(threading.Thread):
                     if not Info:
                         json_response2 = getJSON('AudioLibrary.GetAlbumDetails','{ "albumid": %s, "properties": [ "musicbrainzalbumid","description" ] }'%song["albumid"])
                         if json_response2.get("description",None):
-                            Info = albumdetails["description"]
+                            Info = json_response2["description"]
                 if not Info and song:
-                    json_response2 = getJSON('AudioLibrary.GetArtistDetails", "params": { "artistid": %s, "properties": [ "musicbrainzartistid","description" ] }, "id": "1"}'%song["artistid"][0])
+                    json_response2 = getJSON('AudioLibrary.GetArtistDetails', '{ "artistid": %s, "properties": [ "musicbrainzartistid","description" ] }'%song["artistid"][0])
                     if json_response2.get("description",None):
-                        Info = artistdetails["description"]
+                        Info = json_response2["description"]
 
             if path:
                 if "\\" in path:

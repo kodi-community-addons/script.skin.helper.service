@@ -37,7 +37,7 @@ def doMainListing():
     
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
-def addSmartShortcutDirectoryItem(entry, isFolder=True, widget=None):
+def addSmartShortcutDirectoryItem(entry, isFolder=True, widget=None, widget2=None):
     
     label = "$INFO[Window(Home).Property(%s.title)]" %entry
     path = "$INFO[Window(Home).Property(%s.path)]" %entry
@@ -78,6 +78,20 @@ def addSmartShortcutDirectoryItem(entry, isFolder=True, widget=None):
             props["widgetTarget"] = widgettarget
             props["widgetPath"] = "$INFO[Window(Home).Property(%s.content)]" %widget
             
+        if widget2:
+            widgettype = "$INFO[Window(Home).Property(%s.type)]" %widget2
+            if not xbmc.getInfoLabel(type):
+                widgettype = type
+            if widgettype == "albums" or widgettype == "artists" or widgettype == "songs":
+                widgettarget = "music"
+            else:
+                widgettarget = "video"
+            props["widget.1"] = "addon"
+            props["widgetName.1"] = "$INFO[Window(Home).Property(%s.title)]" %widget2
+            props["widgetType.1"] = widgettype
+            props["widgetTarget.1"] = widgettarget
+            props["widgetPath.1"] = "$INFO[Window(Home).Property(%s.content)]" %widget2
+            
         li.setInfo( type="Video", infoLabels={ "mpaa": repr(props) })
     
     li.setArt({"fanart":image})   
@@ -95,20 +109,24 @@ def addSmartShortcutsSublevel(entry):
     for contentString in contentStrings:
         key = entry + contentString
         widget = None
+        widget2 = None
         if contentString == "":
             #this is the main item so define our widgets
             type = xbmc.getInfoLabel("$INFO[Window(Home).Property(%s.type)]" %entry)
-            if type == "movies" or type == "movie" or type == "artist" or "netflix" in entry:
+            if "plex" in "entry":
+                widget = entry + ".ondeck"
+                widget2 = entry + ".recent"
+            elif type == "movies" or type == "movie" or type == "artist" or "netflix" in entry:
                 widget = entry + ".recent"
+                widget2 = entry + ".inprogress"
             elif type == "tvshows" and "emby" in "entry":
                 widget = entry + ".nextepisodes"
-            elif type == "show" and "plex" in "entry":
-                widget = entry + ".ondeck"
+                widget2 = entry + ".recent"
             else:
                 widget = entry
         
         if xbmc.getInfoLabel("$INFO[Window(Home).Property(%s.path)]" %key):
-            addSmartShortcutDirectoryItem(key,False, widget)
+            addSmartShortcutDirectoryItem(key,False, widget,widget2)
 
 def getSmartShortcuts(sublevel=None):
     xbmcplugin.setContent(int(sys.argv[1]), 'files')
@@ -210,7 +228,6 @@ def buildWidgetsListing():
                     playlistsFound.append([label, path, playlist, image, type])
     allWidgets["skinplaylists"] = playlistsFound
         
-    
     #widgets from favourites
     json_result = getJSON('Favourites.GetFavourites', '{"type": null, "properties": ["path", "thumbnail", "window", "windowparameter"]}')
     foundWidgets = []
@@ -219,8 +236,9 @@ def buildWidgetsListing():
         if "windowparameter" in fav:
             content = fav["windowparameter"]
             if content.startswith("plugin://") and not content.endswith("/"):
-                content = content + "&reload=$INFO[Window(Home).Property(widgetreload)]"
-            if not "=play" in content.lower():
+                content = content + "&reload=$INFO[Window(Home).Property(widgetreload2)]"
+            #check if this is a valid path with content
+            if not "script://" in content.lower() and not "mode=9" in content.lower() and not "search" in content.lower() and not "play" in content.lower():
                 window = fav["window"]
                 label = fav["title"]
                 type, image = detectPluginContent(content)

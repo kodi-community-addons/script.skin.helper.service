@@ -24,6 +24,8 @@ class ColorPicker(xbmcgui.WindowXMLDialog):
 
     colorsList = None
     skinString = None
+    winProperty = None
+    shortcutProperty = None
     colorsPath = None
     savedColor = None
     currentWindow = None
@@ -31,6 +33,7 @@ class ColorPicker(xbmcgui.WindowXMLDialog):
     def __init__(self, *args, **kwargs):
         xbmcgui.WindowXMLDialog.__init__(self, *args, **kwargs)
         self.colorsPath = os.path.join(ADDON_PATH, 'resources', 'colors' ).decode("utf-8")
+        self.result = -1
         
     def addColorToList(self, colorname, colorstring):
         
@@ -67,8 +70,9 @@ class ColorPicker(xbmcgui.WindowXMLDialog):
         self.win = xbmcgui.Window( 10000 )
         
         #get current color that is stored in the skin setting
-        self.currentWindow.setProperty("colorstring", xbmc.getInfoLabel("Skin.String(" + self.skinString + ')'))
-        self.currentWindow.setProperty("colorname", xbmc.getInfoLabel("Skin.String(" + self.skinString + '.name)'))
+        if self.skinString:
+            self.currentWindow.setProperty("colorstring", xbmc.getInfoLabel("Skin.String(" + self.skinString + ')'))
+            self.currentWindow.setProperty("colorname", xbmc.getInfoLabel("Skin.String(" + self.skinString + '.name)'))
         
         #get all colors from the colors xml file and fill a list with tuples to sort later on
         allColors = []
@@ -87,6 +91,7 @@ class ColorPicker(xbmcgui.WindowXMLDialog):
                 
         #sort list and fill the panel
         count = 0
+        selectItem = 0
         allColors = sorted(allColors,key=itemgetter(1))
         colorstring = self.currentWindow.getProperty("colorstring")
         colorname = self.currentWindow.getProperty("colorname")
@@ -167,6 +172,12 @@ class ColorPicker(xbmcgui.WindowXMLDialog):
                 colorbase = "ff" + colorstring[2:]
                 xbmc.executebuiltin("Skin.SetString(" + self.skinString + ','+ colorstring + ')')
                 xbmc.executebuiltin("Skin.SetString(" + self.skinString + '.base,'+ colorbase + ')')
+                self.closeDialog()
+            elif self.winProperty and colorstring:
+                WINDOW.setProperty(self.winProperty, colorstring)
+                WINDOW.setProperty(self.winProperty + ".name", colorname)
+            elif self.shortcutProperty and colorstring:
+                self.result = (colorstring,colorname)
                 self.closeDialog()
           
         elif controlID == 3015:

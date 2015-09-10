@@ -246,9 +246,13 @@ TIP: By default the colorpicker will provide a list of available colors.
 If you want to provide that list yourself, create a file "colors.xml" in skin\extras\colors\colors.xml
 See the default colors file in the script's location, subfolder resources\colors
 
+Additional use cases of the color picker:
+If you want to set a Window(home) Property instead of a skin settings:
+RunScript(script.skin.helper.service,action=colorpicker,winproperty=XXX)
 
-
-
+If you want to use the color picket to store the color in a shortcut-property from the skinshortcuts script, 
+include a button in your script-skinshortcuts.xml and execute this action:
+RunScript(script.skin.helper.service,action=colorpicker,shortcutproperty=XXX)
 
 ________________________________________________________________________________________________________
 

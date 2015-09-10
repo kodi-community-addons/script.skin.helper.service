@@ -68,7 +68,21 @@ class Main:
                 from resources.lib.ColorPicker import ColorPicker
                 colorPicker = ColorPicker("script-skin_helper_service-ColorPicker.xml", ADDON_PATH, "Default", "1080i")
                 colorPicker.skinString = params.get("SKINSTRING",None)
+                colorPicker.winProperty = params.get("WINPROPERTY",None)
+                colorPicker.shortcutProperty = params.get("SHORTCUTPROPERTY",None)
                 colorPicker.doModal()
+                propname = params.get("SHORTCUTPROPERTY",None)
+                if propname:
+                    propname = propname.lower()
+                    wid = xbmcgui.getCurrentWindowDialogId()
+                    currentWindow = xbmcgui.Window( xbmcgui.getCurrentWindowDialogId() )
+                    currentWindow.setProperty("customProperty",propname)
+                    currentWindow.setProperty("customValue",colorPicker.result[0])
+                    xbmc.executebuiltin("SendClick(404)")
+                    xbmc.sleep(250)
+                    currentWindow.setProperty("customProperty",propname+".name")
+                    currentWindow.setProperty("customValue",colorPicker.result[1])
+                    xbmc.executebuiltin("SendClick(404)")
                 del colorPicker
             
             elif action == "COLORTHEMES":
