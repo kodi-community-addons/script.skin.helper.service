@@ -577,6 +577,10 @@ For example:
 RunScript(script.skin.helper.service,action=backup,filter=color|view|font)    
 The filter is not case sensitive
 
+
+If you want to prompt the user for the filename (instead of auto generating one), you can supply the promptfilename=true parameter to the script.
+
+
 If you want to silently perform a backup, you can supply the silent= parameter with the full path to the zipfile that has to be created.
 RunScript(script.skin.helper.service,action=backup,silent=mypath\backup.zip)    
 
