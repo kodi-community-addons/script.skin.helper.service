@@ -14,6 +14,7 @@ import shutil
 from Utils import *
 import random
 from xml.dom.minidom import parse
+from traceback import print_exc
 
 doDebugLog = False
 
@@ -153,6 +154,7 @@ def backup(filterString="",silent=None,promptfilename="false"):
         if not silent:
             xbmcgui.Dialog().ok(ADDON.getLocalizedString(32028), ADDON.getLocalizedString(32030))
         logMsg("ERROR while creating backup ! --> " + str(e), 0)
+        print_exc()
         if silent:
             logMsg("ERROR while creating silent backup ! --> Make sure you provide the FULL VFS path, for example special://skin/extras/mybackup.zip", 0)            
     finally:
@@ -267,6 +269,7 @@ def restore(silent=None):
         if not silent:
             xbmcgui.Dialog().ok(ADDON.getLocalizedString(32032), ADDON.getLocalizedString(32035))
         logMsg("ERROR while restoring backup ! --> " + str(e), 0)
+        print_exc()
     finally:
         xbmc.executebuiltin( "Dialog.Close(busydialog)" )
 

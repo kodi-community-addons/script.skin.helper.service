@@ -8,6 +8,7 @@ import xbmcplugin
 import xbmcaddon
 import xbmcgui
 import threading
+import thread
 import xbmcvfs
 import random
 import xml.etree.ElementTree as etree
@@ -39,7 +40,6 @@ class HomeMonitor(threading.Thread):
 
     def run(self):
         
-        self.checkNetflixReady()
         listItem = None
         lastListItem = None
         mainMenuContainer = "300"
@@ -49,11 +49,7 @@ class HomeMonitor(threading.Thread):
             #do some background stuff every 30 minutes
             if (xbmc.getCondVisibility("!Window.IsActive(fullscreenvideo)")):
                 if (self.delayedTaskInterval >= 1800):
-                    self.updatePlexlinks()
-                    self.genericWindowProps()
-                    pluginContent.buildWidgetsListing()
-                    self.checkNetflixReady()
-                    self.checkNotifications()
+                    thread.start_new_thread(self.doBackgroundWork, ())
                     self.delayedTaskInterval = 0
             
             # monitor main menu when home is active
@@ -63,9 +59,20 @@ class HomeMonitor(threading.Thread):
                 listItem = xbmc.getInfoLabel("Container(%s).ListItem.Property(defaultID)" %mainMenuContainer)
                 if listItem != lastListItem:
                     
+                    #set the active widget
+                    activewidget = xbmc.getInfoLabel("$INFO[Skin.String(widgetvalue-%s)]" %listItem)
+                    if activewidget:
+                        if activewidget != "0":
+                            if not xbmc.getInfoLabel("$INFO[Container(%s).ListItem.Property(widget.%s)]" %(mainMenuContainer,activewidget)):
+                                activewidget = "0"
+                        WINDOW.setProperty("SkinHelper.ActiveWidget",activewidget)
+                    else: 
+                        WINDOW.setProperty("SkinHelper.ActiveWidget","0")
+                        print "activewidget is none"
+                    
                     # update the background
                     background = xbmc.getInfoLabel("Container(%s).ListItem.Property(Background)" %mainMenuContainer)
-                    WINDOW.setProperty("lastbackground", background)
+                    WINDOW.setProperty("SkinHelper.LastBackground", background)
                     lastListItem = listItem           
             
             xbmc.sleep(150)
@@ -79,7 +86,15 @@ class HomeMonitor(threading.Thread):
                 WINDOW.setProperty("netflixready","ready")
             else:
                 WINDOW.clearProperty("netflixready")
-        
+    
+    def doBackgroundWork(self):
+        self.checkNetflixReady()
+        self.updatePlexlinks()
+        self.genericWindowProps()
+        pluginContent.buildWidgetsListing()
+        self.checkNotifications()
+    
+    
     def updatePlexlinks(self):
         
         if xbmc.getCondVisibility("System.HasAddon(plugin.video.plexbmc) + Skin.HasSetting(SmartShortcuts.plex)"): 
