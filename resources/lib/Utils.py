@@ -291,7 +291,7 @@ def createListItem(item):
     
     return liz
     
-def detectPluginContent(plugin):
+def detectPluginContent(plugin,skipscan=False):
     #based on the properties in the listitem we try to detect the content
     
     #safety check: check if no library windows are active to prevent any addons setting the view
@@ -299,43 +299,57 @@ def detectPluginContent(plugin):
     if curWindow.endswith("Nav.xml") or curWindow == "AddonBrowser.xml" or curWindow.startswith("MyPVR"):
         return None, None
     
-    media_array = getJSON('Files.GetDirectory','{ "directory": "%s", "media": "files", "properties": ["title", "file", "thumbnail", "episode", "showtitle", "season", "album", "artist", "imdbnumber", "firstaired", "mpaa", "trailer", "studio", "art"], "limits": {"end":3} }' %plugin)
-    for item in media_array:
-        image = None
-        if item.has_key("art"):
-            if item["art"].has_key("fanart"):
-                image = item["art"]["fanart"]
-            elif item["art"].has_key("tvshow.fanart"):
-                image = item["art"]["tvshow.fanart"]
-        if not item.has_key("showtitle") and not item.has_key("artist"):
-            #these properties are only returned in the json response if we're looking at actual file content...
-            # if it's missing it means this is a main directory listing and no need to scan the underlying listitems.
-            return ("files", image)
-        if not item.has_key("showtitle") and item.has_key("artist"):
-            ##### AUDIO ITEMS ####
-            if item["artist"][0] == item["title"]:
-                return ("artists", image)
-            elif item["album"] == item["title"]:
-                return ("albums", image)
-            elif (item["type"] == "song" or (item["artist"] and item["album"])):
-                return ("songs", image)
-        else:    
-            ##### VIDEO ITEMS ####
-            if (item["showtitle"] and not item["artist"]):
-                #this is a tvshow, episode or season...
-                if (item["season"] > -1 and item["episode"] == -1):
-                    return ("seasons", image)
-                elif item["season"] > -1 and item["episode"] > -1:
-                    return ("episodes", image)
-                else:
-                    return ("tvshows", image)
-            elif (item["artist"]):
-                #this is a musicvideo!
-                return ("musicvideos", image)
-            elif (item["imdbnumber"] or item["mpaa"] or item["trailer"] or item["studio"]):
-                return ("movies", image)
-
-    return (None, None)
+    if not skipscan:
+        media_array = getJSON('Files.GetDirectory','{ "directory": "%s", "media": "files", "properties": ["title", "file", "thumbnail", "episode", "showtitle", "season", "album", "artist", "imdbnumber", "firstaired", "mpaa", "trailer", "studio", "art"], "limits": {"end":3} }' %plugin)
+        for item in media_array:
+            image = None
+            if item.has_key("art"):
+                if item["art"].has_key("fanart"):
+                    image = item["art"]["fanart"]
+                elif item["art"].has_key("tvshow.fanart"):
+                    image = item["art"]["tvshow.fanart"]
+            if not item.has_key("showtitle") and not item.has_key("artist"):
+                #these properties are only returned in the json response if we're looking at actual file content...
+                # if it's missing it means this is a main directory listing and no need to scan the underlying listitems.
+                return ("files", image)
+            if not item.has_key("showtitle") and item.has_key("artist"):
+                ##### AUDIO ITEMS ####
+                if item["type"] == "artist" or item["artist"][0] == item["title"]:
+                    return ("artists", image)
+                elif item["type"] == "album" or item["album"] == item["title"]:
+                    return ("albums", image)
+                elif (item["type"] == "song" and not "play_album" in item["file"]) or (item["artist"] and item["album"]):
+                    return ("songs", image)
+            else:    
+                ##### VIDEO ITEMS ####
+                if (item["showtitle"] and not item["artist"]):
+                    #this is a tvshow, episode or season...
+                    if item["type"] == "season" or (item["season"] > -1 and item["episode"] == -1):
+                        return ("seasons", image)
+                    elif item["type"] == "episode" or item["season"] > -1 and item["episode"] > -1:
+                        return ("episodes", image)
+                    else:
+                        return ("tvshows", image)
+                elif (item["artist"]):
+                    #this is a musicvideo!
+                    return ("musicvideos", image)
+                elif item["type"] == "movie" or item["imdbnumber"] or item["mpaa"] or item["trailer"] or item["studio"]:
+                    return ("movies", image)
+    
+    #last resort or skipscan chosen - detect content based on the path
+    if "movie" in plugin or "box" in plugin or "dvd" in plugin or "rentals" in plugin:
+        type = "movies"
+    elif "album" in plugin:
+        type = "albums"
+    elif "show" in plugin:
+        type = "tvshows"
+    elif "song" in plugin:
+        type = "songs"
+    elif "musicvideo" in plugin:
+        type = "musicvideos"
+    else:
+        type = "unknown"
+    return (type, None)
     
 def getTMDBimage(title):
     apiKey = base64.b64decode("NDc2N2I0YjJiYjk0YjEwNGZhNTUxNWM1ZmY0ZTFmZWM=")
