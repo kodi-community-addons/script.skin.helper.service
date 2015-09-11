@@ -25,7 +25,6 @@ class BackgroundsUpdater(threading.Thread):
     exit = False
     allBackgrounds = {}
     tempBlacklist = set()
-    defBlacklist = set()
     lastPicturesPath = None
     smartShortcuts = {}
     cachePath = None
@@ -104,8 +103,6 @@ class BackgroundsUpdater(threading.Thread):
         if not xbmcvfs.exists(ADDON_DATA_PATH + os.sep):
             xbmcvfs.mkdir(ADDON_DATA_PATH)
         
-        self.allBackgrounds["blacklist"] = list(self.defBlacklist)
-        
         #cache file for all backgrounds
         json.dump(self.allBackgrounds, open(self.cachePath,'w'))
         
@@ -119,8 +116,6 @@ class BackgroundsUpdater(threading.Thread):
         if xbmcvfs.exists(self.cachePath):
             with open(self.cachePath) as data_file:    
                 data = json.load(data_file)
-                
-                self.defBlacklist = set(data["blacklist"])
                 self.allBackgrounds = data
         
         if xbmcvfs.exists(self.SmartShortcutsCachePath):
@@ -141,11 +136,6 @@ class BackgroundsUpdater(threading.Thread):
 
         #is path in the temporary blacklist ?
         if libPath in self.tempBlacklist:
-            logMsg("path blacklisted - skipping for path " + libPath)
-            return False
-        
-        #is path in the definitive blacklist ?
-        if libPath in self.defBlacklist:
             logMsg("path blacklisted - skipping for path " + libPath)
             return False
         
@@ -185,14 +175,10 @@ class BackgroundsUpdater(threading.Thread):
                         images.append(image)
             else:
                 logMsg("media array empty or error so add this path to blacklist..." + libPath)
-                if customJson or libPath.startswith("musicdb://") or libPath.startswith("videodb://") or libPath.startswith("library://") or libPath.endswith(".xsp") or libPath.startswith("plugin://plugin.video.emby"):
-                    #addpath to temporary blacklist
-                    self.tempBlacklist.add(libPath)
-                    WINDOW.setProperty(windowProp, image)
-                else:
-                    #blacklist this path
-                    self.defBlacklist.add(libPath)
-                    WINDOW.setProperty(windowProp, image)
+                #addpath to temporary blacklist
+                self.tempBlacklist.add(libPath)
+                WINDOW.setProperty(windowProp, image)
+
         
         #all is fine, we have some images to randomize and return one
         if images:
@@ -318,36 +304,30 @@ class BackgroundsUpdater(threading.Thread):
         #conditional background
         WINDOW.setProperty("SkinHelper.ConditionalBackground", conditionalBackgrounds.getActiveConditionalBackground())
         
-        #all movies  
-        self.setImageFromPath("SkinHelper.AllMoviesBackground","SkinHelper.AllMoviesBackground","",['VideoLibrary.GetMovies','{ "properties": ["title","art"], "limits": {"end":50}, "sort": { "order": "ascending", "method": "random", "ignorearticle": true } }'])
+        #movies backgrounds 
+        if xbmc.getCondVisibility("Library.HasContent(movies)"):
+            self.setImageFromPath("SkinHelper.AllMoviesBackground","SkinHelper.AllMoviesBackground","",['VideoLibrary.GetMovies','{ "properties": ["title","art"], "limits": {"end":50}, "sort": { "order": "ascending", "method": "random", "ignorearticle": true } }'])
+            self.setImageFromPath("SkinHelper.InProgressMoviesBackground","SkinHelper.InProgressMoviesBackground","",['VideoLibrary.GetMovies','{ "properties": ["title","art"], "filter": {"and": [{"operator":"true", "field":"inprogress", "value":""}]}, "sort": { "order": "ascending", "method": "random", "ignorearticle": true } }'])
+            self.setImageFromPath("SkinHelper.RecentMoviesBackground","SkinHelper.RecentMoviesBackground","",['VideoLibrary.GetRecentlyAddedMovies','{ "properties": ["title","art"], "limits": {"end":50}, "sort": { "order": "ascending", "method": "random", "ignorearticle": true } }'])
+            self.setImageFromPath("SkinHelper.UnwatchedMoviesBackground","SkinHelper.UnwatchedMoviesBackground","",['VideoLibrary.GetMovies','{ "properties": ["title","art"], "filter": {"and": [{"operator":"is", "field":"playcount", "value":0}]}, "limits": {"end":50}, "sort": { "order": "ascending", "method": "random", "ignorearticle": true } }'])
+             
+        #tvshows backgrounds
+        if xbmc.getCondVisibility("Library.HasContent(tvshows)"):
+            self.setImageFromPath("SkinHelper.AllTvShowsBackground","SkinHelper.AllTvShowsBackground","",['VideoLibrary.GetTVShows','{ "properties": ["title","art"], "limits": {"end":50}, "sort": { "order": "ascending", "method": "random", "ignorearticle": true } }'])
+            self.setImageFromPath("SkinHelper.InProgressShowsBackground","SkinHelper.InProgressShowsBackground","",['VideoLibrary.GetTVShows','{ "properties": ["title","art"], "filter": {"and": [{"operator":"true", "field":"inprogress", "value":""}]}, "sort": { "order": "ascending", "method": "random", "ignorearticle": true } }'])
+            self.setImageFromPath("SkinHelper.RecentEpisodesBackground","SkinHelper.RecentEpisodesBackground","",['VideoLibrary.GetRecentlyAddedEpisodes','{ "properties": ["title","art"], "limits": {"end":50}, "sort": { "order": "ascending", "method": "random", "ignorearticle": true } }'])
+            
+        #all musicvideos
+        if xbmc.getCondVisibility("Library.HasContent(musicvideos)"):
+            self.setImageFromPath("SkinHelper.AllMusicVideosBackground","SkinHelper.AllMusicVideosBackground","",['VideoLibrary.GetMusicVideos','{ "properties": ["title","art"], "limits": {"end":50}, "sort": { "order": "ascending", "method": "random", "ignorearticle": true } }'])
         
-        #all tvshows  
-        self.setImageFromPath("SkinHelper.AllTvShowsBackground","SkinHelper.AllTvShowsBackground","",['VideoLibrary.GetTVShows','{ "properties": ["title","art"], "limits": {"end":50}, "sort": { "order": "ascending", "method": "random", "ignorearticle": true } }'])
-        
-        #all musicvideos  
-        self.setImageFromPath("SkinHelper.AllMusicVideosBackground","SkinHelper.AllMusicVideosBackground","",['VideoLibrary.GetMusicVideos','{ "properties": ["title","art"], "limits": {"end":50}, "sort": { "order": "ascending", "method": "random", "ignorearticle": true } }'])
-        
-        #all music  
-        self.setImageFromPath("SkinHelper.AllMusicBackground","musicdb://artists/")
+        #all music
+        if xbmc.getCondVisibility("Library.HasContent(music)"):
+            self.setImageFromPath("SkinHelper.AllMusicBackground","musicdb://artists/")
         
         #global fanart background 
         self.getGlobalBackground()
-         
-        #in progress movies  
-        self.setImageFromPath("SkinHelper.InProgressMoviesBackground","SkinHelper.InProgressMoviesBackground","",['VideoLibrary.GetMovies','{ "properties": ["title","art"], "filter": {"and": [{"operator":"true", "field":"inprogress", "value":""}]}, "sort": { "order": "ascending", "method": "random", "ignorearticle": true } }'])
 
-        #recent and unwatched movies
-        self.setImageFromPath("SkinHelper.RecentMoviesBackground","SkinHelper.RecentMoviesBackground","",['VideoLibrary.GetRecentlyAddedMovies','{ "properties": ["title","art"], "limits": {"end":50}, "sort": { "order": "ascending", "method": "random", "ignorearticle": true } }'])
-           
-        #unwatched movies
-        self.setImageFromPath("SkinHelper.UnwatchedMoviesBackground","SkinHelper.UnwatchedMoviesBackground","",['VideoLibrary.GetMovies','{ "properties": ["title","art"], "filter": {"and": [{"operator":"is", "field":"playcount", "value":0}]}, "limits": {"end":50}, "sort": { "order": "ascending", "method": "random", "ignorearticle": true } }'])
-      
-        #in progress tvshows
-        self.setImageFromPath("SkinHelper.InProgressShowsBackground","SkinHelper.InProgressShowsBackground","",['VideoLibrary.GetTVShows','{ "properties": ["title","art"], "filter": {"and": [{"operator":"true", "field":"inprogress", "value":""}]}, "sort": { "order": "ascending", "method": "random", "ignorearticle": true } }'])
-        
-        #recent episodes
-        self.setImageFromPath("SkinHelper.RecentEpisodesBackground","SkinHelper.RecentEpisodesBackground","",['VideoLibrary.GetRecentlyAddedEpisodes','{ "properties": ["title","art"], "limits": {"end":50}, "sort": { "order": "ascending", "method": "random", "ignorearticle": true } }'])
-        
         #pictures background
         WINDOW.setProperty("SkinHelper.PicturesBackground", self.getPicturesBackground())
         

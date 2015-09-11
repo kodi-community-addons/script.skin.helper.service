@@ -104,7 +104,7 @@ def backup(filterString=None,silent=None,promptfilename="false"):
                 skinshortcuts_path = temp_path + "skinshortcuts/"
                 skinshortcuts_path_source = xbmc.translatePath('special://profile/addon_data/script.skinshortcuts/').decode("utf-8")
                 logMsg(skinshortcuts_path_source)
-                if xbmcvfs.exists(skinshortcuts_path_source) and (not filterString or filterString.lower() == "skinshortcutsonly":
+                if xbmcvfs.exists(skinshortcuts_path_source) and (filterString==None or filterString.lower() == "skinshortcutsonly"):
                     if not xbmcvfs.exists(skinshortcuts_path):
                         xbmcvfs.mkdir(skinshortcuts_path)
                     dirs, files = xbmcvfs.listdir(skinshortcuts_path_source)
@@ -226,7 +226,7 @@ def restore(silent=None):
                         xbmcvfs.copy(sourcefile,destfile)
                         
             #read guisettings
-            if xbmcvfs.exists(os.path.join(temp_path, "guisettings.txt"):
+            if xbmcvfs.exists(os.path.join(temp_path, "guisettings.txt")):
                 text_file_path = os.path.join(temp_path, "guisettings.txt")
                 f = open(text_file_path,"r")
                 importstring = json.load(f)
