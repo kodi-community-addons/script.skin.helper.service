@@ -51,6 +51,7 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
             if(jsonobject["result"].has_key('value')):
                 currentSkinColors = jsonobject["result"]["value"]
         
+        settingslist = set()
         for count, skinsetting in enumerate(importstring):
             if skinsetting[0] == "SKINTHEME":
                 skintheme = skinsetting[1]
@@ -65,20 +66,22 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
             else:    
                 #some legacy..
                 setting = skinsetting[1]
+                
                 if setting.startswith("TITANSKIN"): setting = setting.replace("TITANSKIN.", "")
                 if setting.startswith("."): setting = setting[1:]
-                
-                if skinsetting[0] == "string":
-                    if skinsetting[2] is not "":
-                        xbmc.executebuiltin("Skin.SetString(%s,%s)" % (setting, skinsetting[2]))
-                    else:
-                        xbmc.executebuiltin("Skin.Reset(%s)" % setting)
-                elif skinsetting[0] == "bool":
-                    if skinsetting[2] == "true":
-                        xbmc.executebuiltin("Skin.SetBool(%s)" % setting)
-                    else:
-                        xbmc.executebuiltin("Skin.Reset(%s)" % setting)
-                xbmc.sleep(30)
+                if not setting in settingslist:
+                    settingslist.add(setting)
+                    if skinsetting[0] == "string":
+                        if skinsetting[2] is not "":
+                            xbmc.executebuiltin("Skin.SetString(%s,%s)" % (setting, skinsetting[2]))
+                        else:
+                            xbmc.executebuiltin("Skin.Reset(%s)" % setting)
+                    elif skinsetting[0] == "bool":
+                        if skinsetting[2] == "true":
+                            xbmc.executebuiltin("Skin.SetBool(%s)" % setting)
+                        else:
+                            xbmc.executebuiltin("Skin.Reset(%s)" % setting)
+                    xbmc.sleep(30)
         
         #change the skintheme, color and font if needed 
         if skintheme and currentSkinTheme != skintheme:
