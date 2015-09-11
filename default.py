@@ -112,7 +112,7 @@ class Main:
             
             elif action == "BACKUP":
                 import resources.lib.BackupRestore as backup
-                filter = params.get("FILTER",None)
+                filter = params.get("FILTER","")
                 silent = params.get("SILENT",None)
                 promptfilename = params.get("promptfilename","false")
                 backup.backup(filter,silent,promptfilename.lower())

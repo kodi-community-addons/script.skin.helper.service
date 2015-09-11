@@ -62,7 +62,7 @@ def getSkinSettings(filter=None):
     
     return newlist
 
-def backup(filterString=None,silent=None,promptfilename="false"):
+def backup(filterString="",silent=None,promptfilename="false"):
     try:
         xbmc.executebuiltin( "ActivateWindow(busydialog)" )
         if filterString:
