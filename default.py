@@ -19,7 +19,7 @@ class Main:
             arg = arg.replace('"', '').replace("'", " ").replace("?", "")
             if "=" in arg:
                 paramname = arg.split('=')[0].upper()
-                paramvalue = arg.split('=')[1].upper()
+                paramvalue = arg.split('=')[1]
                 params[paramname] = paramvalue
         
         logMsg("Parameter string: " + str(params))
@@ -31,7 +31,7 @@ class Main:
         params = self.getParams()
         
         if params:
-            action = params.get("ACTION",None)
+            action = params.get("ACTION","").upper()
 
             if action =="ADDSHORTCUT":
                 addShortcutWorkAround()
@@ -73,7 +73,6 @@ class Main:
                 colorPicker.doModal()
                 propname = params.get("SHORTCUTPROPERTY",None)
                 if propname:
-                    propname = propname.lower()
                     wid = xbmcgui.getCurrentWindowDialogId()
                     currentWindow = xbmcgui.Window( xbmcgui.getCurrentWindowDialogId() )
                     currentWindow.setProperty("customProperty",propname)

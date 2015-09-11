@@ -73,25 +73,25 @@ def backup(filterString=None,silent=None,promptfilename="false"):
                 filter.append(filterString)
         else:
             filter = None
-            
-        if silent and not xbmcvfs.exists(silent):
-            logMsg("ERROR while creating backup ! --> Path invalid. Make sure you provide the FULL VFS path, for example special://skin/extras/mybackup.zip", 0)
-            return
 
         #get backup destination
         backup_path = silent
-        filename = None
         if not backup_path:
             backup_path = get_browse_dialog(dlg_type=3,heading=ADDON.getLocalizedString(32018))
         if promptfilename == "true":
             dialog = xbmcgui.Dialog()
-            filename = dialog.input(ADDON.getLocalizedString(32068), type=xbmcgui.INPUT_ALPHANUM)
+            backup_name = dialog.input(ADDON.getLocalizedString(32068), type=xbmcgui.INPUT_ALPHANUM)
+        else:
+            from datetime import datetime
+            i = datetime.now()
+            backup_name = xbmc.getSkinDir().decode('utf-8').replace("skin.","") + "_SKIN_BACKUP_" + i.strftime('%Y%m%d-%H%M')
+            
         if backup_path and backup_path != "protocol://":
             
                 #get the skinsettings
                 newlist = getSkinSettings(filter)
 
-                if not xbmcvfs.exists(backup_path):
+                if not xbmcvfs.exists(backup_path) and not silent:
                     xbmcvfs.mkdir(backup_path)
                 
                 #create temp path
@@ -104,7 +104,7 @@ def backup(filterString=None,silent=None,promptfilename="false"):
                 skinshortcuts_path = temp_path + "skinshortcuts/"
                 skinshortcuts_path_source = xbmc.translatePath('special://profile/addon_data/script.skinshortcuts/').decode("utf-8")
                 logMsg(skinshortcuts_path_source)
-                if xbmcvfs.exists(skinshortcuts_path_source) and not filter:
+                if xbmcvfs.exists(skinshortcuts_path_source) and (not filterString or filterString.lower() == "skinshortcutsonly":
                     if not xbmcvfs.exists(skinshortcuts_path):
                         xbmcvfs.mkdir(skinshortcuts_path)
                     dirs, files = xbmcvfs.listdir(skinshortcuts_path_source)
@@ -122,29 +122,22 @@ def backup(filterString=None,silent=None,promptfilename="false"):
                             logMsg("destination --> " + destfile)
                             xbmcvfs.copy(sourcefile,destfile)
                 
-                #save guisettings
-                text_file_path = os.path.join(temp_path, "guisettings.txt")
-                text_file = xbmcvfs.File(text_file_path, "w")
-                json.dump(newlist, text_file)
-                text_file.close()
-                
-                from datetime import datetime
-                i = datetime.now()
+                if not filterString.lower() == "skinshortcutsonly":
+                    #save guisettings
+                    text_file_path = os.path.join(temp_path, "guisettings.txt")
+                    text_file = xbmcvfs.File(text_file_path, "w")
+                    json.dump(newlist, text_file)
+                    text_file.close()
+
                 
                 #zip the backup
-                if silent:
-                    backup_name = silent
-                elif filename:
-                    backup_name = filename
-                else:
-                    backup_name = xbmc.getSkinDir().decode('utf-8').replace("skin.","") + "_SKIN_BACKUP_" + i.strftime('%Y%m%d-%H%M')
                 zip_temp = xbmc.translatePath('special://temp/' + backup_name).decode("utf-8")
+                zip(temp_path,zip_temp)
                 
                 if silent:
                     zip_final = silent
                 else:
                     zip_final = backup_path + backup_name + ".zip"
-                zip(temp_path,zip_temp)
                 
                 #copy to final location
                 xbmcvfs.copy(zip_temp + ".zip", zip_final)
@@ -160,10 +153,11 @@ def backup(filterString=None,silent=None,promptfilename="false"):
         if not silent:
             xbmcgui.Dialog().ok(ADDON.getLocalizedString(32028), ADDON.getLocalizedString(32030))
         logMsg("ERROR while creating backup ! --> " + str(e), 0)
+        if silent:
+            logMsg("ERROR while creating silent backup ! --> Make sure you provide the FULL VFS path, for example special://skin/extras/mybackup.zip", 0)            
     finally:
         xbmc.executebuiltin( "Dialog.Close(busydialog)" )
-    
-     
+        
 def restore(silent=None):
 
     if silent and not xbmcvfs.exists(silent):
@@ -232,35 +226,36 @@ def restore(silent=None):
                         xbmcvfs.copy(sourcefile,destfile)
                         
             #read guisettings
-            text_file_path = os.path.join(temp_path, "guisettings.txt")
-            f = open(text_file_path,"r")
-            importstring = json.load(f)
-            f.close()
+            if xbmcvfs.exists(os.path.join(temp_path, "guisettings.txt"):
+                text_file_path = os.path.join(temp_path, "guisettings.txt")
+                f = open(text_file_path,"r")
+                importstring = json.load(f)
+                f.close()
             
-            xbmc.sleep(200)
-            for count, skinsetting in enumerate(importstring):
-            
-                if progressDialog:
-                    if progressDialog.iscanceled():
-                        return
-                    
-                #some legacy...
-                setting = skinsetting[1].replace("TITANSKIN.helix", "").replace("TITANSKIN.", "")
+                xbmc.sleep(200)
+                for count, skinsetting in enumerate(importstring):
                 
-                if progressDialog:
-                    progressDialog.update((count * 100) / len(importstring), ADDON.getLocalizedString(32033) + ' %s' % setting)
+                    if progressDialog:
+                        if progressDialog.iscanceled():
+                            return
+                        
+                    #some legacy...
+                    setting = skinsetting[1].replace("TITANSKIN.helix", "").replace("TITANSKIN.", "")
+                    
+                    if progressDialog:
+                        progressDialog.update((count * 100) / len(importstring), ADDON.getLocalizedString(32033) + ' %s' % setting)
 
-                if skinsetting[0] == "string":
-                    if skinsetting[2] is not "":
-                        xbmc.executebuiltin("Skin.SetString(%s,%s)" % (setting, skinsetting[2]))
-                    else:
-                        xbmc.executebuiltin("Skin.Reset(%s)" % setting)
-                elif skinsetting[0] == "bool":
-                    if skinsetting[2] == "true":
-                        xbmc.executebuiltin("Skin.SetBool(%s)" % setting)
-                    else:
-                        xbmc.executebuiltin("Skin.Reset(%s)" % setting)
-                xbmc.sleep(30)
+                    if skinsetting[0] == "string":
+                        if skinsetting[2] is not "":
+                            xbmc.executebuiltin("Skin.SetString(%s,%s)" % (setting, skinsetting[2]))
+                        else:
+                            xbmc.executebuiltin("Skin.Reset(%s)" % setting)
+                    elif skinsetting[0] == "bool":
+                        if skinsetting[2] == "true":
+                            xbmc.executebuiltin("Skin.SetBool(%s)" % setting)
+                        else:
+                            xbmc.executebuiltin("Skin.Reset(%s)" % setting)
+                    xbmc.sleep(30)
             
             #cleanup temp
             xbmc.sleep(500)

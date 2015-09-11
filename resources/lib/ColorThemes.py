@@ -93,9 +93,10 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
         import zipfile
         backup_path = get_browse_dialog(dlg_type=3,heading=ADDON.getLocalizedString(32018))
         
+        themeName = themeName.replace(" " + xbmc.getLocalizedString(461),"")
         if backup_path:
             backup_name = xbmc.getSkinDir().replace("skin.","") + "_COLORTHEME_" + themeName
-            backup_path = os.path.join(backup_path,backup_name)
+            backup_path = os.path.join(backup_path,backup_name).decode("utf-8")
             backup_path_temp = xbmc.translatePath('special://temp/' + backup_name).decode("utf-8")
             
             zf = zipfile.ZipFile("%s.zip" % (backup_path_temp), "w", zipfile.ZIP_DEFLATED)
@@ -275,7 +276,8 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
             item = self.themesList.getSelectedItem()
             themeFile = item.getProperty("filename")
             self.loadColorTheme(themeFile)
-
+        elif(controlID == 7):
+            self.closeDialog()
 
 def get_browse_dialog(default="protocol://", heading="Browse", dlg_type=3, shares="files", mask="", use_thumbs=False, treat_as_folder=False):
     dialog = xbmcgui.Dialog()
