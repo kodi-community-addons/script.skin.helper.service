@@ -165,19 +165,20 @@ class BackgroundsUpdater(threading.Thread):
                 media_array = getJSON(customJson[0],customJson[1])
             else:
                 media_array = getJSON('Files.GetDirectory','{ "properties": ["title","art"], "directory": "%s", "media": "files", "limits": {"end":150}, "sort": { "order": "ascending", "method": "random", "ignorearticle": true } }' %libPath)
-            for media in media_array:
-                if media.has_key('art') and not media['title'].lower() == "next page":
-                    if media['art'].has_key('fanart'):
-                        image = media['art']['fanart']
-                        images.append(image)
-                    if media['art'].has_key('tvshow.fanart'):
-                        image = media['art']['tvshow.fanart']
-                        images.append(image)
-            else:
-                logMsg("media array empty or error so add this path to blacklist..." + libPath)
-                #addpath to temporary blacklist
-                self.tempBlacklist.add(libPath)
-                WINDOW.setProperty(windowProp, image)
+                if media_array:
+                    for media in media_array:
+                        if media.has_key('art') and not media['title'].lower() == "next page":
+                            if media['art'].has_key('fanart'):
+                                image = media['art']['fanart']
+                                images.append(image)
+                            if media['art'].has_key('tvshow.fanart'):
+                                image = media['art']['tvshow.fanart']
+                                images.append(image)
+                else:
+                    logMsg("media array empty or error so add this path to blacklist..." + libPath)
+                    #addpath to temporary blacklist
+                    self.tempBlacklist.add(libPath)
+                    WINDOW.setProperty(windowProp, image)
 
         
         #all is fine, we have some images to randomize and return one
