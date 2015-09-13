@@ -68,7 +68,6 @@ class HomeMonitor(threading.Thread):
                         WINDOW.setProperty("SkinHelper.ActiveWidget",activewidget)
                     else: 
                         WINDOW.setProperty("SkinHelper.ActiveWidget","0")
-                        print "activewidget is none"
                     
                     # update the background
                     background = xbmc.getInfoLabel("Container(%s).ListItem.Property(Background)" %mainMenuContainer)
