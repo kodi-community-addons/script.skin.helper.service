@@ -35,15 +35,15 @@ def getSkinSettings(filter=None):
         for count, skinsetting in enumerate(skinsettings):
             
             if KODI_VERSION < 16:
-                settingname = skinsetting.attributes['name'].nodeValue
+                settingname = skinsetting.attributes['name'].nodeValue.decode("utf-8")
             else:
-                settingname = skinsetting.attributes['id'].nodeValue
+                settingname = skinsetting.attributes['id'].nodeValue.decode("utf-8")
             
             #only get settings for the current skin                    
             if ( KODI_VERSION < 16 and settingname.startswith(xbmc.getSkinDir()+".")) or KODI_VERSION >= 16:
                 
                 if skinsetting.childNodes:
-                    settingvalue = skinsetting.childNodes[0].nodeValue
+                    settingvalue = skinsetting.childNodes[0].nodeValue.decode("utf-8")
                 else:
                     settingvalue = ""
                 
@@ -231,7 +231,7 @@ def restore(silent=None):
             if xbmcvfs.exists(os.path.join(temp_path, "guisettings.txt")):
                 text_file_path = os.path.join(temp_path, "guisettings.txt")
                 f = open(text_file_path,"r")
-                importstring = json.load(f)
+                importstring = json.load(f).decode('utf-8','replace')
                 f.close()
             
                 xbmc.sleep(200)
