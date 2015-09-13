@@ -231,7 +231,7 @@ def restore(silent=None):
             if xbmcvfs.exists(os.path.join(temp_path, "guisettings.txt")):
                 text_file_path = os.path.join(temp_path, "guisettings.txt")
                 f = open(text_file_path,"r")
-                importstring = json.load(f).decode('utf-8','replace')
+                importstring = json.load(f)
                 f.close()
             
                 xbmc.sleep(200)
@@ -242,18 +242,18 @@ def restore(silent=None):
                             return
                         
                     #some legacy...
-                    setting = skinsetting[1].replace("TITANSKIN.helix", "").replace("TITANSKIN.", "")
-                    
+                    setting = skinsetting[1].decode('utf-8','replace').replace("TITANSKIN.helix", "").replace("TITANSKIN.", "")
+                    settingvalue = skinsetting[2].decode('utf-8','replace')
                     if progressDialog:
                         progressDialog.update((count * 100) / len(importstring), ADDON.getLocalizedString(32033) + ' %s' % setting)
 
                     if skinsetting[0] == "string":
-                        if skinsetting[2] is not "":
-                            xbmc.executebuiltin("Skin.SetString(%s,%s)" % (setting, skinsetting[2]))
+                        if settingvalue:
+                            xbmc.executebuiltin("Skin.SetString(%s,%s)" % (setting, settingvalue))
                         else:
                             xbmc.executebuiltin("Skin.Reset(%s)" % setting)
                     elif skinsetting[0] == "bool":
-                        if skinsetting[2] == "true":
+                        if settingvalue == "true":
                             xbmc.executebuiltin("Skin.SetBool(%s)" % setting)
                         else:
                             xbmc.executebuiltin("Skin.Reset(%s)" % setting)
