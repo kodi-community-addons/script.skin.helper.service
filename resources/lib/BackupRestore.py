@@ -240,24 +240,28 @@ def restore(silent=None):
                     if progressDialog:
                         if progressDialog.iscanceled():
                             return
+                    try:
+                        setting = skinsetting[1].decode('utf-8','replace')
+                        #some legacy...
+                        setting = setting.replace("TITANSKIN.helix", "").replace("TITANSKIN.", "")
                         
-                    #some legacy...
-                    setting = skinsetting[1].decode('utf-8','replace').replace("TITANSKIN.helix", "").replace("TITANSKIN.", "")
-                    settingvalue = skinsetting[2].decode('utf-8','replace')
-                    if progressDialog:
-                        progressDialog.update((count * 100) / len(importstring), ADDON.getLocalizedString(32033) + ' %s' % setting)
+                        settingvalue = skinsetting[2].decode('utf-8','replace')
+                        if progressDialog:
+                            progressDialog.update((count * 100) / len(importstring), ADDON.getLocalizedString(32033) + ' %s' % setting)
 
-                    if skinsetting[0] == "string":
-                        if settingvalue:
-                            xbmc.executebuiltin("Skin.SetString(%s,%s)" % (setting, settingvalue))
-                        else:
-                            xbmc.executebuiltin("Skin.Reset(%s)" % setting)
-                    elif skinsetting[0] == "bool":
-                        if settingvalue == "true":
-                            xbmc.executebuiltin("Skin.SetBool(%s)" % setting)
-                        else:
-                            xbmc.executebuiltin("Skin.Reset(%s)" % setting)
-                    xbmc.sleep(30)
+                        if skinsetting[0] == "string":
+                            if settingvalue:
+                                xbmc.executebuiltin("Skin.SetString(%s,%s)" % (setting, settingvalue))
+                            else:
+                                xbmc.executebuiltin("Skin.Reset(%s)" % setting)
+                        elif skinsetting[0] == "bool":
+                            if settingvalue == "true":
+                                xbmc.executebuiltin("Skin.SetBool(%s)" % setting)
+                            else:
+                                xbmc.executebuiltin("Skin.Reset(%s)" % setting)
+                        xbmc.sleep(30)
+                    except Exception as e:
+                        logMsg("BackupRestore --> " + str(e))
             
             #cleanup temp
             xbmc.sleep(500)

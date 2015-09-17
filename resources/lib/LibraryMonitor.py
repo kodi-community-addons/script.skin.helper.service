@@ -275,12 +275,12 @@ class LibraryMonitor(threading.Thread):
                                     width = stream.get("width","")
                                     if height and width:
                                         resolution = ""
-                                        if width <= 720 && height <= 480: resolution = "480"
-                                        elif width <= 768 && height <= 576: resolution = "576"
-                                        elif width <= 960 && height <= 544: resolution = "540"
-                                        elif width <= 1280 && height <= 720: resolution = "720"
-                                        elif width <= 1920 && height <= 1080: resolution = "1080"
-                                        elif width * height >= 6000000): resolution = "1080"
+                                        if width <= 720 & height <= 480: resolution = "480"
+                                        elif width <= 768 & height <= 576: resolution = "576"
+                                        elif width <= 960 & height <= 544: resolution = "540"
+                                        elif width <= 1280 & height <= 720: resolution = "720"
+                                        elif width <= 1920 & height <= 1080: resolution = "1080"
+                                        elif width * height >= 6000000: resolution = "4K"
                                         WINDOW.setProperty('SkinHelper.MovieSet.' + str(count) + '.Resolution',resolution)
                                     if stream.get("codec",""):
                                         WINDOW.setProperty('SkinHelper.MovieSet.' + str(count) + '.Codec',str(stream["codec"]))    
