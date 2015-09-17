@@ -35,9 +35,9 @@ def getSkinSettings(filter=None):
         for count, skinsetting in enumerate(skinsettings):
             
             if KODI_VERSION < 16:
-                settingname = skinsetting.attributes['name'].nodeValue.decode("utf-8")
+                settingname = skinsetting.attributes['name'].nodeValue
             else:
-                settingname = skinsetting.attributes['id'].nodeValue.decode("utf-8")
+                settingname = skinsetting.attributes['id'].nodeValue
             
             #only get settings for the current skin                    
             if ( KODI_VERSION < 16 and settingname.startswith(xbmc.getSkinDir()+".")) or KODI_VERSION >= 16:
@@ -48,7 +48,7 @@ def getSkinSettings(filter=None):
                     settingvalue = ""
                 
                 settingname = settingname.replace(xbmc.getSkinDir()+".","")
-                if settingname.startswith("beta.") or settingname.startswith("helix."):
+                if settingname.endswith(".beta") or settingname.endswith(".helix"):
                     continue
                 if not filter:
                     newlist.append((skinsetting.attributes['type'].nodeValue, settingname, settingvalue))

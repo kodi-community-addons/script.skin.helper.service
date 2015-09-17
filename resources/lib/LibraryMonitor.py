@@ -142,6 +142,7 @@ class LibraryMonitor(threading.Thread):
                         self.setDuration(xbmc.getInfoLabel("Container(%s).ListItem.Duration" %widgetContainer))
                         self.setStudioLogo(xbmc.getInfoLabel("Container(%s).ListItem.Studio" %widgetContainer))
                         self.setDirector(xbmc.getInfoLabel("Container(%s).ListItem.Director" %widgetContainer))
+                        self.checkMusicArt(xbmc.getInfoLabel("Container(%s).ListItem.Artist" %widgetContainer)+xbmc.getInfoLabel("Container(%s).ListItem.Album" %widgetContainer))
                     except Exception as e:
                         logMsg("ERROR in LibraryMonitor widgets ! --> " + str(e), 0)
                         print_exc()
@@ -162,7 +163,6 @@ class LibraryMonitor(threading.Thread):
                         self.setStudioLogo()
                         self.setGenre()
                         self.setDirector()
-                        self.focusEpisode()
                         self.checkExtraFanArt()
                         self.setMovieSetDetails()
                         self.setAddonName()
@@ -214,6 +214,7 @@ class LibraryMonitor(threading.Thread):
             WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.Banner')
             WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.Rating')
             WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.Resolution')
+            WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.Resolution.Type')
             WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.AspectRatio')
             WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.Codec')
         
@@ -270,8 +271,17 @@ class LibraryMonitor(threading.Thread):
                         if "streamdetails" in item:
                             for key, value in item['streamdetails'].iteritems():
                                 for stream in value:
-                                    if stream.get("height",""):
-                                        WINDOW.setProperty('SkinHelper.MovieSet.' + str(count) + '.Resolution',str(stream["height"]))
+                                    height = stream.get("height","")
+                                    width = stream.get("width","")
+                                    if height and width:
+                                        resolution = ""
+                                        if width <= 720 && height <= 480: resolution = "480"
+                                        elif width <= 768 && height <= 576: resolution = "576"
+                                        elif width <= 960 && height <= 544: resolution = "540"
+                                        elif width <= 1280 && height <= 720: resolution = "720"
+                                        elif width <= 1920 && height <= 1080: resolution = "1080"
+                                        elif width * height >= 6000000): resolution = "1080"
+                                        WINDOW.setProperty('SkinHelper.MovieSet.' + str(count) + '.Resolution',resolution)
                                     if stream.get("codec",""):
                                         WINDOW.setProperty('SkinHelper.MovieSet.' + str(count) + '.Codec',str(stream["codec"]))    
                                     if stream.get("aspect",""):
@@ -406,8 +416,7 @@ class LibraryMonitor(threading.Thread):
         WINDOW.setProperty("SkinHelper.PVR.FanArt",fanart)
         WINDOW.setProperty("SkinHelper.PVR.ChannelLogo",logo)
         WINDOW.setProperty("SkinHelper.PVR.Poster",poster)
-
-            
+     
     def setStudioLogo(self, studio=None):
         if not studio:
             studio = xbmc.getInfoLabel('ListItem.Studio')
@@ -535,56 +544,6 @@ class LibraryMonitor(threading.Thread):
             self.allStudioLogos = allLogos
             self.allStudioLogosColor = allLogosColor
     
-    def focusEpisode(self):
-        # monitor episodes for auto focus first unwatched
-        if xbmc.getCondVisibility("Skin.HasSetting(AutoFocusUnwatchedEpisode)"):
-            
-            #store unwatched episodes
-            if ((xbmc.getCondVisibility("Container.Content(seasons) | Container.Content(tvshows)")) and xbmc.getCondVisibility("!IsEmpty(ListItem.Property(UnWatchedEpisodes))")):
-                try:
-                    self.unwatched = int(xbmc.getInfoLabel("ListItem.Property(UnWatchedEpisodes)"))
-                except: pass
-            
-            if (xbmc.getCondVisibility("Container.Content(episodes) | Container.Content(seasons)")):
-                
-                if (xbmc.getInfoLabel("Container.FolderPath") != self.lastEpPath and self.unwatched != 0):
-                    totalItems = 0
-                    curView = xbmc.getInfoLabel("Container.Viewmode") 
-                    viewId = int(self.getViewId(curView))
-                    
-                    wid = xbmcgui.getCurrentWindowId()
-                    window = xbmcgui.Window( wid )        
-                    control = window.getControl(int(viewId))
-                    totalItems = int(xbmc.getInfoLabel("Container.NumItems"))
-                    
-                    #only do a focus if we're on top of the list, else skip to prevent bouncing of the list
-                    if not int(xbmc.getInfoLabel("Container.Position")) > 1:
-                        if (xbmc.getCondVisibility("Container.SortDirection(ascending)")):
-                            curItem = 0
-                            control.selectItem(0)
-                            xbmc.sleep(250)
-                            while ((xbmc.getCondVisibility("Container.Content(episodes) | Container.Content(seasons)")) and totalItems >= curItem):
-                                if (xbmc.getInfoLabel("Container.ListItem(" + str(curItem) + ").Overlay") != "OverlayWatched.png" and xbmc.getInfoLabel("Container.ListItem(" + str(curItem) + ").Label") != ".." and not xbmc.getInfoLabel("Container.ListItem(" + str(curItem) + ").Label").startswith("*")):
-                                    if curItem != 0:
-                                        control.selectItem(curItem)
-                                    break
-                                else:
-                                    curItem += 1
-                        
-                        elif (xbmc.getCondVisibility("Container.SortDirection(descending)")):
-                            curItem = totalItems
-                            control.selectItem(totalItems)
-                            xbmc.sleep(250)
-                            while ((xbmc.getCondVisibility("Container.Content(episodes) | Container.Content(seasons)")) and curItem != 0):
-                                
-                                if (xbmc.getInfoLabel("Container.ListItem(" + str(curItem) + ").Overlay") != "OverlayWatched.png"):
-                                    control.selectItem(curItem-1)
-                                    break
-                                else:    
-                                    curItem -= 1
-                                        
-            self.lastEpPath = xbmc.getInfoLabel("Container.FolderPath")
-        
     def setDuration(self,currentDuration=None):
         if not currentDuration:
             currentDuration = xbmc.getInfoLabel("ListItem.Duration")
@@ -640,11 +599,14 @@ class LibraryMonitor(threading.Thread):
         
         return viewId    
     
-    def checkMusicArt(self):
-        
-        dbID = xbmc.getInfoLabel("ListItem.Artist") + xbmc.getInfoLabel("ListItem.Album")
+    def checkMusicArt(self,widget=None):
         cacheFound = False
-
+        
+        if widget:
+            dbID = widget
+        else:
+            dbID = xbmc.getInfoLabel("ListItem.Artist") + xbmc.getInfoLabel("ListItem.Album")
+        
         if self.lastMusicDbId == dbID:
             return
         
@@ -652,7 +614,7 @@ class LibraryMonitor(threading.Thread):
 
         self.lastMusicDbId = dbID
         
-        if xbmc.getInfoLabel("ListItem.Label") == ".." or not xbmc.getInfoLabel("ListItem.FolderPath").startswith("musicdb"):
+        if not widget and (xbmc.getInfoLabel("ListItem.Label") == ".." or not xbmc.getInfoLabel("ListItem.FolderPath").startswith("musicdb") or not dbID):
             WINDOW.setProperty("SkinHelper.ExtraFanArtPath","") 
             WINDOW.clearProperty("SkinHelper.Music.BannerArt") 
             WINDOW.clearProperty("SkinHelper.Music.LogoArt") 
@@ -704,7 +666,7 @@ class LibraryMonitor(threading.Thread):
             else:
                 WINDOW.setProperty("SkinHelper.Music.TrackList",self.musicArtCache[dbID + "SkinHelper.Music.TrackList"])
 
-        if not cacheFound:
+        if not cacheFound and not widget:
             logMsg("checkMusicArt no cache found for dbID--> " + dbID)
             path = None
             json_response = None

@@ -16,7 +16,7 @@ class Main:
         logMsg('started loading pluginentry')
         
         #get params
-        params = urlparse.parse_qs(sys.argv[2][1:])
+        params = urlparse.parse_qs(sys.argv[2][1:].decode("utf-8"))
         logMsg("Parameter string: %s" % sys.argv[2])
         
         if params:        
