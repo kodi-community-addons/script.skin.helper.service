@@ -43,7 +43,7 @@ def getSkinSettings(filter=None):
             if ( KODI_VERSION < 16 and settingname.startswith(xbmc.getSkinDir()+".")) or KODI_VERSION >= 16:
                 
                 if skinsetting.childNodes:
-                    settingvalue = skinsetting.childNodes[0].nodeValue.decode("utf-8")
+                    settingvalue = skinsetting.childNodes[0].nodeValue
                 else:
                     settingvalue = ""
                 
@@ -78,7 +78,7 @@ def backup(filterString="",silent=None,promptfilename="false"):
         #get backup destination
         backup_path = silent
         if not backup_path:
-            backup_path = get_browse_dialog(dlg_type=3,heading=ADDON.getLocalizedString(32018))
+            backup_path = get_browse_dialog(dlg_type=3,heading=ADDON.getLocalizedString(32018)).decode("utf-8")
         if promptfilename == "true":
             dialog = xbmcgui.Dialog()
             backup_name = dialog.input(ADDON.getLocalizedString(32068), type=xbmcgui.INPUT_ALPHANUM)
@@ -126,10 +126,9 @@ def backup(filterString="",silent=None,promptfilename="false"):
                 if not filterString.lower() == "skinshortcutsonly":
                     #save guisettings
                     text_file_path = os.path.join(temp_path, "guisettings.txt")
-                    text_file = xbmcvfs.File(text_file_path, "w")
-                    json.dump(newlist, text_file)
-                    text_file.close()
-
+                    
+                    with open(text_file_path, 'w') as f:
+                        f.write(repr(newlist))
                 
                 #zip the backup
                 zip_temp = xbmc.translatePath('special://temp/' + backup_name).decode("utf-8")
@@ -230,9 +229,8 @@ def restore(silent=None):
             #read guisettings
             if xbmcvfs.exists(os.path.join(temp_path, "guisettings.txt")):
                 text_file_path = os.path.join(temp_path, "guisettings.txt")
-                f = open(text_file_path,"r")
-                importstring = json.load(f)
-                f.close()
+                with open(text_file_path, 'r') as f:
+                    importstring = eval(f.read())
             
                 xbmc.sleep(200)
                 for count, skinsetting in enumerate(importstring):
@@ -240,28 +238,35 @@ def restore(silent=None):
                     if progressDialog:
                         if progressDialog.iscanceled():
                             return
-                    try:
-                        setting = skinsetting[1].decode('utf-8','replace')
-                        #some legacy...
-                        setting = setting.replace("TITANSKIN.helix", "").replace("TITANSKIN.", "")
-                        
-                        settingvalue = skinsetting[2].decode('utf-8','replace')
-                        if progressDialog:
-                            progressDialog.update((count * 100) / len(importstring), ADDON.getLocalizedString(32033) + ' %s' % setting)
+                    setting = skinsetting[1]
+                    settingvalue = skinsetting[2]
+                    
+                    #some legacy...
+                    setting = setting.replace("TITANSKIN.helix", "").replace("TITANSKIN.", "")
 
-                        if skinsetting[0] == "string":
-                            if settingvalue:
-                                xbmc.executebuiltin("Skin.SetString(%s,%s)" % (setting, settingvalue))
-                            else:
-                                xbmc.executebuiltin("Skin.Reset(%s)" % setting)
-                        elif skinsetting[0] == "bool":
-                            if settingvalue == "true":
-                                xbmc.executebuiltin("Skin.SetBool(%s)" % setting)
-                            else:
-                                xbmc.executebuiltin("Skin.Reset(%s)" % setting)
-                        xbmc.sleep(30)
-                    except Exception as e:
-                        logMsg("BackupRestore --> " + str(e))
+                    try: setting = setting.encode('utf-8')
+                    except: pass
+                    
+                    try: settingvalue = settingvalue.encode('utf-8')
+                    except: pass
+                    
+                    print setting
+                    print settingvalue
+
+                    if progressDialog:
+                        progressDialog.update((count * 100) / len(importstring), ADDON.getLocalizedString(32033) + ' %s' % setting.decode("utf-8"))
+
+                    if skinsetting[0] == "string":
+                        if settingvalue:
+                            xbmc.executebuiltin("Skin.SetString(%s,%s)" % (setting, settingvalue))
+                        else:
+                            xbmc.executebuiltin("Skin.Reset(%s)" % setting)
+                    elif skinsetting[0] == "bool":
+                        if settingvalue == "true":
+                            xbmc.executebuiltin("Skin.SetBool(%s)" % setting)
+                        else:
+                            xbmc.executebuiltin("Skin.Reset(%s)" % setting)
+                    xbmc.sleep(30)
             
             #cleanup temp
             xbmc.sleep(500)

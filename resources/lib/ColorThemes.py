@@ -94,12 +94,12 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
     
     def backupColorTheme(self, themeName, themeFile):
         import zipfile
-        backup_path = get_browse_dialog(dlg_type=3,heading=ADDON.getLocalizedString(32018))
+        backup_path = get_browse_dialog(dlg_type=3,heading=ADDON.getLocalizedString(32018)).decode("utf-8")
         
         themeName = themeName.replace(" " + xbmc.getLocalizedString(461),"")
         if backup_path:
             backup_name = xbmc.getSkinDir().replace("skin.","") + "_COLORTHEME_" + themeName
-            backup_path = os.path.join(backup_path,backup_name).decode("utf-8")
+            backup_path = os.path.join(backup_path,backup_name)
             backup_path_temp = xbmc.translatePath('special://temp/' + backup_name).decode("utf-8")
             
             zf = zipfile.ZipFile("%s.zip" % (backup_path_temp), "w", zipfile.ZIP_DEFLATED)
