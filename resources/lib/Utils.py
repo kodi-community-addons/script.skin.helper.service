@@ -582,6 +582,7 @@ def searchThumb(searchphrase, searchphrase2=""):
        
     image = ""
     if searchphrase:
+        searchphrase = searchphrase.encode("utf-8").decode("utf-8")
         cache = WINDOW.getProperty("SkinHelperThumbs")
         if cache:
             cache = eval(cache)
@@ -612,18 +613,16 @@ def searchThumb(searchphrase, searchphrase2=""):
                 
                 WINDOW.setProperty("youtubescanrunning","running")
                 libPath = "plugin://plugin.video.youtube/kodion/search/query/?q=%s" %searchphrase
-                media_array = None
                 media_array = getJSON('Files.GetDirectory','{ "properties": ["title","art"], "directory": "' + libPath + '", "media": "files" }')
-                if(media_array != None and media_array.has_key('files')):
-                    for media in media_array['files']:
-                        if not media["filetype"] == "directory":
-                            if media.has_key('art'):
-                                if media['art'].has_key('thumb'):
-                                    image = media['art']['thumb'].replace("image://","")
-                                    image=urllib.unquote(image).decode('utf8')
-                                    if image.endswith("/"):
-                                        image = image[:-1]
-                                    break
+                for media in media_array:
+                    if not media["filetype"] == "directory":
+                        if media.has_key('art'):
+                            if media['art'].has_key('thumb'):
+                                image = media['art']['thumb'].replace("image://","")
+                                image=urllib.unquote(image).decode('utf8')
+                                if image.endswith("/"):
+                                    image = image[:-1]
+                                break
                 WINDOW.clearProperty("youtubescanrunning")
     
     if image:
