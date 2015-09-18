@@ -181,7 +181,7 @@ def setView():
     #get current content type
     contenttype = getCurrentContentType()
         
-    currentView = xbmc.getInfoLabel("Container.Viewmode")
+    currentView = xbmc.getInfoLabel("Container.Viewmode").decode("utf-8")
     selectedItem = selectView(contenttype, currentView)
     currentForcedView = xbmc.getInfoLabel("Skin.String(SkinHelper.ForcedViews.%s)" %contenttype)
     
@@ -241,7 +241,7 @@ def selectView(contenttype="other", currentView=None, displayNone=False, display
         listing = doc.documentElement.getElementsByTagName( 'view' )
         itemcount = 0
         for count, view in enumerate(listing):
-            label = xbmc.getLocalizedString(int(view.attributes[ 'languageid' ].nodeValue))
+            label = xbmc.getLocalizedString(int(view.attributes[ 'languageid' ].nodeValue)).encode("utf-8").decode("utf-8")
             id = view.attributes[ 'value' ].nodeValue
             if displayViewId:
                 label = label + " (" + str(id) + ")"

@@ -249,9 +249,6 @@ def restore(silent=None):
                     
                     try: settingvalue = settingvalue.encode('utf-8')
                     except: pass
-                    
-                    print setting
-                    print settingvalue
 
                     if progressDialog:
                         progressDialog.update((count * 100) / len(importstring), ADDON.getLocalizedString(32033) + ' %s' % setting.decode("utf-8"))
