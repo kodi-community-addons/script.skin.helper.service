@@ -18,6 +18,9 @@ import json
 import urllib
 import ConditionalBackgrounds as conditionalBackgrounds
 from Utils import *
+import datetime
+import time
+
 
 class BackgroundsUpdater(threading.Thread):
     
@@ -32,7 +35,6 @@ class BackgroundsUpdater(threading.Thread):
     normalTaskInterval = 30
     refreshSmartshortcuts = False
     lastWindow = None
-    conditionalBackgrounds = []
     
     def __init__(self, *args):
         self.lastPicturesPath = xbmc.getInfoLabel("skin.string(SkinHelper.PicturesBackgroundPath)")
@@ -91,6 +93,7 @@ class BackgroundsUpdater(threading.Thread):
                         self.normalTaskInterval = 0
                         try:
                             self.UpdateBackgrounds()
+                            self.setDayNightColorTheme()
                         except Exception as e:
                             logMsg("ERROR in UpdateBackgrounds ! --> " + str(e), 0)
                             print_exc()
@@ -125,7 +128,35 @@ class BackgroundsUpdater(threading.Thread):
         if xbmcvfs.exists(self.SkinHelperThumbsCachePath):
             with open(self.SkinHelperThumbsCachePath) as data_file:    
                 WINDOW.setProperty("SkinHelperThumbs",json.load(data_file))    
+    
+
+    def setDayNightColorTheme(self):
+        #check if a colro theme should be conditionally set
+        if xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnableDayNightThemes)"):
+            try:
+                daytime = xbmc.getInfoLabel("Skin.String(SkinHelper.ColorTheme.Day.time)")
+                daytime = datetime.datetime(*(time.strptime(daytime, "%H:%M")[0:6])).time()
+                nighttime = xbmc.getInfoLabel("Skin.String(SkinHelper.ColorTheme.Night.time)")
+                nighttime = datetime.datetime(*(time.strptime(nighttime, "%H:%M")[0:6])).time()
+                timestamp = datetime.datetime.now().time()
+                if (daytime <= timestamp <= nighttime):
+                    #it's daytime - set daytime theme
+                    timestr = "Day"
+                else:
+                    timestr = "Night"
+                    
+                currentTheme = xbmc.getInfoLabel("Skin.String(SkinHelper.LastColorTheme)")
+                newtheme = xbmc.getInfoLabel("Skin.String(SkinHelper.ColorTheme.%s.theme)" %timestr)
+                if currentTheme != newtheme:
+                    themefile = xbmc.getInfoLabel("Skin.String(SkinHelper.ColorTheme.%s.file)" %timestr)
+                    if themefile:
+                        import resources.lib.ColorThemes as colorThemes
+                        colorThemes.loadColorTheme(themefile)
+            except Exception as e:
+                logMsg("ERROR in setDayNightColorTheme ! --> " + str(e), 0)
                 
+            
+    
     def setImageFromPath(self, windowProp, libPath, fallbackImage=None, customJson=None):
         image = fallbackImage
         if self.exit:

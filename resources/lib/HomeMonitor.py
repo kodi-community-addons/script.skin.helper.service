@@ -92,8 +92,7 @@ class HomeMonitor(threading.Thread):
         self.genericWindowProps()
         pluginContent.buildWidgetsListing()
         self.checkNotifications()
-    
-    
+       
     def updatePlexlinks(self):
         
         if xbmc.getCondVisibility("System.HasAddon(plugin.video.plexbmc) + Skin.HasSetting(SmartShortcuts.plex)"): 

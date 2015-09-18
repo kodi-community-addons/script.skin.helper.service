@@ -541,6 +541,42 @@ All Skin Settings settings that contain one of these words: color, opacity, text
 Also the skin's theme will be saved (if any). So, to make sure the skin themes feature works properly you must be sure that all of your color-settings contain the word color. If any more words should be supported, please ask.
 
 
+#####Automatically set a color theme at day/night
+You can have the script set a specified theme during day or night.
+This will allow the user to have some more relaxing colors at night time and more fluid/bright during day time.
+
+To enable this feature you must set the skin Bool SkinHelper.EnableDayNightThemes to true.
+
+To setup the theme (and time) to use at day time:  XBMC.RunScript(script.skin.helper.service,action=ColorThemes,daynight=day)
+To setup the theme (and time) to use at night time:  XBMC.RunScript(script.skin.helper.service,action=ColorThemes,daynight=night)
+
+The script will auto set the correct theme at the specified times and fill these Skin Settings:
+Skin.String(SkinHelper.ColorTheme.[day/night] --> A formatted string of the selected theme and the time it will apply for day or night
+Skin.String(SkinHelper.ColorTheme.[day/night].theme --> Only the name of the chosen theme
+Skin.String(SkinHelper.ColorTheme.[day/night].time --> Only the time of the chosen theme
+Skin.String(SkinHelper.ColorTheme.[day/night].file --> Only the filename of the chosen theme
+SkinHelper.LastColorTheme --> This will always hold the name of the last chosen theme (also if this day/night mode is disabled)
+
+Some example code to use:
+
+```xml
+<control type="radiobutton" id="15033">
+    <label>Enable day/night color themes</label>
+    <onclick>Skin.ToggleSetting(SkinHelper.EnableDayNightThemes)</onclick>
+    <selected>Skin.HasSetting(SkinHelper.EnableDayNightThemes)</selected>
+</control>
+
+<control type="button" id="15034">
+    <label>Theme to use at day time: $INFO[Skin.String(SkinHelper.ColorTheme.Day)]</label>
+    <onclick>XBMC.RunScript(script.skin.helper.service,action=ColorThemes,daynight=day)</onclick>
+    <visible>Skin.HasSetting(SkinHelper.EnableDayNightThemes)</visible>
+</control>
+<control type="button" id="15035">
+    <label>Theme to use at night time: $INFO[Skin.String(SkinHelper.ColorTheme.Night)]</label>
+    <onclick>XBMC.RunScript(script.skin.helper.service,action=ColorThemes,daynight=night)</onclick>
+    <visible>Skin.HasSetting(SkinHelper.EnableDayNightThemes)</visible>
+</control>
+```
 
 ________________________________________________________________________________________________________
 ________________________________________________________________________________________________________

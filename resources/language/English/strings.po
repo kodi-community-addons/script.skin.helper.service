@@ -291,3 +291,15 @@ msgstr ""
 msgctxt "#32068"
 msgid "Please enter a filename for your backup"
 msgstr ""
+
+msgctxt "#32069"
+msgid "Please enter the time that this theme should be activated (hh:mm in 24-hours format)"
+msgstr ""
+
+msgctxt "#32070"
+msgid "Did you enter the time in the correct format ?"
+msgstr ""
+
+msgctxt "#32071"
+msgid "Activates every day at "
+msgstr ""

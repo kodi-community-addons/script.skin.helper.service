@@ -87,6 +87,7 @@ class Main:
             elif action == "COLORTHEMES":
                 from resources.lib.ColorThemes import ColorThemes
                 colorThemes = ColorThemes("DialogSelect.xml", ADDON_PATH)
+                colorThemes.daynight = params.get("DAYNIGHT",None)
                 colorThemes.doModal()
                 del colorThemes
             

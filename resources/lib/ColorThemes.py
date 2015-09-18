@@ -11,6 +11,8 @@ import json
 from xml.dom.minidom import parse
 from operator import itemgetter
 from Utils import *
+import datetime
+import time
 
 skin = xbmcaddon.Addon(id=xbmc.getSkinDir())
 userThemesDir = xbmc.translatePath(skin.getAddonInfo('profile')).decode("utf-8")
@@ -20,77 +22,35 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
     themesList = None
     userThemesPath = None
     skinThemesPath = None
+    daynight = None
     
     def __init__(self, *args, **kwargs):
         xbmcgui.WindowXMLDialog.__init__(self, *args, **kwargs)
         
         self.userThemesPath = os.path.join(userThemesDir,"themes") + os.sep
         self.skinThemesPath = xbmc.translatePath("special://skin/extras/skinthemes").decode("utf-8")
-       
-    def loadColorTheme(self,file):
-        xbmc.executebuiltin( "ActivateWindow(busydialog)" )
-        f = open(file,"r")
-        importstring = json.load(f)
-        f.close()
-        skintheme = None
-        skincolor = None
-        skinfont = None
-        currentSkinTheme = xbmc.getInfoLabel("Skin.CurrentTheme")
-        
-        currentSkinFont = None
-        json_response = xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"Settings.GetSettingValue","params":{"setting":"lookandfeel.font"}}')
-        jsonobject = json.loads(json_response.decode('utf-8','replace'))
-        if(jsonobject.has_key('result')):
-            if(jsonobject["result"].has_key('value')):
-                currentSkinFont = jsonobject["result"]["value"]
-        
-        currentSkinColors = None
-        json_response = xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"Settings.GetSettingValue","params":{"setting":"lookandfeel.skincolors"}}')
-        jsonobject = json.loads(json_response.decode('utf-8','replace'))
-        if(jsonobject.has_key('result')):
-            if(jsonobject["result"].has_key('value')):
-                currentSkinColors = jsonobject["result"]["value"]
-        
-        settingslist = set()
-        for count, skinsetting in enumerate(importstring):
-            if skinsetting[0] == "SKINTHEME":
-                skintheme = skinsetting[1]
-            elif skinsetting[0] == "SKINCOLORS":
-                skincolor = skinsetting[1]
-            elif skinsetting[0] == "SKINFONT":
-                skinfont = skinsetting[1]
-            elif skinsetting[0] == "THEMENAME":
-                xbmc.executebuiltin("Skin.SetString(SkinHelper.LastColorTheme,%s)" % skinsetting[1])
-            elif skinsetting[0] == "DESCRIPTION":
-                xbmc.executebuiltin("Skin.SetString(SkinHelper.LastColorTheme.Description,%s)" % skinsetting[1])
-            else:    
-                #some legacy..
-                setting = skinsetting[1]
-                
-                if setting.startswith("TITANSKIN"): setting = setting.replace("TITANSKIN.", "")
-                if setting.startswith("."): setting = setting[1:]
-                if not setting in settingslist:
-                    settingslist.add(setting)
-                    if skinsetting[0] == "string":
-                        if skinsetting[2] is not "":
-                            xbmc.executebuiltin("Skin.SetString(%s,%s)" % (setting, skinsetting[2]))
-                        else:
-                            xbmc.executebuiltin("Skin.Reset(%s)" % setting)
-                    elif skinsetting[0] == "bool":
-                        if skinsetting[2] == "true":
-                            xbmc.executebuiltin("Skin.SetBool(%s)" % setting)
-                        else:
-                            xbmc.executebuiltin("Skin.Reset(%s)" % setting)
-                    xbmc.sleep(30)
-        
-        #change the skintheme, color and font if needed 
-        if skintheme and currentSkinTheme != skintheme:
-            xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"Settings.SetSettingValue","params":{"setting":"lookandfeel.skintheme","value":"%s"}}' %skintheme)
-        if skincolor and currentSkinColors != skincolor:
-            xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"Settings.SetSettingValue","params":{"setting":"lookandfeel.skincolors","value":"%s"}}' %skincolor)
-        if skinfont and currentSkinFont != skinfont:
-            xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"Settings.SetSettingValue","params":{"setting":"lookandfeel.font","value":"%s"}}' %skinfont)
-        xbmc.executebuiltin( "Dialog.Close(busydialog)" )
+    
+    def setDayNightTheme(self,item):
+        selectedTheme = item.getLabel()
+        #set a day/night theme 
+        if self.daynight:
+            currenttimevalue = xbmc.getInfoLabel("Skin.String(SkinHelper.ColorTheme.%s.time)" %self.daynight)
+            if not currenttimevalue:
+                if self.daynight == "night": currenttimevalue = "20:00"
+                else: currenttimevalue = "07:00"
+            timevalue = xbmcgui.Dialog().input(ADDON.getLocalizedString(32069),currenttimevalue, type=xbmcgui.INPUT_ALPHANUM)
+            
+            try:
+                #check if the time is valid
+                dt = datetime.datetime(*(time.strptime(timevalue, "%H:%M")[0:6]))
+                xbmc.executebuiltin("Skin.SetString(SkinHelper.ColorTheme.%s.theme,%s)" % (self.daynight,selectedTheme))
+                xbmc.executebuiltin("Skin.SetString(SkinHelper.ColorTheme.%s.time,%s)" % (self.daynight,timevalue))
+                xbmc.executebuiltin("Skin.SetString(SkinHelper.ColorTheme.%s,%s  (%s %s))" % (self.daynight,selectedTheme,ADDON.getLocalizedString(32071),timevalue))
+                xbmc.executebuiltin("Skin.SetString(SkinHelper.ColorTheme.%s.file,%s)" % (self.daynight,item.getProperty("filename")))
+            except:
+                xbmcgui.Dialog().ok(xbmc.getLocalizedString(329), ADDON.getLocalizedString(32070))
+
+        self.closeDialog()
     
     def backupColorTheme(self, themeName, themeFile):
         import zipfile
@@ -177,7 +137,7 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
                         desc = skinsetting[1]
                     if skinsetting[0] == ("THEMENAME"):
                         label = skinsetting[1]
-                if label == activetheme:
+                if label == activetheme and not self.daynight:
                     listlabel = label + " " + xbmc.getLocalizedString(461)
                 else:
                     listlabel = label
@@ -197,7 +157,7 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
             if file.endswith(".theme"):
                 label = file
                 label = file.replace(".theme","")
-                if label == activetheme:
+                if label == activetheme and not self.daynight:
                     listlabel = label + " " + xbmc.getLocalizedString(461)
                 else:
                     listlabel = label
@@ -245,7 +205,7 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
         
         if action.getId() in ACTION_CANCEL_DIALOG:
             self.closeDialog()
-        if action.getId() == ACTION_CONTEXT_MENU:
+        if action.getId() == ACTION_CONTEXT_MENU and not self.daynight:
             dialog = xbmcgui.Dialog()
             item = self.themesList.getSelectedItem()
             themeFile = item.getProperty("filename")
@@ -260,7 +220,7 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
                 menuOptions.append(ADDON.getLocalizedString(32019))
             ret = dialog.select(xbmc.getLocalizedString(33063), menuOptions)
             if ret == 0:
-                self.loadColorTheme(themeFile)
+                loadColorTheme(themeFile)
             elif ret == 1:
                 self.removeColorTheme(themeFile)
             elif ret == 2:
@@ -278,10 +238,79 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
         if(controlID == 6):
             item = self.themesList.getSelectedItem()
             themeFile = item.getProperty("filename")
-            self.loadColorTheme(themeFile)
+            if self.daynight:
+                self.setDayNightTheme(item)
+            else:
+                loadColorTheme(themeFile)
         elif(controlID == 7):
             self.closeDialog()
 
+def loadColorTheme(file):
+    xbmc.executebuiltin( "ActivateWindow(busydialog)" )
+    f = open(file,"r")
+    importstring = json.load(f)
+    f.close()
+    skintheme = None
+    skincolor = None
+    skinfont = None
+    currentSkinTheme = xbmc.getInfoLabel("Skin.CurrentTheme")
+    
+    currentSkinFont = None
+    json_response = xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"Settings.GetSettingValue","params":{"setting":"lookandfeel.font"}}')
+    jsonobject = json.loads(json_response.decode('utf-8','replace'))
+    if(jsonobject.has_key('result')):
+        if(jsonobject["result"].has_key('value')):
+            currentSkinFont = jsonobject["result"]["value"]
+    
+    currentSkinColors = None
+    json_response = xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"Settings.GetSettingValue","params":{"setting":"lookandfeel.skincolors"}}')
+    jsonobject = json.loads(json_response.decode('utf-8','replace'))
+    if(jsonobject.has_key('result')):
+        if(jsonobject["result"].has_key('value')):
+            currentSkinColors = jsonobject["result"]["value"]
+    
+    settingslist = set()
+    for count, skinsetting in enumerate(importstring):
+        if skinsetting[0] == "SKINTHEME":
+            skintheme = skinsetting[1]
+        elif skinsetting[0] == "SKINCOLORS":
+            skincolor = skinsetting[1]
+        elif skinsetting[0] == "SKINFONT":
+            skinfont = skinsetting[1]
+        elif skinsetting[0] == "THEMENAME":
+            xbmc.executebuiltin("Skin.SetString(SkinHelper.LastColorTheme,%s)" % skinsetting[1])
+        elif skinsetting[0] == "DESCRIPTION":
+            xbmc.executebuiltin("Skin.SetString(SkinHelper.LastColorTheme.Description,%s)" % skinsetting[1])
+        else:    
+            #some legacy..
+            setting = skinsetting[1]
+            
+            if setting.startswith("TITANSKIN"): setting = setting.replace("TITANSKIN.", "")
+            if setting.startswith("."): setting = setting[1:]
+            if not setting in settingslist:
+                settingslist.add(setting)
+                if skinsetting[0] == "string":
+                    if skinsetting[2] is not "":
+                        xbmc.executebuiltin("Skin.SetString(%s,%s)" % (setting, skinsetting[2]))
+                    else:
+                        xbmc.executebuiltin("Skin.Reset(%s)" % setting)
+                elif skinsetting[0] == "bool":
+                    if skinsetting[2] == "true":
+                        xbmc.executebuiltin("Skin.SetBool(%s)" % setting)
+                    else:
+                        xbmc.executebuiltin("Skin.Reset(%s)" % setting)
+                xbmc.sleep(30)
+    
+    #change the skintheme, color and font if needed 
+    if skintheme and currentSkinTheme != skintheme:
+        xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"Settings.SetSettingValue","params":{"setting":"lookandfeel.skintheme","value":"%s"}}' %skintheme)
+    if skincolor and currentSkinColors != skincolor:
+        xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"Settings.SetSettingValue","params":{"setting":"lookandfeel.skincolors","value":"%s"}}' %skincolor)
+    if skinfont and currentSkinFont != skinfont:
+        xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"Settings.SetSettingValue","params":{"setting":"lookandfeel.font","value":"%s"}}' %skinfont)
+    xbmc.executebuiltin( "Dialog.Close(busydialog)" )
+    
+            
 def get_browse_dialog(default="protocol://", heading="Browse", dlg_type=3, shares="files", mask="", use_thumbs=False, treat_as_folder=False):
     dialog = xbmcgui.Dialog()
     value = dialog.browse(dlg_type, heading, shares, mask, use_thumbs, treat_as_folder, default)
