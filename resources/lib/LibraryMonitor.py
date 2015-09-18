@@ -110,6 +110,7 @@ class LibraryMonitor(threading.Thread):
                     WINDOW.clearProperty("resetMusicArtCache")
                 try:
                     self.checkMusicArt()
+                    self.setGenre()
                 except Exception as e:
                     logMsg("ERROR in checkMusicArt ! --> " + str(e), 0)
                     print_exc()
