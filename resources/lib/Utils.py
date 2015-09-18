@@ -97,6 +97,8 @@ def getJSON(method,params):
                 return {}
         elif jsonobject.has_key('tvshowdetails'):
             return jsonobject['tvshowdetails']
+        elif jsonobject.has_key('episodedetails'):
+            return jsonobject['episodedetails']
         elif jsonobject.has_key('moviedetails'):
             return jsonobject['moviedetails']
         elif jsonobject.has_key('setdetails'):

@@ -11,7 +11,13 @@
 	</extension>
 	<extension point="xbmc.python.library" library="default.py" />
 	<extension library="service.py" point="xbmc.service" start="login" />
-	
+	<extension point="kodi.context.item" library="contextmenu_serieslevel.py">
+		<item>
+			<label>32072</label>
+            <description>Display Series level button in next/recent/in progress episodes listings</description>
+			<visible>Container.Content(episodes) + [!Substring(Container.FolderPath,videodb://tvshows/titles,left) | Substring(Container.FolderPath,xsp=)] + [[!IsEmpty(ListItem.DBID) + !StringCompare(ListItem.DBID,-1)] | !IsEmpty(ListItem.Property(DBID)]</visible>
+		</item>
+	</extension>
 	<extension point="xbmc.addon.metadata">
 		<summary lang="en">Helper service for Kodi skins</summary>
 		<language></language>

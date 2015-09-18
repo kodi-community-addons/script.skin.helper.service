@@ -303,3 +303,7 @@ msgstr ""
 msgctxt "#32071"
 msgid "Activates every day at "
 msgstr ""
+
+msgctxt "#32072"
+msgid "Go to Series level"
+msgstr ""

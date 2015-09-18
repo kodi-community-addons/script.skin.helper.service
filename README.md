@@ -13,7 +13,6 @@ IMPORTANT NOTE:  To use all the fancy integration options with skinshortcuts ple
 
 Latest version of skinshortcuts: https://github.com/BigNoid/script.skinshortcuts/archive/master.zip
 
-BTW: The logo and fanart image (now still from titan skin because of lack of something else) will be updated once I have some fancy new images.
 
 Thanks all for testing!
 
