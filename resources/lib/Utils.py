@@ -464,7 +464,44 @@ def createSmartShortcutSubmenu(windowProp,iconimage):
                     f.write(data)
     except Exception as e:
         logMsg("ERROR in createSmartShortcutSubmenu ! --> " + str(e), 0)
-    
+
+
+def getCurrentContentType():
+    contenttype="other"
+    if xbmc.getCondVisibility("Container.Content(episodes)"):
+        contenttype = "episodes"
+    elif xbmc.getCondVisibility("Container.Content(movies) + !substring(Container.FolderPath,setid=)"):
+        contenttype = "movies"  
+    elif xbmc.getCondVisibility("[Container.Content(sets) | StringCompare(Container.Folderpath,videodb://movies/sets/)] + !substring(Container.FolderPath,setid=)"):
+        contenttype = "sets"
+    elif xbmc.getCondVisibility("substring(Container.FolderPath,setid=)"):
+        contenttype = "setmovies" 
+    elif xbmc.getCondVisibility("Container.Content(tvshows)"):
+        contenttype = "tvshows"
+    elif xbmc.getCondVisibility("Container.Content(seasons)"):
+        contenttype = "seasons"
+    elif xbmc.getCondVisibility("Container.Content(musicvideos)"):
+        contenttype = "musicvideos"
+    elif xbmc.getCondVisibility("Container.Content(artists)"):
+        contenttype = "artists"
+    elif xbmc.getCondVisibility("Container.Content(songs)"):
+        contenttype = "songs"
+    elif xbmc.getCondVisibility("Container.Content(albums)"):
+        contenttype = "albums"
+    elif xbmc.getCondVisibility("Window.IsActive(tvchannels) | Window.IsActive(radiochannels)"):
+        contenttype = "tvchannels"
+    elif xbmc.getCondVisibility("Window.IsActive(tvrecordings) | Window.IsActive(radiorecordings)"):
+        contenttype = "tvrecordings"
+    elif xbmc.getCondVisibility("Window.IsActive(programs) | Window.IsActive(addonbrowser)"):
+        contenttype = "programs"
+    elif xbmc.getCondVisibility("Window.IsActive(pictures)"):
+        contenttype = "pictures"
+    elif xbmc.getCondVisibility("SubString(Window.Property(xmlfile),MyPVR,left)"):
+        contenttype = "pvr"
+    elif xbmc.getCondVisibility("Container.Content(files)"):
+        contenttype = "files"
+    return contenttype
+        
 def searchChannelLogo(searchphrase):
     #get's a thumb image for the given search phrase
        

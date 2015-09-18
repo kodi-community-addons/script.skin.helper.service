@@ -36,6 +36,7 @@ class LibraryMonitor(threading.Thread):
     extraFanartcache = {}
     musicArtCache = {}
     pvrArtCache = {}
+    lastFolderPath = None
     
     def __init__(self, *args):
         
@@ -81,6 +82,9 @@ class LibraryMonitor(threading.Thread):
         self.getCacheFromFile()
 
         while (self.exit != True):
+        
+            #set forced view
+            self.setForcedView()
             
             #do some background stuff every 30 minutes
             if (xbmc.getCondVisibility("!Window.IsActive(videolibrary) + !Window.IsActive(musiclibrary) + !Window.IsActive(fullscreenvideo)")):
@@ -97,7 +101,7 @@ class LibraryMonitor(threading.Thread):
             #flush cache if videolibrary has changed
             if WINDOW.getProperty("widgetrefresh") == "refresh":
                 self.moviesetCache = {}
-            
+                        
             # monitor listitem props when musiclibrary is active
             elif (xbmc.getCondVisibility("[Window.IsActive(musiclibrary) | Window.IsActive(MyMusicSongs.xml)] + !Container.Scrolling")):
                 if WINDOW.getProperty("resetMusicArtCache") == "reset":
@@ -802,6 +806,23 @@ class LibraryMonitor(threading.Thread):
                 WINDOW.clearProperty("SkinHelper.Music.Info")
                 self.musicArtCache[dbID + "SkinHelper.Music.Info"] = "None"
                 
+    
+    def setForcedView(self):
+        folderPath = xbmc.getInfoLabel("Container.FolderPath")
+        if folderPath:
+            if folderPath != self.lastFolderPath:
+                self.lastFolderPath = folderPath
+                contenttype = getCurrentContentType()
+                currentForcedView = xbmc.getInfoLabel("Skin.String(SkinHelper.ForcedViews.%s)" %contenttype)
+                if xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.ForcedViews.Enabled)") and contenttype and currentForcedView and currentForcedView != "None":
+                    WINDOW.setProperty("SkinHelper.ForcedView",currentForcedView)
+                    xbmc.executebuiltin("Container.SetViewMode(%s)" %currentForcedView)
+                    return
+        else:
+            WINDOW.clearProperty("SkinHelper.ForcedView")
+            self.lastFolderPath = None
+        
+    
     def checkExtraFanArt(self):
         
         lastPath = None

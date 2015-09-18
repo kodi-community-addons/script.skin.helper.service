@@ -486,29 +486,15 @@ Example code to use in your skin settings:
 </control>
 ```
 
+the above example can off course be extended with other view types, such as pvr channels etc.
+
 Example code to use for your views visibility conditions:
 ```xml
 <control type="panel" id="51">
-	<visible>!Skin.HasSetting(SkinHelper.ForcedViews.Enabled) | 
-	[Container.Content(movies) + Skin.String(SkinHelper.ForcedViews.movies,None)] | 
-	[Container.Content(tvshows) + Skin.String(SkinHelper.ForcedViews.tvshows,None)] | 
-	[Container.Content(seasons) + Skin.String(SkinHelper.ForcedViews.seasons,None)] | 
-	[Container.Content(episodes) + Skin.String(SkinHelper.ForcedViews.episodes,None)] | 
-	[Container.Content(movies) + Skin.String(SkinHelper.ForcedViews.movies,None)] | 
-	[Container.Content(tvshows) + Skin.String(SkinHelper.ForcedViews.tvshows,None)] | 
-	[Container.Content(seasons) + Skin.String(SkinHelper.ForcedViews.seasons,None)] | 
-	[Container.Content(episodes) + Skin.String(SkinHelper.ForcedViews.episodes,None)] | 
-	[[Container.Content(sets) | StringCompare(Container.Folderpath,videodb://movies/sets/)] + Skin.String(SkinHelper.ForcedViews.sets,51)] | 
-	[Container.Content(movies) + Skin.String(SkinHelper.ForcedViews.movies,51) + !substring(Container.FolderPath,videodb://movies/sets/,left)] | 
-	[Container.Content(movies) + Skin.String(SkinHelper.ForcedViews.setmovies,51) + substring(Container.FolderPath,setid=)] | 
-	[Container.Content(tvshows) + Skin.String(SkinHelper.ForcedViews.tvshows,51)] | 
-	[Container.Content(seasons) + Skin.String(SkinHelper.ForcedViews.seasons,51)] | 
-	[Container.Content(episodes) + Skin.String(SkinHelper.ForcedViews.episodes,51)] | 
-	[!Container.Content(movies) + !Container.Content(tvshows) + !Container.Content(seasons) + !Container.Content(episodes) + !Container.Content(sets)]
-	</visible>
+	<visible>StringCompare(Window(Home).Property(SkinHelper.ForcedView),53) | IsEmpty(Window(Home).Property(SkinHelper.ForcedView))</visible>
 </control>
 ```
-Note: The forced view code has to be added to all view controls in order to work properly.
+Note: The forced view visibility condition has to be added to all view controls in order to work properly. The ForcedView window property will only be set if you have set this bool to true in your skin: SkinHelper.ForcedViews.Enabled
 
 
 ________________________________________________________________________________________________________
