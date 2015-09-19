@@ -78,7 +78,14 @@ Some additional window properties that can be used in the video library.
 | Window(Home).Property(SkinHelper.ListItemDuration.Minutes) | Only the minutes part of the current listitem duration |
 |Window(Home).Property(SkinHelper.ListItemGenres) | Will return all genres of the current listitem seperated by [CR] |
 |Window(Home).Property(SkinHelper.ListItemDirectors) | Will return all directors of the current listitem seperated by [CR] |
-
+|Window(Home).Property(SkinHelper.ListItemSubtitles) | Will return all subtitles of the current listitem seperated by / |
+|Window(Home).Property(SkinHelper.ListItemSubtitles.X) | Will return subtitle X of the current listitem. Start counting from 0 |
+|Window(Home).Property(SkinHelper.ListItemSubtitles.X) | Will return subtitle X of the current listitem. Start counting from 0 |
+|Window(Home).Property(SkinHelper.ListItemAudioStreams.X) | Will return the language-codec-channels of audiostream X for the current listitem. Start counting from 0 |
+|Window(Home).Property(SkinHelper.ListItemAudioStreams.X.Language) | Will return the language of audiostream X for the current listitem. Start counting from 0 |
+|Window(Home).Property(SkinHelper.ListItemAudioStreams.X.AudioCodec) | Will return the AudioCodec of audiostream X for the current listitem. Start counting from 0 |
+|Window(Home).Property(SkinHelper.ListItemAudioStreams.X.AudioChannels) | Will return the AudioChannels of audiostream X for the current listitem. Start counting from 0 |
+|Window(Home).Property(SkinHelper.ListItemAllAudioStreams) | Will return a formatted list of all audiostreams for the current listitem separated by / |
 ________________________________________________________________________________________________________
 
 

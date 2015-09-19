@@ -33,8 +33,9 @@ class LibraryMonitor(threading.Thread):
     delayedTaskInterval = 1800
     widgetTaskInterval = 0
     moviesetCache = {}
-    extraFanartcache = {}
+    extraFanartCache = {}
     musicArtCache = {}
+    streamdetailsCache = {}
     pvrArtCache = {}
     lastFolderPath = None
     
@@ -58,7 +59,7 @@ class LibraryMonitor(threading.Thread):
         
         libraryCache = {}
         libraryCache["moviesetCache"] = self.moviesetCache
-        libraryCache["extraFanartcache"] = self.extraFanartcache
+        libraryCache["extraFanartCache"] = self.extraFanartCache
         libraryCache["musicArtCache"] = self.musicArtCache
         libraryCache["pvrArtCache"] = self.pvrArtCache
         #cache file for all backgrounds
@@ -70,7 +71,7 @@ class LibraryMonitor(threading.Thread):
             with open(self.cachePath) as data_file:    
                 data = json.load(data_file)
                 self.moviesetCache = data["moviesetCache"]
-                self.extraFanartcache = data["extraFanartcache"]
+                self.extraFanartCache = data["extraFanartCache"]
                 self.musicArtCache = data["musicArtCache"]
                 self.pvrArtCache = data["pvrArtCache"]
                 WINDOW.setProperty("SkinHelper.pvrArtCache",repr(self.pvrArtCache))
@@ -171,6 +172,7 @@ class LibraryMonitor(threading.Thread):
                         self.checkExtraFanArt()
                         self.setMovieSetDetails()
                         self.setAddonName()
+                        self.setStreamDetails()
                     except Exception as e:
                         logMsg("ERROR in LibraryMonitor ! --> " + str(e), 0)
                         print_exc()
@@ -807,6 +809,86 @@ class LibraryMonitor(threading.Thread):
                 WINDOW.clearProperty("SkinHelper.Music.Info")
                 self.musicArtCache[dbID + "SkinHelper.Music.Info"] = "None"
                 
+    def setStreamDetails(self):
+        streamdetails = None
+        #clear props first
+        WINDOW.clearProperty('SkinHelper.ListItemSubtitles')
+        WINDOW.clearProperty('SkinHelper.ListItemAllAudioStreams')
+        totalNodes = 50
+        for i in range(totalNodes):
+            if not WINDOW.getProperty('SkinHelper.ListItemAudioStreams.%d.AudioCodec' % i):
+                break
+            WINDOW.clearProperty('SkinHelper.ListItemAudioStreams.%d.Language' % i)
+            WINDOW.clearProperty('SkinHelper.ListItemAudioStreams.%d.AudioCodec' % i)
+            WINDOW.clearProperty('SkinHelper.ListItemAudioStreams.%d.AudioChannels' % i)
+            WINDOW.clearProperty('SkinHelper.ListItemAudioStreams.%d'%i)
+        
+        contenttype = getCurrentContentType()
+        dbId = xbmc.getInfoLabel("ListItem.DBID")
+        item = None
+        
+        if self.streamdetailsCache.has_key(contenttype+dbId):
+            #get data from cache
+            streamdetails = self.streamdetailsCache[contenttype+dbId]
+        else:
+            # get data from json
+            if contenttype == "movies" and dbId:
+                json_result = getJSON('VideoLibrary.GetMovieDetails', '{ "movieid": %d, "properties": [ "title", "streamdetails" ] }' %int(dbId))
+            elif contenttype == "episodes" and dbId:
+                json_result = getJSON('VideoLibrary.GetEpisodeDetails', '{ "episodeid": %d, "properties": [ "title", "streamdetails" ] }' %int(dbId))
+            elif contenttype == "musicvideos" and dbId:
+                json_result = getJSON('VideoLibrary.GetMusicVideoDetails', '{ "musicvideoid": %d, "properties": [ "title", "streamdetails" ] }' %int(dbId))       
+            if json_result: streamdetails = json_result["streamdetails"]
+            self.streamdetailsCache[contenttype+dbId] = streamdetails
+        
+        if streamdetails:
+            audio = streamdetails['audio']
+            subtitles = streamdetails['subtitle']
+            allAudio = []
+            allAudioStr = []
+            allSubs = []
+            count = 0
+            for item in audio:
+                if str(item['language']) not in allAudio:
+                    allAudio.append(str(item['language']))
+                    codec = item['codec']
+                    channels = item['channels']
+                    if "ac3" in codec: codec = "Dolby D"
+                    elif "dca" in codec: codec = "DTS"
+                    elif "dts-hd" in codec or "dtshd" in codec: codec = "DTS HD"
+                    
+                    if channels == 1: channels = "1.0"
+                    elif channels == 2: channels = "2.0"
+                    elif channels == 3: channels = "2.1"
+                    elif channels == 4: channels = "4.0"
+                    elif channels == 5: channels = "5.0"
+                    elif channels == 6: channels = "5.1"
+                    elif channels == 7: channels = "6.1"
+                    elif channels == 8: channels = "7.1"
+                    elif channels == 9: channels = "8.1"
+                    elif channels == 10: channels = "9.1"
+                    else: channels = str(channels)
+                    language = item['language']
+                    if not language: language = "?"
+                    WINDOW.setProperty('SkinHelper.ListItemAudioStreams.%d.Language' % count, language)
+                    WINDOW.setProperty('SkinHelper.ListItemAudioStreams.%d.AudioCodec' % count, codec)
+                    WINDOW.setProperty('SkinHelper.ListItemAudioStreams.%d.AudioChannels' % count, channels)
+                    sep = "•".decode('utf-8')
+                    audioStr = '%s %s %s %s %s' %(language,sep,codec,sep,channels)
+                    WINDOW.setProperty('SkinHelper.ListItemAudioStreams.%d'%count, audioStr)
+                    allAudioStr.append(audioStr)
+                    count += 1
+            count = 0
+            for item in subtitles:
+                if str(item['language']) not in allSubs:
+                    allSubs.append(str(item['language']))
+                    WINDOW.setProperty('SkinHelper.ListItemSubtitles.%d' % count, item['language'])
+                    count += 1
+            WINDOW.setProperty('SkinHelper.ListItemSubtitles', " / ".join(allSubs))
+            WINDOW.setProperty('SkinHelper.ListItemAllAudioStreams', " / ".join(allAudioStr))
+
+
+                
     
     def setForcedView(self):
         folderPath = xbmc.getInfoLabel("Container.FolderPath")
@@ -843,14 +925,14 @@ class LibraryMonitor(threading.Thread):
             WINDOW.clearProperty('SkinHelper.ExtraFanArt.' + str(i))
         
         #get the item from cache first
-        if self.extraFanartcache.has_key(self.liPath):
-            if self.extraFanartcache[self.liPath][0] == "None":
+        if self.extraFanartCache.has_key(self.liPath):
+            if self.extraFanartCache[self.liPath][0] == "None":
                 WINDOW.setProperty("SkinHelper.ExtraFanArtPath","")
                 return
             else:
-                WINDOW.setProperty("SkinHelper.ExtraFanArtPath",self.extraFanartcache[self.liPath][0])
+                WINDOW.setProperty("SkinHelper.ExtraFanArtPath",self.extraFanartCache[self.liPath][0])
                 count = 0
-                for file in self.extraFanartcache[self.liPath][1]:
+                for file in self.extraFanartCache[self.liPath][1]:
                     WINDOW.setProperty("SkinHelper.ExtraFanArt." + str(count),file)
                     count +=1  
                 return
@@ -867,7 +949,7 @@ class LibraryMonitor(threading.Thread):
             # do not set extra fanart for virtuals
             if (("plugin://" in self.liPath) or ("addon://" in self.liPath) or ("sources" in self.liPath) or ("plugin://" in containerPath) or ("sources://" in containerPath) or ("plugin://" in containerPath)):
                 WINDOW.setProperty("SkinHelper.ExtraFanArtPath","")
-                self.extraFanartcache[self.liPath] = "None"
+                self.extraFanartCache[self.liPath] = "None"
                 lastPath = None
             else:
 
@@ -893,11 +975,11 @@ class LibraryMonitor(threading.Thread):
                 if (efaPath != None and efaFound == True):
                     if lastPath != efaPath:
                         WINDOW.setProperty("SkinHelper.ExtraFanArtPath",efaPath)
-                        self.extraFanartcache[self.liPath] = [efaPath, extraFanArtfiles]
+                        self.extraFanartCache[self.liPath] = [efaPath, extraFanArtfiles]
                         lastPath = efaPath       
                 else:
                     WINDOW.setProperty("SkinHelper.ExtraFanArtPath","")
-                    self.extraFanartcache[self.liPath] = ["None",[]]
+                    self.extraFanartCache[self.liPath] = ["None",[]]
                     lastPath = None
         else:
             WINDOW.setProperty("SkinHelper.ExtraFanArtPath","")
