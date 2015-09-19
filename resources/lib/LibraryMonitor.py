@@ -282,11 +282,11 @@ class LibraryMonitor(threading.Thread):
                                     width = stream.get("width","")
                                     if height and width:
                                         resolution = ""
-                                        if width <= 720 & height <= 480: resolution = "480"
-                                        elif width <= 768 & height <= 576: resolution = "576"
-                                        elif width <= 960 & height <= 544: resolution = "540"
-                                        elif width <= 1280 & height <= 720: resolution = "720"
-                                        elif width <= 1920 & height <= 1080: resolution = "1080"
+                                        if width <= 720 and height <= 480: resolution = "480"
+                                        elif width <= 768 and height <= 576: resolution = "576"
+                                        elif width <= 960 and height <= 544: resolution = "540"
+                                        elif width <= 1280 and height <= 720: resolution = "720"
+                                        elif width <= 1920 and height <= 1080: resolution = "1080"
                                         elif width * height >= 6000000: resolution = "4K"
                                         WINDOW.setProperty('SkinHelper.MovieSet.' + str(count) + '.Resolution',resolution)
                                     if stream.get("codec",""):
@@ -886,10 +886,7 @@ class LibraryMonitor(threading.Thread):
                     count += 1
             WINDOW.setProperty('SkinHelper.ListItemSubtitles', " / ".join(allSubs))
             WINDOW.setProperty('SkinHelper.ListItemAllAudioStreams', " / ".join(allAudioStr))
-
-
-                
-    
+      
     def setForcedView(self):
         folderPath = xbmc.getInfoLabel("Container.FolderPath")
         if folderPath:
@@ -905,7 +902,6 @@ class LibraryMonitor(threading.Thread):
             WINDOW.clearProperty("SkinHelper.ForcedView")
             self.lastFolderPath = None
         
-    
     def checkExtraFanArt(self):
         
         lastPath = None
