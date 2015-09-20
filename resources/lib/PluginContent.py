@@ -332,6 +332,11 @@ def getBackgrounds():
     globalBackgrounds.append((ADDON.getLocalizedString(32047), "SkinHelper.AllMusicVideosBackground"))
     globalBackgrounds.append((ADDON.getLocalizedString(32048), "SkinHelper.AllMusicBackground"))
     
+    if xbmc.getCondVisibility("System.HasAddon(script.extendedinfo)"):
+        extInfoAddon = xbmcaddon.Addon(id="script.extendedinfo")
+        globalBackgrounds.append((extInfoAddon.getLocalizedString(32046) + " (TheMovieDB)", "SkinHelper.TopRatedMovies"))
+        globalBackgrounds.append((extInfoAddon.getLocalizedString(32040) + " (TheMovieDB)", "SkinHelper.TopRatedShows"))
+    
     for node in globalBackgrounds:
         label = node[0]
         image = "$INFO[Window(Home).Property(%s)]" %node[1]

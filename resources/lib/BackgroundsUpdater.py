@@ -154,9 +154,7 @@ class BackgroundsUpdater(threading.Thread):
                         colorThemes.loadColorTheme(themefile)
             except Exception as e:
                 logMsg("ERROR in setDayNightColorTheme ! --> " + str(e), 0)
-                
-            
-    
+                  
     def setImageFromPath(self, windowProp, libPath, fallbackImage=None, customJson=None):
         image = fallbackImage
         if self.exit:
@@ -198,13 +196,17 @@ class BackgroundsUpdater(threading.Thread):
                 media_array = getJSON('Files.GetDirectory','{ "properties": ["title","art"], "directory": "%s", "media": "files", "limits": {"end":150}, "sort": { "order": "ascending", "method": "random", "ignorearticle": true } }' %libPath)
             if media_array:
                 for media in media_array:
+                    image = None
                     if media.has_key('art') and not media['title'].lower() == "next page":
                         if media['art'].has_key('fanart'):
                             image = media['art']['fanart']
-                            images.append(image)
-                        if media['art'].has_key('tvshow.fanart'):
+                        elif media['art'].has_key('tvshow.fanart'):
                             image = media['art']['tvshow.fanart']
-                            images.append(image)
+                    elif media.has_key('fanart') and not media['title'].lower() == "next page":
+                        image = media['fanart']
+                    if image:
+                        image = getCleanImage(image)
+                        images.append(image)
             else:
                 logMsg("media array empty or error so add this path to blacklist..." + libPath)
                 #addpath to temporary blacklist
@@ -356,6 +358,11 @@ class BackgroundsUpdater(threading.Thread):
         #all music
         if xbmc.getCondVisibility("Library.HasContent(music)"):
             self.setImageFromPath("SkinHelper.AllMusicBackground","musicdb://artists/")
+        
+        #tmdb backgrounds (extendedinfo)
+        if xbmc.getCondVisibility("System.HasAddon(script.extendedinfo)"):
+            self.setImageFromPath("SkinHelper.TopRatedMovies","plugin://script.extendedinfo/?info=topratedmovies")
+            self.setImageFromPath("SkinHelper.TopRatedShows","plugin://script.extendedinfo/?info=topratedtvshows")
         
         #global fanart background 
         self.getGlobalBackground()

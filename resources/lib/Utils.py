@@ -630,10 +630,7 @@ def searchThumb(searchphrase, searchphrase2=""):
                     if not media["filetype"] == "directory":
                         if media.has_key('art'):
                             if media['art'].has_key('thumb'):
-                                image = media['art']['thumb'].replace("image://","")
-                                image=urllib.unquote(image).decode('utf8')
-                                if image.endswith("/"):
-                                    image = image[:-1]
+                                image = getCleanImage(media['art']['thumb'])
                                 break
                 WINDOW.clearProperty("youtubescanrunning")
     
@@ -643,4 +640,12 @@ def searchThumb(searchphrase, searchphrase2=""):
         cache[searchphrase] = image
         WINDOW.setProperty("SkinHelperThumbs", repr(cache))
     WINDOW.clearProperty("getthumbbusy")
+    return image
+
+def getCleanImage(image):
+    if "image://" in image:
+        image = image.replace("image://","")
+        image=urllib.unquote(image).decode('utf8')
+        if image.endswith("/"):
+            image = image[:-1]
     return image
