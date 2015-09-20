@@ -42,7 +42,6 @@ class HomeMonitor(threading.Thread):
         
         listItem = None
         lastListItem = None
-        mainMenuContainer = "300"
 
         while (self.exit != True):
             
@@ -54,10 +53,9 @@ class HomeMonitor(threading.Thread):
             
             # monitor main menu when home is active
             if (xbmc.getCondVisibility("Window.IsActive(home) + !Window.IsActive(fullscreenvideo)")):
-                mainMenuContainer = "300"
-               
+                mainMenuContainer = WINDOW.getProperty("SkinHelper.MainMenuContainer")
                 listItem = xbmc.getInfoLabel("Container(%s).ListItem.Property(defaultID)" %mainMenuContainer)
-                if listItem != lastListItem:
+                if listItem != lastListItem and mainMenuContainer:
                     
                     #set the active widget
                     activewidget = xbmc.getInfoLabel("$INFO[Skin.String(widgetvalue-%s)]" %listItem)
@@ -71,7 +69,7 @@ class HomeMonitor(threading.Thread):
                     
                     # update the background
                     background = xbmc.getInfoLabel("Container(%s).ListItem.Property(Background)" %mainMenuContainer)
-                    WINDOW.setProperty("SkinHelper.LastBackground", background)
+                    WINDOW.setProperty("SkinHelper.SectionBackground", background)
                     lastListItem = listItem           
             
             xbmc.sleep(150)
