@@ -202,8 +202,8 @@ def backup(filterString="",silent=None,promptfilename="false"):
                 xbmcvfs.copy(zip_temp + ".zip", zip_final)
                 
                 #cleanup temp
-                #shutil.rmtree(temp_path)
-                #xbmcvfs.delete(zip_temp + ".zip")
+                shutil.rmtree(temp_path)
+                xbmcvfs.delete(zip_temp + ".zip")
                 
                 if not silent:
                     xbmcgui.Dialog().ok(ADDON.getLocalizedString(32028), ADDON.getLocalizedString(32029))

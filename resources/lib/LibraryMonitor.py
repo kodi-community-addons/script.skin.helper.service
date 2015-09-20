@@ -70,11 +70,15 @@ class LibraryMonitor(threading.Thread):
         if xbmcvfs.exists(self.cachePath):
             with open(self.cachePath) as data_file:    
                 data = json.load(data_file)
-                self.moviesetCache = data["moviesetCache"]
-                self.extraFanartCache = data["extraFanartCache"]
-                self.musicArtCache = data["musicArtCache"]
-                self.pvrArtCache = data["pvrArtCache"]
-                WINDOW.setProperty("SkinHelper.pvrArtCache",repr(self.pvrArtCache))
+                if data.has_key("moviesetCache"):
+                    self.moviesetCache = data["moviesetCache"]
+                if data.has_key("extraFanartCache"):
+                    self.extraFanartCache = data["extraFanartCache"]
+                if data.has_key("musicArtCache"):
+                    self.musicArtCache = data["musicArtCache"]
+                if data.has_key("pvrArtCache"):
+                    self.pvrArtCache = data["pvrArtCache"]
+                    WINDOW.setProperty("SkinHelper.pvrArtCache",repr(self.pvrArtCache))
     
     def run(self):
 
