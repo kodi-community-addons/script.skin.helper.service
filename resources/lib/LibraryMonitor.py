@@ -58,8 +58,6 @@ class LibraryMonitor(threading.Thread):
             xbmcvfs.mkdir(ADDON_DATA_PATH)
         
         libraryCache = {}
-        libraryCache["moviesetCache"] = self.moviesetCache
-        libraryCache["extraFanartCache"] = self.extraFanartCache
         libraryCache["musicArtCache"] = self.musicArtCache
         libraryCache["PVRArtCache"] = self.pvrArtCache
         #cache file for all backgrounds
@@ -70,10 +68,6 @@ class LibraryMonitor(threading.Thread):
         if xbmcvfs.exists(self.cachePath):
             with open(self.cachePath) as data_file:    
                 data = json.load(data_file)
-                if data.has_key("moviesetCache"):
-                    self.moviesetCache = data["moviesetCache"]
-                if data.has_key("extraFanartCache"):
-                    self.extraFanartCache = data["extraFanartCache"]
                 if data.has_key("musicArtCache"):
                     self.musicArtCache = data["musicArtCache"]
                 if data.has_key("PVRArtCache"):
@@ -241,11 +235,9 @@ class LibraryMonitor(threading.Thread):
                     json_response = self.moviesetCache[dbId]
                 else:
                     json_response = getJSON('VideoLibrary.GetMovieSetDetails', '{"setid": %s, "properties": [ "thumbnail" ], "movies": { "properties":  [ "rating", "art", "file", "year", "director", "writer", "playcount", "genre" , "thumbnail", "runtime", "studio", "plotoutline", "plot", "country", "streamdetails"], "sort": { "order": "ascending",  "method": "year" }} }' % dbId)
-                
-                #save to cache
-                self.moviesetCache[dbId] = json_response
+                    #save to cache
+                    self.moviesetCache[dbId] = json_response
                 if json_response:
-                    
                     count = 0
                     unwatchedcount = 0
                     watchedcount = 0
@@ -829,12 +821,15 @@ class LibraryMonitor(threading.Thread):
         
         contenttype = getCurrentContentType()
         dbId = xbmc.getInfoLabel("ListItem.DBID")
-        item = None
+        if not dbId or dbId == "-1":
+            return
         
         if self.streamdetailsCache.has_key(contenttype+dbId):
             #get data from cache
             streamdetails = self.streamdetailsCache[contenttype+dbId]
         else:
+            streamdetails = None
+            json_result = {}
             # get data from json
             if contenttype == "movies" and dbId:
                 json_result = getJSON('VideoLibrary.GetMovieDetails', '{ "movieid": %d, "properties": [ "title", "streamdetails" ] }' %int(dbId))
@@ -842,7 +837,8 @@ class LibraryMonitor(threading.Thread):
                 json_result = getJSON('VideoLibrary.GetEpisodeDetails', '{ "episodeid": %d, "properties": [ "title", "streamdetails" ] }' %int(dbId))
             elif contenttype == "musicvideos" and dbId:
                 json_result = getJSON('VideoLibrary.GetMusicVideoDetails', '{ "musicvideoid": %d, "properties": [ "title", "streamdetails" ] }' %int(dbId))       
-            if json_result: streamdetails = json_result["streamdetails"]
+            if json_result.has_key("streamdetails"): 
+                streamdetails = json_result["streamdetails"]
             self.streamdetailsCache[contenttype+dbId] = streamdetails
         
         if streamdetails:
