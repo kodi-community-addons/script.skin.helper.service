@@ -61,7 +61,7 @@ class LibraryMonitor(threading.Thread):
         libraryCache["moviesetCache"] = self.moviesetCache
         libraryCache["extraFanartCache"] = self.extraFanartCache
         libraryCache["musicArtCache"] = self.musicArtCache
-        libraryCache["pvrArtCache"] = self.pvrArtCache
+        libraryCache["PVRArtCache"] = self.pvrArtCache
         #cache file for all backgrounds
         json.dump(libraryCache, open(self.cachePath,'w'))
     
@@ -76,8 +76,8 @@ class LibraryMonitor(threading.Thread):
                     self.extraFanartCache = data["extraFanartCache"]
                 if data.has_key("musicArtCache"):
                     self.musicArtCache = data["musicArtCache"]
-                if data.has_key("pvrArtCache"):
-                    self.pvrArtCache = data["pvrArtCache"]
+                if data.has_key("PVRArtCache"):
+                    self.pvrArtCache = data["PVRArtCache"]
                     WINDOW.setProperty("SkinHelper.pvrArtCache",repr(self.pvrArtCache))
     
     def run(self):

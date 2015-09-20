@@ -467,7 +467,6 @@ def createSmartShortcutSubmenu(windowProp,iconimage):
     except Exception as e:
         logMsg("ERROR in createSmartShortcutSubmenu ! --> " + str(e), 0)
 
-
 def getCurrentContentType():
     contenttype="other"
     if xbmc.getCondVisibility("Container.Content(episodes)"):
@@ -518,38 +517,51 @@ def searchChannelLogo(searchphrase):
         if cache.has_key(searchphrase):
             return cache[searchphrase]
         else:
-            
-            #lookup with thelogodb
-            search = searchphrase.split()
-            search = '%20'.join(map(str, search))
-            url = 'http://www.thelogodb.com/api/json/v1/1/tvchannel.php?s=' + search
-            search_results = urllib2.urlopen(url)
-            js = json.loads(search_results.read().decode("utf-8"))
-            if js and js.has_key('channels'):
-                results = js['channels']
-                if results:
-                    for i in results: 
-                        rest = i['strLogoWide']
-                        if rest:
-                            if ".jpg" in rest or ".png" in rest:
-                                image = rest
-                                break
-                
-            if not image:
-                search = searchphrase.replace(" HD","").split()
-                search = '%20'.join(map(str, search))
-                url = 'http://www.thelogodb.com/api/json/v1/1/tvchannel.php?s=' + search
-                search_results = urllib2.urlopen(url)
-                js = json.loads(search_results.read().decode("utf-8"))
-                if js and js.has_key('channels'):
-                    results = js['channels']
-                    if results:
-                        for i in results: 
-                            rest = i['strLogoWide']
-                            if rest:
-                                if ".jpg" in rest or ".png" in rest:
-                                    image = rest
-                                    break
+            try:
+                #lookup in channel list
+                # Perform a JSON query to get all channels
+                json_query = getJSON('PVR.GetChannels', '{"channelgroupid": "alltv", "properties": [ "thumbnail", "channeltype", "hidden", "locked", "channel", "lastplayed", "broadcastnow" ]}' )
+                for item in json_query:
+                    channelname = item["label"]
+                    channelicon = item['thumbnail']
+                    if channelname == searchphrase:
+                        image = channelicon
+                        break
+
+                #lookup with thelogodb
+                if not image:
+                    search = searchphrase.split()
+                    search = '%20'.join(map(str, search))
+                    url = 'http://www.thelogodb.com/api/json/v1/1/tvchannel.php?s=' + search
+                    search_results = urllib2.urlopen(url)
+                    js = json.loads(search_results.read().decode("utf-8"))
+                    if js and js.has_key('channels'):
+                        results = js['channels']
+                        if results:
+                            for i in results: 
+                                rest = i['strLogoWide']
+                                if rest:
+                                    if ".jpg" in rest or ".png" in rest:
+                                        image = rest
+                                        break
+                    
+                if not image:
+                    search = searchphrase.replace(" HD","").split()
+                    search = '%20'.join(map(str, search))
+                    url = 'http://www.thelogodb.com/api/json/v1/1/tvchannel.php?s=' + search
+                    search_results = urllib2.urlopen(url)
+                    js = json.loads(search_results.read().decode("utf-8"))
+                    if js and js.has_key('channels'):
+                        results = js['channels']
+                        if results:
+                            for i in results: 
+                                rest = i['strLogoWide']
+                                if rest:
+                                    if ".jpg" in rest or ".png" in rest:
+                                        image = rest
+                                        break
+            except Exception as e:
+                logMsg("ERROR in searchChannelLogo ! --> " + str(e), 0)
 
     if image:
         if ".jpg/" in image:
