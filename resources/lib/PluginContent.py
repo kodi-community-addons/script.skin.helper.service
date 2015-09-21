@@ -31,6 +31,7 @@ def doMainListing():
     addDirectoryItem(ADDON.getLocalizedString(32004), "plugin://script.skin.helper.service/?action=RecommendedMedia&limit=100")
     addDirectoryItem(ADDON.getLocalizedString(32005), "plugin://script.skin.helper.service/?action=recentmedia&limit=100")
     addDirectoryItem(ADDON.getLocalizedString(32006), "plugin://script.skin.helper.service/?action=similarmovies&limit=100")
+    addDirectoryItem(ADDON.getLocalizedString(32086), "plugin://script.skin.helper.service/?action=inprogressmedia&limit=100")
     addDirectoryItem(ADDON.getLocalizedString(32007), "plugin://script.skin.helper.service/?action=inprogressandrecommendedmedia&limit=100")
     if xbmc.getCondVisibility("System.HasAddon(script.tv.show.next.aired)"):
         addDirectoryItem(ADDON.getLocalizedString(32055), "plugin://script.skin.helper.service/?action=nextairedtvshows&limit=100")
@@ -46,7 +47,7 @@ def addSmartShortcutDirectoryItem(entry, isFolder=True, widget=None, widget2=Non
     type = "$INFO[Window(Home).Property(%s.type)]" %entry
 
     if isFolder:
-        path = sys.argv[0] + "?action=SMARTSHORTCUTS&amp;path=" + entry
+        path = sys.argv[0] + "?action=SMARTSHORTCUTS&path=" + entry
         li = xbmcgui.ListItem(label, path=path)
         icon = xbmc.getInfoLabel(image)
         li.setThumbnailImage(icon)
