@@ -521,19 +521,15 @@ The script comes with a color theme feature. Basically it's just a simplified ve
 
 #####To present the dialog with all available color themes:
 ```
+<control type="button">
+	<onclick>RunScript(script.skin.helper.service,action=colorthemes)</onclick>
+	<label>$ADDON[script.skin.helper.service 32085]</label>
+    <description>Manage Color Themes</description>
+</control>
 RunScript(script.skin.helper.service,action=colorthemes)             
 ```
 
 
-#####Save the user's current customizations to a custom colortheme:
-```
-RunScript(script.skin.helper.service,action=createcolortheme)             
-```
-
-#####Import a custom colortheme from file:
-```
-RunScript(script.skin.helper.service,action=restorecolortheme)             
-```
 
 #####Provide color themes with your skin
 It is possible to deliver skin provided color themes. Those colorthemes should be stored in the skin's extras\skinthemes folder.

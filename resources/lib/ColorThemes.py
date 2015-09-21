@@ -117,12 +117,29 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
         self.refreshListing()
     
     def refreshListing(self):
-        count = 0
-        
+
         #clear list first
         self.themesList.reset()
         
         activetheme = xbmc.getInfoLabel("$INFO[Skin.String(SkinHelper.LastColorTheme)]")
+        
+        #add import and create items on top of the list
+        listitem = xbmcgui.ListItem(label=ADDON.getLocalizedString(32079), iconImage="-")
+        desc = ADDON.getLocalizedString(32080)
+        listitem.setProperty("description",desc)
+        listitem.setProperty("Addon.Summary",desc)
+        listitem.setLabel2(desc)
+        listitem.setProperty("type","add")
+        self.themesList.addItem(listitem)
+        
+        listitem = xbmcgui.ListItem(label=ADDON.getLocalizedString(32081), iconImage="-")
+        desc = ADDON.getLocalizedString(32082)
+        listitem.setProperty("description",desc)
+        listitem.setProperty("Addon.Summary",desc)
+        listitem.setLabel2(desc)
+        listitem.setProperty("type","import")
+        self.themesList.addItem(listitem)
+        
         
         #get all skin defined themes
         dirs, files = xbmcvfs.listdir(self.skinThemesPath)
@@ -149,7 +166,6 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
                 listitem.setLabel2(desc)
                 listitem.setProperty("type","skin")
                 self.themesList.addItem(listitem)
-                count += 1
         
         #get all user defined themes
         dirs, files = xbmcvfs.listdir(self.userThemesPath)
@@ -171,9 +187,7 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
                 listitem.setLabel2(desc)
                 listitem.setProperty("type","user")
                 self.themesList.addItem(listitem)
-                count += 1
         
-        return count
     
     def onInit(self):
         self.action_exitkeys_id = [10, 13]
@@ -184,13 +198,11 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
         self.themesList = self.getControl(6)
         
         self.getControl(1).setLabel(ADDON.getLocalizedString(32014))
-        self.getControl(5).setVisible(False)
+        self.getControl(5).setVisible(True)
         
         list = self.refreshListing()
-        if list != 0:
-            xbmc.executebuiltin("Control.SetFocus(6)")
-        else:
-            xbmc.executebuiltin("Control.SetFocus(5)")
+        xbmc.executebuiltin("Control.SetFocus(6)")
+
 
     def onFocus(self, controlId):
         pass
@@ -205,30 +217,6 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
         
         if action.getId() in ACTION_CANCEL_DIALOG:
             self.closeDialog()
-        if action.getId() == ACTION_CONTEXT_MENU and not self.daynight:
-            dialog = xbmcgui.Dialog()
-            item = self.themesList.getSelectedItem()
-            themeFile = item.getProperty("filename")
-            themeName = item.getProperty("themename")
-            menuOptions = []
-            menuOptions.append(xbmc.getLocalizedString(424))
-            themeType = item.getProperty("type")
-            if themeType == "user":
-                menuOptions.append(xbmc.getLocalizedString(117))
-                menuOptions.append(xbmc.getLocalizedString(118))
-                menuOptions.append(xbmc.getLocalizedString(19285))
-                menuOptions.append(ADDON.getLocalizedString(32019))
-            ret = dialog.select(xbmc.getLocalizedString(33063), menuOptions)
-            if ret == 0:
-                loadColorTheme(themeFile)
-            elif ret == 1:
-                self.removeColorTheme(themeFile)
-            elif ret == 2:
-                self.renameColorTheme(themeFile,themeName)
-            elif ret == 3:
-                self.setIconForColorTheme(themeFile)
-            elif ret == 4:
-                self.backupColorTheme(item.getLabel(),themeFile) 
 
     def closeDialog(self):
         self.close()
@@ -237,12 +225,41 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
                 
         if(controlID == 6):
             item = self.themesList.getSelectedItem()
-            themeFile = item.getProperty("filename")
-            if self.daynight:
-                self.setDayNightTheme(item)
+            type = item.getProperty("type")
+            if type == "add":
+                createColorTheme()
+                self.refreshListing()
+            elif type == "import":
+                restoreColorTheme()
+                self.refreshListing()
             else:
-                loadColorTheme(themeFile)
-        elif(controlID == 7):
+                themeFile = item.getProperty("filename")
+                if self.daynight:
+                    self.setDayNightTheme(item)
+                else:
+                    if type != "user":
+                        #load skin provided theme
+                        loadColorTheme(themeFile)
+                    else:
+                        #show contextmenu for user custom theme
+                        menuOptions = []
+                        menuOptions.append(ADDON.getLocalizedString(32083))
+                        menuOptions.append(xbmc.getLocalizedString(117))
+                        menuOptions.append(xbmc.getLocalizedString(118))
+                        menuOptions.append(xbmc.getLocalizedString(19285))
+                        menuOptions.append(ADDON.getLocalizedString(32019))
+                        ret = xbmcgui.Dialog().select(item.getProperty("themename"), menuOptions)
+                        if ret == 0:
+                            loadColorTheme(themeFile)
+                        elif ret == 1:
+                            self.removeColorTheme(themeFile)
+                        elif ret == 2:
+                            self.renameColorTheme(themeFile,themeName)
+                        elif ret == 3:
+                            self.setIconForColorTheme(themeFile)
+                        elif ret == 4:
+                            self.backupColorTheme(item.getLabel(),themeFile)
+        elif(controlID == 5):
             self.closeDialog()
 
 def loadColorTheme(file):

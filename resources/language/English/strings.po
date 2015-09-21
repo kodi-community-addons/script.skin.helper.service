@@ -307,3 +307,55 @@ msgstr ""
 msgctxt "#32072"
 msgid "Go to Series level"
 msgstr ""
+
+msgctxt "#32073"
+msgid "Add new condition..."
+msgstr ""
+
+msgctxt "#32074"
+msgid "Add a new condition to activate a custom background on a selected timespan"
+msgstr ""
+
+msgctxt "#32075"
+msgid "Delete or change ?"
+msgstr ""
+
+msgctxt "#32076"
+msgid "Do you want to delete or change the existing entry ?"
+msgstr ""
+
+msgctxt "#32077"
+msgid "Change"
+msgstr ""
+
+msgctxt "#32078"
+msgid "Delete"
+msgstr ""
+
+msgctxt "#32079"
+msgid "Create Color Theme..."
+msgstr ""
+
+msgctxt "#32080"
+msgid "Create new custom color theme based on your current skin color settings."
+msgstr ""
+
+msgctxt "#32081"
+msgid "Import Color Theme from file..."
+msgstr ""
+
+msgctxt "#32082"
+msgid "Import a colortheme from file."
+msgstr ""
+
+msgctxt "#32083"
+msgid "Apply this Color Theme"
+msgstr ""
+
+msgctxt "#32084"
+msgid "Export this Color Theme to file"
+msgstr ""
+
+msgctxt "#32085"
+msgid "Manage Color Themes"
+msgstr ""
