@@ -169,6 +169,7 @@
   <color name="daffodil">ffffff31</color>
   <color name="dandelion">fff0e130</color>
   <color name="dark blue">ff00008b</color>
+  <color name="darkblue">ff011222</color>
   <color name="dark brown">ff654321</color>
   <color name="dark byzantium">ff5d3954</color>
   <color name="dark candy apple red">ffa40000</color>
@@ -408,6 +409,7 @@
   <color name="magic mint">ffaaf0d1</color>
   <color name="magnolia">fff8f4ff</color>
   <color name="mahogany">ffc04000</color>
+  <color name="mainblue">FF00b8ff</color>
   <color name="maize">fffbec5d</color>
   <color name="majorelle blue">ff6050dc</color>
   <color name="malachite">ff0bda51</color>

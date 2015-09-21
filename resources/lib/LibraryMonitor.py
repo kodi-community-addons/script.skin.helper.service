@@ -222,6 +222,10 @@ class LibraryMonitor(threading.Thread):
             WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.Resolution.Type')
             WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.AspectRatio')
             WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.Codec')
+            WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.AudioCodec')
+            WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.AudioChannels')
+            WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.AudioLanguage')
+            WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.Subtitle')
         
             
         if xbmc.getCondVisibility("SubString(ListItem.Path,videodb://movies/sets/,left)"):
@@ -271,24 +275,37 @@ class LibraryMonitor(threading.Thread):
                         WINDOW.setProperty('SkinHelper.MovieSet.' + str(count) + '.ClearArt',art.get('clearart', ''))
                         WINDOW.setProperty('SkinHelper.MovieSet.' + str(count) + '.Banner',art.get('banner', ''))
                         WINDOW.setProperty('SkinHelper.MovieSet.' + str(count) + '.Rating',str(item.get('rating', '')))
-                        if "streamdetails" in item:
-                            for key, value in item['streamdetails'].iteritems():
-                                for stream in value:
-                                    height = stream.get("height","")
-                                    width = stream.get("width","")
-                                    if height and width:
-                                        resolution = ""
-                                        if width <= 720 and height <= 480: resolution = "480"
-                                        elif width <= 768 and height <= 576: resolution = "576"
-                                        elif width <= 960 and height <= 544: resolution = "540"
-                                        elif width <= 1280 and height <= 720: resolution = "720"
-                                        elif width <= 1920 and height <= 1080: resolution = "1080"
-                                        elif width * height >= 6000000: resolution = "4K"
-                                        WINDOW.setProperty('SkinHelper.MovieSet.' + str(count) + '.Resolution',resolution)
-                                    if stream.get("codec",""):
-                                        WINDOW.setProperty('SkinHelper.MovieSet.' + str(count) + '.Codec',str(stream["codec"]))    
-                                    if stream.get("aspect",""):
-                                        WINDOW.setProperty('SkinHelper.MovieSet.' + str(count) + '.AspectRatio',str(round(stream["aspect"], 2)))
+                        if item.get('streamdetails',''):
+                            streamdetails = item["streamdetails"]
+                            audiostreams = streamdetails.get('audio',[])
+                            videostreams = streamdetails.get('video',[])
+                            subtitles = streamdetails.get('subtitle',[])
+                            if len(videostreams) > 0:
+                                stream = videostreams[0]
+                                height = stream.get("height","")
+                                width = stream.get("width","")
+                                if height and width:
+                                    resolution = ""
+                                    if width <= 720 and height <= 480: resolution = "480"
+                                    elif width <= 768 and height <= 576: resolution = "576"
+                                    elif width <= 960 and height <= 544: resolution = "540"
+                                    elif width <= 1280 and height <= 720: resolution = "720"
+                                    elif width <= 1920 and height <= 1080: resolution = "1080"
+                                    elif width * height >= 6000000: resolution = "4K"
+                                    WINDOW.setProperty('SkinHelper.MovieSet.' + str(count) + '.Resolution',resolution)
+                                if stream.get("codec",""):
+                                    WINDOW.setProperty('SkinHelper.MovieSet.' + str(count) + '.Codec',str(stream["codec"]))    
+                                if stream.get("aspect",""):
+                                    WINDOW.setProperty('SkinHelper.MovieSet.' + str(count) + '.AspectRatio',str(round(stream["aspect"], 2)))
+                            if len(audiostreams) > 0:
+                                #grab details of first audio stream
+                                stream = audiostreams[0]
+                                WINDOW.setProperty('SkinHelper.MovieSet.' + str(count) + '.AudioCodec',stream.get('codec',''))
+                                WINDOW.setProperty('SkinHelper.MovieSet.' + str(count) + '.AudioChannels',str(stream.get('channels','')))
+                                WINDOW.setProperty('SkinHelper.MovieSet.' + str(count) + '.AudioLanguage',stream.get('language',''))
+                            if len(subtitles) > 0:
+                                #grab details of first subtitle
+                                WINDOW.setProperty('SkinHelper.MovieSet.' + str(count) + '.SubTitle',subtitles[0].get('language',''))
 
                         title_list += item['label'] + " (" + str(item['year']) + ")[CR]"
                         if item['plotoutline']:
@@ -870,9 +887,9 @@ class LibraryMonitor(threading.Thread):
                     else: channels = str(channels)
                     language = item['language']
                     if not language: language = "?"
-                    WINDOW.setProperty('SkinHelper.ListItemAudioStreams.%d.Language' % count, language)
-                    WINDOW.setProperty('SkinHelper.ListItemAudioStreams.%d.AudioCodec' % count, codec)
-                    WINDOW.setProperty('SkinHelper.ListItemAudioStreams.%d.AudioChannels' % count, channels)
+                    WINDOW.setProperty('SkinHelper.ListItemAudioStreams.%d.Language' % count, item['language'])
+                    WINDOW.setProperty('SkinHelper.ListItemAudioStreams.%d.AudioCodec' % count, item['codec'])
+                    WINDOW.setProperty('SkinHelper.ListItemAudioStreams.%d.AudioChannels' % count, str(item['channels']))
                     sep = "•".decode('utf-8')
                     audioStr = '%s %s %s %s %s' %(language,sep,codec,sep,channels)
                     WINDOW.setProperty('SkinHelper.ListItemAudioStreams.%d'%count, audioStr)
