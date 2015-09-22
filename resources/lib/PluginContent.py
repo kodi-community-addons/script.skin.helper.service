@@ -212,6 +212,11 @@ def buildWidgetsListing():
                             type = line.attrib['type']
                         if line.tag == "name":
                             label = line.text
+                            
+                    try:
+                        languageid = int(label)
+                        label = xbmc.getLocalizedString(languageid)
+                    except: pass
                     playlistsFound.append([label, playlist, image, type])
     allWidgets["skinplaylists"] = playlistsFound
         
@@ -341,8 +346,9 @@ def getBackgrounds():
         label = node[0]
         image = "$INFO[Window(Home).Property(%s)]" %node[1]
         if xbmc.getInfoLabel(image):
-            li = xbmcgui.ListItem(label, path=image)
+            li = xbmcgui.ListItem(label, path=image )
             li.setArt({"fanart":image})
+            li.setThumbnailImage(image)
             xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=image, listitem=li, isFolder=False)
     
     allSmartShortcuts = WINDOW.getProperty("allSmartShortcuts")
@@ -350,9 +356,11 @@ def getBackgrounds():
         for node in eval (allSmartShortcuts):
             label = "$INFO[Window(Home).Property(%s.title)]" %node
             image = "$INFO[Window(Home).Property(%s.image)]" %node
-            li = xbmcgui.ListItem(label, path=image)
-            li.setArt({"fanart":image})
-            xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=image, listitem=li, isFolder=False)
+            if xbmc.getInfoLabel(image):
+                li = xbmcgui.ListItem(label, path=image )
+                li.setArt({"fanart":image})
+                li.setThumbnailImage(image)
+                xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=image, listitem=li, isFolder=False)
 
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
     
@@ -545,20 +553,21 @@ def buildNextAiredTvShowsListing(limit):
         nextairedTotal = int(nextairedTotal)
         for count in range(nextairedTotal):
             tvshow = WINDOW.getProperty("NextAired.%s.Label"%str(count))
-            json_result = getJSON('VideoLibrary.GetTvShows','{ "filter": {"operator":"is", "field":"title", "value":"%s"}, "properties": [ %s ] }' %(tvshow,fields_tvshows))
-            if len(json_result) > 0:
-                item = json_result[0]
-                path = "videodb://tvshows/titles/%s/" %str(item["tvshowid"])
-                item["airtime"] = WINDOW.getProperty("NextAired.%s.AirTime"%str(count))
-                item["title"] = WINDOW.getProperty("NextAired.%s.NextTitle"%str(count))
-                item["tvshowtitle"] = tvshow
-                item["season"] = int(WINDOW.getProperty("NextAired.%s.NextSeasonNumber"%str(count)))
-                item["episode"] = int(WINDOW.getProperty("NextAired.%s.NextEpisodeNumber"%str(count)))
-                item["file"] = path
-                allItems.append(item)
-                count += 1
-                if count == limit:
-                    break
+            if tvshow:
+                json_result = getJSON('VideoLibrary.GetTvShows','{ "filter": {"operator":"is", "field":"title", "value":"%s"}, "properties": [ %s ] }' %(tvshow,fields_tvshows))
+                if len(json_result) > 0:
+                    item = json_result[0]
+                    path = "videodb://tvshows/titles/%s/" %str(item["tvshowid"])
+                    item["airtime"] = WINDOW.getProperty("NextAired.%s.AirTime"%str(count))
+                    item["title"] = WINDOW.getProperty("NextAired.%s.NextTitle"%str(count))
+                    item["tvshowtitle"] = tvshow
+                    item["season"] = int(WINDOW.getProperty("NextAired.%s.NextSeasonNumber"%str(count)))
+                    item["episode"] = int(WINDOW.getProperty("NextAired.%s.NextEpisodeNumber"%str(count)))
+                    item["file"] = path
+                    allItems.append(item)
+                    count += 1
+                    if count == limit:
+                        break
                     
     return allItems
     

@@ -65,7 +65,6 @@ def getSkinSettings(filter=None):
 
 def backup(filterString="",silent=None,promptfilename="false"):
     try:
-        xbmc.executebuiltin( "ActivateWindow(busydialog)" )
         if filterString:
             if "|" in filterString:
                 filter = filterString.split("|")
@@ -169,7 +168,7 @@ def backup(filterString="",silent=None,promptfilename="false"):
                                         defaultID = prop[1]
                                         if "." in background and not background.startswith("special://") and not background.startswith("$"):
                                             if "/" in background:
-                                                delim == "/"
+                                                delim = "/"
                                             else:
                                                 delim = "\\"
                                             newthumb = background.split(delim)[-1]
@@ -218,8 +217,6 @@ def backup(filterString="",silent=None,promptfilename="false"):
         print_exc()
         if silent:
             logMsg("ERROR while creating silent backup ! --> Make sure you provide the FULL VFS path, for example special://skin/extras/mybackup.zip", 0)            
-    finally:
-        xbmc.executebuiltin( "Dialog.Close(busydialog)" )
         
 def restore(silent=None):
 
@@ -236,9 +233,7 @@ def restore(silent=None):
         if zip_path and zip_path != "protocol://":
             logMsg("zip_path " + zip_path)
             
-            if silent:
-                xbmc.executebuiltin( "ActivateWindow(busydialog)" )
-            else:
+            if not silent:
                 progressDialog = xbmcgui.DialogProgress(ADDON.getLocalizedString(32032))
                 progressDialog.create(ADDON.getLocalizedString(32032))
                 progressDialog.update(0, "unpacking backup...")
@@ -336,8 +331,7 @@ def restore(silent=None):
             xbmcgui.Dialog().ok(ADDON.getLocalizedString(32032), ADDON.getLocalizedString(32035))
         logMsg("ERROR while restoring backup ! --> " + str(e), 0)
         print_exc()
-    finally:
-        xbmc.executebuiltin( "Dialog.Close(busydialog)" )
+
 
 def zip(src, dst):
     zf = zipfile.ZipFile("%s.zip" % (dst), "w", zipfile.ZIP_DEFLATED)

@@ -129,5 +129,7 @@ class Main:
 
 
 if (__name__ == "__main__"):
+    xbmc.executebuiltin( "ActivateWindow(busydialog)" )
     Main()
+    xbmc.executebuiltin( "Dialog.Close(busydialog)" )
 logMsg('finished loading script entry')

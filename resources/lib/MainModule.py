@@ -64,7 +64,6 @@ def selectOverlayTexture():
 
 def selectBusyTexture():
     
-    xbmc.executebuiltin( "ActivateWindow(busydialog)" )
     import Dialogs as dialogs
     spinnersList = []
     
@@ -106,7 +105,6 @@ def selectBusyTexture():
             w.autoFocusId = count
         count += 1
          
-    xbmc.executebuiltin( "Dialog.Close(busydialog)" )
     w.doModal()
     selectedItem = w.result
     del w
@@ -194,7 +192,6 @@ def setView():
         xbmc.executebuiltin("Container.SetViewMode(%s)" %selectedItem)
     
 def searchYouTube(title,windowHeader=""):
-    xbmc.executebuiltin( "ActivateWindow(busydialog)" )
     import Dialogs as dialogs
     libPath = "plugin://plugin.video.youtube/kodion/search/query/?q=" + title
     media_array = None
@@ -217,7 +214,6 @@ def searchYouTube(title,windowHeader=""):
             allResults.append(listitem)
 
     w = dialogs.DialogSelectBig( "DialogSelect.xml", ADDON_PATH, listing=allResults, windowtitle=windowHeader,multiselect=False )
-    xbmc.executebuiltin( "Dialog.Close(busydialog)" )
     w.doModal()
     selectedItem = w.result
     del w

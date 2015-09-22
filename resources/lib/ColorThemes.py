@@ -263,7 +263,6 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
             self.closeDialog()
 
 def loadColorTheme(file):
-    xbmc.executebuiltin( "ActivateWindow(busydialog)" )
     f = open(file,"r")
     importstring = json.load(f)
     f.close()
@@ -325,7 +324,7 @@ def loadColorTheme(file):
         xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"Settings.SetSettingValue","params":{"setting":"lookandfeel.skincolors","value":"%s"}}' %skincolor)
     if skinfont and currentSkinFont != skinfont:
         xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"Settings.SetSettingValue","params":{"setting":"lookandfeel.font","value":"%s"}}' %skinfont)
-    xbmc.executebuiltin( "Dialog.Close(busydialog)" )
+
     
             
 def get_browse_dialog(default="protocol://", heading="Browse", dlg_type=3, shares="files", mask="", use_thumbs=False, treat_as_folder=False):

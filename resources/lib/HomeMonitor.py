@@ -226,19 +226,21 @@ class HomeMonitor(threading.Thread):
             allFavouritesCount += 1
         WINDOW.setProperty("SkinHelper.TotalFavourites",str(allFavouritesCount))
 
-        #GET TV CHANNELS COUNT        
-        allTvChannelsCount = 0
-        media_array = getJSON('PVR.GetChannels','{"channelgroupid": "alltv" }' )
-        for item in media_array:
-            allTvChannelsCount += 1
-        WINDOW.setProperty("SkinHelper.TotalTVChannels",str(allTvChannelsCount))        
+        #GET TV CHANNELS COUNT
+        if xbmc.getCondVisibility("Pvr.HasTVChannels"):
+            allTvChannelsCount = 0
+            media_array = getJSON('PVR.GetChannels','{"channelgroupid": "alltv" }' )
+            for item in media_array:
+                allTvChannelsCount += 1
+            WINDOW.setProperty("SkinHelper.TotalTVChannels",str(allTvChannelsCount))        
 
-        #GET RADIO CHANNELS COUNT        
-        allRadioChannelsCount = 0
-        media_array = getJSON('PVR.GetChannels','{"channelgroupid": "allradio" }' )
-        for item in media_array:
-            allRadioChannelsCount += 1
-        WINDOW.setProperty("SkinHelper.TotalRadioChannels",str(allRadioChannelsCount))        
+        #GET RADIO CHANNELS COUNT
+        if xbmc.getCondVisibility("Pvr.HasRadioChannels"):
+            allRadioChannelsCount = 0
+            media_array = getJSON('PVR.GetChannels','{"channelgroupid": "allradio" }' )
+            for item in media_array:
+                allRadioChannelsCount += 1
+            WINDOW.setProperty("SkinHelper.TotalRadioChannels",str(allRadioChannelsCount))        
                
 
 
