@@ -645,7 +645,7 @@ def searchThumb(searchphrase, searchphrase2=""):
 def getCleanImage(image):
     if "image://" in image:
         image = image.replace("image://","")
-        image=urllib.unquote(image).decode('utf8')
+        image=urllib.unquote(image)
         if image.endswith("/"):
             image = image[:-1]
     return image

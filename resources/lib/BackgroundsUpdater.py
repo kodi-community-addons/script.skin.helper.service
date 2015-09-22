@@ -209,7 +209,7 @@ class BackgroundsUpdater(threading.Thread):
                         images.append(image)
             else:
                 logMsg("media array empty or error so add this path to blacklist..." + libPath)
-                #addpath to temporary blacklist
+                #add path to temporary blacklist
                 self.tempBlacklist.add(libPath)
                 WINDOW.setProperty(windowProp, image)
 
