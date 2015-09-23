@@ -120,11 +120,11 @@ def getJSON(method,params):
         elif jsonobject.has_key('addons'):
             return jsonobject['addons']
         else:
-            logMsg("invalid result " + str(jsonobject),0)
+            logMsg("invalid result " + str(jsonobject))
             logMsg('{ "jsonrpc" : "2.0" , "method" : "' + method + '" , "params" : ' + params + ' , "id":1 }')
             return {}
     else:
-        logMsg("no result " + str(jsonobject),0)
+        logMsg("no result " + str(jsonobject))
         logMsg('{ "jsonrpc" : "2.0" , "method" : "' + method + '" , "params" : ' + params + ' , "id":1 }')
         return {}
 
