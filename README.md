@@ -180,6 +180,8 @@ ________________________________________________________________________________
 
 #### PVR window properties
 Some additional window properties that can be used in the PVR windows. 
+Enables a live scraper for images of the selected program in the PVR. Comes with smart caching so it will be faster once used more often.
+You must set the following Skin Bool to true --> SkinHelper.EnablePVRThumbs for the scraper to activate.
 
 | property 			| description |
 | :----------------------------	| :----------- |
@@ -188,7 +190,7 @@ Some additional window properties that can be used in the PVR windows.
 | Window(Home).Property(SkinHelper.PVR.Thumb) | Will return a random thumb (google search) for the currently selected show/movie (only if found) |
 | Window(Home).Property(SkinHelper.PVR.ChannelLogo) | Will return the channel logo for the currently selected channel (only if found) |
 
-
+NOTE: The images will only be scraped if you have set the following Skin Bool to true --> SkinHelper.EnablePVRThumbs
 ________________________________________________________________________________________________________
 
 

@@ -58,27 +58,34 @@ class LibraryMonitor(threading.Thread):
             xbmcvfs.mkdir(ADDON_DATA_PATH)
         
         libraryCache = {}
-        libraryCache["musicArtCache"] = self.musicArtCache
+        libraryCache["MusicArtCache"] = self.musicArtCache
         libraryCache["PVRArtCache"] = self.pvrArtCache
-        #cache file for all backgrounds
+        libraryCache["SetsCache"] = self.moviesetCache
+        libraryCache["streamdetailsCache"] = self.streamdetailsCache
         json.dump(libraryCache, open(self.cachePath,'w'))
+       
     
     def getCacheFromFile(self):
         #TODO --> clear the cache in some conditions
         if xbmcvfs.exists(self.cachePath):
             with open(self.cachePath) as data_file:    
                 data = json.load(data_file)
-                if data.has_key("musicArtCache"):
-                    self.musicArtCache = data["musicArtCache"]
+                if data.has_key("MusicArtCache"):
+                    self.musicArtCache = data["MusicArtCache"]
+                if data.has_key("SetsCache"):
+                    self.moviesetCache = data["SetsCache"]
+                if data.has_key("streamdetailsCache"):
+                    self.streamdetailsCache = data["streamdetailsCache"]
                 if data.has_key("PVRArtCache"):
                     self.pvrArtCache = data["PVRArtCache"]
                     WINDOW.setProperty("SkinHelper.pvrArtCache",repr(self.pvrArtCache))
+
     
     def run(self):
 
         lastListItemLabel = None
-        KodiMonitor = xbmc.Monitor()
         self.getCacheFromFile()
+        KodiMonitor = xbmc.Monitor()
 
         while (self.exit != True):
         
@@ -98,8 +105,12 @@ class LibraryMonitor(threading.Thread):
                     self.widgetTaskInterval = 0
 
             #flush cache if videolibrary has changed
-            if WINDOW.getProperty("widgetrefresh") == "refresh":
+            if WINDOW.getProperty("resetVideoDbCache") == "reset":
                 self.moviesetCache = {}
+                self.extraFanartCache = {}
+                self.streamdetailsCache = {}
+                WINDOW.clearProperty("resetVideoDbCache")
+                
                         
             # monitor listitem props when musiclibrary is active
             elif (xbmc.getCondVisibility("[Window.IsActive(musiclibrary) | Window.IsActive(MyMusicSongs.xml)] + !Container.Scrolling")):
@@ -407,21 +418,22 @@ class LibraryMonitor(threading.Thread):
         WINDOW.setProperty('SkinHelper.ListItemDirectors', "[CR]".join(directors))
     
     def setPVRThumbs(self):
-        title = xbmc.getInfoLabel("ListItem.Title")
-        channel = xbmc.getInfoLabel("ListItem.ChannelName")
-        dbID = title + channel
-        cacheFound = False
-
-        if self.lastMusicDbId == dbID:
-            return
-            
-        logMsg("setPVRThumb dbID--> " + dbID)
-        
+    
         WINDOW.clearProperty("SkinHelper.PVR.Thumb") 
         WINDOW.clearProperty("SkinHelper.PVR.FanArt") 
         WINDOW.clearProperty("SkinHelper.PVR.ChannelLogo")
         WINDOW.clearProperty("SkinHelper.PVR.Poster")
         
+        if not xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnablePVRThumbs)"):
+            return
+        
+        title = xbmc.getInfoLabel("ListItem.Title")
+        channel = xbmc.getInfoLabel("ListItem.ChannelName")
+        dbID = title + channel
+        cacheFound = False
+            
+        logMsg("setPVRThumb dbID--> " + dbID)
+
         if xbmc.getInfoLabel("ListItem.Label") == "..":
             return
             
@@ -621,13 +633,19 @@ class LibraryMonitor(threading.Thread):
     
     def checkMusicArt(self,widget=None):
         cacheFound = False
+        cdArt = None
+        LogoArt = None
+        BannerArt = None
+        extraFanArt = None
+        Info = None
+        TrackList = ""
         
         if widget:
             dbID = widget
         else:
             dbID = xbmc.getInfoLabel("ListItem.Artist") + xbmc.getInfoLabel("ListItem.Album")
         
-        if self.lastMusicDbId == dbID:
+        if dbID and self.lastMusicDbId == dbID:
             return
         
         logMsg("checkMusicArt dbID--> " + dbID)
@@ -646,182 +664,52 @@ class LibraryMonitor(threading.Thread):
         #get the items from cache first
         if self.musicArtCache.has_key(dbID + "SkinHelper.Music.DiscArt"):
             cacheFound = True
-            if self.musicArtCache[dbID + "SkinHelper.Music.DiscArt"] == "None":
-                WINDOW.clearProperty("SkinHelper.Music.DiscArt")   
-            else:
-                WINDOW.setProperty("SkinHelper.Music.DiscArt",self.musicArtCache[dbID + "SkinHelper.Music.DiscArt"])
+            cdArt = self.musicArtCache[dbID + "SkinHelper.Music.DiscArt"]            
 
         if self.musicArtCache.has_key(dbID + "SkinHelper.Music.LogoArt"):
             cacheFound = True
-            if self.musicArtCache[dbID + "SkinHelper.Music.LogoArt"] == "None":
-                WINDOW.clearProperty("SkinHelper.Music.LogoArt")   
-            else:
-                WINDOW.setProperty("SkinHelper.Music.LogoArt",self.musicArtCache[dbID + "SkinHelper.Music.LogoArt"])
+            LogoArt = self.musicArtCache[dbID + "SkinHelper.Music.LogoArt"]
                 
         if self.musicArtCache.has_key(dbID + "SkinHelper.Music.BannerArt"):
             cacheFound = True
-            if self.musicArtCache[dbID + "SkinHelper.Music.BannerArt"] == "None":
-                WINDOW.clearProperty("SkinHelper.Music.BannerArt")   
-            else:
-                WINDOW.setProperty("SkinHelper.Music.BannerArt",self.musicArtCache[dbID + "SkinHelper.Music.BannerArt"])
+            BannerArt = self.musicArtCache[dbID + "SkinHelper.Music.BannerArt"]
         
         if self.musicArtCache.has_key(dbID + "extraFanArt"):
             cacheFound = True
-            if self.musicArtCache[dbID + "extraFanArt"] == "None":
-                WINDOW.setProperty("SkinHelper.ExtraFanArtPath","")   
-            else:
-                WINDOW.setProperty("SkinHelper.ExtraFanArtPath",self.musicArtCache[dbID + "extraFanArt"])
+            extraFanArt = self.musicArtCache[dbID + "extraFanArt"]
                 
         if self.musicArtCache.has_key(dbID + "SkinHelper.Music.Info"):
             cacheFound = True
-            if self.musicArtCache[dbID + "SkinHelper.Music.Info"] == "None":
-                WINDOW.setProperty("SkinHelper.Music.Info","")   
-            else:
-                WINDOW.setProperty("SkinHelper.Music.Info",self.musicArtCache[dbID + "SkinHelper.Music.Info"])
+            Info = self.musicArtCache[dbID + "SkinHelper.Music.Info"]
         
         if self.musicArtCache.has_key(dbID + "SkinHelper.Music.TrackList"):
             cacheFound = True
-            if self.musicArtCache[dbID + "SkinHelper.Music.TrackList"] == "None":
-                WINDOW.setProperty("SkinHelper.Music.TrackList","")   
-            else:
-                WINDOW.setProperty("SkinHelper.Music.TrackList",self.musicArtCache[dbID + "SkinHelper.Music.TrackList"])
+            TrackList = self.musicArtCache[dbID + "SkinHelper.Music.TrackList"]
 
         if not cacheFound and not widget:
             logMsg("checkMusicArt no cache found for dbID--> " + dbID)
             path = None
             json_response = None
-            cdArt = None
-            LogoArt = None
-            BannerArt = None
-            extraFanArt = None
-            Info = None
-            TrackList = ""
             folderPath = xbmc.getInfoLabel("ListItem.FolderPath")
             dbid = xbmc.getInfoLabel("ListItem.DBID")
-            if xbmc.getCondVisibility("Container.Content(songs) | Container.Content(singles) | SubString(ListItem.FolderPath,.)"):
-                logMsg("checkMusicArt - container content is songs or singles")
-                if dbid:
-                    json_response = getJSON('AudioLibrary.GetSongDetails', '{ "songid": %s, "properties": [ "file","artistid","albumid","comment" ] }'%int(dbid))
-                
-            elif xbmc.getCondVisibility("[Container.Content(artists) | SubString(ListItem.FolderPath,musicdb://artists)] + !SubString(ListItem.FolderPath,artistid=)"):
-                logMsg("checkMusicArt - container content is artists")
-                if dbid:    
-                    json_response = getJSON('AudioLibrary.GetSongs', '{ "filter":{"artistid": %s}, "properties": [ "file","artistid","track","title" ] }'%int(dbid))
-            
-            elif xbmc.getCondVisibility("Container.Content(albums) | SubString(ListItem.FolderPath,musicdb://albums) | SubString(ListItem.FolderPath,artistid=)"):
-                logMsg("checkMusicArt - container content is albums")
-                if dbid:
-                    json_response = getJSON('AudioLibrary.GetSongs', '{ "filter":{"albumid": %s}, "properties": [ "file","artistid","track","title" ] }'%int(dbid))
-            
-            if json_response:
-                song = None
-                if type(json_response) is list:
-                    #get track listing
-                    for item in json_response:
-                        if not song:
-                            song = item
-                            path = item["file"]
-                        if item["track"]:
-                            TrackList += "%s - %s[CR]" %(str(item["track"]), item["title"])
-                        else:
-                            TrackList += "%s[CR]" %(item["title"])
-                        
-                else:
-                    song = json_response
-                    path = song["file"]
-                    if not Info:
-                        json_response2 = getJSON('AudioLibrary.GetAlbumDetails','{ "albumid": %s, "properties": [ "musicbrainzalbumid","description" ] }'%song["albumid"])
-                        if json_response2.get("description",None):
-                            Info = json_response2["description"]
-                if not Info and song:
-                    json_response2 = getJSON('AudioLibrary.GetArtistDetails', '{ "artistid": %s, "properties": [ "musicbrainzartistid","description" ] }'%song["artistid"][0])
-                    if json_response2.get("description",None):
-                        Info = json_response2["description"]
+            cdArt, LogoArt, BannerArt, extraFanArt, Info, TrackList = getMusicArtByDbId(dbid, getCurrentContentType())
+      
+            self.musicArtCache[dbID + "extraFanArt"] = extraFanArt
+            self.musicArtCache[dbID + "SkinHelper.Music.DiscArt"] = cdArt
+            self.musicArtCache[dbID + "SkinHelper.Music.BannerArt"] = BannerArt
+            self.musicArtCache[dbID + "SkinHelper.Music.LogoArt"] = LogoArt
+            self.musicArtCache[dbID + "SkinHelper.Music.TrackList"] = TrackList
+            self.musicArtCache[dbID + "SkinHelper.Music.Info"] = Info
 
-            if path:
-                if "\\" in path:
-                    delim = "\\"
-                else:
-                    delim = "/"
-                        
-                path = path.replace(path.split(delim)[-1],"")
-                                      
-                #extrafanart
-                imgPath = os.path.join(path,"extrafanart" + delim)
-                if xbmcvfs.exists(imgPath):
-                    extraFanArt = imgPath
-                else:
-                    imgPath = os.path.join(path.replace(path.split(delim)[-2]+delim,""),"extrafanart" + delim)
-                    if xbmcvfs.exists(imgPath):
-                        extraFanArt = imgPath
-                
-                #cdart
-                if xbmcvfs.exists(os.path.join(path,"cdart.png")):
-                    cdArt = os.path.join(path,"cdart.png")
-                else:
-                    imgPath = os.path.join(path.replace(path.split(delim)[-2]+delim,""),"cdart.png")
-                    if xbmcvfs.exists(imgPath):
-                        cdArt = imgPath
-                
-                #banner
-                if xbmcvfs.exists(os.path.join(path,"banner.jpg")):
-                    BannerArt = os.path.join(path,"banner.jpg")
-                else:
-                    imgPath = os.path.join(path.replace(path.split(delim)[-2]+delim,""),"banner.jpg")
-                    if xbmcvfs.exists(imgPath):
-                        BannerArt = imgPath
-                        
-                #logo
-                imgPath = os.path.join(path,"logo.png")
-                if xbmcvfs.exists(imgPath):
-                    LogoArt = imgPath
-                else:
-                    imgPath = os.path.join(path.replace(path.split(delim)[-2]+delim,""),"logo.png")
-                    if xbmcvfs.exists(imgPath):
-                        LogoArt = imgPath
-   
-            if extraFanArt:
-                WINDOW.setProperty("SkinHelper.ExtraFanArtPath",extraFanArt)
-                self.musicArtCache[dbID + "extraFanArt"] = extraFanArt
-            else:
-                WINDOW.setProperty("SkinHelper.ExtraFanArtPath","")
-                self.musicArtCache[dbID + "extraFanArt"] = "None"
-                    
-            if cdArt:
-                WINDOW.setProperty("SkinHelper.Music.DiscArt",cdArt)
-                self.musicArtCache[dbID + "SkinHelper.Music.DiscArt"] = cdArt
-            else:
-                WINDOW.setProperty("SkinHelper.Music.DiscArt","")
-                self.musicArtCache[dbID + "SkinHelper.Music.DiscArt"] = "None"
-                
-            if BannerArt:
-                WINDOW.setProperty("SkinHelper.Music.BannerArt",BannerArt)
-                self.musicArtCache[dbID + "SkinHelper.Music.BannerArt"] = BannerArt
-            else:
-                WINDOW.clearProperty("SkinHelper.Music.BannerArt")
-                self.musicArtCache[dbID + "SkinHelper.Music.BannerArt"] = "None"
-
-            if LogoArt:
-                WINDOW.setProperty("SkinHelper.Music.LogoArt",LogoArt)
-                self.musicArtCache[dbID + "SkinHelper.Music.LogoArt"] = LogoArt
-            else:
-                WINDOW.clearProperty("SkinHelper.Music.LogoArt")
-                self.musicArtCache[dbID + "SkinHelper.Music.LogoArt"] = "None"
-
-            if TrackList:
-                WINDOW.setProperty("SkinHelper.Music.TrackList",TrackList)
-                self.musicArtCache[dbID + "SkinHelper.Music.TrackList"] = TrackList
-            else:
-                WINDOW.clearProperty("SkinHelper.Music.TrackList")
-                self.musicArtCache[dbID + "SkinHelper.Music.TrackList"] = "None"
-                
-            if Info:
-                WINDOW.setProperty("SkinHelper.Music.Info",Info)
-                self.musicArtCache[dbID + "SkinHelper.Music.Info"] = Info
-            else:
-                WINDOW.clearProperty("SkinHelper.Music.Info")
-                self.musicArtCache[dbID + "SkinHelper.Music.Info"] = "None"
-                
+        #set properties
+        WINDOW.setProperty("SkinHelper.ExtraFanArtPath",extraFanArt)
+        WINDOW.setProperty("SkinHelper.Music.DiscArt",cdArt)
+        WINDOW.setProperty("SkinHelper.Music.BannerArt",BannerArt)       
+        WINDOW.setProperty("SkinHelper.Music.LogoArt",LogoArt)
+        WINDOW.setProperty("SkinHelper.Music.TrackList",TrackList)
+        WINDOW.setProperty("SkinHelper.Music.Info",Info)
+          
+    
     def setStreamDetails(self):
         streamdetails = None
         #clear props first
@@ -1002,24 +890,19 @@ class Kodi_Monitor(xbmc.Monitor):
     
     def __init__(self, *args, **kwargs):
         xbmc.Monitor.__init__(self)
-    
-    def onDatabaseUpdated(self, database):
-        #update widgets when library has changed
-        WINDOW = xbmcgui.Window(10000)
-        WINDOW.setProperty("widgetreload", datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-        #refresh some widgets when library has changed
-        WINDOW.setProperty("widgetrefresh","refresh")
-        xbmc.sleep(500)
-        WINDOW.clearProperty("widgetrefresh")
 
     def onNotification(self,sender,method,data):
+    
         if method == "VideoLibrary.OnUpdate":
             #update nextup list when library has changed
             WINDOW.setProperty("widgetreload", datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
             #refresh some widgets when library has changed
-            WINDOW.setProperty("widgetrefresh","refresh")
-            xbmc.sleep(500)
-            WINDOW.clearProperty("widgetrefresh")
+            WINDOW.setProperty("resetVideoDbCache","reset")
+        
+        if method == "AudioLibrary.OnUpdate":
+            WINDOW.setProperty("widgetreloadmusic", datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+            #refresh some widgets when library has changed
+            WINDOW.setProperty("resetMusicArtCache","reset")
         
         if method == "Player.OnPlay":
             

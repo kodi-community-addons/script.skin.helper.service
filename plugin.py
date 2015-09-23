@@ -49,6 +49,14 @@ class Main:
                     getFavouriteMedia(limit)
                 elif action == "PVRCHANNELS":
                     getPVRChannels(limit)
+                elif action == "RECENTALBUMS":
+                    getRecentAlbums(limit)
+                elif action == "RECENTSONGS":
+                    getRecentSongs(limit)
+                elif action == "RECENTPLAYEDALBUMS":
+                    getRecentPlayedAlbums(limit)
+                elif action == "RECENTPLAYEDSONGS":
+                    getRecentPlayedSongs(limit)
                 elif action == "PVRRECORDINGS":
                     getPVRRecordings(limit)
                 elif action == "FAVOURITES":

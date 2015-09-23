@@ -199,6 +199,7 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
         
         self.getControl(1).setLabel(ADDON.getLocalizedString(32014))
         self.getControl(5).setVisible(True)
+        self.getControl(3).setVisible(False)
         
         list = self.refreshListing()
         xbmc.executebuiltin("Control.SetFocus(6)")

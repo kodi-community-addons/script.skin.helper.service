@@ -25,6 +25,7 @@ def musicSearch():
     xbmc.executebuiltin( "SendClick(8)" )
 
 def addShortcutWorkAround():
+    xbmc.executebuiltin( "Dialog.Close(busydialog)" )
     xbmc.executebuiltin('SendClick(301)')
     
     count = 0

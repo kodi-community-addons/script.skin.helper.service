@@ -69,6 +69,7 @@ class ConditionalBackgrounds(xbmcgui.WindowXMLDialog):
         
         self.getControl(1).setLabel(ADDON.getLocalizedString(32056))
         self.getControl(5).setVisible(True)
+        self.getControl(3).setVisible(False)
         
         self.refreshListing()
 

@@ -363,3 +363,11 @@ msgstr ""
 msgctxt "#32086"
 msgid "In progress Media"
 msgstr ""
+
+msgctxt "#32087"
+msgid "Recently added songs"
+msgstr ""
+
+msgctxt "#32088"
+msgid "Recently played songs"
+msgstr ""

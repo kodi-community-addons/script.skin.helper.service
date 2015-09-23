@@ -33,6 +33,10 @@ def doMainListing():
     addDirectoryItem(ADDON.getLocalizedString(32006), "plugin://script.skin.helper.service/?action=similarmovies&limit=100")
     addDirectoryItem(ADDON.getLocalizedString(32086), "plugin://script.skin.helper.service/?action=inprogressmedia&limit=100")
     addDirectoryItem(ADDON.getLocalizedString(32007), "plugin://script.skin.helper.service/?action=inprogressandrecommendedmedia&limit=100")
+    addDirectoryItem(xbmc.getLocalizedString(359), "plugin://script.skin.helper.service/?action=recentalbums&limit=100")
+    addDirectoryItem(ADDON.getLocalizedString(32087), "plugin://script.skin.helper.service/?action=recentsongs&limit=100")
+    addDirectoryItem(xbmc.getLocalizedString(517), "plugin://script.skin.helper.service/?action=recentplayedalbums&limit=100")
+    addDirectoryItem(ADDON.getLocalizedString(32088), "plugin://script.skin.helper.service/?action=recentplayedsongs&limit=100")
     if xbmc.getCondVisibility("System.HasAddon(script.tv.show.next.aired)"):
         addDirectoryItem(ADDON.getLocalizedString(32055), "plugin://script.skin.helper.service/?action=nextairedtvshows&limit=100")
 
@@ -172,7 +176,11 @@ def buildWidgetsListing():
                         return
                     content = item["file"]
                     if not "reload=" in content and not addon[0] == "script.extendedinfo":
-                        content = content + "&reload=$INFO[Window(Home).Property(widgetreload)]"
+                        if "albums" in content or "songs" in content:
+                            reloadstr = "&reload=$INFO[Window(Home).Property(widgetreloadmusic)]"
+                        else:
+                            reloadstr = "&reload=$INFO[Window(Home).Property(widgetreload)]"
+                        content = content + reloadstr
                     content = content.replace("&limit=100","&limit=25")
                     label = item["label"]
                     if addon[1] == "extendedinfo":
@@ -492,6 +500,178 @@ def getThumb(searchphrase):
     xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=image, listitem=li)
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
+def buildRecentAlbumsListing(limit):
+    count = 0
+    allItems = []
+    json_result = getJSON('AudioLibrary.GetRecentlyAddedAlbums', '{ "sort": { "order": "descending", "method": "dateadded" }, "properties": [ %s ], "limits":{"end":%d} }' %(fields_albums,limit))
+    for item in json_result:
+        cdArt, LogoArt, BannerArt, extraFanArt, Info, TrackList = getMusicArtByDbId(item["albumid"], "albums")
+        art = { 'discart': cdArt, 'fanart' : item["fanart"], 'banner' : BannerArt, 'thumb' : item["thumbnail"], 'clearlogo' : LogoArt  }
+        item["art"] = art
+        item["type"] = "album"
+        item["extrafanart"] = extraFanArt
+        item['album_description'] = Info
+        item["tracklist"] = TrackList
+        item["file"] = "musicdb://albums/%s/" %str(item["albumid"])
+        allItems.append(item)
+    if allItems:
+        reloadcache = WINDOW.getProperty("widgetreloadmusic")
+        WINDOW.setProperty("skinhelper-recentalbums-" + reloadcache, repr(allItems))
+    return allItems
+
+def getRecentAlbums(limit):
+    count = 0
+    allItems = []
+    
+    reloadcache = WINDOW.getProperty("widgetreloadmusic")
+    xbmcplugin.setContent(int(sys.argv[1]), 'albums')
+    
+    allItems = WINDOW.getProperty("skinhelper-recentalbums-" + reloadcache)
+    if allItems:
+        allItems = eval(allItems)
+    else:
+        allItems = buildRecentAlbumsListing(limit)
+        
+    directoryItems = list()
+    for item in allItems:
+        liz = createListItem(item)
+        liz.setProperty('IsPlayable', 'true')
+        directoryItems.append((item['file'], liz, True))
+        count += 1
+        if count == limit:
+            break
+    
+    xbmcplugin.addDirectoryItems(int(sys.argv[1]), directoryItems)                
+    xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
+
+def buildRecentPlayedAlbumsListing(limit):
+    count = 0
+    allItems = []
+    json_result = getJSON('AudioLibrary.GetRecentlyPlayedAddedAlbums', '{ "sort": { "order": "descending", "method": "lastplayed" }, "properties": [ %s ], "limits":{"end":%d} }' %(fields_albums,limit))
+    for item in json_result:
+        cdArt, LogoArt, BannerArt, extraFanArt, Info, TrackList = getMusicArtByDbId(item["albumid"], "albums")
+        art = { 'discart': cdArt, 'fanart' : item["fanart"], 'banner' : BannerArt, 'thumb' : item["thumbnail"], 'clearlogo' : LogoArt  }
+        item["art"] = art
+        item["type"] = "album"
+        item["extrafanart"] = extraFanArt
+        item['album_description'] = Info
+        item["tracklist"] = TrackList
+        item["file"] = "musicdb://albums/%s/" %str(item["albumid"])
+        allItems.append(item)
+    if allItems:
+        reloadcache = WINDOW.getProperty("widgetreloadmusic")
+        WINDOW.setProperty("skinhelper-recentplayedalbums-" + reloadcache, repr(allItems))
+    return allItems
+
+def getRecentPlayedAlbums(limit):
+    count = 0
+    allItems = []
+    
+    reloadcache = WINDOW.getProperty("widgetreloadmusic")
+    xbmcplugin.setContent(int(sys.argv[1]), 'albums')
+    
+    allItems = WINDOW.getProperty("skinhelper-recentplayedalbums-" + reloadcache)
+    if allItems:
+        allItems = eval(allItems)
+    else:
+        allItems = buildRecentAlbumsListing(limit)
+        
+    directoryItems = list()
+    for item in allItems:
+        liz = createListItem(item)
+        liz.setProperty('IsPlayable', 'true')
+        directoryItems.append((item['file'], liz, True))
+        count += 1
+        if count == limit:
+            break
+    
+    xbmcplugin.addDirectoryItems(int(sys.argv[1]), directoryItems)                
+    xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
+    
+def buildRecentPlayedSongsListing(limit):
+    count = 0
+    allItems = []
+    json_result = getJSON('AudioLibrary.GetRecentlyPlayedSongs', '{ "sort": { "order": "descending", "method": "lastplayed" }, "properties": [ %s ], "limits":{"end":%d} }' %(fields_songs,limit))
+    for item in json_result:
+        cdArt, LogoArt, BannerArt, extraFanArt, Info, TrackList = getMusicArtByDbId(item["songid"], "songs")
+        art = { 'discart': cdArt, 'fanart' : item["fanart"], 'banner' : BannerArt, 'thumb' : item["thumbnail"], 'clearlogo' : LogoArt  }
+        item["art"] = art
+        item["type"] = "song"
+        item["extrafanart"] = extraFanArt
+        item['album_description'] = Info
+        item["tracklist"] = TrackList
+        allItems.append(item)
+    if allItems:
+        reloadcache = WINDOW.getProperty("widgetreloadmusic")
+        WINDOW.setProperty("skinhelper-recentplayedsongs-" + reloadcache, repr(allItems))
+    return allItems
+
+def getRecentPlayedSongs(limit):
+    count = 0
+    allItems = []
+    
+    reloadcache = WINDOW.getProperty("widgetreloadmusic")
+    xbmcplugin.setContent(int(sys.argv[1]), 'albums')
+    
+    allItems = WINDOW.getProperty("skinhelper-recentplayedsongs-" + reloadcache)
+    if allItems:
+        allItems = eval(allItems)
+    else:
+        allItems = buildRecentSongsListing(limit)
+        
+    directoryItems = list()
+    for item in allItems:
+        liz = createListItem(item)
+        directoryItems.append((item['file'], liz, False))
+        count += 1
+        if count == limit:
+            break
+    
+    xbmcplugin.addDirectoryItems(int(sys.argv[1]), directoryItems)                
+    xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
+   
+def buildRecentSongsListing(limit):
+    count = 0
+    allItems = []
+    json_result = getJSON('AudioLibrary.GetRecentlyAddedSongs', '{ "sort": { "order": "descending", "method": "dateadded" }, "properties": [ %s ], "limits":{"end":%d} }' %(fields_songs,limit))
+    for item in json_result:
+        cdArt, LogoArt, BannerArt, extraFanArt, Info, TrackList = getMusicArtByDbId(item["songid"], "songs")
+        art = { 'discart': cdArt, 'fanart' : item["fanart"], 'banner' : BannerArt, 'thumb' : item["thumbnail"], 'clearlogo' : LogoArt  }
+        item["art"] = art
+        item["type"] = "song"
+        item["extrafanart"] = extraFanArt
+        item['album_description'] = Info
+        item["tracklist"] = TrackList
+        allItems.append(item)
+    if allItems:
+        reloadcache = WINDOW.getProperty("widgetreloadmusic")
+        WINDOW.setProperty("skinhelper-recentsongs-" + reloadcache, repr(allItems))
+    return allItems
+
+def getRecentSongs(limit):
+    count = 0
+    allItems = []
+    
+    reloadcache = WINDOW.getProperty("widgetreloadmusic")
+    xbmcplugin.setContent(int(sys.argv[1]), 'albums')
+    
+    allItems = WINDOW.getProperty("skinhelper-recentsongs-" + reloadcache)
+    if allItems:
+        allItems = eval(allItems)
+    else:
+        allItems = buildRecentSongsListing(limit)
+        
+    directoryItems = list()
+    for item in allItems:
+        liz = createListItem(item)
+        directoryItems.append((item['file'], liz, False))
+        count += 1
+        if count == limit:
+            break
+    
+    xbmcplugin.addDirectoryItems(int(sys.argv[1]), directoryItems)                
+    xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
+   
 def buildNextEpisodesListing(limit):
     count = 0
     allItems = []

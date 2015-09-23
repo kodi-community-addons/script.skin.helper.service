@@ -32,6 +32,7 @@ fields_episodes = fields_file + '"cast", "productioncode", "rating", "votes", "e
 fields_musicvideos = fields_file + '"genre", "artist", "tag", "album", "track", "studio", "year"'
 fields_files = fields_file + fields_movies + ", " + fields_tvshows + ", " + fields_episodes
 fields_songs = '"artist", "title", "rating", "fanart", "thumbnail", "duration", "playcount", "comment", "file", "album", "lastplayed"'
+fields_albums = '"title", "fanart", "thumbnail", "genre", "displayartist", "artist", "genreid", "musicbrainzalbumartistid", "year", "rating", "artistid", "musicbrainzalbumid", "theme", "description", "type", "style", "playcount", "albumlabel", "mood"'
 fields_pvrrecordings = '"art", "channel", "directory", "endtime", "file", "genre", "icon", "playcount", "plot", "plotoutline", "resume", "runtime", "starttime", "streamurl", "title"'
 
 def logMsg(msg, level = 1):
@@ -41,7 +42,6 @@ def logMsg(msg, level = 1):
         
 def getContentPath(libPath):
     if "$INFO" in libPath and not "reload=" in libPath:
-        win = xbmcgui.Window( 10000 )
         libPath = libPath.replace("$INFO[Window(Home).Property(", "")
         libPath = libPath.replace(")]", "")
         libPath = WINDOW.getProperty(libPath)    
@@ -59,9 +59,8 @@ def getContentPath(libPath):
         libPath = libPath.replace("\"","")
         libPath = libPath.replace("musicdb://special://","special://")
         libPath = libPath.replace("videodb://special://","special://")
-        if "&reload=" in libPath:
-            libPath = libPath.split("&reload=")[0]
-
+    if "&reload=" in libPath:
+        libPath = libPath.split("&reload=")[0]
     return libPath
 
 def getJSON(method,params):
@@ -86,6 +85,8 @@ def getJSON(method,params):
             return jsonobject['recordings']
         elif jsonobject.has_key('songs'):
             return jsonobject['songs']
+        elif jsonobject.has_key('albums'):
+            return jsonobject['albums']
         elif jsonobject.has_key('songdetails'):
             return jsonobject['songdetails']
         elif jsonobject.has_key('albumdetails'):
@@ -142,15 +143,20 @@ def setSkinVersion():
     WINDOW.setProperty("SkinHelper.Version",ADDON_VERSION.replace(".",""))
         
 def createListItem(item):
-       
+
+    itemtype = "Video"
+    if "type" in item:
+        if "artist" in item["type"] or "song" in item["type"] or "album" in item["type"]:
+            itemtype = "Music"
+
     liz = xbmcgui.ListItem(item['title'])
-    liz.setInfo( type="Video", infoLabels={ "Title": item['title'] })
+    liz.setInfo( type=itemtype, infoLabels={ "Title": item['title'] })
     liz.setProperty('IsPlayable', 'true')
     season = None
     episode = None
     
     if "runtime" in item:
-        liz.setInfo( type="Video", infoLabels={ "duration": str(item['runtime']/60) })
+        liz.setInfo( type=itemtype, infoLabels={ "duration": str(item['runtime']/60) })
     
     if "file" in item:
         liz.setPath(item['file'])
@@ -158,11 +164,11 @@ def createListItem(item):
     
     if "episode" in item:
         episode = "%.2d" % float(item['episode'])
-        liz.setInfo( type="Video", infoLabels={ "Episode": item['episode'] })
+        liz.setInfo( type=itemtype, infoLabels={ "Episode": item['episode'] })
     
     if "season" in item:
         season = "%.2d" % float(item['season'])
-        liz.setInfo( type="Video", infoLabels={ "Season": item['season'] })
+        liz.setInfo( type=itemtype, infoLabels={ "Season": item['season'] })
         
     if season and episode:
         episodeno = "s%se%s" %(season,episode)
@@ -170,7 +176,7 @@ def createListItem(item):
     
     if "episodeid" in item:
         liz.setProperty("DBID", str(item['episodeid']))
-        liz.setInfo( type="Video", infoLabels={ "DBID": str(item['episodeid']) })
+        liz.setInfo( type=itemtype, infoLabels={ "DBID": str(item['episodeid']) })
         liz.setIconImage('DefaultTVShows.png')
         
     if "songid" in item:
@@ -183,13 +189,15 @@ def createListItem(item):
         
     if "movieid" in item:
         liz.setProperty("DBID", str(item['movieid']))
-        liz.setInfo( type="Video", infoLabels={ "DBID": str(item['movieid']) })
+        liz.setInfo( type=itemtype, infoLabels={ "DBID": str(item['movieid']) })
         liz.setIconImage('DefaultMovies.png')
     
     if "musicvideoid" in item:
         liz.setProperty("DBID", str(item['musicvideoid']))
         liz.setIconImage('DefaultMusicVideos.png')
     
+    if "type" in item:
+        liz.setProperty("type", item['type'])
     
     if "plot" in item:
         plot = item['plot']
@@ -198,65 +206,72 @@ def createListItem(item):
     else:
         plot = None
     
-    liz.setInfo( type="Video", infoLabels={ "Plot": plot })
+    if plot:
+        liz.setInfo( type=itemtype, infoLabels={ "Plot": plot })
+    
+    if "album_description" in item:
+        liz.setProperty("Album_Description",item['album_description'])
     
     if "artist" in item:
-        liz.setInfo( type="Video", infoLabels={ "Artist": item['artist'] })
+        if itemtype == "Music":
+            liz.setInfo( type=itemtype, infoLabels={ "Artist": " / ".join(item['artist']) })
+        else:
+            liz.setInfo( type=itemtype, infoLabels={ "Artist": item['artist'] })
         
     if "votes" in item:
-        liz.setInfo( type="Video", infoLabels={ "votes": item['votes'] })
+        liz.setInfo( type=itemtype, infoLabels={ "votes": item['votes'] })
     
     if "trailer" in item:
-        liz.setInfo( type="Video", infoLabels={ "trailer": item['trailer'] })
+        liz.setInfo( type=itemtype, infoLabels={ "trailer": item['trailer'] })
         liz.setProperty("trailer", item['trailer'])
         
     if "dateadded" in item:
-        liz.setInfo( type="Video", infoLabels={ "dateadded": item['dateadded'] })
+        liz.setInfo( type=itemtype, infoLabels={ "dateadded": item['dateadded'] })
         
     if "album" in item:
-        liz.setInfo( type="Video", infoLabels={ "album": item['album'] })
+        liz.setInfo( type=itemtype, infoLabels={ "album": item['album'] })
         
     if "plotoutline" in item:
-        liz.setInfo( type="Video", infoLabels={ "plotoutline ": item['plotoutline'] })
+        liz.setInfo( type=itemtype, infoLabels={ "plotoutline ": item['plotoutline'] })
         
     if "studio" in item:
-        liz.setInfo( type="Video", infoLabels={ "studio": " / ".join(item['studio']) })
+        liz.setInfo( type=itemtype, infoLabels={ "studio": " / ".join(item['studio']) })
         
     if "playcount" in item:
-        liz.setInfo( type="Video", infoLabels={ "playcount ": item['playcount'] })
+        liz.setInfo( type=itemtype, infoLabels={ "playcount": item['playcount'] })
         
     if "mpaa" in item:
-        liz.setInfo( type="Video", infoLabels={ "mpaa": item['mpaa'] })
+        liz.setInfo( type=itemtype, infoLabels={ "mpaa": item['mpaa'] })
         
     if "tagline" in item:
-        liz.setInfo( type="Video", infoLabels={ "tagline": item['tagline'] })
+        liz.setInfo( type=itemtype, infoLabels={ "tagline": item['tagline'] })
     
     if "showtitle" in item:
-        liz.setInfo( type="Video", infoLabels={ "TVshowTitle": item['showtitle'] })
+        liz.setInfo( type=itemtype, infoLabels={ "TVshowTitle": item['showtitle'] })
     
     if "rating" in item:
-        liz.setInfo( type="Video", infoLabels={ "Rating": str(round(float(item['rating']),1)) })
+        liz.setInfo( type=itemtype, infoLabels={ "Rating": str(round(float(item['rating']),1)) })
     
     if "playcount" in item:
-        liz.setInfo( type="Video", infoLabels={ "Playcount": item['playcount'] })
+        liz.setInfo( type=itemtype, infoLabels={ "Playcount": item['playcount'] })
     
     if "director" in item:
-        liz.setInfo( type="Video", infoLabels={ "Director": " / ".join(item['director']) })
+        liz.setInfo( type=itemtype, infoLabels={ "Director": " / ".join(item['director']) })
     
     if "writer" in item:
-        liz.setInfo( type="Video", infoLabels={ "Writer": " / ".join(item['writer']) })
+        liz.setInfo( type=itemtype, infoLabels={ "Writer": " / ".join(item['writer']) })
     
     if "genre" in item:
-        liz.setInfo( type="Video", infoLabels={ "genre": " / ".join(item['genre']) })
+        liz.setInfo( type=itemtype, infoLabels={ "genre": " / ".join(item['genre']) })
         
     if "year" in item:
-        liz.setInfo( type="Video", infoLabels={ "year": item['year'] })
+        liz.setInfo( type=itemtype, infoLabels={ "year": item['year'] })
     
     if "firstaired" in item:
-        liz.setInfo( type="Video", infoLabels={ "premiered": item['firstaired'] })
+        liz.setInfo( type=itemtype, infoLabels={ "premiered": item['firstaired'] })
 
     if "premiered" in item:
-        liz.setInfo( type="Video", infoLabels={ "premiered": item['premiered'] })
+        liz.setInfo( type=itemtype, infoLabels={ "premiered": item['premiered'] })
         
     if "cast" in item:
         listCast = []
@@ -265,8 +280,8 @@ def createListItem(item):
             listCast.append( castmember["name"] )
             listCastAndRole.append( (castmember["name"], castmember["role"]) ) 
         cast = [listCast, listCastAndRole]
-        liz.setInfo( type="Video", infoLabels={ "Cast": cast[0] })
-        liz.setInfo( type="Video", infoLabels={ "CastAndRole": cast[1] })
+        liz.setInfo( type=itemtype, infoLabels={ "Cast": cast[0] })
+        liz.setInfo( type=itemtype, infoLabels={ "CastAndRole": cast[1] })
     
     if "resume" in item:
         liz.setProperty("resumetime", str(item['resume']['position']))
@@ -485,11 +500,9 @@ def getCurrentContentType():
         contenttype = "seasons"
     elif xbmc.getCondVisibility("Container.Content(musicvideos)"):
         contenttype = "musicvideos"
-    elif xbmc.getCondVisibility("Container.Content(artists)"):
+    elif xbmc.getCondVisibility("[Container.Content(artists) | SubString(ListItem.FolderPath,musicdb://artists)] + !SubString(ListItem.FolderPath,artistid=)"):
         contenttype = "artists"
-    elif xbmc.getCondVisibility("Container.Content(songs)"):
-        contenttype = "songs"
-    elif xbmc.getCondVisibility("Container.Content(albums)"):
+    elif xbmc.getCondVisibility("Container.Content(albums) | SubString(ListItem.FolderPath,musicdb://albums) | SubString(ListItem.FolderPath,artistid=)"):
         contenttype = "albums"
     elif xbmc.getCondVisibility("Window.IsActive(tvchannels) | Window.IsActive(radiochannels)"):
         contenttype = "tvchannels"
@@ -503,6 +516,8 @@ def getCurrentContentType():
         contenttype = "pvr"
     elif xbmc.getCondVisibility("Container.Content(files)"):
         contenttype = "files"
+    elif xbmc.getCondVisibility("Container.Content(songs) | Container.Content(singles) | SubString(ListItem.FolderPath,.)"):
+        contenttype = "songs"
     return contenttype
         
 def searchChannelLogo(searchphrase):
@@ -651,3 +666,86 @@ def getCleanImage(image):
         if image.endswith("/"):
             image = image[:-1]
     return image
+    
+
+def getMusicArtByDbId(dbid,itemtype):
+    cdArt = None
+    LogoArt = None
+    BannerArt = None
+    extraFanArt = None
+    Info = None
+    TrackList = ""
+    if itemtype == "songs":
+        json_response = getJSON('AudioLibrary.GetSongDetails', '{ "songid": %s, "properties": [ "file","artistid","albumid","comment"] }'%int(dbid))  
+    elif itemtype == "artists":
+        json_response = getJSON('AudioLibrary.GetSongs', '{ "filter":{"artistid": %s}, "properties": [ "file","artistid","track","title","albumid" ] }'%int(dbid))
+    elif itemtype == "albums":
+        json_response = getJSON('AudioLibrary.GetSongs', '{ "filter":{"albumid": %s}, "properties": [ "file","artistid","track","title","albumid" ] }'%int(dbid))
+    
+    if json_response:
+        song = None
+        if type(json_response) is list:
+            #get track listing
+            for item in json_response:
+                if not song:
+                    song = item
+                    path = item["file"]
+                if item["track"]:
+                    TrackList += "%s - %s[CR]" %(str(item["track"]), item["title"])
+                else:
+                    TrackList += "%s[CR]" %(item["title"])      
+        else:
+            song = json_response
+        path = song["file"]
+        if not Info:
+            json_response2 = getJSON('AudioLibrary.GetAlbumDetails','{ "albumid": %s, "properties": [ "musicbrainzalbumid","description" ] }'%song["albumid"])
+            if json_response2.get("description",None):
+                Info = json_response2["description"]
+        if not Info and song:
+            json_response2 = getJSON('AudioLibrary.GetArtistDetails', '{ "artistid": %s, "properties": [ "musicbrainzartistid","description" ] }'%song["artistid"][0])
+            if json_response2.get("description",None):
+                Info = json_response2["description"]
+
+    if path:
+        if "\\" in path:
+            delim = "\\"
+        else:
+            delim = "/"
+                
+        path = path.replace(path.split(delim)[-1],"")
+                              
+        #extrafanart
+        imgPath = os.path.join(path,"extrafanart" + delim)
+        if xbmcvfs.exists(imgPath):
+            extraFanArt = imgPath
+        else:
+            imgPath = os.path.join(path.replace(path.split(delim)[-2]+delim,""),"extrafanart" + delim)
+            if xbmcvfs.exists(imgPath):
+                extraFanArt = imgPath
+        
+        #cdart
+        if xbmcvfs.exists(os.path.join(path,"cdart.png")):
+            cdArt = os.path.join(path,"cdart.png")
+        else:
+            imgPath = os.path.join(path.replace(path.split(delim)[-2]+delim,""),"cdart.png")
+            if xbmcvfs.exists(imgPath):
+                cdArt = imgPath
+        
+        #banner
+        if xbmcvfs.exists(os.path.join(path,"banner.jpg")):
+            BannerArt = os.path.join(path,"banner.jpg")
+        else:
+            imgPath = os.path.join(path.replace(path.split(delim)[-2]+delim,""),"banner.jpg")
+            if xbmcvfs.exists(imgPath):
+                BannerArt = imgPath
+                
+        #logo
+        imgPath = os.path.join(path,"logo.png")
+        if xbmcvfs.exists(imgPath):
+            LogoArt = imgPath
+        else:
+            imgPath = os.path.join(path.replace(path.split(delim)[-2]+delim,""),"logo.png")
+            if xbmcvfs.exists(imgPath):
+                LogoArt = imgPath
+                
+    return (cdArt, LogoArt, BannerArt, extraFanArt, Info, TrackList)
