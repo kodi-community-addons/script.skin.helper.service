@@ -419,17 +419,30 @@ class LibraryMonitor(threading.Thread):
         WINDOW.setProperty('SkinHelper.ListItemDirectors', "[CR]".join(directors))
     
     def setPVRThumbs(self):
-    
+        realthumb = None
         WINDOW.clearProperty("SkinHelper.PVR.Thumb") 
         WINDOW.clearProperty("SkinHelper.PVR.FanArt") 
         WINDOW.clearProperty("SkinHelper.PVR.ChannelLogo")
         WINDOW.clearProperty("SkinHelper.PVR.Poster")
         
-        if not xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnablePVRThumbs)"):
-            return
-        
         title = xbmc.getInfoLabel("ListItem.Title")
         channel = xbmc.getInfoLabel("ListItem.ChannelName")
+        if xbmc.getCondVisibility("ListItem.IsFolder"):
+            #assume grouped recordings folderPath
+            try:
+                path = xbmc.getInfoLabel("ListItem.FolderPath")
+                label = xbmc.getInfoLabel("ListItem.Label")
+                json_query = getJSON('PVR.GetRecordings', '{ "properties": [ %s ]}' %( fields_pvrrecordings))
+                for item in json_query:
+                    if path in item['file'] or label in item['file']:
+                        realthumb = item['icon']
+                        channel = item['channel']
+                        title = item['title']
+            except: pass
+
+        if not xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnablePVRThumbs)") or not title:
+            return
+        
         dbID = title + channel
         cacheFound = False
             
@@ -444,6 +457,14 @@ class LibraryMonitor(threading.Thread):
             icon = xbmc.getInfoLabel("$INFO[ListItem.Icon]")
             if icon:
                 logo = xbmc.getInfoLabel("$INFO[ListItem.Icon]")
+
+        #recording?
+        if xbmc.getCondVisibility("Window.IsActive(MyPVRRecordings.xml)"):
+            realthumb = xbmc.getInfoLabel("ListItem.Thumb")
+        
+        #does this pvr support real thumbs for recordings ?
+        if realthumb and not "imagecache/" in realthumb:
+            thumb = realthumb
         
         WINDOW.setProperty("SkinHelper.PVR.Thumb",thumb)
         WINDOW.setProperty("SkinHelper.PVR.FanArt",fanart)

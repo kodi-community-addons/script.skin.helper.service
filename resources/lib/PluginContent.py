@@ -416,6 +416,8 @@ def getPVRRecordings(limit):
     for item in json_query:
         channelname = item["channel"]
         pvrArtCache,thumb,fanart,poster,logo = getPVRThumbs(pvrArtCache, item["title"], channelname)
+        if not "imagecache/" in item["icon"]:
+            thumb = item["icon"]
         path=item["file"]
         li = xbmcgui.ListItem()
         li.setLabel(channelname)
