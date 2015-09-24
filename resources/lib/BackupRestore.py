@@ -197,7 +197,6 @@ def backup(filterString="",silent=None,promptfilename="false"):
                 else:
                     zip_final = backup_path + backup_name + ".zip"
                 
-                print zip_final
                 #copy to final location
                 if xbmcvfs.exists(zip_final):
                     xbmcvfs.delete(zip_final)
