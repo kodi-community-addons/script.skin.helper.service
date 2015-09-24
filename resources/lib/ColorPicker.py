@@ -60,7 +60,7 @@ class ColorPicker(xbmcgui.WindowXMLDialog):
     
     def onInit(self):
         self.action_exitkeys_id = [10, 13]
-        
+        xbmc.executebuiltin( "ActivateWindow(busydialog)" )
         self.currentWindow = xbmcgui.Window( xbmcgui.getCurrentWindowDialogId() )
 
         if not xbmcvfs.exists(self.colorsPath):
@@ -113,6 +113,8 @@ class ColorPicker(xbmcgui.WindowXMLDialog):
         #set opacity slider
         if self.currentWindow.getProperty("colorstring"):
             self.setOpacitySlider()
+        
+        xbmc.executebuiltin( "Dialog.Close(busydialog)" )
 
     def onFocus(self, controlId):
         pass
