@@ -28,7 +28,7 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
         xbmcgui.WindowXMLDialog.__init__(self, *args, **kwargs)
         
         self.userThemesPath = os.path.join(userThemesDir,"themes") + os.sep
-        self.skinThemesPath = xbmc.translatePath("special://skin/extras/skinthemes").decode("utf-8")
+        self.skinThemesPath = xbmc.translatePath("special://skin/extras/skinthemes/").decode("utf-8")
     
     def setDayNightTheme(self,item):
         selectedTheme = item.getLabel()
@@ -53,19 +53,17 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
         self.closeDialog()
     
     def backupColorTheme(self, themeName, themeFile):
+        
         import zipfile
         backup_path = get_browse_dialog(dlg_type=3,heading=ADDON.getLocalizedString(32018)).decode("utf-8")
-        
         themeName = themeName.replace(" " + xbmc.getLocalizedString(461),"")
         if backup_path:
+            xbmc.executebuiltin( "ActivateWindow(busydialog)" )
             backup_name = xbmc.getSkinDir().replace("skin.","") + "_COLORTHEME_" + themeName
             backup_path = os.path.join(backup_path,backup_name)
             backup_path_temp = xbmc.translatePath('special://temp/' + backup_name).decode("utf-8")
-            
             zf = zipfile.ZipFile("%s.zip" % (backup_path_temp), "w", zipfile.ZIP_DEFLATED)
-            
             abs_src = os.path.abspath(self.userThemesPath)
-            
             for dirname, subdirs, files in os.walk(self.userThemesPath):
                 for filename in files:
                     if themeName in filename:
@@ -73,8 +71,8 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
                         arcname = absname[len(abs_src) + 1:]
                         zf.write(absname, arcname)
             zf.close()
-            
             xbmcvfs.copy(backup_path_temp + ".zip", backup_path + ".zip")
+            xbmc.executebuiltin( "Dialog.Close(busydialog)" )
            
     def removeColorTheme(self,file):
         file = file.split(os.sep)[-1]
@@ -86,7 +84,7 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
     def renameColorTheme(self,file,themeNameOld):
 
         dialog = xbmcgui.Dialog()
-        themeNameNew = dialog.input('Enter a name for the theme', themeNameOld, type=xbmcgui.INPUT_ALPHANUM)
+        themeNameNew = dialog.input('Enter a name for the theme', themeNameOld.decode('utf-8'), type=xbmcgui.INPUT_ALPHANUM).decode("utf-8")
         if not themeNameNew:
             return
             
@@ -95,11 +93,12 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
         f.close()
         
         f = open(file,"w")
-        data = data.replace(themeNameOld, themeNameNew)
+        data = data.replace(themeNameOld.decode('utf-8'), themeNameNew)
         f.write(data)
         f.close()
         
-        xbmcvfs.rename(file.replace(".theme",".jpg"), os.path.join(self.userThemesPath,themeNameNew + ".jpg"))
+        if xbmcvfs.exists(file.replace(".theme",".jpg")):
+            xbmcvfs.rename(file.replace(".theme",".jpg"), os.path.join(self.userThemesPath,themeNameNew + ".jpg"))
         xbmcvfs.rename(file, os.path.join(self.userThemesPath,themeNameNew + ".theme"))
         self.refreshListing()
     
@@ -117,11 +116,13 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
         self.refreshListing()
     
     def refreshListing(self):
+        
+        xbmc.executebuiltin( "ActivateWindow(busydialog)" )
 
         #clear list first
         self.themesList.reset()
         
-        activetheme = xbmc.getInfoLabel("$INFO[Skin.String(SkinHelper.LastColorTheme)]")
+        activetheme = xbmc.getInfoLabel("$INFO[Skin.String(SkinHelper.LastColorTheme)]").decode("utf-8")
         
         #add import and create items on top of the list
         listitem = xbmcgui.ListItem(label=ADDON.getLocalizedString(32079), iconImage="-")
@@ -145,8 +146,8 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
         dirs, files = xbmcvfs.listdir(self.skinThemesPath)
         for file in files:
             if file.endswith(".theme"):
-                icon = os.path.join(self.skinThemesPath,file.replace(".theme",".jpg"))
-                f = open(os.path.join(self.skinThemesPath,file),"r")
+                icon = self.skinThemesPath+file.replace(".theme",".jpg")
+                f = open(self.skinThemesPath+file,"r")
                 importstring = json.load(f)
                 f.close()
                 for count, skinsetting in enumerate(importstring):
@@ -159,7 +160,7 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
                 else:
                     listlabel = label
                 listitem = xbmcgui.ListItem(label=listlabel, iconImage=icon)
-                listitem.setProperty("filename",os.path.join(self.skinThemesPath,file))
+                listitem.setProperty("filename",self.skinThemesPath+file)
                 listitem.setProperty("description",desc)
                 listitem.setProperty("themename",label)
                 listitem.setProperty("Addon.Summary",desc)
@@ -171,7 +172,7 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
         dirs, files = xbmcvfs.listdir(self.userThemesPath)
         for file in files:
             if file.endswith(".theme"):
-                label = file
+                file = file.decode("utf-8")
                 label = file.replace(".theme","")
                 if label == activetheme and not self.daynight:
                     listlabel = label + " " + xbmc.getLocalizedString(461)
@@ -181,13 +182,14 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
                 desc = "user defined theme"
                 listitem = xbmcgui.ListItem(label=listlabel, iconImage=icon)
                 listitem.setProperty("themename",label)
-                listitem.setProperty("filename",os.path.join(self.userThemesPath,file))
+                listitem.setProperty("filename",self.userThemesPath+file)
                 listitem.setProperty("description",desc)
                 listitem.setProperty("Addon.Summary",desc)
                 listitem.setLabel2(desc)
                 listitem.setProperty("type","user")
                 self.themesList.addItem(listitem)
         
+        xbmc.executebuiltin( "Dialog.Close(busydialog)" )
     
     def onInit(self):
         self.action_exitkeys_id = [10, 13]
@@ -234,7 +236,7 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
                 restoreColorTheme()
                 self.refreshListing()
             else:
-                themeFile = item.getProperty("filename")
+                themeFile = item.getProperty("filename").decode('utf-8')
                 if self.daynight:
                     self.setDayNightTheme(item)
                 else:
@@ -255,7 +257,7 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
                         elif ret == 1:
                             self.removeColorTheme(themeFile)
                         elif ret == 2:
-                            self.renameColorTheme(themeFile,themeName)
+                            self.renameColorTheme(themeFile,item.getProperty("themename"))
                         elif ret == 3:
                             self.setIconForColorTheme(themeFile)
                         elif ret == 4:
@@ -264,6 +266,7 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
             self.closeDialog()
 
 def loadColorTheme(file):
+    xbmc.executebuiltin( "ActivateWindow(busydialog)" )
     f = open(file,"r")
     importstring = json.load(f)
     f.close()
@@ -289,7 +292,7 @@ def loadColorTheme(file):
     settingslist = set()
     for count, skinsetting in enumerate(importstring):
         if skinsetting[0] == "SKINTHEME":
-            skintheme = skinsetting[1]
+            skintheme = skinsetting[1].decode('utf-8')
         elif skinsetting[0] == "SKINCOLORS":
             skincolor = skinsetting[1]
         elif skinsetting[0] == "SKINFONT":
@@ -297,7 +300,7 @@ def loadColorTheme(file):
         elif skinsetting[0] == "THEMENAME":
             xbmc.executebuiltin("Skin.SetString(SkinHelper.LastColorTheme,%s)" % skinsetting[1])
         elif skinsetting[0] == "DESCRIPTION":
-            xbmc.executebuiltin("Skin.SetString(SkinHelper.LastColorTheme.Description,%s)" % skinsetting[1])
+            xbmc.executebuiltin("Skin.SetString(SkinHelper.LastColorTheme.Description,%s)" % skinsetting[1].decode('utf-8'))
         else:    
             #some legacy..
             setting = skinsetting[1]
@@ -326,7 +329,7 @@ def loadColorTheme(file):
     if skinfont and currentSkinFont != skinfont:
         xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"Settings.SetSettingValue","params":{"setting":"lookandfeel.font","value":"%s"}}' %skinfont)
 
-    
+    xbmc.executebuiltin( "Dialog.Close(busydialog)" )
             
 def get_browse_dialog(default="protocol://", heading="Browse", dlg_type=3, shares="files", mask="", use_thumbs=False, treat_as_folder=False):
     dialog = xbmcgui.Dialog()
@@ -352,7 +355,7 @@ def restoreColorTheme():
         else:
             delim = "/"
         
-        zip_temp = xbmc.translatePath('special://temp/' + zip_path.split(delim)[-1])
+        zip_temp = xbmc.translatePath('special://temp/' + zip_path.split(delim)[-1]).decode("utf-8")
         xbmcvfs.copy(zip_path,zip_temp)
         zfile = zipfile.ZipFile(zip_temp)
         zfile.extractall(temp_path)
@@ -387,11 +390,12 @@ def createColorTheme():
     
     #user has to enter name for the theme
     dialog = xbmcgui.Dialog()
-    themeName = dialog.input(ADDON.getLocalizedString(32023), type=xbmcgui.INPUT_ALPHANUM)
+    themeName = dialog.input(ADDON.getLocalizedString(32023), type=xbmcgui.INPUT_ALPHANUM).decode("utf-8")
     if not themeName:
         return
-        
-    xbmc.executebuiltin("Skin.SetString(SkinHelper.LastColorTheme,%s)" %themeName)    
+    
+    xbmc.executebuiltin( "ActivateWindow(busydialog)" )
+    xbmc.executebuiltin("Skin.SetString(SkinHelper.LastColorTheme,%s)" %themeName.encode("utf-8"))    
     
     #add screenshot
     dialog = xbmcgui.Dialog()
@@ -417,6 +421,6 @@ def createColorTheme():
         text_file = xbmcvfs.File(text_file_path, "w")
         json.dump(newlist, text_file)
         text_file.close()
-        
+        xbmc.executebuiltin( "Dialog.Close(busydialog)" )
         xbmcgui.Dialog().ok(ADDON.getLocalizedString(32026), ADDON.getLocalizedString(32027))
-        
+    xbmc.executebuiltin( "Dialog.Close(busydialog)" )    

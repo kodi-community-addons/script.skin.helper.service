@@ -38,6 +38,7 @@ class LibraryMonitor(threading.Thread):
     streamdetailsCache = {}
     pvrArtCache = {}
     lastFolderPath = None
+    lastContentType = None
     
     def __init__(self, *args):
         
@@ -196,9 +197,9 @@ class LibraryMonitor(threading.Thread):
                 WINDOW.clearProperty("SkinHelper.Music.DiscArt")
                 WINDOW.clearProperty("SkinHelper.Music.Info")
                 
-            xbmc.sleep(150)
-            self.delayedTaskInterval += 0.15
-            self.widgetTaskInterval += 0.15
+            xbmc.sleep(100)
+            self.delayedTaskInterval += 0.10
+            self.widgetTaskInterval += 0.10
                     
     def setMovieSetDetails(self):
         #get movie set details -- thanks to phil65 - used this idea from his skin info script
@@ -793,19 +794,19 @@ class LibraryMonitor(threading.Thread):
             WINDOW.setProperty('SkinHelper.ListItemAllAudioStreams', " / ".join(allAudioStr))
       
     def setForcedView(self):
-        folderPath = xbmc.getInfoLabel("Container.FolderPath")
-        if folderPath:
-            if folderPath != self.lastFolderPath:
-                self.lastFolderPath = folderPath
-                contenttype = getCurrentContentType()
+        if xbmc.getCondVisibility("Window.IsMedia + Skin.HasSetting(SkinHelper.ForcedViews.Enabled)"):
+            contenttype = getCurrentContentType()
+            if contenttype != self.lastContentType:
                 currentForcedView = xbmc.getInfoLabel("Skin.String(SkinHelper.ForcedViews.%s)" %contenttype)
-                if xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.ForcedViews.Enabled)") and contenttype and currentForcedView and currentForcedView != "None":
+                if contenttype and currentForcedView and currentForcedView != "None":
                     WINDOW.setProperty("SkinHelper.ForcedView",currentForcedView)
+                    xbmc.sleep(25)
                     xbmc.executebuiltin("Container.SetViewMode(%s)" %currentForcedView)
+                    xbmc.executebuiltin("SetFocus(%s)" %currentForcedView)
+                    self.lastContentType = contenttype
                     return
         else:
             WINDOW.clearProperty("SkinHelper.ForcedView")
-            self.lastFolderPath = None
         
     def checkExtraFanArt(self):
         
