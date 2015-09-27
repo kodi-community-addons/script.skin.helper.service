@@ -39,13 +39,10 @@ fields_pvrrecordings = '"art", "channel", "directory", "endtime", "file", "genre
 def logMsg(msg, level = 1):
     doDebugLog = False
     if doDebugLog == True or level == 0:
-        try: xbmc.log("Skin Helper Service --> " + msg.decode('utf-8','ignore'))
-        except: pass
-        try: xbmc.log("Skin Helper Service --> " + msg.encode('utf-8','ignore'))
-        except: pass
-        try: xbmc.log("Skin Helper Service --> " + msg)
-        except: pass
-        if doDebugLog: print_exc()
+        if isinstance(msg, unicode):
+            msg = msg.encode('utf-8')
+        xbmc.log("Skin Helper Service --> " + msg)
+        print_exc()
         
 def getContentPath(libPath):
     if "$INFO" in libPath and not "reload=" in libPath:
@@ -137,7 +134,7 @@ def getJSON(method,params):
 
 def try_encode(text, encoding="utf-8"):
     try:
-        return text.encode(encoding)
+        return text.encode(encoding,"ignore")
     except:
         return text       
         
@@ -378,14 +375,10 @@ def getTMDBimage(title):
     opener = urllib2.build_opener()
     userAgent = "Mozilla/5.0 (Windows NT 5.1; rv:25.0) Gecko/20100101 Firefox/25.0"
     opener.addheaders = [('User-agent', userAgent)]
-    coverUrl = None
-    fanartUrl = None
+    coverUrl = ""
+    fanartUrl = ""
     matchFound = False
     videoTypes = ["tv","movie"]
-    
-    try:
-        title = unicode(title)
-    except: pass
     
     for videoType in videoTypes:
     
@@ -409,14 +402,14 @@ def getTMDBimage(title):
                         name_alt = name.lower().replace(" ","").replace("-","").replace(":","").replace("&","")
                         
                         original_name = item.get("original_name")
-                        if name == title or original_name == title:
+                        if title in name == title or original_name == title:
                             matchFound = True
                         elif name.split(" (")[0] == title or title_alt == name_alt:
                             matchFound = True
                             
                         if matchFound:
-                            coverUrl = item.get("poster_path",None)
-                            fanartUrl = item.get("backdrop_path",None)
+                            coverUrl = item.get("poster_path","")
+                            fanartUrl = item.get("backdrop_path","")
                             
                             logMsg("TMDB match found for %s !" %title)
                             
@@ -435,9 +428,9 @@ def getTMDBimage(title):
             logMsg("Error in getTMDBimage --> " + str(e),0)
     
     logMsg("TMDB match NOT found for %s !" %title)
-    return (None, None)
+    return ("", "")
     
-def getPVRThumbs(pvrArtCache,title,channel,persistant_cache=None):
+def getPVRThumbs(persistant_cache,title,channel):
     dbID = title + channel
     cacheFound = False
     fanart = ""
@@ -445,27 +438,20 @@ def getPVRThumbs(pvrArtCache,title,channel,persistant_cache=None):
     poster = ""
     thumb = ""
 
-    logMsg("getPVRThumb dbID--> " + dbID)
+    logMsg("getPVRThumb for %s %s--> "%(title,channel))
         
     #get the items from cache first
-    if pvrArtCache.has_key(dbID + "SkinHelper.PVR.Thumb"):
-        thumb = pvrArtCache[dbID + "SkinHelper.PVR.Thumb"]
+    cache = WINDOW.getProperty(dbID.encode('utf-8') + "SkinHelper.PVR.cache")
+    if cache:
+        fanart = WINDOW.getProperty(dbID.encode('utf-8') + "SkinHelper.PVR.FanArt").decode('utf-8')
+        poster = WINDOW.getProperty(dbID.encode('utf-8') + "SkinHelper.PVR.Poster").decode('utf-8')
+        logo = WINDOW.getProperty(channel.encode('utf-8') + "SkinHelper.PVR.ChannelLogo").decode('utf-8')
+        thumb = WINDOW.getProperty(dbID.encode('utf-8') + "SkinHelper.PVR.Thumb").decode('utf-8')
         cacheFound = True
-
-    if pvrArtCache.has_key(dbID + "SkinHelper.PVR.FanArt"):
-        fanart = pvrArtCache[dbID + "SkinHelper.PVR.FanArt"]
-        cacheFound = True
-    
-    if pvrArtCache.has_key(dbID + "SkinHelper.PVR.Poster"):
-        poster = pvrArtCache[dbID + "SkinHelper.PVR.Poster"]
-        cacheFound = True
-    
-    if pvrArtCache.has_key(dbID + "SkinHelper.PVR.ChannelLogo"):
-        logo = pvrArtCache[dbID + "SkinHelper.PVR.ChannelLogo"]
     
     if not cacheFound:
         logMsg("getPVRThumb no cache found for dbID--> " + dbID)
-               
+                
         #lookup local library
         item = None
         json_result = getJSON('VideoLibrary.GetTvShows','{ "filter": {"operator":"is", "field":"title", "value":"%s"}, "properties": [ %s ] }' %(title,fields_tvshows))
@@ -476,16 +462,17 @@ def getPVRThumbs(pvrArtCache,title,channel,persistant_cache=None):
             if len(json_result) > 0:
                 item = json_result[0]
         if item: 
-            poster = item["art"].get("poster",None)
-            thumb = item["art"].get("landscape",None)
-            logo = item["art"].get("clearlogo",None)
-            fanart = item["art"].get("fanart",None)
+            poster = item["art"].get("poster","")
+            thumb = item["art"].get("landscape","")
+            fanart = item["art"].get("fanart","")
             if not thumb: thumb = fanart
+            logMsg("getPVRThumb artwork found in local library for dbID--> " + dbID)
         
         #is the item in the persistant cache ?
         if not thumb and persistant_cache:
             if persistant_cache.has_key(dbID + "SkinHelper.PVR.Thumb"): 
                 thumb = persistant_cache[dbID + "SkinHelper.PVR.Thumb"]
+                logMsg("getPVRThumb artwork found in persistant cache for dbID--> " + dbID)
                 if thumb: cacheFound = True
             if persistant_cache.has_key(dbID + "SkinHelper.PVR.FanArt"): 
                 fanart = persistant_cache[dbID + "SkinHelper.PVR.FanArt"]
@@ -499,19 +486,23 @@ def getPVRThumbs(pvrArtCache,title,channel,persistant_cache=None):
         
         #if nothing in library or persistant cache, perform the internet scraping
         if not cacheFound:
+        
+            #lookup actual recordings (for grouped recordings and actual icons provided by pvr)
+            try:
+                json_query = getJSON('PVR.GetRecordings', '{ "properties": [ %s ]}' %( fields_pvrrecordings))
+                for item in json_query:
+                    if title in item['title'] or title in item["file"]:
+                        if not channel: channel = item["channel"]
+                        #only some pvr's provide a thumb for recordings - assuming here that currently only mediaportal PVR does this.
+                        if "mediaportal" in xbmc.getInfoLabel("Pvr.BackendName").lower() and not thumb:
+                            thumb = item['icon']
+                            logMsg("getPVRThumbs - title matches an existing recording: " + title)
+                        break
+            except Exception as e:
+                logMsg("ERROR in getPVRThumbs - get thumb from recordings ! --> " + str(e))
+            
             if not poster:
                 poster, fanart = getTMDBimage(title)
-                
-            #lookup actual recordings for pvr addons that provide thumbnails (only mediaportal?)
-            try:
-                if "mediaportal" in xbmc.getInfoLabel("Pvr.BackendName").lower() and not thumb:
-                    json_query = getJSON('PVR.GetRecordings', '{ "properties": [ %s ]}' %( fields_pvrrecordings))
-                    for item in json_query:
-                        if title in item['title']:
-                            thumb = item['icon']
-                            break
-            except Exception as e:
-                logMsg("ERROR in getPVRThumbs - get thumb from recordings ! --> " + str(e), 0)
                 
             if not thumb:
                 thumb = searchGoogleImage(title + " " + channel)           
@@ -523,15 +514,20 @@ def getPVRThumbs(pvrArtCache,title,channel,persistant_cache=None):
             #get logo from studio logos
             if not logo:
                 logo = searchChannelLogo(channel)
-        
-        pvrArtCache[dbID + "SkinHelper.PVR.Thumb"] = thumb
-        pvrArtCache[dbID + "SkinHelper.PVR.FanArt"] = fanart
-        pvrArtCache[dbID + "SkinHelper.PVR.Poster"] = poster
-        pvrArtCache[dbID + "SkinHelper.PVR.ChannelLogo"] = logo
+                
+        if thumb == "skip":
+            thumb = ""
+        else:
+            #store in cache for quick access later
+            WINDOW.setProperty(dbID.encode('utf-8') + "SkinHelper.PVR.cache","cached")
+            WINDOW.setProperty(dbID.encode('utf-8') + "SkinHelper.PVR.FanArt",try_encode(fanart)
+            WINDOW.setProperty(dbID.encode('utf-8') + "SkinHelper.PVR.Poster",try_encode(poster)
+            WINDOW.setProperty(channel.encode('utf-8') + "SkinHelper.PVR.ChannelLogo",try_encode(logo)
+            WINDOW.setProperty(dbID.encode('utf-8') + "SkinHelper.PVR.Thumb",try_encode(thumb)
     else:
         logMsg("getPVRThumb cache found for dbID--> " + dbID)
     
-    return (pvrArtCache,thumb,fanart,poster,logo)
+    return (thumb,fanart,poster,logo)
 
 def createSmartShortcutSubmenu(windowProp,iconimage):
     try:
@@ -589,64 +585,67 @@ def getCurrentContentType():
 def searchChannelLogo(searchphrase):
     #get's a thumb image for the given search phrase
     image = ""
-    try:
-        #lookup in channel list
-        # Perform a JSON query to get all channels
-        json_query = getJSON('PVR.GetChannels', '{"channelgroupid": "alltv", "properties": [ "thumbnail", "channeltype", "hidden", "locked", "channel", "lastplayed", "broadcastnow" ]}' )
-        for item in json_query:
-            channelname = item["label"]
-            channelicon = item['thumbnail']
-            if channelname == searchphrase.encode("utf-8","ignore").decode("utf-8","ignore"):
-                image = getCleanImage(channelicon)
-                break
+    
+    cache = WINDOW.getProperty(searchphrase + "SkinHelper.PVR.ChannelLogo")
+    if cache: return cache
+    else:
+    
+        try:
+            #lookup in channel list
+            # Perform a JSON query to get all channels
+            json_query = getJSON('PVR.GetChannels', '{"channelgroupid": "alltv", "properties": [ "thumbnail", "channeltype", "hidden", "locked", "channel", "lastplayed", "broadcastnow" ]}' )
+            for item in json_query:
+                channelname = item["label"]
+                channelicon = item['thumbnail']
+                if channelname == searchphrase:
+                    image = getCleanImage(channelicon)
+                    break
 
-        #lookup with thelogodb
-        if not image:
-            search = searchphrase.split()
-            search = '%20'.join(map(str, search))
-            url = 'http://www.thelogodb.com/api/json/v1/1/tvchannel.php?s=' + search
-            search_results = urllib2.urlopen(url)
-            js = json.loads(search_results.read().decode("utf-8"))
-            if js and js.has_key('channels'):
-                results = js['channels']
-                if results:
-                    for i in results: 
-                        rest = i['strLogoWide']
-                        if rest:
-                            if ".jpg" in rest or ".png" in rest:
-                                image = rest
-                                break
-            
-        if not image:
-            search = searchphrase.replace(" HD","").split()
-            search = '%20'.join(map(str, search))
-            url = 'http://www.thelogodb.com/api/json/v1/1/tvchannel.php?s=' + search
-            search_results = urllib2.urlopen(url)
-            js = json.loads(search_results.read().decode("utf-8"))
-            if js and js.has_key('channels'):
-                results = js['channels']
-                if results:
-                    for i in results: 
-                        rest = i['strLogoWide']
-                        if rest:
-                            if ".jpg" in rest or ".png" in rest:
-                                image = rest
-                                break
-    except Exception as e:
-        logMsg("ERROR in searchChannelLogo ! --> " + str(e), 0)
+            #lookup with thelogodb
+            if not image:
+                search = searchphrase.split()
+                search = '%20'.join(map(str, search))
+                url = 'http://www.thelogodb.com/api/json/v1/1/tvchannel.php?s=' + search
+                search_results = urllib2.urlopen(url)
+                js = json.loads(search_results.read().decode("utf-8"))
+                if js and js.has_key('channels'):
+                    results = js['channels']
+                    if results:
+                        for i in results: 
+                            rest = i['strLogoWide']
+                            if rest:
+                                if ".jpg" in rest or ".png" in rest:
+                                    image = rest
+                                    break
+                
+            if not image:
+                search = searchphrase.replace(" HD","").split()
+                search = '%20'.join(map(str, search))
+                url = 'http://www.thelogodb.com/api/json/v1/1/tvchannel.php?s=' + search
+                search_results = urllib2.urlopen(url)
+                js = json.loads(search_results.read().decode("utf-8"))
+                if js and js.has_key('channels'):
+                    results = js['channels']
+                    if results:
+                        for i in results: 
+                            rest = i['strLogoWide']
+                            if rest:
+                                if ".jpg" in rest or ".png" in rest:
+                                    image = rest
+                                    break
+        except Exception as e:
+            logMsg("ERROR in searchChannelLogo ! --> " + str(e), 0)
 
-    if image:
-        if ".jpg/" in image:
-            image = image.split(".jpg/")[0] + ".jpg"
-    return image
+        if image:
+            if ".jpg/" in image:
+                image = image.split(".jpg/")[0] + ".jpg"
+        
+        WINDOW.setProperty(searchphrase + "SkinHelper.PVR.ChannelLogo",image)
+        return image
 
 def searchGoogleImage(searchphrase):
-    image = None
-    
-    try:
-        searchphrase = unicode(searchphrase)
-    except: pass
-    
+    image = ""
+   
     try:
         url = 'http://ajax.googleapis.com/ajax/services/search/images'
         headers = { 'User-Agent' : 'Mozilla/5.0 (Windows NT 6.1; Win64; x64)' }
@@ -672,12 +671,12 @@ def searchGoogleImage(searchphrase):
     return image
  
 def searchYoutubeImage(searchphrase):
-    image = None
+    image = ""
     #safety check: prevent multiple youtube searches at once...
     waitForYouTubeCount = 0
     if WINDOW.getProperty("youtubescanrunning") == "running":
         xbmc.sleep(100)
-        return ""
+        return "skip"
     
     WINDOW.setProperty("youtubescanrunning","running")
     libPath = "plugin://plugin.video.youtube/kodion/search/query/?q=%s" %searchphrase
@@ -693,16 +692,16 @@ def searchYoutubeImage(searchphrase):
  
 def searchThumb(searchphrase, searchphrase2=""):
     #get's a thumb image for the given search phrase
-       
-    image = ""
-    searchphrase = searchphrase.encode("utf-8").decode("utf-8")
+    image = WINDOW.getProperty(searchphrase + searchphrase2 + "SkinHelper.PVR.Thumb")
+
     if searchphrase2:
-        searchphrase = searchphrase + " " + searchphrase2.encode("utf-8").decode("utf-8")
+        searchphrase = searchphrase + " " + searchphrase2
         
     WINDOW.setProperty("getthumbbusy","busy")
-    
+       
     #lookup TMDB
-    image = getTMDBimage(searchphrase)[0]
+    if not image:
+        image = getTMDBimage(searchphrase)[0]
     
     #lookup with Google images
     if not image:
