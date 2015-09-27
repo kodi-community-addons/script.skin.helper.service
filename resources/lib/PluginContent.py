@@ -415,7 +415,7 @@ def getPVRRecordings(limit):
     json_query = getJSON('PVR.GetRecordings', '{ "properties": [ %s ], "limits": {"end": %d}}' %( fields_pvrrecordings, limit))
     for item in json_query:
         channelname = item["channel"]
-        pvrArtCache,thumb,fanart,poster,logo = getPVRThumbs(pvrArtCache, item["title"], channelname)
+        thumb,fanart,poster,logo = getPVRThumbs(pvrArtCache, item["title"], channelname)
         path=item["file"]
         li = xbmcgui.ListItem()
         li.setLabel(channelname)
@@ -436,7 +436,6 @@ def getPVRRecordings(limit):
         li.setArt({ 'poster': poster, 'fanart' : fanart })
 
         xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=path, listitem=li, isFolder=False)
-    WINDOW.setProperty("SkinHelper.pvrArtCache",repr(pvrArtCache))
     xbmcplugin.endOfDirectory(int(sys.argv[1]))    
     
 def getPVRChannels(limit):
@@ -447,6 +446,7 @@ def getPVRChannels(limit):
         pvrArtCache = eval(pvrArtCache)
     else:
         pvrArtCache = {}
+        logMsg("getPVRChannels ! --> pvrArtCache is empty!", 0)
         
     # Perform a JSON query to get all channels
     json_query = getJSON('PVR.GetChannels', '{"channelgroupid": "alltv", "properties": [ "thumbnail", "channeltype", "hidden", "locked", "channel", "lastplayed", "broadcastnow" ], "limits": {"end": %d}}' %( limit ) )
@@ -456,7 +456,7 @@ def getPVRChannels(limit):
         channelicon = item['thumbnail']
         if item.has_key('broadcastnow'):
             currentprogram = item['broadcastnow']
-            pvrArtCache,thumb,fanart,poster,logo = getPVRThumbs(pvrArtCache, currentprogram["title"].encode("utf-8","ignore"), channelname)
+            thumb,fanart,poster,logo = getPVRThumbs(pvrArtCache, currentprogram["title"], channelname)
             if not channelicon:
                 channelicon = logo
             if not thumb:
@@ -488,7 +488,6 @@ def getPVRChannels(limit):
             li.addStreamInfo('video', { 'Codec': 'h264', 'Width' : 1280 })
 
             xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=path, listitem=li, isFolder=False)
-    WINDOW.setProperty("SkinHelper.pvrArtCache",repr(pvrArtCache))
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 def getThumb(searchphrase):
@@ -921,7 +920,7 @@ def buildRecommendedMediaListing(limit,ondeckContent=False,recommendedContent=Tr
         for item in json_result:
             lastplayed = None
             if not item["title"] in allTitles and item["playcount"] == 0:
-                pvrArtCache,thumb,fanart,poster,logo = getPVRThumbs(pvrArtCache, item["title"], item["channel"])
+                thumb,fanart,poster,logo = getPVRThumbs(pvrArtCache, item["title"], item["channel"])
                 art = { 'poster': poster, 'fanart' : fanart, 'thumb': thumb }
                 item["art"] = art
                 allOndeckItems.append((lastplayed,item))
@@ -970,9 +969,7 @@ def buildRecommendedMediaListing(limit,ondeckContent=False,recommendedContent=Tr
         #sort the list with recommended items by rating 
         from operator import itemgetter
         allItems += sorted(allRecommendedItems,key=itemgetter(0),reverse=True)
-     
-    
-    WINDOW.setProperty("SkinHelper.pvrArtCache",repr(pvrArtCache))
+
     return allItems
 
 def getInProgressAndRecommendedMedia(limit):
@@ -1104,7 +1101,7 @@ def getRecentMedia(limit):
     for item in json_result:
         lastplayed = item["endtime"]
         if not item["title"] in allTitles and item["playcount"] == 0:
-            pvrArtCache,thumb,fanart,poster,logo = getPVRThumbs(pvrArtCache, item["title"], item["channel"])
+            thumb,fanart,poster,logo = getPVRThumbs(pvrArtCache, item["title"], item["channel"])
             art = { 'poster': poster, 'fanart' : fanart, 'thumb': thumb }
             item["art"] = art
             allItems.append((lastplayed,item))
@@ -1122,8 +1119,6 @@ def getRecentMedia(limit):
         count +=1
         if count == limit:
             break       
-    
-    WINDOW.setProperty("SkinHelper.pvrArtCache",repr(pvrArtCache))
     
     xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
 

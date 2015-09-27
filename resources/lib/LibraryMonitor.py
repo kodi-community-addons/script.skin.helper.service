@@ -39,7 +39,6 @@ class LibraryMonitor(threading.Thread):
     streamdetailsCache = {}
     pvrArtCache = {}
     rottenCache = {}
-    PersistantPvrArtCache = {}
     lastFolderPath = None
     lastContentType = None
     
@@ -83,7 +82,8 @@ class LibraryMonitor(threading.Thread):
                 if data.has_key("rottenCache"):
                     self.streamdetailsCache = data["rottenCache"]
                 if data.has_key("PVRArtCache"):
-                    self.PersistantPvrArtCache = data["PVRArtCache"]
+                    self.pvrArtCache = data["PVRArtCache"]
+                    WINDOW.setProperty("SkinHelper.pvrArtCache",repr(data["PVRArtCache"]))
 
     def run(self):
 
@@ -132,8 +132,8 @@ class LibraryMonitor(threading.Thread):
             # monitor listitem props when PVR is active
             elif (xbmc.getCondVisibility("[Window.IsActive(MyPVRChannels.xml) | Window.IsActive(MyPVRGuide.xml) | Window.IsActive(MyPVRTimers.xml) | Window.IsActive(MyPVRSearch.xml) | Window.IsActive(MyPVRRecordings.xml)]")):
                 
-                self.liPath = xbmc.getInfoLabel("ListItem.Path")
-                liLabel = xbmc.getInfoLabel("ListItem.Label")
+                self.liPath = xbmc.getInfoLabel("ListItem.Path").decode('utf-8')
+                liLabel = xbmc.getInfoLabel("ListItem.Label").decode('utf-8')
                 if ((liLabel != lastListItemLabel) and xbmc.getCondVisibility("!Container.Scrolling")):
                     
                     self.liPathLast = self.liPath
@@ -152,16 +152,16 @@ class LibraryMonitor(threading.Thread):
             #monitor home widget
             elif xbmc.getCondVisibility("Window.IsActive(home)") and WINDOW.getProperty("SkinHelper.WidgetContainer"):
                 widgetContainer = WINDOW.getProperty("SkinHelper.WidgetContainer")
-                self.liPath = xbmc.getInfoLabel("Container(%s).ListItem.Path" %widgetContainer)
-                liLabel = xbmc.getInfoLabel("Container(%s).ListItem.Label"%widgetContainer)
+                self.liPath = xbmc.getInfoLabel("Container(%s).ListItem.Path" %widgetContainer).decode('utf-8')
+                liLabel = xbmc.getInfoLabel("Container(%s).ListItem.Label"%widgetContainer).decode('utf-8')
                 if ((liLabel != lastListItemLabel) and xbmc.getCondVisibility("!Container(%s).Scrolling" %widgetContainer)):
                     self.liPathLast = self.liPath
                     lastListItemLabel = liLabel
                     try:
                         self.setDuration(xbmc.getInfoLabel("Container(%s).ListItem.Duration" %widgetContainer))
-                        self.setStudioLogo(xbmc.getInfoLabel("Container(%s).ListItem.Studio" %widgetContainer))
-                        self.setDirector(xbmc.getInfoLabel("Container(%s).ListItem.Director" %widgetContainer))
-                        self.checkMusicArt(xbmc.getInfoLabel("Container(%s).ListItem.Artist" %widgetContainer)+xbmc.getInfoLabel("Container(%s).ListItem.Album" %widgetContainer))
+                        self.setStudioLogo(xbmc.getInfoLabel("Container(%s).ListItem.Studio" %widgetContainer).decode('utf-8'))
+                        self.setDirector(xbmc.getInfoLabel("Container(%s).ListItem.Director" %widgetContainer).decode('utf-8'))
+                        self.checkMusicArt(xbmc.getInfoLabel("Container(%s).ListItem.Artist" %widgetContainer).decode('utf-8')+xbmc.getInfoLabel("Container(%s).ListItem.Album" %widgetContainer).decode('utf-8'))
                     except Exception as e:
                         logMsg("ERROR in LibraryMonitor widgets ! --> " + str(e), 0)
                         
@@ -169,8 +169,8 @@ class LibraryMonitor(threading.Thread):
             # monitor listitem props when videolibrary is active
             elif (xbmc.getCondVisibility("[Window.IsActive(videolibrary) | Window.IsActive(movieinformation)] + !Window.IsActive(fullscreenvideo)")):
                 
-                self.liPath = xbmc.getInfoLabel("ListItem.Path")
-                liLabel = xbmc.getInfoLabel("ListItem.Label")
+                self.liPath = xbmc.getInfoLabel("ListItem.Path").decode('utf-8')
+                liLabel = xbmc.getInfoLabel("ListItem.Label").decode('utf-8')
                 if ((liLabel != lastListItemLabel) and xbmc.getCondVisibility("!Container.Scrolling")):
                     
                     self.liPathLast = self.liPath
@@ -205,6 +205,10 @@ class LibraryMonitor(threading.Thread):
                 WINDOW.clearProperty('SkinHelper.RottenTomatoesConsensus')
                 WINDOW.clearProperty('SkinHelper.RottenTomatoesAwards')
                 WINDOW.clearProperty('SkinHelper.RottenTomatoesBoxOffice')
+                WINDOW.clearProperty("SkinHelper.PVR.Thumb") 
+                WINDOW.clearProperty("SkinHelper.PVR.FanArt") 
+                WINDOW.clearProperty("SkinHelper.PVR.ChannelLogo")
+                WINDOW.clearProperty("SkinHelper.PVR.Poster")
             xbmc.sleep(100)
             self.delayedTaskInterval += 0.10
             self.widgetTaskInterval += 0.10
@@ -408,7 +412,7 @@ class LibraryMonitor(threading.Thread):
         # set addon name as property
         if not xbmc.Player().isPlayingAudio():
             if (xbmc.getCondVisibility("Container.Content(plugins) | !IsEmpty(Container.PluginName)")):
-                AddonName = xbmc.getInfoLabel('Container.PluginName')
+                AddonName = xbmc.getInfoLabel('Container.PluginName').decode('utf-8')
                 AddonName = xbmcaddon.Addon(AddonName).getAddonInfo('name')
                 WINDOW.setProperty("SkinHelper.Player.AddonName", AddonName)
             else:
@@ -416,7 +420,7 @@ class LibraryMonitor(threading.Thread):
     
     def setGenre(self, genre=None):
         if not genre:
-            genre = xbmc.getInfoLabel('ListItem.Genre')
+            genre = xbmc.getInfoLabel('ListItem.Genre').decode('utf-8')
         
         genres = []
         if "/" in genre:
@@ -428,7 +432,7 @@ class LibraryMonitor(threading.Thread):
     
     def setDirector(self, director=None):
         if not director:
-            director = xbmc.getInfoLabel('ListItem.Director')
+            director = xbmc.getInfoLabel('ListItem.Director').decode('utf-8')
         
         directors = []
         if "/" in director:
@@ -437,47 +441,53 @@ class LibraryMonitor(threading.Thread):
             directors.append(director)
         
         WINDOW.setProperty('SkinHelper.ListItemDirectors', "[CR]".join(directors))
-    
+       
     def setPVRThumbs(self):
-        realthumb = None
         thumb = None
         WINDOW.clearProperty("SkinHelper.PVR.Thumb") 
         WINDOW.clearProperty("SkinHelper.PVR.FanArt") 
         WINDOW.clearProperty("SkinHelper.PVR.ChannelLogo")
         WINDOW.clearProperty("SkinHelper.PVR.Poster")
         
-        title = xbmc.getInfoLabel("ListItem.Title")
-        channel = xbmc.getInfoLabel("ListItem.ChannelName")
+        title = xbmc.getInfoLabel("ListItem.Title").decode('utf-8')
+        channel = xbmc.getInfoLabel("ListItem.ChannelName").decode('utf-8')
         
-        #set channellogo first
-        logo = searchChannelLogo(channel)
-        WINDOW.setProperty("SkinHelper.PVR.ChannelLogo",logo)
-        
-        if xbmc.getCondVisibility("ListItem.IsFolder"):
+        if xbmc.getCondVisibility("ListItem.IsFolder") and not channel and not title:
             #assume grouped recordings folderPath
-            title = xbmc.getInfoLabel("ListItem.Label")
+            title = xbmc.getInfoLabel("ListItem.Label").decode('utf-8')
 
         if not xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnablePVRThumbs)") or not title:
             return
         
         dbID = title + channel
-        cacheFound = False
+        
+        if channel:
+            logo = searchChannelLogo(channel)
+            WINDOW.setProperty("SkinHelper.PVR.ChannelLogo",logo)
             
         logMsg("setPVRThumb dbID--> " + dbID)
 
-        if xbmc.getInfoLabel("ListItem.Label") == "..":
+        if xbmc.getInfoLabel("ListItem.Label").decode('utf-8') == "..":
             return
         
-        self.pvrArtCache,thumb,fanart,poster,logo = getPVRThumbs(self.pvrArtCache, title, channel, self.PersistantPvrArtCache)
+        thumb,fanart,poster,logo = getPVRThumbs(self.pvrArtCache, title, channel)
         
-        WINDOW.setProperty("SkinHelper.PVR.Thumb",thumb)
-        WINDOW.setProperty("SkinHelper.PVR.FanArt",fanart)
-        WINDOW.setProperty("SkinHelper.PVR.ChannelLogo",logo)
-        WINDOW.setProperty("SkinHelper.PVR.Poster",poster)
+        if thumb:
+            WINDOW.setProperty("SkinHelper.PVR.Thumb",thumb)
+            self.pvrArtCache[dbID + "SkinHelper.PVR.Thumb"] = thumb
+        if fanart:
+            WINDOW.setProperty("SkinHelper.PVR.FanArt",fanart)
+            self.pvrArtCache[dbID + "SkinHelper.PVR.FanArt"] = fanart
+        if logo and channel:
+            WINDOW.setProperty("SkinHelper.PVR.ChannelLogo",logo)
+            self.pvrArtCache[channel + "SkinHelper.PVR.ChannelLogo"] = logo
+        if poster:
+            WINDOW.setProperty("SkinHelper.PVR.Poster",poster)
+            self.pvrArtCache[dbID + "SkinHelper.PVR.Poster"] = poster
      
     def setStudioLogo(self, studio=None):
         if not studio:
-            studio = xbmc.getInfoLabel('ListItem.Studio')
+            studio = xbmc.getInfoLabel('ListItem.Studio').decode('utf-8')
         studiologo = None
         studiologoColor = None
         
@@ -538,7 +548,7 @@ class LibraryMonitor(threading.Thread):
         allPaths = []
         allPathsColor = []
 
-        CustomStudioImagesPath = xbmc.getInfoLabel("Skin.String(SkinHelper.CustomStudioImagesPath)")
+        CustomStudioImagesPath = xbmc.getInfoLabel("Skin.String(SkinHelper.CustomStudioImagesPath)").decode('utf-8')
         if CustomStudioImagesPath + xbmc.getSkinDir() != self.LastCustomStudioImagesPath:
             #only proceed if the custom path or skin has changed...
             self.LastCustomStudioImagesPath = CustomStudioImagesPath + xbmc.getSkinDir()
@@ -657,7 +667,7 @@ class LibraryMonitor(threading.Thread):
         if widget:
             dbID = widget
         else:
-            dbID = xbmc.getInfoLabel("ListItem.Artist") + xbmc.getInfoLabel("ListItem.Album")
+            dbID = xbmc.getInfoLabel("ListItem.Artist").decode('utf-8') + xbmc.getInfoLabel("ListItem.Album").decode('utf-8')
         
         if dbID and self.lastMusicDbId == dbID:
             return
@@ -666,7 +676,7 @@ class LibraryMonitor(threading.Thread):
 
         self.lastMusicDbId = dbID
         
-        if not widget and (xbmc.getInfoLabel("ListItem.Label") == ".." or not xbmc.getInfoLabel("ListItem.FolderPath").startswith("musicdb") or not dbID):
+        if not widget and (xbmc.getInfoLabel("ListItem.Label").decode('utf-8') == ".." or not xbmc.getInfoLabel("ListItem.FolderPath").decode('utf-8').startswith("musicdb") or not dbID):
             WINDOW.setProperty("SkinHelper.ExtraFanArtPath","") 
             WINDOW.clearProperty("SkinHelper.Music.BannerArt") 
             WINDOW.clearProperty("SkinHelper.Music.LogoArt") 
@@ -704,7 +714,7 @@ class LibraryMonitor(threading.Thread):
             logMsg("checkMusicArt no cache found for dbID--> " + dbID)
             path = None
             json_response = None
-            folderPath = xbmc.getInfoLabel("ListItem.FolderPath")
+            folderPath = xbmc.getInfoLabel("ListItem.FolderPath").decode('utf-8')
             dbid = xbmc.getInfoLabel("ListItem.DBID")
             cdArt, LogoArt, BannerArt, extraFanArt, Info, TrackList = getMusicArtByDbId(dbid, getCurrentContentType())
       
@@ -826,7 +836,7 @@ class LibraryMonitor(threading.Thread):
         efaPath = None
         efaFound = False
         liArt = None
-        containerPath = xbmc.getInfoLabel("Container.FolderPath")
+        containerPath = xbmc.getInfoLabel("Container.FolderPath").decode('utf-8')
         
         if xbmc.getCondVisibility("Window.IsActive(movieinformation)"):
             return
@@ -858,7 +868,7 @@ class LibraryMonitor(threading.Thread):
         if (self.liPath != None and (xbmc.getCondVisibility("Container.Content(movies) | Container.Content(seasons) | Container.Content(episodes) | Container.Content(tvshows)")) and not "videodb:" in self.liPath):
                            
             if xbmc.getCondVisibility("Container.Content(episodes)"):
-                liArt = xbmc.getInfoLabel("ListItem.Art(tvshow.fanart)")
+                liArt = xbmc.getInfoLabel("ListItem.Art(tvshow.fanart)").decode('utf-8')
             
             # do not set extra fanart for virtuals
             if (("plugin://" in self.liPath) or ("addon://" in self.liPath) or ("sources" in self.liPath) or ("plugin://" in containerPath) or ("sources://" in containerPath) or ("plugin://" in containerPath)):
