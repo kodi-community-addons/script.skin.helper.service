@@ -392,7 +392,6 @@ def getTMDBimage(title):
     
     try:
         title = unicode(title)
-        print title
     except: pass
 
     titles = [title]

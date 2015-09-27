@@ -200,12 +200,9 @@ class LibraryMonitor(threading.Thread):
 
     def doBackgroundWork(self):
         try:
-            logMsg("LibraryMonitor.doBackgroundWork getStudioLogos", 0)
             self.getStudioLogos()
             #pre cache pvr thumbs by just calling the addon
-            logMsg("LibraryMonitor.doBackgroundWork getpvrthumbs", 0)
             getJSON('Files.GetDirectory','{ "directory": "plugin://script.skin.helper.service/?action=pvrchannels&limit=999", "media": "files" }')
-            logMsg("LibraryMonitor.doBackgroundWork ended", 0)
         except Exception as e:
             logMsg("ERROR in LibraryMonitor.doBackgroundWork ! --> " + str(e), 0)
             
