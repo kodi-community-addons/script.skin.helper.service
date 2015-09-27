@@ -914,28 +914,28 @@ class LibraryMonitor(threading.Thread):
         WINDOW.clearProperty('SkinHelper.RottenTomatoesRating')
         WINDOW.clearProperty('SkinHelper.RottenTomatoesAudienceRating')
         contenttype = getCurrentContentType()
-        title = xbmc.getInfoLabel("ListItem.Title")
-        if contenttype == "movies" and title:
-            if self.rottenCache.has_key(title):
+        imdbnumber = xbmc.getInfoLabel("ListItem.IMDBNumber")
+        if contenttype == "movies" and imdbnumber:
+            if self.rottenCache.has_key(imdbnumber):
                 #get data from cache
-                ratings = self.rottenCache[title]
+                result = self.rottenCache[imdbnumber]
             else:
-                rturl = 'http://api.rottentomatoes.com/api/public/v1.0/movies.json?apikey=63sbsudx936yedd2wdmt6tkn&q=%s&page_limit=1' %title
-                res = requests.get(rturl)
+                url = 'http://www.omdbapi.com/?i=%s&plot=short&tomatoes=true&r=json' %imdbnumber
+                res = requests.get(url)
                 result = json.loads(res.content)
-                if result and result['movies']:
-                    movies = result['movies']
-                    if movies[0]['ratings']:
-                        ratings = movies[0]['ratings']
-                        self.rottenCache[title] = ratings
+                if result:
+                    self.rottenCache[imdbnumber] = result
 
-            if ratings:
-                criticsscore = ratings['critics_score']
-                audiencescore = ratings['audience_score']
+            if result:
+                criticsscore = result['tomatoMeter']
+                criticconsensus = result['tomatoConsensus']
+                audiencescore = result['Metascore']
                 if criticsscore:
                     WINDOW.setProperty("SkinHelper.RottenTomatoesRating",str(criticsscore))
                 if audiencescore:
                     WINDOW.setProperty("SkinHelper.RottenTomatoesAudienceRating",str(audiencescore))
+                if criticconsensus:
+                    WINDOW.setProperty("SkinHelper.RottenTomatoesConsensus",str(criticconsensus))
 
 
 class Kodi_Monitor(xbmc.Monitor):
