@@ -203,6 +203,8 @@ class LibraryMonitor(threading.Thread):
                 WINDOW.clearProperty('SkinHelper.RottenTomatoesRating')
                 WINDOW.clearProperty('SkinHelper.RottenTomatoesAudienceRating')
                 WINDOW.clearProperty('SkinHelper.RottenTomatoesConsensus')
+                WINDOW.clearProperty('SkinHelper.RottenTomatoesAwards')
+                WINDOW.clearProperty('SkinHelper.RottenTomatoesBoxOffice')
             xbmc.sleep(100)
             self.delayedTaskInterval += 0.10
             self.widgetTaskInterval += 0.10
@@ -234,6 +236,8 @@ class LibraryMonitor(threading.Thread):
         WINDOW.clearProperty('SkinHelper.RottenTomatoesRating')
         WINDOW.clearProperty('SkinHelper.RottenTomatoesAudienceRating')
         WINDOW.clearProperty('SkinHelper.RottenTomatoesConsensus')
+        WINDOW.clearProperty('SkinHelper.RottenTomatoesAwards')
+        WINDOW.clearProperty('SkinHelper.RottenTomatoesBoxOffice')
         totalNodes = 50
         for i in range(totalNodes):
             if not WINDOW.getProperty('SkinHelper.MovieSet.' + str(i) + '.Title'):
@@ -899,6 +903,9 @@ class LibraryMonitor(threading.Thread):
         WINDOW.clearProperty('SkinHelper.RottenTomatoesRating')
         WINDOW.clearProperty('SkinHelper.RottenTomatoesAudienceRating')
         WINDOW.clearProperty('SkinHelper.RottenTomatoesConsensus')
+        WINDOW.clearProperty('SkinHelper.RottenTomatoesAwards')
+        WINDOW.clearProperty('SkinHelper.RottenTomatoesBoxOffice')
+
         contenttype = getCurrentContentType()
         imdbnumber = xbmc.getInfoLabel("ListItem.IMDBNumber")
         if contenttype == "movies" and imdbnumber:
@@ -916,12 +923,18 @@ class LibraryMonitor(threading.Thread):
                 criticsscore = result['tomatoMeter']
                 criticconsensus = result['tomatoConsensus']
                 audiencescore = result['Metascore']
+                awards = result['Awards']
+                boxoffice = result['BoxOffice']
                 if criticsscore:
                     WINDOW.setProperty("SkinHelper.RottenTomatoesRating",str(criticsscore))
                 if audiencescore:
                     WINDOW.setProperty("SkinHelper.RottenTomatoesAudienceRating",str(audiencescore))
                 if criticconsensus:
                     WINDOW.setProperty("SkinHelper.RottenTomatoesConsensus",str(criticconsensus))
+                if awards:
+                    WINDOW.setProperty("SkinHelper.RottenTomatoesAwards",str(awards))
+                if boxoffice:
+                    WINDOW.setProperty("SkinHelper.RottenTomatoesBoxOffice",str(boxoffice))
 
 class Kodi_Monitor(xbmc.Monitor):
     

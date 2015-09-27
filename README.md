@@ -90,6 +90,8 @@ Some additional window properties that can be used in the video library.
 |Window(Home).Property(SkinHelper.RottenTomatoesRating) | rating from rotten tomatoes |
 |Window(Home).Property(SkinHelper.RottenTomatoesConsensus) | critic consensus from rotten tomatoes |
 |Window(Home).Property(SkinHelper.RottenTomatoesAudienceRating) | metascore rating from rotten tomatoes |
+|Window(Home).Property(SkinHelper.RottenTomatoesAwards) | awards for the movie |
+|Window(Home).Property(SkinHelper.RottenTomatoesBoxOffice) | amount the film made at box office |
 ________________________________________________________________________________________________________
 
 
