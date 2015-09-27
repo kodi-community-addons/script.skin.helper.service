@@ -130,8 +130,8 @@ def backup(filterString="",silent=None,promptfilename="false"):
                                             thumb = thumb[0].firstChild
                                             if thumb:
                                                 thumb = thumb.data
-                                                if thumb and not thumb.startswith("special://") and not thumb.startswith("$"):
-                                                    thumb = getCleanImage(thumb)
+                                                if thumb and(".jpg" in thumb or ".png" in thumb) and not thumb.startswith("special://") and not thumb.startswith("$"):
+                                                    thumb = getCleanImage(thumb) 
                                                     extension = thumb.split(".")[-1]
                                                     newthumb = os.path.join(skinshortcuts_path,"%s-thumb-%s.%s" %(xbmc.getSkinDir(),defaultID,extension))
                                                     newthumb_vfs = "special://profile/addon_data/script.skinshortcuts/%s-thumb-%s.%s"%(xbmc.getSkinDir(),defaultID,extension)
@@ -154,7 +154,7 @@ def backup(filterString="",silent=None,promptfilename="false"):
                                     if prop[2] == "background":
                                         background = prop[3]
                                         defaultID = prop[1]
-                                        if "." in background and not background.startswith("special://") and not background.startswith("$"):
+                                        if (".jpg" in thumb or ".png" in thumb) and not background.startswith("special://") and not background.startswith("$"):
                                             background = getCleanImage(background)
                                             extension = background.split(".")[-1]
                                             newthumb = os.path.join(skinshortcuts_path,"%s-background-%s.%s" %(xbmc.getSkinDir(),defaultID,extension))

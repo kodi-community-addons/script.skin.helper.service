@@ -37,6 +37,7 @@ class LibraryMonitor(threading.Thread):
     musicArtCache = {}
     streamdetailsCache = {}
     pvrArtCache = {}
+    PersistantPvrArtCache = {}
     lastFolderPath = None
     lastContentType = None
     
@@ -77,7 +78,7 @@ class LibraryMonitor(threading.Thread):
                 if data.has_key("streamdetailsCache"):
                     self.streamdetailsCache = data["streamdetailsCache"]
                 if data.has_key("PVRArtCache"):
-                    WINDOW.setProperty("SkinHelper.PersistantPVRArtCache",repr(self.pvrArtCache))
+                    self.PersistantPvrArtCache = data["PVRArtCache"]
 
     def run(self):
 
@@ -124,7 +125,7 @@ class LibraryMonitor(threading.Thread):
                     
             
             # monitor listitem props when PVR is active
-            elif (xbmc.getCondVisibility("SubString(Window.Property(xmlfile),MyPVR,left)")):
+            elif (xbmc.getCondVisibility("[Window.IsActive(MyPVRChannels.xml) | Window.IsActive(MyPVRGuide.xml) | Window.IsActive(MyPVRTimers.xml) | Window.IsActive(MyPVRSearch.xml) | Window.IsActive(MyPVRRecordings.xml)]")):
                 
                 self.liPath = xbmc.getInfoLabel("ListItem.Path")
                 liLabel = xbmc.getInfoLabel("ListItem.Label")
@@ -199,14 +200,12 @@ class LibraryMonitor(threading.Thread):
             self.widgetTaskInterval += 0.10
 
     def doBackgroundWork(self):
+        #background worker for any long running tasks
         try:
             self.getStudioLogos()
-            #pre cache pvr thumbs by just calling the addon
-            getJSON('Files.GetDirectory','{ "directory": "plugin://script.skin.helper.service/?action=pvrchannels&limit=999", "media": "files" }')
         except Exception as e:
             logMsg("ERROR in LibraryMonitor.doBackgroundWork ! --> " + str(e), 0)
-            
-            
+                       
     def setMovieSetDetails(self):
         #get movie set details -- thanks to phil65 - used this idea from his skin info script
         
@@ -441,16 +440,7 @@ class LibraryMonitor(threading.Thread):
         
         if xbmc.getCondVisibility("ListItem.IsFolder"):
             #assume grouped recordings folderPath
-            try:
-                path = xbmc.getInfoLabel("ListItem.FolderPath")
-                label = xbmc.getInfoLabel("ListItem.Label")
-                json_query = getJSON('PVR.GetRecordings', '{ "properties": [ %s ]}' %( fields_pvrrecordings))
-                for item in json_query:
-                    if path in item['file'] or label in item['file']:
-                        thumb = getCleanImage(item['icon'])
-                        channel = item['channel']
-                        title = item['title']
-            except: pass
+            title = xbmc.getInfoLabel("ListItem.Label")
 
         if not xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnablePVRThumbs)") or not title:
             return
@@ -463,13 +453,7 @@ class LibraryMonitor(threading.Thread):
         if xbmc.getInfoLabel("ListItem.Label") == "..":
             return
         
-        #does this pvr support real thumbs for recordings ?
-        if xbmc.getCondVisibility("Window.IsActive(MyPVRRecordings.xml)"):
-            thumb = xbmc.getInfoLabel("ListItem.Thumb")
-        if thumb and not "http" in thumb and (thumb.endswith(".jpg") or thumb.endswith(".png")):
-            realthumb = thumb
-        
-        self.pvrArtCache,thumb,fanart,poster,logo = getPVRThumbs(self.pvrArtCache, title, channel, realthumb)
+        self.pvrArtCache,thumb,fanart,poster,logo = getPVRThumbs(self.pvrArtCache, title, channel, self.PersistantPvrArtCache)
         
         WINDOW.setProperty("SkinHelper.PVR.Thumb",thumb)
         WINDOW.setProperty("SkinHelper.PVR.FanArt",fanart)
