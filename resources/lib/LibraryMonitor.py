@@ -14,6 +14,7 @@ import random
 import xml.etree.ElementTree as etree
 import base64
 import json
+import requests
 from datetime import datetime
 from Utils import *
 
@@ -37,9 +38,10 @@ class LibraryMonitor(threading.Thread):
     musicArtCache = {}
     streamdetailsCache = {}
     pvrArtCache = {}
+    rottenCache = {}
     lastFolderPath = None
     lastContentType = None
-    
+
     def __init__(self, *args):
         
         logMsg("LibraryMonitor - started")
@@ -63,6 +65,7 @@ class LibraryMonitor(threading.Thread):
         libraryCache["PVRArtCache"] = self.pvrArtCache
         libraryCache["SetsCache"] = self.moviesetCache
         libraryCache["streamdetailsCache"] = self.streamdetailsCache
+        libraryCache["rottenCache"] = self.rottenCache
         json.dump(libraryCache, open(self.cachePath,'w'))
        
     def getCacheFromFile(self):
@@ -76,6 +79,8 @@ class LibraryMonitor(threading.Thread):
                     self.moviesetCache = data["SetsCache"]
                 if data.has_key("streamdetailsCache"):
                     self.streamdetailsCache = data["streamdetailsCache"]
+                if data.has_key("rottenCache"):
+                    self.streamdetailsCache = data["rottenCache"]
                 if data.has_key("PVRArtCache"):
                     WINDOW.setProperty("SkinHelper.PersistantPVRArtCache",repr(self.pvrArtCache))
 
@@ -107,6 +112,7 @@ class LibraryMonitor(threading.Thread):
                 self.moviesetCache = {}
                 self.extraFanartCache = {}
                 self.streamdetailsCache = {}
+                self.rottenCache = {}
                 WINDOW.clearProperty("resetVideoDbCache")
                 
                         
@@ -180,6 +186,7 @@ class LibraryMonitor(threading.Thread):
                         self.setMovieSetDetails()
                         self.setAddonName()
                         self.setStreamDetails()
+                        self.setRottenRatings()
                     except Exception as e:
                         logMsg("ERROR in LibraryMonitor ! --> " + str(e), 0)
                         
@@ -193,7 +200,8 @@ class LibraryMonitor(threading.Thread):
                 WINDOW.clearProperty("SkinHelper.Music.LogoArt") 
                 WINDOW.clearProperty("SkinHelper.Music.DiscArt")
                 WINDOW.clearProperty("SkinHelper.Music.Info")
-                
+                WINDOW.clearProperty('SkinHelper.RottenTomatoesRating')
+                WINDOW.clearProperty('SkinHelper.RottenTomatoesAudienceRating')
             xbmc.sleep(100)
             self.delayedTaskInterval += 0.10
             self.widgetTaskInterval += 0.10
@@ -224,6 +232,8 @@ class LibraryMonitor(threading.Thread):
         WINDOW.clearProperty('SkinHelper.MovieSet.Year')
         WINDOW.clearProperty('SkinHelper.MovieSet.Count')
         WINDOW.clearProperty('SkinHelper.MovieSet.Plot')
+        WINDOW.clearProperty('SkinHelper.RottenTomatoesRating')
+        WINDOW.clearProperty('SkinHelper.RottenTomatoesAudienceRating')
         totalNodes = 50
         for i in range(totalNodes):
             if not WINDOW.getProperty('SkinHelper.MovieSet.' + str(i) + '.Title'):
@@ -899,6 +909,34 @@ class LibraryMonitor(threading.Thread):
         else:
             WINDOW.setProperty("SkinHelper.ExtraFanArtPath","")
             lastPath = None
+
+    def setRottenRatings(self):
+        WINDOW.clearProperty('SkinHelper.RottenTomatoesRating')
+        WINDOW.clearProperty('SkinHelper.RottenTomatoesAudienceRating')
+        contenttype = getCurrentContentType()
+        imdbnumber = xbmc.getInfoLabel("ListItem.IMDBNumber")
+        if contenttype == "movies" and imdbnumber:
+            if self.rottenCache.has_key(imdbnumber):
+                #get data from cache
+                result = self.rottenCache[imdbnumber]
+            else:
+                url = 'http://www.omdbapi.com/?i=%s&plot=short&tomatoes=true&r=json' %imdbnumber
+                res = requests.get(url)
+                result = json.loads(res.content)
+                if result:
+                    self.rottenCache[imdbnumber] = result
+
+            if result:
+                criticsscore = result['tomatoMeter']
+                criticconsensus = result['tomatoConsensus']
+                audiencescore = result['Metascore']
+                if criticsscore:
+                    WINDOW.setProperty("SkinHelper.RottenTomatoesRating",str(criticsscore))
+                if audiencescore:
+                    WINDOW.setProperty("SkinHelper.RottenTomatoesAudienceRating",str(audiencescore))
+                if criticconsensus:
+                    WINDOW.setProperty("SkinHelper.RottenTomatoesConsensus",str(criticconsensus))
+
 
 class Kodi_Monitor(xbmc.Monitor):
     
