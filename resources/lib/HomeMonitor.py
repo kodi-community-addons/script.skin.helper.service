@@ -30,8 +30,7 @@ class HomeMonitor(threading.Thread):
         logMsg("HomeMonitor - started")
         self.event =  threading.Event()
         threading.Thread.__init__(self, *args)
-        
-        
+
     
     def stop(self):
         logMsg("HomeMonitor - stop called",0)
@@ -85,11 +84,14 @@ class HomeMonitor(threading.Thread):
                 WINDOW.clearProperty("netflixready")
     
     def doBackgroundWork(self):
-        self.checkNetflixReady()
-        self.updatePlexlinks()
-        self.genericWindowProps()
-        pluginContent.buildWidgetsListing()
-        self.checkNotifications()
+        try:
+            self.checkNetflixReady()
+            self.updatePlexlinks()
+            self.genericWindowProps()
+            pluginContent.buildWidgetsListing()
+            self.checkNotifications()
+        except Exception as e:
+            logMsg("ERROR in HomeMonitor doBackgroundWork ! --> " + str(e), 0)
        
     def updatePlexlinks(self):
         

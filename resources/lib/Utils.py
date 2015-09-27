@@ -8,10 +8,11 @@ import xbmc
 import xbmcvfs
 import os
 import json
-import urlparse
+import re, urlparse
 import sys
 import urllib,urllib2,re
 import base64
+from traceback import print_exc
 
 ADDON = xbmcaddon.Addon()
 ADDON_ID = ADDON.getAddonInfo('id')
@@ -38,7 +39,13 @@ fields_pvrrecordings = '"art", "channel", "directory", "endtime", "file", "genre
 def logMsg(msg, level = 1):
     doDebugLog = False
     if doDebugLog == True or level == 0:
-        xbmc.log("Skin Helper Service --> " + msg)
+        try: xbmc.log("Skin Helper Service --> " + msg.decode('utf-8','ignore'))
+        except: pass
+        try: xbmc.log("Skin Helper Service --> " + msg.encode('utf-8','ignore'))
+        except: pass
+        try: xbmc.log("Skin Helper Service --> " + msg)
+        except: pass
+        print_exc()
         
 def getContentPath(libPath):
     if "$INFO" in libPath and not "reload=" in libPath:
@@ -369,6 +376,9 @@ def detectPluginContent(plugin,skipscan=False):
     else:
         type = "unknown"
     return (type, None)
+
+def urlEncodeNonAscii(b):
+    return re.sub('[\x80-\xFF]', lambda c: '%%%02x' % ord(c.group(0)), b)
     
 def getTMDBimage(title):
     apiKey = base64.b64decode("NDc2N2I0YjJiYjk0YjEwNGZhNTUxNWM1ZmY0ZTFmZWM=")
@@ -377,49 +387,79 @@ def getTMDBimage(title):
     opener.addheaders = [('User-agent', userAgent)]
     coverUrl = None
     fanartUrl = None
-    title = '"%s"'%title
+    matchFound = False
     videoTypes = ["tv","movie"]
-    for videoType in videoTypes:
-        try:
-            content = opener.open("http://api.themoviedb.org/3/search/"+videoType+"?api_key="+apiKey+"&query="+urllib.quote_plus(title.strip())+"&language=en").read()
-            coverUrl = re.compile('"poster_path":"(.+?)"', re.DOTALL).findall(content)
-            fanartUrl = re.compile('"backdrop_path":"(.+?)"', re.DOTALL).findall(content)
-        except Exception as e:
-            if "429" in str(e):
-                #delay and request again
-                xbmc.sleep(250)
-                try:
-                    content = opener.open("http://api.themoviedb.org/3/search/"+videoType+"?api_key="+apiKey+"&query="+urllib.quote_plus(title.strip())+"&language=en").read()
-                    coverUrl = re.compile('"poster_path":"(.+?)"', re.DOTALL).findall(content)
-                    fanartUrl = re.compile('"backdrop_path":"(.+?)"', re.DOTALL).findall(content)
-                except: pass
-            else:
-                logMsg("ERROR in getTMDBimage ! --> " + str(e), 0)
-        
-        if coverUrl:
-            coverUrl = "http://image.tmdb.org/t/p/original"+coverUrl[0]
-            try: opener.open(coverUrl).read()
-            except: pass
-        if fanartUrl:
-            fanartUrl = "http://image.tmdb.org/t/p/original"+fanartUrl[0]
-            try: opener.open(fanartUrl).read()
-            except: pass
-        
-        if not coverUrl:
-            coverUrl = None
+    
+    try:
+        title = unicode(title)
+        print title
+    except: pass
+
+    titles = [title]
+    try: titles.append(title.encode("utf-8","ignore").replace("ë","a"))
+    except: pass
+    
+    titles.append(title.split(":")[-1])
+    
+    for title in titles:
+        for videoType in videoTypes:
+                
+            url = 'http://api.themoviedb.org/3/search/%s' %videoType
+            headers = { 'User-Agent' : 'Mozilla/5.0 (Windows NT 6.1; Win64; x64)' }
+            url_values = {'api_key': apiKey, 'language': 'en', 'query': urlEncodeNonAscii(title) }
+            query = url + '?' + urllib.urlencode(url_values)
+            req = urllib2.Request(url, query, headers)
             
-        if not fanartUrl:
-            fanartUrl = None
+            retries = 2
+            open = None
+            for i in range(retries):
+                try:
+                    open=urllib2.urlopen(query)
+                    break
+                except:
+                    xbmc.sleep(250)
+                
+            if open:
+                response=open.read().decode('utf8')
+                data=json.loads(response)
+                
+                if data and data.get("results",None):
+                    for item in data["results"]:
+                        name = item.get("name")
+                        if not name: name = item.get("title")
+                        if name:
+                            title_alt = title.lower().replace(" ","").replace("-","").replace(":","").replace("&","")
+                            name_alt = name.lower().replace(" ","").replace("-","").replace(":","").replace("&","")
+                            
+                            original_name = item.get("original_name")
+                            if name == title or original_name == title:
+                                matchFound = True
+                            elif name.split(" (")[0] == title or title_alt == name_alt:
+                                matchFound = True
+                                
+                            if matchFound:
+                                coverUrl = item.get("poster_path",None)
+                                fanartUrl = item.get("backdrop_path",None)
+                                
+                                logMsg("TMDB match found for %s !" %title)
+                                
+                                if coverUrl:
+                                    coverUrl = "http://image.tmdb.org/t/p/original"+coverUrl
+                                    try: opener.open(coverUrl).read()
+                                    except: pass
+                                    
+                                if fanartUrl:
+                                    fanartUrl = "http://image.tmdb.org/t/p/original"+fanartUrl
+                                    try: opener.open(fanartUrl).read()
+                                    except: pass
+                                return (coverUrl, fanartUrl)
+    logMsg("TMDB match NOT found for %s !" %title)
+    return (None, None)
+    
 
-        if coverUrl and fanartUrl:
-            break
-
-    return (coverUrl, fanartUrl)
-
-def getPVRThumbs(pvrArtCache,title,channel):
+def getPVRThumbs(pvrArtCache,title,channel,thumb=""):
     dbID = title + channel
     cacheFound = False
-    thumb = ""
     fanart = ""
     logo = ""
     poster = ""
@@ -454,11 +494,44 @@ def getPVRThumbs(pvrArtCache,title,channel):
     if not cacheFound:
         logMsg("getPVRThumb no cache found for dbID--> " + dbID)
         
-        poster, fanart = getTMDBimage(title)
-        thumb = searchGoogleImage(title + " " + channel)
+        #lookup local library first
+        item = None
+        json_result = getJSON('VideoLibrary.GetTvShows','{ "filter": {"operator":"is", "field":"title", "value":"%s"}, "properties": [ %s ] }' %(title,fields_tvshows))
+        if len(json_result) > 0:
+            item = json_result[0]
+        else:
+            json_result = getJSON('VideoLibrary.GetMovies','{ "filter": {"operator":"is", "field":"title", "value":"%s"}, "properties": [ %s ] }' %(title,fields_movies))
+            if len(json_result) > 0:
+                item = json_result[0]
+        if item: 
+            poster = item["art"].get("poster",None)
+            thumb = item["art"].get("landscape",None)
+            logo = item["art"].get("clearlogo",None)
+            fanart = item["art"].get("fanart",None)
+            if not thumb: thumb = fanart
+        
+        #is the item in the persistant cache ?
+        if not poster and not fanart:
+            persistant_cache = WINDOW.getProperty("SkinHelper.PersistantPVRArtCache")
+            if persistant_cache: 
+                persistant_cache = eval(persistant_cache)
+                if persistant_cache.has_key(dbID + "SkinHelper.PVR.Thumb"): thumb = persistant_cache[dbID + "SkinHelper.PVR.Thumb"]
+                if persistant_cache.has_key(dbID + "SkinHelper.PVR.FanArt"): fanart = persistant_cache[dbID + "SkinHelper.PVR.FanArt"]
+                if persistant_cache.has_key(dbID + "SkinHelper.PVR.Poster"): poster = persistant_cache[dbID + "SkinHelper.PVR.Poster"]
+                if persistant_cache.has_key(dbID + "SkinHelper.PVR.ChannelLogo"): logo = persistant_cache[dbID + "SkinHelper.PVR.ChannelLogo"]
+        
+        #if nothing in library or persistant cache, perform the internet scraping
+        if not poster:
+            poster, fanart = getTMDBimage(title)
+        if not thumb:
+            thumb = searchGoogleImage(title + " " + channel)
+        if not thumb:
+            thumb = searchGoogleImage(title)
+            
         
         #get logo from studio logos
-        logo = searchChannelLogo(channel)
+        if not logo:
+            logo = searchChannelLogo(channel)
         
         pvrArtCache[dbID + "SkinHelper.PVR.Thumb"] = thumb
         pvrArtCache[dbID + "SkinHelper.PVR.FanArt"] = fanart
@@ -508,12 +581,14 @@ def getCurrentContentType():
         contenttype = "tvchannels"
     elif xbmc.getCondVisibility("Window.IsActive(tvrecordings) | Window.IsActive(radiorecordings)"):
         contenttype = "tvrecordings"
+    elif xbmc.getCondVisibility("Window.IsActive(tvtimers) | Window.IsActive(radiotimers)"):
+        contenttype = "tvtimers"
+    elif xbmc.getCondVisibility("Window.IsActive(tvsearch) | Window.IsActive(radiosearch)"):
+        contenttype = "tvsearch"
     elif xbmc.getCondVisibility("Window.IsActive(programs) | Window.IsActive(addonbrowser)"):
         contenttype = "programs"
     elif xbmc.getCondVisibility("Window.IsActive(pictures)"):
         contenttype = "pictures"
-    elif xbmc.getCondVisibility("SubString(Window.Property(xmlfile),MyPVR,left)"):
-        contenttype = "pvr"
     elif xbmc.getCondVisibility("Container.Content(files)"):
         contenttype = "files"
     elif xbmc.getCondVisibility("Container.Content(songs) | Container.Content(singles) | SubString(ListItem.FolderPath,.)"):
@@ -542,7 +617,7 @@ def searchChannelLogo(searchphrase):
                     channelname = item["label"]
                     channelicon = item['thumbnail']
                     if channelname == searchphrase:
-                        image = channelicon
+                        image = getCleanImage(channelicon)
                         break
 
                 #lookup with thelogodb
@@ -589,21 +664,30 @@ def searchChannelLogo(searchphrase):
 
 def searchGoogleImage(searchphrase):
     image = None
+    
     try:
-        search = searchphrase.split()
-        search = '%20'.join(map(str, search))
-        url = 'http://ajax.googleapis.com/ajax/services/search/images?v=1.0&q=%s&safe=off' % search
-        search_results = urllib2.urlopen(url)
-        js = json.loads(search_results.read().decode("utf-8"))
-        if js:
-            results = js['responseData']['results']
+        searchphrase = unicode(searchphrase)
+    except: pass
+    
+    url = 'http://ajax.googleapis.com/ajax/services/search/images'
+    headers = { 'User-Agent' : 'Mozilla/5.0 (Windows NT 6.1; Win64; x64)' }
+    url_values = {'v': '1.0', 'safe': 'off', 'q': urlEncodeNonAscii(searchphrase) }
+    query = url + '?' + urllib.urlencode(url_values)
+    req = urllib2.Request(url, query, headers)
+    open=urllib2.urlopen(query)
+    response=open.read().decode('utf8')
+    data=json.loads(response)
+    if data and data.get("responseData"):
+        if data['responseData'].get("results"):
+            results = data['responseData']['results']
             for i in results: 
                 rest = i['unescapedUrl']
                 if rest:
                     if ".jpg" in rest or ".png" in rest:
-                        image = rest
-                        break
-    except: pass
+                        logMsg("GOOGLE match found for %s !" %searchphrase)
+                        return image
+
+    logMsg("GOOGLE match NOT found for %s  or service error!" %searchphrase)
     return image
     
 def searchThumb(searchphrase, searchphrase2=""):
@@ -622,12 +706,14 @@ def searchThumb(searchphrase, searchphrase2=""):
             return cache[searchphrase]
         else:
             WINDOW.setProperty("getthumbbusy","busy")
+            
             #lookup TMDB
             image = getTMDBimage(searchphrase)[0]
             
             #lookup with Google images
             if not image:
-                searchphrase = searchphrase + searchphrase2
+                image = searchGoogleImage(searchphrase + " " + searchphrase2)
+            if not image:
                 image = searchGoogleImage(searchphrase)
             
             # Do lookup with youtube addon as last resort
@@ -667,13 +753,13 @@ def getCleanImage(image):
             image = image[:-1]
     return image
     
-
 def getMusicArtByDbId(dbid,itemtype):
     cdArt = None
     LogoArt = None
     BannerArt = None
     extraFanArt = None
     Info = None
+    path = None
     TrackList = ""
     if itemtype == "songs":
         json_response = getJSON('AudioLibrary.GetSongDetails', '{ "songid": %s, "properties": [ "file","artistid","albumid","comment"] }'%int(dbid))  
@@ -683,7 +769,7 @@ def getMusicArtByDbId(dbid,itemtype):
         json_response = getJSON('AudioLibrary.GetSongs', '{ "filter":{"albumid": %s}, "properties": [ "file","artistid","track","title","albumid" ] }'%int(dbid))
     
     if json_response:
-        song = None
+        song = {}
         if type(json_response) is list:
             #get track listing
             for item in json_response:
@@ -702,9 +788,10 @@ def getMusicArtByDbId(dbid,itemtype):
             if json_response2.get("description",None):
                 Info = json_response2["description"]
         if not Info and song:
-            json_response2 = getJSON('AudioLibrary.GetArtistDetails', '{ "artistid": %s, "properties": [ "musicbrainzartistid","description" ] }'%song["artistid"][0])
-            if json_response2.get("description",None):
-                Info = json_response2["description"]
+            if song.has_key("artistid"):
+                json_response2 = getJSON('AudioLibrary.GetArtistDetails', '{ "artistid": %s, "properties": [ "musicbrainzartistid","description" ] }'%song["artistid"][0])
+                if json_response2.get("description",None):
+                    Info = json_response2["description"]
 
     if path:
         if "\\" in path:

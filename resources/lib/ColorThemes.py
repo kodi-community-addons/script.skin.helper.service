@@ -117,8 +117,6 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
     
     def refreshListing(self):
         
-        xbmc.executebuiltin( "ActivateWindow(busydialog)" )
-
         #clear list first
         self.themesList.reset()
         
@@ -189,7 +187,7 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
                 listitem.setProperty("type","user")
                 self.themesList.addItem(listitem)
         
-        xbmc.executebuiltin( "Dialog.Close(busydialog)" )
+        xbmc.sleep(150)
     
     def onInit(self):
         self.action_exitkeys_id = [10, 13]

@@ -185,8 +185,16 @@ def setView():
     currentForcedView = xbmc.getInfoLabel("Skin.String(SkinHelper.ForcedViews.%s)" %contenttype)
     
     #also store forced view    
-    if currentForcedView != "None":
+    if currentForcedView != "None" and xbmc.getCondVisibility("Window.IsMedia + Skin.HasSetting(SkinHelper.ForcedViews.Enabled)"):
         xbmc.executebuiltin("Skin.SetString(SkinHelper.ForcedViews.%s,%s)" %(contenttype, selectedItem))
+        if contenttype and currentForcedView and currentForcedView != "None":
+            WINDOW.setProperty("SkinHelper.ForcedView",selectedItem)
+            xbmc.sleep(25)
+            xbmc.executebuiltin("Container.SetViewMode(%s)" %selectedItem)
+            xbmc.executebuiltin("SetFocus(%s)" %selectedItem)
+        else:
+            WINDOW.clearProperty("SkinHelper.ForcedView")
+        
     
     #set view
     if selectedItem != -1 and selectedItem != None:

@@ -3,12 +3,12 @@
 
 import os
 import sys
-from traceback import print_exc
 import xbmc
 import xbmcplugin
 import xbmcaddon
 import xbmcgui
 import threading
+import thread
 import xbmcvfs
 import random
 import xml.etree.ElementTree as etree
@@ -31,7 +31,7 @@ class LibraryMonitor(threading.Thread):
     allStudioLogosColor = {}
     LastCustomStudioImagesPath = None
     delayedTaskInterval = 1800
-    widgetTaskInterval = 0
+    widgetTaskInterval = 590
     moviesetCache = {}
     extraFanartCache = {}
     musicArtCache = {}
@@ -65,7 +65,6 @@ class LibraryMonitor(threading.Thread):
         libraryCache["streamdetailsCache"] = self.streamdetailsCache
         json.dump(libraryCache, open(self.cachePath,'w'))
        
-    
     def getCacheFromFile(self):
         #TODO --> clear the cache in some conditions
         if xbmcvfs.exists(self.cachePath):
@@ -78,10 +77,8 @@ class LibraryMonitor(threading.Thread):
                 if data.has_key("streamdetailsCache"):
                     self.streamdetailsCache = data["streamdetailsCache"]
                 if data.has_key("PVRArtCache"):
-                    self.pvrArtCache = data["PVRArtCache"]
-                    WINDOW.setProperty("SkinHelper.pvrArtCache",repr(self.pvrArtCache))
+                    WINDOW.setProperty("SkinHelper.PersistantPVRArtCache",repr(self.pvrArtCache))
 
-    
     def run(self):
 
         lastListItemLabel = None
@@ -96,7 +93,7 @@ class LibraryMonitor(threading.Thread):
             #do some background stuff every 30 minutes
             if (xbmc.getCondVisibility("!Window.IsActive(videolibrary) + !Window.IsActive(musiclibrary) + !Window.IsActive(fullscreenvideo)")):
                 if (self.delayedTaskInterval >= 1800):
-                    self.getStudioLogos()
+                    thread.start_new_thread(self.doBackgroundWork, ())
                     self.delayedTaskInterval = 0                   
             
             #reload some widgets every 10 minutes
@@ -124,7 +121,7 @@ class LibraryMonitor(threading.Thread):
                     self.setGenre()
                 except Exception as e:
                     logMsg("ERROR in checkMusicArt ! --> " + str(e), 0)
-                    print_exc()
+                    
             
             # monitor listitem props when PVR is active
             elif (xbmc.getCondVisibility("SubString(Window.Property(xmlfile),MyPVR,left)")):
@@ -143,7 +140,7 @@ class LibraryMonitor(threading.Thread):
                         self.setGenre()
                     except Exception as e:
                         logMsg("ERROR in LibraryMonitor ! --> " + str(e), 0)
-                        print_exc()
+                        
 
             
             #monitor home widget
@@ -161,7 +158,7 @@ class LibraryMonitor(threading.Thread):
                         self.checkMusicArt(xbmc.getInfoLabel("Container(%s).ListItem.Artist" %widgetContainer)+xbmc.getInfoLabel("Container(%s).ListItem.Album" %widgetContainer))
                     except Exception as e:
                         logMsg("ERROR in LibraryMonitor widgets ! --> " + str(e), 0)
-                        print_exc()
+                        
             
             # monitor listitem props when videolibrary is active
             elif (xbmc.getCondVisibility("[Window.IsActive(videolibrary) | Window.IsActive(movieinformation)] + !Window.IsActive(fullscreenvideo)")):
@@ -185,7 +182,7 @@ class LibraryMonitor(threading.Thread):
                         self.setStreamDetails()
                     except Exception as e:
                         logMsg("ERROR in LibraryMonitor ! --> " + str(e), 0)
-                        print_exc()
+                        
   
             else:
                 #reset window props
@@ -200,7 +197,19 @@ class LibraryMonitor(threading.Thread):
             xbmc.sleep(100)
             self.delayedTaskInterval += 0.10
             self.widgetTaskInterval += 0.10
-                    
+
+    def doBackgroundWork(self):
+        try:
+            logMsg("LibraryMonitor.doBackgroundWork getStudioLogos", 0)
+            self.getStudioLogos()
+            #pre cache pvr thumbs by just calling the addon
+            logMsg("LibraryMonitor.doBackgroundWork getpvrthumbs", 0)
+            getJSON('Files.GetDirectory','{ "directory": "plugin://script.skin.helper.service/?action=pvrchannels&limit=999", "media": "files" }')
+            logMsg("LibraryMonitor.doBackgroundWork ended", 0)
+        except Exception as e:
+            logMsg("ERROR in LibraryMonitor.doBackgroundWork ! --> " + str(e), 0)
+            
+            
     def setMovieSetDetails(self):
         #get movie set details -- thanks to phil65 - used this idea from his skin info script
         
@@ -420,6 +429,7 @@ class LibraryMonitor(threading.Thread):
     
     def setPVRThumbs(self):
         realthumb = None
+        thumb = None
         WINDOW.clearProperty("SkinHelper.PVR.Thumb") 
         WINDOW.clearProperty("SkinHelper.PVR.FanArt") 
         WINDOW.clearProperty("SkinHelper.PVR.ChannelLogo")
@@ -427,6 +437,11 @@ class LibraryMonitor(threading.Thread):
         
         title = xbmc.getInfoLabel("ListItem.Title")
         channel = xbmc.getInfoLabel("ListItem.ChannelName")
+        
+        #set channellogo first
+        logo = searchChannelLogo(channel)
+        WINDOW.setProperty("SkinHelper.PVR.ChannelLogo",logo)
+        
         if xbmc.getCondVisibility("ListItem.IsFolder"):
             #assume grouped recordings folderPath
             try:
@@ -435,7 +450,7 @@ class LibraryMonitor(threading.Thread):
                 json_query = getJSON('PVR.GetRecordings', '{ "properties": [ %s ]}' %( fields_pvrrecordings))
                 for item in json_query:
                     if path in item['file'] or label in item['file']:
-                        realthumb = item['icon']
+                        thumb = getCleanImage(item['icon'])
                         channel = item['channel']
                         title = item['title']
             except: pass
@@ -450,21 +465,14 @@ class LibraryMonitor(threading.Thread):
 
         if xbmc.getInfoLabel("ListItem.Label") == "..":
             return
-            
-        self.pvrArtCache,thumb,fanart,poster,logo = getPVRThumbs(self.pvrArtCache, title, channel)
-        
-        if channel == xbmc.getInfoLabel("$INFO[ListItem.Label]"):
-            icon = xbmc.getInfoLabel("$INFO[ListItem.Icon]")
-            if icon:
-                logo = xbmc.getInfoLabel("$INFO[ListItem.Icon]")
-
-        #recording?
-        if xbmc.getCondVisibility("Window.IsActive(MyPVRRecordings.xml)"):
-            realthumb = xbmc.getInfoLabel("ListItem.Thumb")
         
         #does this pvr support real thumbs for recordings ?
-        if realthumb and not "imagecache/" in realthumb:
-            thumb = realthumb
+        if xbmc.getCondVisibility("Window.IsActive(MyPVRRecordings.xml)"):
+            thumb = xbmc.getInfoLabel("ListItem.Thumb")
+        if thumb and not "http" in thumb and (thumb.endswith(".jpg") or thumb.endswith(".png")):
+            realthumb = thumb
+        
+        self.pvrArtCache,thumb,fanart,poster,logo = getPVRThumbs(self.pvrArtCache, title, channel, realthumb)
         
         WINDOW.setProperty("SkinHelper.PVR.Thumb",thumb)
         WINDOW.setProperty("SkinHelper.PVR.FanArt",fanart)
@@ -640,19 +648,7 @@ class LibraryMonitor(threading.Thread):
             logMsg("ERROR in getDurationString ! --> " + str(e), 0)
             return None
         return ( hours, minutes, durationString )
-            
-    def getViewId(self, viewString):
-        # get all views from views-file
-        viewId = None
-        skin_view_file = os.path.join(xbmc.translatePath('special://skin/extras').decode("utf-8"), "views.xml")
-        tree = etree.parse(skin_view_file)
-        root = tree.getroot()
-        for view in root.findall('view'):
-            if viewString == xbmc.getLocalizedString(int(view.attrib['languageid'])):
-                viewId=view.attrib['value']
-        
-        return viewId    
-    
+              
     def checkMusicArt(self,widget=None):
         cacheFound = False
         cdArt = None
@@ -730,8 +726,7 @@ class LibraryMonitor(threading.Thread):
         WINDOW.setProperty("SkinHelper.Music.LogoArt",LogoArt)
         WINDOW.setProperty("SkinHelper.Music.TrackList",TrackList)
         WINDOW.setProperty("SkinHelper.Music.Info",Info)
-          
-    
+              
     def setStreamDetails(self):
         streamdetails = None
         #clear props first

@@ -3,7 +3,6 @@
 
 import os
 import sys
-from traceback import print_exc
 import xbmc
 import xbmcplugin
 import xbmcaddon
@@ -62,7 +61,7 @@ class BackgroundsUpdater(threading.Thread):
             self.UpdateBackgrounds()
         except Exception as e:
             logMsg("ERROR in BackgroundsUpdater ! --> " + str(e), 0)
-            print_exc()
+            
         
         self.allBackgrounds = {}
         self.smartShortcuts = {}
@@ -85,7 +84,7 @@ class BackgroundsUpdater(threading.Thread):
                         self.UpdateBackgrounds()
                     except Exception as e:
                         logMsg("ERROR in UpdateBackgrounds ! --> " + str(e), 0)
-                        print_exc()
+                        
                 
                 # Update home backgrounds every interval (default 60 seconds)
                 if backgroundDelay != 0:
@@ -96,7 +95,7 @@ class BackgroundsUpdater(threading.Thread):
                             self.setDayNightColorTheme()
                         except Exception as e:
                             logMsg("ERROR in UpdateBackgrounds ! --> " + str(e), 0)
-                            print_exc()
+                            
             
             xbmc.sleep(150)
             self.normalTaskInterval += 0.15

@@ -14,7 +14,6 @@ import shutil
 from Utils import *
 import random
 from xml.dom.minidom import parse
-from traceback import print_exc
 
 doDebugLog = False
 
@@ -211,9 +210,9 @@ def backup(filterString="",silent=None,promptfilename="false"):
     
     except Exception as e:
         if not silent:
-            xbmcgui.Dialog().ok(ADDON.getLocalizedString(32028), ADDON.getLocalizedString(32030))
+            xbmcgui.Dialog().ok(ADDON.getLocalizedString(32028), ADDON.getLocalizedString(32030), str(e))
         logMsg("ERROR while creating backup ! --> " + str(e), 0)
-        print_exc()
+        
         if silent:
             logMsg("ERROR while creating silent backup ! --> Make sure you provide the FULL VFS path, for example special://skin/extras/mybackup.zip", 0)            
         
@@ -327,9 +326,9 @@ def restore(silent=None):
     
     except Exception as e:
         if not silent:
-            xbmcgui.Dialog().ok(ADDON.getLocalizedString(32032), ADDON.getLocalizedString(32035))
+            xbmcgui.Dialog().ok(ADDON.getLocalizedString(32032), ADDON.getLocalizedString(32035), str(e))
         logMsg("ERROR while restoring backup ! --> " + str(e), 0)
-        print_exc()
+        
 
 
 def zip(src, dst):

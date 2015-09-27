@@ -416,7 +416,7 @@ def getPVRRecordings(limit):
     for item in json_query:
         channelname = item["channel"]
         pvrArtCache,thumb,fanart,poster,logo = getPVRThumbs(pvrArtCache, item["title"], channelname)
-        if not "imagecache/" in item["icon"]:
+        if item["icon"] and not "http" in item["icon"] and (item["icon"].endswith(".jpg") or item["icon"].endswith(".png")):
             thumb = item["icon"]
         path=item["file"]
         li = xbmcgui.ListItem()
@@ -442,8 +442,8 @@ def getPVRRecordings(limit):
     xbmcplugin.endOfDirectory(int(sys.argv[1]))    
     
 def getPVRChannels(limit):
-    xbmcplugin.setContent(int(sys.argv[1]), 'livetv')
-
+    xbmcplugin.setContent(int(sys.argv[1]), 'episodes')
+    
     pvrArtCache = WINDOW.getProperty("SkinHelper.pvrArtCache")
     if pvrArtCache:
         pvrArtCache = eval(pvrArtCache)
@@ -461,8 +461,9 @@ def getPVRChannels(limit):
             pvrArtCache,thumb,fanart,poster,logo = getPVRThumbs(pvrArtCache, currentprogram["title"], channelname)
             if not channelicon:
                 channelicon = logo
-            path="plugin://script.skin.helper.service/?action=launchpvr&path=" + str(channelid)
-            li = xbmcgui.ListItem()
+            path = sys.argv[0] + "?action=launchpvr&path=" + str(channelid)
+            li = xbmcgui.ListItem(currentprogram['title'])
+            li.setPath("RunPlugin(%s)" %sys.argv[0] + "?action=launchpvr&path=" + str(channelid))
             li.setLabel(channelname)
             li.setLabel2(currentprogram['title'])
             li.setInfo( type="Video", infoLabels={ "Title": currentprogram['title'] })
@@ -478,11 +479,13 @@ def getPVRChannels(limit):
             li.setInfo( type="Video", infoLabels={ "genre": " / ".join(currentprogram['genre']) })
             li.setInfo( type="Video", infoLabels={ "duration": currentprogram['runtime'] })
             li.setInfo( type="Video", infoLabels={ "rating": str(currentprogram['rating']) })
-            li.setThumbnailImage(thumb)
             li.setIconImage(channelicon)
             li.setInfo( type="Video", infoLabels={ "Plot": currentprogram['plot'] })
+            li.setProperty('Video', 'true')
             li.setProperty('IsPlayable', 'false')
-            li.setArt({ 'poster': poster, 'fanart' : fanart })
+            li.setArt({ 'poster': poster, 'fanart' : fanart, 'thumb': thumb})
+            #add fake streaminfo to prevent kodi from probing the listitem
+            li.addStreamInfo('video', { 'Codec': 'h264', 'Width' : 1280 })
 
             xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=path, listitem=li, isFolder=False)
     WINDOW.setProperty("SkinHelper.pvrArtCache",repr(pvrArtCache))
