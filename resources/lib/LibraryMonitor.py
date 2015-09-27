@@ -232,6 +232,8 @@ class LibraryMonitor(threading.Thread):
         WINDOW.clearProperty('SkinHelper.MovieSet.Year')
         WINDOW.clearProperty('SkinHelper.MovieSet.Count')
         WINDOW.clearProperty('SkinHelper.MovieSet.Plot')
+        WINDOW.clearProperty('SkinHelper.RottenTomatoesRating')
+        WINDOW.clearProperty('SkinHelper.RottenTomatoesAudienceRating')
         totalNodes = 50
         for i in range(totalNodes):
             if not WINDOW.getProperty('SkinHelper.MovieSet.' + str(i) + '.Title'):
@@ -927,12 +929,13 @@ class LibraryMonitor(threading.Thread):
                         ratings = movies[0]['ratings']
                         self.rottenCache[title] = ratings
 
-            criticsscore = ratings['critics_score']
-            audiencescore = ratings['audience_score']
-            if criticsscore:
-                WINDOW.setProperty("SkinHelper.RottenTomatoesRating",str(criticsscore))
-            if audiencescore:
-                WINDOW.setProperty("SkinHelper.RottenTomatoesAudienceRating",str(audiencescore))
+            if ratings:
+                criticsscore = ratings['critics_score']
+                audiencescore = ratings['audience_score']
+                if criticsscore:
+                    WINDOW.setProperty("SkinHelper.RottenTomatoesRating",str(criticsscore))
+                if audiencescore:
+                    WINDOW.setProperty("SkinHelper.RottenTomatoesAudienceRating",str(audiencescore))
 
 
 class Kodi_Monitor(xbmc.Monitor):
