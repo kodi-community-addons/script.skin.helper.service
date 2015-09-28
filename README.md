@@ -5,15 +5,6 @@ This is the first version of this script, currently only available as beta on Gi
 
 If you run into any issues , have some feedback or feature requests, feel free to ask and please report bugs !
 
-IMPORTANT NOTE:  To use all the fancy integration options with skinshortcuts please use the latest version from Git because we haven't submitted this to the repo yet. This latest version of skinshortcuts contains lot's of cool stuff:
-- speed improvements (you should really notice that)
-- new widget selection system (browse anywhere in the system)
-- support for this skininfo script off course ;-)
-- template building system: this is really cool; it will auto build your skin's xml code for you. Just a couple of lines of codes is what's needed to build your entire widgets, menus etc. Look at the documentation and examples, great stuff!
-
-Latest version of skinshortcuts: https://github.com/BigNoid/script.skinshortcuts/archive/master.zip
-
-
 Thanks all for testing!
 
 Regards,

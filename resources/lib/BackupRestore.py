@@ -154,7 +154,7 @@ def backup(filterString="",silent=None,promptfilename="false"):
                                     if prop[2] == "background":
                                         background = prop[3]
                                         defaultID = prop[1]
-                                        if (".jpg" in thumb or ".png" in thumb) and not background.startswith("special://") and not background.startswith("$"):
+                                        if background and (".jpg" in background or ".png" in background) and not background.startswith("special://") and not background.startswith("$"):
                                             background = getCleanImage(background)
                                             extension = background.split(".")[-1]
                                             newthumb = os.path.join(skinshortcuts_path,"%s-background-%s.%s" %(xbmc.getSkinDir(),defaultID,extension))
