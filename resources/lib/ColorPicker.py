@@ -80,6 +80,7 @@ class ColorPicker(xbmcgui.WindowXMLDialog):
         #prefer skin colors file
         if xbmcvfs.exists( "special://skin/extras/colors/colors.xml" ):
             colors_file = xbmc.translatePath("special://skin/extras/colors/colors.xml").decode("utf-8")
+            self.colorsPath = xbmc.translatePath("special://skin/extras/colors/").decode("utf-8")
         
         if xbmcvfs.exists( colors_file ):
             doc = parse( colors_file )
