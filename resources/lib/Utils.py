@@ -428,7 +428,7 @@ def getTMDBimage(title):
     logMsg("TMDB match NOT found for %s !" %title)
     return ("", "")
     
-def getPVRThumbs(persistant_cache,title,channel):
+def getPVRThumbs(persistant_cache,title,channel,enableYouTubeSearch=False):
     dbID = title + channel
     cacheFound = False
     fanart = ""
@@ -505,7 +505,7 @@ def getPVRThumbs(persistant_cache,title,channel):
             if not thumb and channel:
                 thumb = searchGoogleImage(title + " " + channel)           
             
-            if not thumb and channel:
+            if not thumb and channel and enableYouTubeSearch:
                 #last resort: youtube search
                 thumb = searchYoutubeImage(title + " " + channel)
             

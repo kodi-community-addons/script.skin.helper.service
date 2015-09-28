@@ -80,7 +80,7 @@ class LibraryMonitor(threading.Thread):
                 if data.has_key("streamdetailsCache"):
                     self.streamdetailsCache = data["streamdetailsCache"]
                 if data.has_key("rottenCache"):
-                    self.streamdetailsCache = data["rottenCache"]
+                    self.rottenCache = data["rottenCache"]
                 if data.has_key("PVRArtCache"):
                     self.pvrArtCache = data["PVRArtCache"]
                     WINDOW.setProperty("SkinHelper.pvrArtCache",repr(data["PVRArtCache"]))
