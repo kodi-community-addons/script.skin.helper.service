@@ -905,10 +905,9 @@ class LibraryMonitor(threading.Thread):
         WINDOW.clearProperty('SkinHelper.RottenTomatoesConsensus')
         WINDOW.clearProperty('SkinHelper.RottenTomatoesAwards')
         WINDOW.clearProperty('SkinHelper.RottenTomatoesBoxOffice')
-
         contenttype = getCurrentContentType()
         imdbnumber = xbmc.getInfoLabel("ListItem.IMDBNumber")
-        if contenttype == "movies" and imdbnumber:
+        if (contenttype == "movies" or contenttype=="setmovies") and imdbnumber:
             if self.rottenCache.has_key(imdbnumber):
                 #get data from cache
                 result = self.rottenCache[imdbnumber]
@@ -918,7 +917,6 @@ class LibraryMonitor(threading.Thread):
                 result = json.loads(res.content)
                 if result:
                     self.rottenCache[imdbnumber] = result
-
             if result:
                 criticsscore = result['tomatoMeter']
                 criticconsensus = result['tomatoConsensus']
