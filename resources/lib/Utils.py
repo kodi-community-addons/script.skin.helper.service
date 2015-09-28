@@ -37,7 +37,7 @@ fields_albums = '"title", "fanart", "thumbnail", "genre", "displayartist", "arti
 fields_pvrrecordings = '"art", "channel", "directory", "endtime", "file", "genre", "icon", "playcount", "plot", "plotoutline", "resume", "runtime", "starttime", "streamurl", "title"'
 
 def logMsg(msg, level = 1):
-    doDebugLog = True
+    doDebugLog = False
     if doDebugLog or level == 0:
         if isinstance(msg, unicode):
             msg = msg.encode('utf-8')
@@ -507,18 +507,18 @@ def getPVRThumbs(persistant_cache,title,channel):
             except Exception as e:
                 logMsg("ERROR in getPVRThumbs - get thumb from recordings ! --> " + str(e))
             
-            if not poster:
+            if not poster and channel:
                 poster, fanart = getTMDBimage(title)
                 
-            if not thumb:
+            if not thumb and channel:
                 thumb = searchGoogleImage(title + " " + channel)           
             
-            if not thumb:
+            if not thumb and channel:
                 #last resort: youtube search
                 thumb = searchYoutubeImage(title + " " + channel)
             
             #get logo from studio logos
-            if not logo:
+            if not logo and channel:
                 logo = searchChannelLogo(channel)
                 
         if thumb == "skip":
@@ -528,7 +528,8 @@ def getPVRThumbs(persistant_cache,title,channel):
             WINDOW.setProperty(dbID.encode('utf-8') + "SkinHelper.PVR.cache","cached")
             WINDOW.setProperty(dbID.encode('utf-8') + "SkinHelper.PVR.FanArt",try_encode(fanart))
             WINDOW.setProperty(dbID.encode('utf-8') + "SkinHelper.PVR.Poster",try_encode(poster))
-            WINDOW.setProperty(channel.encode('utf-8') + "SkinHelper.PVR.ChannelLogo",try_encode(logo))
+            if channel:
+                WINDOW.setProperty(channel.encode('utf-8') + "SkinHelper.PVR.ChannelLogo",try_encode(logo))
             WINDOW.setProperty(dbID.encode('utf-8') + "SkinHelper.PVR.Thumb",try_encode(thumb))
     else:
         logMsg("getPVRThumb cache found for dbID--> " + dbID)

@@ -928,11 +928,11 @@ class LibraryMonitor(threading.Thread):
                 if result:
                     self.rottenCache[imdbnumber] = result
             if result:
-                criticsscore = result['tomatoMeter']
-                criticconsensus = result['tomatoConsensus']
-                audiencescore = result['Metascore']
-                awards = result['Awards']
-                boxoffice = result['BoxOffice']
+                criticsscore = result.get('tomatoMeter',"")
+                criticconsensus = result.get('tomatoConsensus',"")
+                audiencescore = result.get('Metascore',"")
+                awards = result.get('Awards',"")
+                boxoffice = result.get('BoxOffice',"")
                 if criticsscore:
                     WINDOW.setProperty("SkinHelper.RottenTomatoesRating",str(criticsscore))
                 if audiencescore:
