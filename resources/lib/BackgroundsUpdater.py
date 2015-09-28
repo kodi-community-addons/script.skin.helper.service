@@ -301,7 +301,7 @@ class BackgroundsUpdater(threading.Thread):
                     logMsg("setting random image.... " + image)
                     return image
                 else:
-                    logMsg("image sources array or cache empty so skipping this path until next restart - " + libPath)
+                    logMsg("image sources array or cache empty so skipping image-sources background untill next restart")
                     return None
         #if something fails, return None
         except:
