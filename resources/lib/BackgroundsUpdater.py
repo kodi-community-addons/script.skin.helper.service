@@ -218,7 +218,7 @@ class BackgroundsUpdater(threading.Thread):
             logMsg("image array or cache empty so skipping this path until next restart - " + libPath)
             self.tempBlacklist.add(libPath)
             
-        WINDOW.setProperty(windowProp, image)
+        WINDOW.setProperty(windowProp, try_encode(image))
         return False
 
     def getPicturesBackground(self):

@@ -520,10 +520,10 @@ def getPVRThumbs(persistant_cache,title,channel):
         else:
             #store in cache for quick access later
             WINDOW.setProperty(dbID.encode('utf-8') + "SkinHelper.PVR.cache","cached")
-            WINDOW.setProperty(dbID.encode('utf-8') + "SkinHelper.PVR.FanArt",try_encode(fanart)
-            WINDOW.setProperty(dbID.encode('utf-8') + "SkinHelper.PVR.Poster",try_encode(poster)
-            WINDOW.setProperty(channel.encode('utf-8') + "SkinHelper.PVR.ChannelLogo",try_encode(logo)
-            WINDOW.setProperty(dbID.encode('utf-8') + "SkinHelper.PVR.Thumb",try_encode(thumb)
+            WINDOW.setProperty(dbID.encode('utf-8') + "SkinHelper.PVR.FanArt",try_encode(fanart))
+            WINDOW.setProperty(dbID.encode('utf-8') + "SkinHelper.PVR.Poster",try_encode(poster))
+            WINDOW.setProperty(channel.encode('utf-8') + "SkinHelper.PVR.ChannelLogo",try_encode(logo))
+            WINDOW.setProperty(dbID.encode('utf-8') + "SkinHelper.PVR.Thumb",try_encode(thumb))
     else:
         logMsg("getPVRThumb cache found for dbID--> " + dbID)
     
@@ -586,7 +586,7 @@ def searchChannelLogo(searchphrase):
     #get's a thumb image for the given search phrase
     image = ""
     
-    cache = WINDOW.getProperty(searchphrase + "SkinHelper.PVR.ChannelLogo")
+    cache = WINDOW.getProperty(searchphrase.encode('utf-8') + "SkinHelper.PVR.ChannelLogo")
     if cache: return cache
     else:
     
@@ -640,7 +640,7 @@ def searchChannelLogo(searchphrase):
             if ".jpg/" in image:
                 image = image.split(".jpg/")[0] + ".jpg"
         
-        WINDOW.setProperty(searchphrase + "SkinHelper.PVR.ChannelLogo",image)
+        WINDOW.setProperty(searchphrase.encode('utf-8') + "SkinHelper.PVR.ChannelLogo",image)
         return image
 
 def searchGoogleImage(searchphrase):
