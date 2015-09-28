@@ -9,6 +9,7 @@ import xbmcvfs
 import os
 import json
 import re, urlparse
+import requests
 import sys
 import urllib,urllib2,re
 import base64
@@ -366,8 +367,6 @@ def detectPluginContent(plugin,skipscan=False):
         type = "unknown"
     return (type, None)
 
-def urlEncodeNonAscii(b):
-    return re.sub('[\x80-\xFF]', lambda c: '%%%02x' % ord(c.group(0)), b)
     
 def getTMDBimage(title):
     apiKey = base64.b64decode("NDc2N2I0YjJiYjk0YjEwNGZhNTUxNWM1ZmY0ZTFmZWM=")
@@ -381,17 +380,10 @@ def getTMDBimage(title):
     
     for videoType in videoTypes:
     
-        try:
-            url = 'http://api.themoviedb.org/3/search/%s' %videoType
-            headers = { 'User-Agent' : 'Mozilla/5.0 (Windows NT 6.1; Win64; x64)' }
-            url_values = {'api_key': apiKey, 'language': 'en', 'query': urlEncodeNonAscii(title) }
-            query = url + '?' + urllib.urlencode(url_values)
-            req = urllib2.Request(url, query, headers)
-
-            open=urllib2.urlopen(query)
-            response=open.read().decode('utf8')
-            data=json.loads(response)
-            
+        try: 
+            url = 'http://api.themoviedb.org/3/search/%s?api_key=%s&language=en&query=%s' %(videoType,apiKey,try_encode(title))
+            response = requests.get(url)
+            data = json.loads(response.content.decode('utf-8','replace'))
             if data and data.get("results",None):
                 for item in data["results"]:
                     name = item.get("name")
@@ -610,13 +602,11 @@ def searchChannelLogo(searchphrase):
 
             #lookup with thelogodb
             if not image:
-                search = searchphrase.split()
-                search = '%20'.join(map(str, search))
-                url = 'http://www.thelogodb.com/api/json/v1/1/tvchannel.php?s=' + search
-                search_results = urllib2.urlopen(url)
-                js = json.loads(search_results.read().decode("utf-8"))
-                if js and js.has_key('channels'):
-                    results = js['channels']
+                url = 'http://www.thelogodb.com/api/json/v1/1/tvchannel.php?s=%s' %try_encode(searchphrase)
+                response = requests.get(url)
+                data = json.loads(response.content.decode('utf-8','replace'))
+                if data and data.has_key('channels'):
+                    results = data['channels']
                     if results:
                         for i in results: 
                             rest = i['strLogoWide']
@@ -626,11 +616,10 @@ def searchChannelLogo(searchphrase):
                                     break
                 
             if not image:
-                search = searchphrase.replace(" HD","").split()
-                search = '%20'.join(map(str, search))
-                url = 'http://www.thelogodb.com/api/json/v1/1/tvchannel.php?s=' + search
-                search_results = urllib2.urlopen(url)
-                js = json.loads(search_results.read().decode("utf-8"))
+                search_alt = searchphrase.replace(" HD","")
+                url = 'http://www.thelogodb.com/api/json/v1/1/tvchannel.php?s=%s' %try_encode(search_alt)
+                response = requests.get(url)
+                data = json.loads(response.content.decode('utf-8','replace'))
                 if js and js.has_key('channels'):
                     results = js['channels']
                     if results:
@@ -659,21 +648,17 @@ def searchGoogleImage(searchphrase):
     image = ""
    
     try:
-        url = 'http://ajax.googleapis.com/ajax/services/search/images'
-        headers = { 'User-Agent' : 'Mozilla/5.0 (Windows NT 6.1; Win64; x64)' }
-        url_values = {'v': '1.0', 'safe': 'off', 'q': urlEncodeNonAscii(searchphrase) }
-        query = url + '?' + urllib.urlencode(url_values)
-        req = urllib2.Request(url, query, headers)
-        open=urllib2.urlopen(query)
-        response=open.read().decode('utf8')
-        data=json.loads(response)
+        ip_address = xbmc.getInfoLabel("Network.IPAddress")
+        url = 'http://ajax.googleapis.com/ajax/services/search/images?v=1.0&safe=off&q=%s&userip=%s' %(try_encode(searchphrase),ip_address)
+        response = requests.get(url)
+        data = json.loads(response.content.decode('utf-8','replace'))
         if data and data.get("responseData"):
             if data['responseData'].get("results"):
                 results = data['responseData']['results']
                 for i in results: 
-                    rest = i['unescapedUrl']
-                    if rest:
-                        if ".jpg" in rest or ".png" in rest:
+                    image = i['unescapedUrl']
+                    if image:
+                        if ".jpg" in image or ".png" in image:
                             logMsg("getTMDBimage - GOOGLE match found for %s !" %searchphrase)
                             return image
     except Exception as e:
@@ -682,7 +667,7 @@ def searchGoogleImage(searchphrase):
             WINDOW.setProperty("SkinHelper.DisableInternetLookups","disable")
             logMsg("searchGoogleImage - no internet access, disabling internet lookups for now")
         else:
-            logMsg("getTMDBimage - ERROR in searchGoogleImage ! --> " + str(e), 0)
+            logMsg("getTMDBimage - ERROR in searchGoogleImage ! --> " + str(e))
     
     logMsg("getTMDBimage - GOOGLE match NOT found for %s" %searchphrase)
     return image

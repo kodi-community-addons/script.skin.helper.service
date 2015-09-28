@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-	<addon id="script.skin.helper.service" name="Skin Helper Service" version="0.0.18" provider-name="marcelveldt">
+	<addon id="script.skin.helper.service" name="Skin Helper Service" version="0.0.19" provider-name="marcelveldt">
 	<requires>
 		<import addon="xbmc.python" version="2.13.0"/>
 		<import addon="xbmc.addon" version="12.0.0"/>
@@ -7,10 +7,10 @@
 		<import addon="script.module.requests" version="2.3.0"/>
 	</requires>
 	
+    <extension point="xbmc.python.library" library="default.py" />
 	<extension point="xbmc.python.pluginsource" library="plugin.py">
 		<provides>video</provides>
 	</extension>
-	<extension point="xbmc.python.library" library="default.py" />
 	<extension library="service.py" point="xbmc.service" start="login" />
 	<extension point="kodi.context.item" library="contextmenu_serieslevel.py">
 		<item>

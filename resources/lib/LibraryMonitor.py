@@ -924,7 +924,7 @@ class LibraryMonitor(threading.Thread):
             elif not WINDOW.getProperty("SkinHelper.DisableInternetLookups"):
                 url = 'http://www.omdbapi.com/?i=%s&plot=short&tomatoes=true&r=json' %imdbnumber
                 res = requests.get(url)
-                result = json.loads(res.content)
+                result = json.loads(res.content.decode('utf-8','replace'))
                 if result:
                     self.rottenCache[imdbnumber] = result
             if result:
