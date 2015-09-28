@@ -161,7 +161,7 @@ class BackgroundsUpdater(threading.Thread):
             return False
         
         #no blacklist so read cache and/or path
-        logMsg("path is NOT blacklisted (or blacklist file error) - continuing for path " + libPath)
+        logMsg("path is NOT blacklisted - continuing for path " + libPath)
         images = []
                
         #cache entry exists and cache is not expired, load cache entry
@@ -301,7 +301,7 @@ class BackgroundsUpdater(threading.Thread):
                     logMsg("setting random image.... " + image)
                     return image
                 else:
-                    logMsg("image sources array or cache empty so skipping this path until next restart - " + libPath)
+                    logMsg("image sources array or cache empty so skipping image-sources background untill next restart")
                     return None
         #if something fails, return None
         except:

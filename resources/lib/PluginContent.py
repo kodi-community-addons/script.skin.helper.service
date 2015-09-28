@@ -489,7 +489,6 @@ def getPVRChannels(limit):
 
             xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=path, listitem=li, isFolder=False)
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
-
     
 def getThumb(searchphrase):
     WINDOW.clearProperty("SkinHelper.ListItemThumb")
@@ -737,17 +736,48 @@ def buildNextAiredTvShowsListing(limit):
     if nextairedTotal:
         nextairedTotal = int(nextairedTotal)
         for count in range(nextairedTotal):
-            tvshow = WINDOW.getProperty("NextAired.%s.Label"%str(count))
+            tvshow = WINDOW.getProperty("NextAired.%s.Label"%str(count)).decode("utf-8")
             if tvshow:
                 json_result = getJSON('VideoLibrary.GetTvShows','{ "filter": {"operator":"is", "field":"title", "value":"%s"}, "properties": [ %s ] }' %(tvshow,fields_tvshows))
                 if len(json_result) > 0:
                     item = json_result[0]
                     path = "videodb://tvshows/titles/%s/" %str(item["tvshowid"])
-                    item["airtime"] = WINDOW.getProperty("NextAired.%s.AirTime"%str(count))
-                    item["title"] = WINDOW.getProperty("NextAired.%s.NextTitle"%str(count))
-                    item["tvshowtitle"] = tvshow
-                    item["season"] = int(WINDOW.getProperty("NextAired.%s.NextSeasonNumber"%str(count)))
-                    item["episode"] = int(WINDOW.getProperty("NextAired.%s.NextEpisodeNumber"%str(count)))
+                    extraprops = []
+                    extraprops.append("airtime",WINDOW.getProperty("NextAired.%s.AirTime"%str(count)).decode("utf-8"))
+                    extraprops.append("Path",WINDOW.getProperty("NextAired.%s.Path"%str(count)).decode("utf-8"))
+                    extraprops.append("Library",WINDOW.getProperty("NextAired.%s.Library"%str(count)).decode("utf-8"))
+                    extraprops.append("Status",WINDOW.getProperty("NextAired.%s.Status"%str(count)).decode("utf-8"))
+                    extraprops.append("StatusID",WINDOW.getProperty("NextAired.%s.StatusID"%str(count)).decode("utf-8"))
+                    extraprops.append("Network",WINDOW.getProperty("NextAired.%s.Network"%str(count)).decode("utf-8"))
+                    extraprops.append("Started",WINDOW.getProperty("NextAired.%s.Started"%str(count)).decode("utf-8"))
+                    extraprops.append("Genre",WINDOW.getProperty("NextAired.%s.Genre"%str(count)).decode("utf-8"))
+                    extraprops.append("Premiered",WINDOW.getProperty("NextAired.%s.Premiered"%str(count)).decode("utf-8"))
+                    extraprops.append("Country",WINDOW.getProperty("NextAired.%s.Country"%str(count)).decode("utf-8"))
+                    extraprops.append("Runtime",WINDOW.getProperty("NextAired.%s.Runtime"%str(count)).decode("utf-8"))
+                    extraprops.append("Fanart",WINDOW.getProperty("NextAired.%s.Fanart"%str(count)).decode("utf-8"))
+                    extraprops.append("Today",WINDOW.getProperty("NextAired.%s.Today"%str(count)).decode("utf-8"))
+                    extraprops.append("NextDate",WINDOW.getProperty("NextAired.%s.NextDate"%str(count)).decode("utf-8"))
+                    extraprops.append("NextDay",WINDOW.getProperty("NextAired.%s.NextDay"%str(count)).decode("utf-8"))
+                    extraprops.append("NextTitle",WINDOW.getProperty("NextAired.%s.NextTitle"%str(count)).decode("utf-8"))
+                    extraprops.append("NextNumber",WINDOW.getProperty("NextAired.%s.NextNumber"%str(count)).decode("utf-8"))
+                    extraprops.append("NextEpisodeNumber",WINDOW.getProperty("NextAired.%s.NextEpisodeNumber"%str(count)).decode("utf-8"))
+                    extraprops.append("NextSeasonNumber",WINDOW.getProperty("NextAired.%s.NextSeasonNumber"%str(count)).decode("utf-8"))
+                    extraprops.append("LatestDate",WINDOW.getProperty("NextAired.%s.LatestDate"%str(count)).decode("utf-8"))
+                    extraprops.append("LatestDay",WINDOW.getProperty("NextAired.%s.LatestDay"%str(count)).decode("utf-8"))
+                    extraprops.append("LatestTitle",WINDOW.getProperty("NextAired.%s.LatestTitle"%str(count)).decode("utf-8"))
+                    extraprops.append("LatestNumber",WINDOW.getProperty("NextAired.%s.LatestNumber"%str(count)).decode("utf-8"))
+                    extraprops.append("LatestEpisodeNumber",WINDOW.getProperty("NextAired.%s.LatestEpisodeNumber"%str(count)).decode("utf-8"))
+                    extraprops.append("LatestSeasonNumber",WINDOW.getProperty("NextAired.%s.LatestSeasonNumber"%str(count)).decode("utf-8"))
+                    extraprops.append("AirDay",WINDOW.getProperty("NextAired.%s.AirDay"%str(count)).decode("utf-8"))
+                    extraprops.append("ShortTime",WINDOW.getProperty("NextAired.%s.ShortTime"%str(count)).decode("utf-8"))
+                    extraprops.append("SecondWeek",WINDOW.getProperty("NextAired.%s.SecondWeek"%str(count)).decode("utf-8"))
+                    extraprops.append("Art(poster)",WINDOW.getProperty("NextAired.%s.Art(poster)"%str(count)).decode("utf-8"))
+                    extraprops.append("Art(fanart)",WINDOW.getProperty("NextAired.%s.Art(fanart)"%str(count)).decode("utf-8"))
+                    extraprops.append("Art(landscape)",WINDOW.getProperty("NextAired.%s.Art(landscape)"%str(count)).decode("utf-8"))
+                    extraprops.append("Art(clearlogo)",WINDOW.getProperty("NextAired.%s.Art(clearlogo)"%str(count)).decode("utf-8"))
+                    extraprops.append("Art(clearart)",WINDOW.getProperty("NextAired.%s.Art(clearart)"%str(count)).decode("utf-8"))
+                    extraprops.append("Art(characterart)",WINDOW.getProperty("NextAired.%s.Art(characterart)"%str(count)).decode("utf-8"))
+                    item["extraprops"] = repr(extraprops)
                     item["file"] = path
                     allItems.append(item)
                     count += 1
@@ -771,9 +801,10 @@ def getNextAiredTvShows(limit):
     directoryItems = list()
     for item in allItems:
         liz = createListItem(item)
-        liz.setProperty("AirTime",item["airtime"])
-        liz.setInfo( type="Video", infoLabels={ "Plot": item["airtime"] })
         liz.setProperty('IsPlayable', 'false')
+        extraProps = eval(item["extraprops"])
+        for prop in extraProps:
+            liz.setProperty(prop[0], prop[1])
         directoryItems.append((item['file'], liz, True))
         count += 1
         if count == limit:

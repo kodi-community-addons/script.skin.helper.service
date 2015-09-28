@@ -5,15 +5,6 @@ This is the first version of this script, currently only available as beta on Gi
 
 If you run into any issues , have some feedback or feature requests, feel free to ask and please report bugs !
 
-IMPORTANT NOTE:  To use all the fancy integration options with skinshortcuts please use the latest version from Git because we haven't submitted this to the repo yet. This latest version of skinshortcuts contains lot's of cool stuff:
-- speed improvements (you should really notice that)
-- new widget selection system (browse anywhere in the system)
-- support for this skininfo script off course ;-)
-- template building system: this is really cool; it will auto build your skin's xml code for you. Just a couple of lines of codes is what's needed to build your entire widgets, menus etc. Look at the documentation and examples, great stuff!
-
-Latest version of skinshortcuts: https://github.com/BigNoid/script.skinshortcuts/archive/master.zip
-
-
 Thanks all for testing!
 
 Regards,
@@ -731,6 +722,8 @@ ________________________________________________________________________________
 plugin://script.skin.helper.service/?action=nextairedtvshows&reload=$INFO[Window(Home).Property(widgetreload2)]
 ```
 Provides a list of the shows from the library that are airing today - requires script.tv.show.next.aired
+The listitems will have the properties as described here: http://kodi.wiki/view/Add-on:TV_Show_-_Next_Aired#Airing_today
+For example: ListItem.Property(NextTitle)
 Note: By providing the reload-parameter set to the widgetreload2 property, the widget will be updated every 10 minutes.
 
 
