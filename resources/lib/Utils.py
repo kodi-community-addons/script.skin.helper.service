@@ -37,14 +37,14 @@ fields_albums = '"title", "fanart", "thumbnail", "genre", "displayartist", "arti
 fields_pvrrecordings = '"art", "channel", "directory", "endtime", "file", "genre", "icon", "playcount", "plot", "plotoutline", "resume", "runtime", "starttime", "streamurl", "title"'
 
 def logMsg(msg, level = 1):
-    doDebugLog = False
+    doDebugLog = True
     if doDebugLog or level == 0:
         if isinstance(msg, unicode):
             msg = msg.encode('utf-8')
         xbmc.log("Skin Helper Service --> " + msg)
         if "exception" in msg.lower() or "error" in msg.lower():
             print_exc()
-        
+            
 def getContentPath(libPath):
     if "$INFO" in libPath and not "reload=" in libPath:
         libPath = libPath.replace("$INFO[Window(Home).Property(", "")
@@ -125,10 +125,10 @@ def getJSON(method,params):
         elif jsonobject.has_key('addons'):
             return jsonobject['addons']
         else:
-            logMsg("getJson - invalid result for Method %s - params: %s /nresponse: %s" %(method,params, str(jsonobject))) 
+            logMsg("getJson - invalid result for Method %s - params: %s - response: %s" %(method,params, str(jsonobject))) 
             return {}
     else:
-        logMsg("getJson - empty result for Method %s - params: %s /nresponse: %s" %(method,params, str(jsonobject))) 
+        logMsg("getJson - empty result for Method %s - params: %s - response: %s" %(method,params, str(jsonobject))) 
         return {}
 
 def try_encode(text, encoding="utf-8"):
@@ -426,7 +426,12 @@ def getTMDBimage(title):
                             return (coverUrl, fanartUrl)
         
         except Exception as e:
-            logMsg("getTMDBimage - Error in getTMDBimage --> " + str(e),0)
+            if "getaddrinfo failed" in str(e):
+                #no internet access - disable lookups for now
+                WINDOW.setProperty("SkinHelper.DisableInternetLookups","disable")
+                logMsg("getTMDBimage - no internet access, disabling internet lookups for now")
+            else:
+                logMsg("getTMDBimage - Error in getTMDBimage --> " + str(e),0)
     
     logMsg("TMDB match NOT found for %s !" %title)
     return ("", "")
@@ -486,7 +491,7 @@ def getPVRThumbs(persistant_cache,title,channel):
                 if logo: cacheFound = True
         
         #if nothing in library or persistant cache, perform the internet scraping
-        if not cacheFound:
+        if not cacheFound and not WINDOW.getProperty("SkinHelper.DisableInternetLookups"):
         
             #lookup actual recordings (for grouped recordings and actual icons provided by pvr)
             try:
@@ -635,7 +640,12 @@ def searchChannelLogo(searchphrase):
                                     image = rest
                                     break
         except Exception as e:
-            logMsg("ERROR in searchChannelLogo ! --> " + str(e), 0)
+            if "getaddrinfo failed" in str(e):
+                #no internet access - disable lookups for now
+                WINDOW.setProperty("SkinHelper.DisableInternetLookups","disable")
+                logMsg("searchChannelLogo - no internet access, disabling internet lookups for now")
+            else:
+                logMsg("ERROR in searchChannelLogo ! --> " + str(e), 0)
 
         if image:
             if ".jpg/" in image:
@@ -666,9 +676,14 @@ def searchGoogleImage(searchphrase):
                             logMsg("getTMDBimage - GOOGLE match found for %s !" %searchphrase)
                             return image
     except Exception as e:
-        logMsg("getTMDBimage - ERROR in searchGoogleImage ! --> " + str(e), 0)
+        if "getaddrinfo failed" in str(e):
+            #no internet access - disable lookups for now
+            WINDOW.setProperty("SkinHelper.DisableInternetLookups","disable")
+            logMsg("searchGoogleImage - no internet access, disabling internet lookups for now")
+        else:
+            logMsg("getTMDBimage - ERROR in searchGoogleImage ! --> " + str(e), 0)
     
-    logMsg("getTMDBimage - GOOGLE match NOT found for %s  or service error!" %searchphrase)
+    logMsg("getTMDBimage - GOOGLE match NOT found for %s" %searchphrase)
     return image
  
 def searchYoutubeImage(searchphrase):
@@ -700,29 +715,31 @@ def searchYoutubeImage(searchphrase):
  
 def searchThumb(searchphrase, searchphrase2=""):
     #get's a thumb image for the given search phrase
+    
+    #is this item already in the cache?
     image = WINDOW.getProperty(searchphrase + searchphrase2 + "SkinHelper.PVR.Thumb")
-
-    if searchphrase2:
-        searchphrase = searchphrase + " " + searchphrase2
-        
-    WINDOW.setProperty("getthumbbusy","busy")
-       
-    #lookup TMDB
-    if not image:
-        image = getTMDBimage(searchphrase)[0]
-    
-    #lookup with Google images
-    if not image:
-        image = searchGoogleImage(searchphrase)
-    
-    # Do lookup with youtube addon as last resort
-    if not image:
-        searchYoutubeImage(searchphrase)
+    if not image and not WINDOW.getProperty("SkinHelper.DisableInternetLookups"):
+        if searchphrase2:
+            searchphrase = searchphrase + " " + searchphrase2
             
-    if image:
-        if ".jpg/" in image:
-            image = image.split(".jpg/")[0] + ".jpg"
-    WINDOW.clearProperty("getthumbbusy")
+        WINDOW.setProperty("getthumbbusy","busy")
+           
+        #lookup TMDB
+        if not image:
+            image = getTMDBimage(searchphrase)[0]
+        
+        #lookup with Google images
+        if not image:
+            image = searchGoogleImage(searchphrase)
+        
+        # Do lookup with youtube addon as last resort
+        if not image:
+            searchYoutubeImage(searchphrase)
+                
+        if image:
+            if ".jpg/" in image:
+                image = image.split(".jpg/")[0] + ".jpg"
+        WINDOW.clearProperty("getthumbbusy")
     return image
     
 def getCleanImage(image):

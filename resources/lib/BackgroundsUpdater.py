@@ -161,7 +161,7 @@ class BackgroundsUpdater(threading.Thread):
             return False
         
         #no blacklist so read cache and/or path
-        logMsg("path is NOT blacklisted (or blacklist file error) - continuing for path " + libPath)
+        logMsg("path is NOT blacklisted - continuing for path " + libPath)
         images = []
                
         #cache entry exists and cache is not expired, load cache entry
