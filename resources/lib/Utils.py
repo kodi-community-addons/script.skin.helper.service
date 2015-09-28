@@ -513,15 +513,12 @@ def getPVRThumbs(persistant_cache,title,channel,enableYouTubeSearch=False):
             if not logo and channel:
                 logo = searchChannelLogo(channel)
                 
-        if thumb == "skip":
-            thumb = ""
-        else:
-            #store in cache for quick access later
+        #store in cache for quick access later
+        if channel:
             WINDOW.setProperty(dbID.encode('utf-8') + "SkinHelper.PVR.cache","cached")
             WINDOW.setProperty(dbID.encode('utf-8') + "SkinHelper.PVR.FanArt",try_encode(fanart))
             WINDOW.setProperty(dbID.encode('utf-8') + "SkinHelper.PVR.Poster",try_encode(poster))
-            if channel:
-                WINDOW.setProperty(channel.encode('utf-8') + "SkinHelper.PVR.ChannelLogo",try_encode(logo))
+            WINDOW.setProperty(channel.encode('utf-8') + "SkinHelper.PVR.ChannelLogo",try_encode(logo))
             WINDOW.setProperty(dbID.encode('utf-8') + "SkinHelper.PVR.Thumb",try_encode(thumb))
     else:
         logMsg("getPVRThumb cache found for dbID--> " + dbID)
@@ -649,8 +646,9 @@ def searchGoogleImage(searchphrase):
    
     try:
         ip_address = xbmc.getInfoLabel("Network.IPAddress")
-        url = 'http://ajax.googleapis.com/ajax/services/search/images?v=1.0&safe=off&q=%s&userip=%s' %(try_encode(searchphrase),ip_address)
-        response = requests.get(url)
+        url = 'http://ajax.googleapis.com/ajax/services/search/images'
+        params = {'v' : '1.0', 'safe': 'off', 'userip': ip_address, 'q': searchphrase, 'imgsz': 'medium|large|xlarge'}
+        response = requests.get(url, params=params)
         data = json.loads(response.content.decode('utf-8','replace'))
         if data and data.get("responseData"):
             if data['responseData'].get("results"):
