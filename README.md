@@ -731,6 +731,8 @@ ________________________________________________________________________________
 plugin://script.skin.helper.service/?action=nextairedtvshows&reload=$INFO[Window(Home).Property(widgetreload2)]
 ```
 Provides a list of the shows from the library that are airing today - requires script.tv.show.next.aired
+The listitems will have the properties as described here: http://kodi.wiki/view/Add-on:TV_Show_-_Next_Aired#Airing_today
+For example: ListItem.Property(NextTitle)
 Note: By providing the reload-parameter set to the widgetreload2 property, the widget will be updated every 10 minutes.
 
 
