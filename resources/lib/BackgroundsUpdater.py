@@ -169,6 +169,7 @@ class BackgroundsUpdater(threading.Thread):
             logMsg("load random image from the cache file... " + libPath)
             image = random.choice(self.allBackgrounds[libPath])
             if image:
+                image = getCleanImage(image)
                 logMsg("loading done setting image from cache... " + image)
                 WINDOW.setProperty(windowProp, image)
                 return True
@@ -203,7 +204,7 @@ class BackgroundsUpdater(threading.Thread):
                 logMsg("media array empty or error so add this path to blacklist..." + libPath)
                 #add path to temporary blacklist
                 self.tempBlacklist.add(libPath)
-                WINDOW.setProperty(windowProp, image)
+                WINDOW.setProperty(windowProp, try_encode(image))
 
         
         #all is fine, we have some images to randomize and return one
@@ -212,7 +213,7 @@ class BackgroundsUpdater(threading.Thread):
             random.shuffle(images)
             image = images[0]
             logMsg("setting random image.... " + image)
-            WINDOW.setProperty(windowProp, image)
+            WINDOW.setProperty(windowProp, try_encode(image))
             return True
         else:
             logMsg("image array or cache empty so skipping this path until next restart - " + libPath)
@@ -234,11 +235,11 @@ class BackgroundsUpdater(threading.Thread):
         try:
             if (self.allBackgrounds.has_key("pictures")):
                 #get random image from our global cache file
-                image = None
-                image = random.choice(self.allBackgrounds["pictures"])
-                if image:
-                    logMsg("setting random image from cache.... " + image)
-                return image 
+                if self.allBackgrounds["pictures"]:
+                    image = random.choice(self.allBackgrounds["pictures"])
+                    if image:
+                        logMsg("setting random image from cache.... " + image)
+                    return image 
             else:
                 #load the pictures from the custom path or from all picture sources
                 images = []
@@ -304,7 +305,7 @@ class BackgroundsUpdater(threading.Thread):
                     return None
         #if something fails, return None
         except:
-            logMsg("exception occured in getPicturesBackground.... ")
+            logMsg("exception occured in getPicturesBackground.... ",0)
             return None            
                
     def getGlobalBackground(self, fallbackImage=None):

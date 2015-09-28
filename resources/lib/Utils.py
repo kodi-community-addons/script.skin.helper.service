@@ -38,11 +38,12 @@ fields_pvrrecordings = '"art", "channel", "directory", "endtime", "file", "genre
 
 def logMsg(msg, level = 1):
     doDebugLog = False
-    if doDebugLog == True or level == 0:
+    if doDebugLog or level == 0:
         if isinstance(msg, unicode):
             msg = msg.encode('utf-8')
         xbmc.log("Skin Helper Service --> " + msg)
-        print_exc()
+        if "exception" in msg.lower() or "error" in msg.lower():
+            print_exc()
         
 def getContentPath(libPath):
     if "$INFO" in libPath and not "reload=" in libPath:
@@ -124,12 +125,10 @@ def getJSON(method,params):
         elif jsonobject.has_key('addons'):
             return jsonobject['addons']
         else:
-            logMsg("invalid result " + str(jsonobject))
-            logMsg('{ "jsonrpc" : "2.0" , "method" : "' + method + '" , "params" : ' + params + ' , "id":1 }')
+            logMsg("getJson - invalid result for Method %s - params: %s /nresponse: %s" %(method,params, str(jsonobject))) 
             return {}
     else:
-        logMsg("no result " + str(jsonobject))
-        logMsg('{ "jsonrpc" : "2.0" , "method" : "' + method + '" , "params" : ' + params + ' , "id":1 }')
+        logMsg("getJson - empty result for Method %s - params: %s /nresponse: %s" %(method,params, str(jsonobject))) 
         return {}
 
 def try_encode(text, encoding="utf-8"):
@@ -398,20 +397,22 @@ def getTMDBimage(title):
                     name = item.get("name")
                     if not name: name = item.get("title")
                     if name:
-                        title_alt = title.lower().replace(" ","").replace("-","").replace(":","").replace("&","")
-                        name_alt = name.lower().replace(" ","").replace("-","").replace(":","").replace("&","")
+                        original_name = item.get("original_name","")
+                        title_alt = title.lower().replace(" ","").replace("-","").replace(":","").replace("&","").replace(",","")
+                        name_alt = name.lower().replace(" ","").replace("-","").replace(":","").replace("&","").replace(",","")
+                        org_name_alt = original_name.lower().replace(" ","").replace("-","").replace(":","").replace("&","").replace(",","")
                         
                         original_name = item.get("original_name")
                         if title in name == title or original_name == title:
                             matchFound = True
-                        elif name.split(" (")[0] == title or title_alt == name_alt:
+                        elif name.split(" (")[0] == title or title_alt == name_alt or title_alt == org_name_alt:
                             matchFound = True
                             
                         if matchFound:
                             coverUrl = item.get("poster_path","")
                             fanartUrl = item.get("backdrop_path","")
                             
-                            logMsg("TMDB match found for %s !" %title)
+                            logMsg("getTMDBimage - TMDB match found for %s !" %title)
                             
                             if coverUrl:
                                 coverUrl = "http://image.tmdb.org/t/p/original"+coverUrl
@@ -425,7 +426,7 @@ def getTMDBimage(title):
                             return (coverUrl, fanartUrl)
         
         except Exception as e:
-            logMsg("Error in getTMDBimage --> " + str(e),0)
+            logMsg("getTMDBimage - Error in getTMDBimage --> " + str(e),0)
     
     logMsg("TMDB match NOT found for %s !" %title)
     return ("", "")
@@ -662,16 +663,17 @@ def searchGoogleImage(searchphrase):
                     rest = i['unescapedUrl']
                     if rest:
                         if ".jpg" in rest or ".png" in rest:
-                            logMsg("GOOGLE match found for %s !" %searchphrase)
+                            logMsg("getTMDBimage - GOOGLE match found for %s !" %searchphrase)
                             return image
     except Exception as e:
-        logMsg("ERROR in searchGoogleImage ! --> " + str(e), 0)
+        logMsg("getTMDBimage - ERROR in searchGoogleImage ! --> " + str(e), 0)
     
-    logMsg("GOOGLE match NOT found for %s  or service error!" %searchphrase)
+    logMsg("getTMDBimage - GOOGLE match NOT found for %s  or service error!" %searchphrase)
     return image
  
 def searchYoutubeImage(searchphrase):
     image = ""
+    matchFound = False
     #safety check: prevent multiple youtube searches at once...
     waitForYouTubeCount = 0
     if WINDOW.getProperty("youtubescanrunning") == "running":
@@ -686,7 +688,13 @@ def searchYoutubeImage(searchphrase):
             if media.has_key('art'):
                 if media['art'].has_key('thumb'):
                     image = getCleanImage(media['art']['thumb'])
+                    matchFound = True
                     break
+    if matchFound:
+        logMsg("searchYoutubeImage - YOUTUBE match found for %s" %searchphrase)
+    else:
+        logMsg("searchYoutubeImage - YOUTUBE match NOT found for %s" %searchphrase)
+    
     WINDOW.clearProperty("youtubescanrunning")
     return image
  
@@ -720,7 +728,7 @@ def searchThumb(searchphrase, searchphrase2=""):
 def getCleanImage(image):
     if "image://" in image:
         image = image.replace("image://","")
-        image=urllib.unquote(image)
+        image=urllib.unquote(image.encode("utf-8"))
         if image.endswith("/"):
             image = image[:-1]
     return image

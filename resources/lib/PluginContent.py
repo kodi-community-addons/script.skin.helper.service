@@ -418,8 +418,8 @@ def getPVRRecordings(limit):
         thumb,fanart,poster,logo = getPVRThumbs(pvrArtCache, item["title"], channelname)
         path=item["file"]
         li = xbmcgui.ListItem()
-        li.setLabel(channelname)
-        li.setLabel2(item['title'])
+        li.setLabel(item['title'])
+        li.setLabel2(channelname)
         li.setInfo( type="Video", infoLabels={ "Title": item['title'] })
         li.setProperty("StartTime",item['starttime'])
         li.setProperty("ChannelIcon",logo)
@@ -464,8 +464,8 @@ def getPVRChannels(limit):
             path = sys.argv[0] + "?action=launchpvr&path=" + str(channelid)
             li = xbmcgui.ListItem(currentprogram['title'])
             li.setPath("RunPlugin(%s)" %sys.argv[0] + "?action=launchpvr&path=" + str(channelid))
-            li.setLabel(channelname)
-            li.setLabel2(currentprogram['title'])
+            li.setLabel(currentprogram['title'])
+            li.setLabel2(channelname)
             li.setInfo( type="Video", infoLabels={ "Title": currentprogram['title'] })
             li.setProperty("StartTime",currentprogram['starttime'].split(" ")[1])
             li.setProperty("StartDate",currentprogram['starttime'].split(" ")[0])
@@ -490,6 +490,7 @@ def getPVRChannels(limit):
             xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=path, listitem=li, isFolder=False)
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
+    
 def getThumb(searchphrase):
     WINDOW.clearProperty("SkinHelper.ListItemThumb")
     
