@@ -114,70 +114,60 @@ class LibraryMonitor(threading.Thread):
                 self.extraFanartCache = {}
                 self.streamdetailsCache = {}
                 WINDOW.clearProperty("resetVideoDbCache")
-                
                         
             # monitor listitem props when musiclibrary is active
             elif (xbmc.getCondVisibility("[Window.IsActive(musiclibrary) | Window.IsActive(MyMusicSongs.xml)] + !Container.Scrolling")):
-                if WINDOW.getProperty("resetMusicArtCache") == "reset":
-                    self.lastMusicDbId = None
-                    self.musicArtCache = {}
-                    WINDOW.clearProperty("resetMusicArtCache")
                 try:
-                    self.checkMusicArt()
-                    self.setGenre()
+                    if WINDOW.getProperty("resetMusicArtCache") == "reset":
+                        self.lastMusicDbId = None
+                        self.musicArtCache = {}
+                        WINDOW.clearProperty("resetMusicArtCache")
+                        self.checkMusicArt()
+                        self.setGenre()
                 except Exception as e:
                     logMsg("ERROR in checkMusicArt ! --> " + str(e), 0)
                     
             
             # monitor listitem props when PVR is active
             elif (xbmc.getCondVisibility("[Window.IsActive(MyPVRChannels.xml) | Window.IsActive(MyPVRGuide.xml) | Window.IsActive(MyPVRTimers.xml) | Window.IsActive(MyPVRSearch.xml) | Window.IsActive(MyPVRRecordings.xml)]")):
-                
-                self.liPath = xbmc.getInfoLabel("ListItem.Path").decode('utf-8')
-                liLabel = xbmc.getInfoLabel("ListItem.Label").decode('utf-8')
-                if ((liLabel != lastListItemLabel) and xbmc.getCondVisibility("!Container.Scrolling")):
-                    
-                    self.liPathLast = self.liPath
-                    lastListItemLabel = liLabel
-                    
-                    # update the listitem stuff
-                    try:
+                try:
+                    self.liPath = xbmc.getInfoLabel("ListItem.Path").decode('utf-8')
+                    liLabel = xbmc.getInfoLabel("ListItem.Label").decode('utf-8')
+                    if ((liLabel != lastListItemLabel) and xbmc.getCondVisibility("!Container.Scrolling")):
+                        self.liPathLast = self.liPath
+                        lastListItemLabel = liLabel
+                        # update the listitem stuff
                         self.setDuration()
                         self.setPVRThumbs()
                         self.setGenre()
-                    except Exception as e:
-                        logMsg("ERROR in LibraryMonitor ! --> " + str(e), 0)
+                except Exception as e:
+                    logMsg("ERROR in LibraryMonitor ! --> " + str(e), 0)
                         
-
-            
             #monitor home widget
             elif xbmc.getCondVisibility("Window.IsActive(home)") and WINDOW.getProperty("SkinHelper.WidgetContainer"):
-                widgetContainer = WINDOW.getProperty("SkinHelper.WidgetContainer")
-                self.liPath = xbmc.getInfoLabel("Container(%s).ListItem.Path" %widgetContainer).decode('utf-8')
-                liLabel = xbmc.getInfoLabel("Container(%s).ListItem.Label"%widgetContainer).decode('utf-8')
-                if ((liLabel != lastListItemLabel) and xbmc.getCondVisibility("!Container(%s).Scrolling" %widgetContainer)):
-                    self.liPathLast = self.liPath
-                    lastListItemLabel = liLabel
-                    try:
+                try:
+                    widgetContainer = WINDOW.getProperty("SkinHelper.WidgetContainer")
+                    self.liPath = xbmc.getInfoLabel("Container(%s).ListItem.Path" %widgetContainer).decode('utf-8')
+                    liLabel = xbmc.getInfoLabel("Container(%s).ListItem.Label"%widgetContainer).decode('utf-8')
+                    if ((liLabel != lastListItemLabel) and xbmc.getCondVisibility("!Container(%s).Scrolling" %widgetContainer)):
+                        self.liPathLast = self.liPath
+                        lastListItemLabel = liLabel
                         self.setDuration(xbmc.getInfoLabel("Container(%s).ListItem.Duration" %widgetContainer))
                         self.setStudioLogo(xbmc.getInfoLabel("Container(%s).ListItem.Studio" %widgetContainer).decode('utf-8'))
                         self.setDirector(xbmc.getInfoLabel("Container(%s).ListItem.Director" %widgetContainer).decode('utf-8'))
                         self.checkMusicArt(xbmc.getInfoLabel("Container(%s).ListItem.Artist" %widgetContainer).decode('utf-8')+xbmc.getInfoLabel("Container(%s).ListItem.Album" %widgetContainer).decode('utf-8'))
-                    except Exception as e:
-                        logMsg("ERROR in LibraryMonitor widgets ! --> " + str(e), 0)
+                except Exception as e:
+                    logMsg("ERROR in LibraryMonitor widgets ! --> " + str(e), 0)
                         
-            
             # monitor listitem props when videolibrary is active
             elif (xbmc.getCondVisibility("[Window.IsActive(videolibrary) | Window.IsActive(movieinformation)] + !Window.IsActive(fullscreenvideo)")):
-                
-                self.liPath = xbmc.getInfoLabel("ListItem.Path").decode('utf-8')
-                liLabel = xbmc.getInfoLabel("ListItem.Label").decode('utf-8')
-                if ((liLabel != lastListItemLabel) and xbmc.getCondVisibility("!Container.Scrolling")):
-                    
-                    self.liPathLast = self.liPath
-                    lastListItemLabel = liLabel
-                    
-                    # update the listitem stuff
-                    try:
+                try:
+                    self.liPath = xbmc.getInfoLabel("ListItem.Path").decode('utf-8')
+                    liLabel = xbmc.getInfoLabel("ListItem.Label").decode('utf-8')
+                    if ((liLabel != lastListItemLabel) and xbmc.getCondVisibility("!Container.Scrolling")):
+                        self.liPathLast = self.liPath
+                        lastListItemLabel = liLabel
+                        # update the listitem stuff
                         self.setDuration()
                         self.setStudioLogo()
                         self.setGenre()
@@ -187,10 +177,9 @@ class LibraryMonitor(threading.Thread):
                         self.setAddonName()
                         self.setStreamDetails()
                         self.setRottenRatings()
-                    except Exception as e:
-                        logMsg("ERROR in LibraryMonitor ! --> " + str(e), 0)
-                        
-  
+                except Exception as e:
+                    logMsg("ERROR in LibraryMonitor ! --> " + str(e), 0)
+
             else:
                 #reset window props
                 WINDOW.clearProperty("SkinHelper.ListItemStudioLogo")
@@ -265,11 +254,8 @@ class LibraryMonitor(threading.Thread):
         
             
         if xbmc.getCondVisibility("SubString(ListItem.Path,videodb://movies/sets/,left)"):
-            
-            dbId = xbmc.getInfoLabel("ListItem.DBID")
-                    
+            dbId = xbmc.getInfoLabel("ListItem.DBID")   
             if dbId:
-                
                 #try to get from cache first
                 if self.moviesetCache.has_key(dbId):
                     json_response = self.moviesetCache[dbId]
