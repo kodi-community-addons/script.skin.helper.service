@@ -14,6 +14,8 @@ import sys
 import urllib,urllib2,re
 import base64
 from traceback import print_exc
+from datetime import datetime
+import time
 
 ADDON = xbmcaddon.Addon()
 ADDON_ID = ADDON.getAddonInfo('id')
@@ -160,7 +162,10 @@ def createListItem(item):
     episode = None
     
     if "runtime" in item:
-        liz.setInfo( type=itemtype, infoLabels={ "duration": str(item['runtime']/60) })
+        if isinstance(item['runtime'], int):
+            liz.setInfo( type=itemtype, infoLabels={ "duration": str(item['runtime']/60) })
+        else:
+            liz.setInfo( type=itemtype, infoLabels={ "duration": item['runtime'] })
     
     if "file" in item:
         liz.setPath(item['file'])
@@ -187,9 +192,6 @@ def createListItem(item):
         liz.setProperty("DBID", str(item['songid']))
         liz.setIconImage('DefaultAudio.png')
         liz.setLabel2(item['artist'][0])
-    
-    if "channel" in item:
-        liz.setLabel2(item['channel'])
         
     if "movieid" in item:
         liz.setProperty("DBID", str(item['movieid']))
@@ -305,11 +307,38 @@ def createListItem(item):
             for stream in value:
                 liz.addStreamInfo( key, stream )
     
+    #pvr properties
+    
+    if "progresspercentage" in item:
+        liz.setInfo( type=itemtype, infoLabels={ "Progress": item['progresspercentage'] })
+    if "starttime" in item:
+        starttime = getLocalDateTimeFromUtc(item['starttime'])
+        liz.setProperty("StartTime", starttime[1])
+        liz.setProperty("StartDate", starttime[0])
+        endtime = getLocalDateTimeFromUtc(item['endtime'])
+        liz.setProperty("EndTime", endtime[1])
+        liz.setProperty("EndDate", endtime[0])
+        fulldate = starttime[0] + " " + starttime[1] + "-" + endtime[1]
+        liz.setProperty("Date",fulldate )
+        liz.setInfo( type=itemtype, infoLabels={ "Date": fulldate })
+    if "channelname" in item:
+        liz.setProperty("ChannelName", item['channelname'])
+        liz.setInfo( type=itemtype, infoLabels={ "ChannelName": item['channelname'] })
+    if "channelicon" in item:
+        liz.setProperty("ChannelIcon", item['channelicon'])
+        liz.setInfo( type=itemtype, infoLabels={ "ChannelIcon": item['channelicon'] })
+    if "episodename" in item:
+        liz.setProperty("EpisodeName", item['episodename'])
+        liz.setInfo( type=itemtype, infoLabels={ "EpisodeName": item['episodename'] })
+    if "channel" in item:
+        liz.setInfo( type=itemtype, infoLabels={ "Channel": item['channel'] })
+        liz.setLabel2(item['channel'])
+        
     return liz
     
 def detectPluginContent(plugin,skipscan=False):
     #based on the properties in the listitem we try to detect the content
-    
+    image = None
     #safety check: check if no library windows are active to prevent any addons setting the view
     curWindow = xbmc.getInfoLabel("$INFO[Window.Property(xmlfile)]")
     if curWindow.endswith("Nav.xml") or curWindow == "AddonBrowser.xml" or curWindow.startswith("MyPVR"):
@@ -318,11 +347,11 @@ def detectPluginContent(plugin,skipscan=False):
     if not skipscan:
         media_array = getJSON('Files.GetDirectory','{ "directory": "%s", "media": "files", "properties": ["title", "file", "thumbnail", "episode", "showtitle", "season", "album", "artist", "imdbnumber", "firstaired", "mpaa", "trailer", "studio", "art"], "limits": {"end":3} }' %plugin)
         for item in media_array:
-            image = None
-            if item.has_key("art"):
+            
+            if item.has_key("art") and not image:
                 if item["art"].has_key("fanart"):
                     image = item["art"]["fanart"]
-                elif item["art"].has_key("tvshow.fanart"):
+                elif item["art"].has_key("tvshow.fanart") and not image:
                     image = item["art"]["tvshow.fanart"]
             if not item.has_key("showtitle") and not item.has_key("artist"):
                 #these properties are only returned in the json response if we're looking at actual file content...
@@ -367,6 +396,18 @@ def detectPluginContent(plugin,skipscan=False):
         type = "unknown"
     return (type, None)
 
+def getLocalDateTimeFromUtc(utc):
+    try:
+        systemtime = xbmc.getInfoLabel("System.Time")
+        utc = datetime.strptime(utc, '%Y-%m-%d %H:%M:%S')
+        epoch = time.mktime(utc.timetuple())
+        offset = datetime.fromtimestamp (epoch) - datetime.utcfromtimestamp (epoch)
+        correcttime = utc + offset
+        if "AM" in systemtime or "PM" in systemtime:
+            return (correcttime.strftime("%Y-%m-%d"),correcttime.strftime("%I:%M %p"))
+        else:
+            return (correcttime.strftime("%d-%m-%Y"),correcttime.strftime("%H:%M"))
+    except: return ("","")
     
 def getTMDBimage(title):
     apiKey = base64.b64decode("NDc2N2I0YjJiYjk0YjEwNGZhNTUxNWM1ZmY0ZTFmZWM=")

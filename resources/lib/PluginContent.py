@@ -219,8 +219,7 @@ def buildWidgetsListing():
                         if line.tag == "smartplaylist":
                             type = line.attrib['type']
                         if line.tag == "name":
-                            label = line.text
-                            
+                            label = line.text      
                     try:
                         languageid = int(label)
                         label = xbmc.getLocalizedString(languageid)
@@ -309,23 +308,25 @@ def getWidgets(itemstoInclude = None):
                     else:
                         mediaLibrary = "VideoLibrary"
                         target = "video"
-                    widgetpath = "ActivateWindow(%s,%s,return)" %(mediaLibrary, widget[1])
+                    widgetpath = "ActivateWindow(%s,%s,return)" %(mediaLibrary, widget[1].split("&")[0])
                     li = xbmcgui.ListItem(widget[0], path=widgetpath)
+                    thumb = widget[2]
+                    if not thumb: thumb = "DefaultAddonContextItem.png"
                     props = {}
                     props["list"] = widget[1]
                     props["type"] = widget[3]
-                    props["background"] = widget[2]
+                    props["background"] = thumb
                     props["backgroundName"] = widget[0]
                     props["widgetPath"] = widget[1]
                     props["widgetTarget"] = target
+                    props["widgetName"] = widget[0]
                     props["widget"] = widgetType
                     li.setInfo( type="Video", infoLabels={ "Title": "smartshortcut" })
-                    li.setThumbnailImage(widget[2])
-                    li.setIconImage("special://home/addons/script.skin.helper.service/fanart.jpg")
+                    li.setThumbnailImage(thumb)
                         
                     li.setInfo( type="Video", infoLabels={ "mpaa": repr(props) })
                     
-                    li.setArt({"fanart":widget[2]})   
+                    li.setArt({"fanart":thumb})   
                     xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=widgetpath, listitem=li, isFolder=False)
     
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
@@ -404,90 +405,55 @@ def getFavourites(limit):
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 def getPVRRecordings(limit):
-    xbmcplugin.setContent(int(sys.argv[1]), 'livetv')
-
+    directoryItems = list()
+    xbmcplugin.setContent(int(sys.argv[1]), 'episodes')
     pvrArtCache = WINDOW.getProperty("SkinHelper.pvrArtCache")
-    if pvrArtCache:
-        pvrArtCache = eval(pvrArtCache)
-    else:
-        pvrArtCache = {}
-        
+    if pvrArtCache: pvrArtCache = eval(pvrArtCache)
+    else: pvrArtCache = {} 
+    # Perform a JSON query to get all recordings
     json_query = getJSON('PVR.GetRecordings', '{ "properties": [ %s ], "limits": {"end": %d}}' %( fields_pvrrecordings, limit))
     for item in json_query:
         channelname = item["channel"]
         thumb,fanart,poster,logo = getPVRThumbs(pvrArtCache, item["title"], channelname)
-        path=item["file"]
-        li = xbmcgui.ListItem()
-        li.setLabel(item['title'])
-        li.setLabel2(channelname)
-        li.setInfo( type="Video", infoLabels={ "Title": item['title'] })
-        li.setProperty("StartTime",item['starttime'])
-        li.setProperty("ChannelIcon",logo)
-        li.setProperty("ChannelName",channelname)
-        li.setInfo( type="Video", infoLabels={ "genre": " / ".join(item['genre']) })
-        li.setInfo( type="Video", infoLabels={ "duration": item['runtime'] })
-        li.setInfo( type="Video", infoLabels={ "Playcount": item['playcount'] })
-        li.setProperty("resumetime", str(item['resume']['position']))
-        li.setProperty("totaltime", str(item['resume']['total']))
-        li.setThumbnailImage(thumb)
-        li.setIconImage(item["icon"])
-        li.setInfo( type="Video", infoLabels={ "Plot": item['plot'] })
-        li.setProperty('IsPlayable', 'true')
-        li.setArt({ 'poster': poster, 'fanart' : fanart })
+        item["channelicon"] = logo
+        item["channel"] = channelname
+        item["art"] = { 'poster': poster, 'fanart' : fanart, 'thumb': thumb}
+        liz = createListItem(item)
+        liz.setProperty('IsPlayable', 'true')
+        liz.setIconImage(thumb)
+        directoryItems.append((item['file'], liz, False))
 
-        xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=path, listitem=li, isFolder=False)
+    xbmcplugin.addDirectoryItems(int(sys.argv[1]), directoryItems)
     xbmcplugin.endOfDirectory(int(sys.argv[1]))    
     
 def getPVRChannels(limit):
+    directoryItems = list()
     xbmcplugin.setContent(int(sys.argv[1]), 'episodes')
-    
     pvrArtCache = WINDOW.getProperty("SkinHelper.pvrArtCache")
-    if pvrArtCache:
-        pvrArtCache = eval(pvrArtCache)
-    else:
-        pvrArtCache = {}
-        logMsg("getPVRChannels ! --> pvrArtCache is empty!", 0)
-        
+    if pvrArtCache: pvrArtCache = eval(pvrArtCache)
+    else: pvrArtCache = {} 
     # Perform a JSON query to get all channels
     json_query = getJSON('PVR.GetChannels', '{"channelgroupid": "alltv", "properties": [ "thumbnail", "channeltype", "hidden", "locked", "channel", "lastplayed", "broadcastnow" ], "limits": {"end": %d}}' %( limit ) )
-    for item in json_query:
-        channelname = item["label"]
-        channelid = item["channelid"]
-        channelicon = item['thumbnail']
-        if item.has_key('broadcastnow'):
-            currentprogram = item['broadcastnow']
-            thumb,fanart,poster,logo = getPVRThumbs(pvrArtCache, currentprogram["title"], channelname)
-            if not channelicon:
-                channelicon = logo
-            if not thumb:
-                thumb = channelicon
-            path = sys.argv[0] + "?action=launchpvr&path=" + str(channelid)
-            li = xbmcgui.ListItem(currentprogram['title'])
-            li.setPath("RunPlugin(%s)" %sys.argv[0] + "?action=launchpvr&path=" + str(channelid))
-            li.setLabel(currentprogram['title'])
-            li.setLabel2(channelname)
-            li.setInfo( type="Video", infoLabels={ "Title": currentprogram['title'] })
-            li.setProperty("StartTime",currentprogram['starttime'].split(" ")[1])
-            li.setProperty("StartDate",currentprogram['starttime'].split(" ")[0])
-            li.setProperty("EndTime",currentprogram['endtime'].split(" ")[1])
-            li.setProperty("EndDate",currentprogram['endtime'].split(" ")[0])
-            li.setProperty("ChannelIcon",channelicon)
-            li.setProperty("ChannelName",channelname)
-            li.setProperty("EpisodeName",currentprogram['episodename'])
-            li.setProperty("Progress",str(currentprogram['progresspercentage']).split(".")[0])
-            li.setInfo( type="Video", infoLabels={ "premiered": currentprogram['firstaired'] })
-            li.setInfo( type="Video", infoLabels={ "genre": " / ".join(currentprogram['genre']) })
-            li.setInfo( type="Video", infoLabels={ "duration": currentprogram['runtime'] })
-            li.setInfo( type="Video", infoLabels={ "rating": str(currentprogram['rating']) })
-            li.setIconImage(channelicon)
-            li.setInfo( type="Video", infoLabels={ "Plot": currentprogram['plot'] })
-            li.setProperty('Video', 'true')
-            li.setProperty('IsPlayable', 'false')
-            li.setArt({ 'poster': poster, 'fanart' : fanart, 'thumb': thumb})
+    for channel in json_query:
+        channelname = channel["label"]
+        channelid = channel["channelid"]
+        channelicon = channel['thumbnail']
+        if channel.has_key('broadcastnow'):
+            item = channel['broadcastnow']
+            thumb,fanart,poster,logo = getPVRThumbs(pvrArtCache, item["title"], channelname)
+            if not channelicon: channelicon = logo
+            if not thumb: thumb = channelicon
+            item["file"] = sys.argv[0] + "?action=launchpvr&path=" + str(channelid)
+            item["channelicon"] = channelicon
+            item["channel"] = channelname
+            item["art"] = { 'poster': poster, 'fanart' : fanart, 'thumb': thumb}
             #add fake streaminfo to prevent kodi from probing the listitem
-            li.addStreamInfo('video', { 'Codec': 'h264', 'Width' : 1280 })
-
-            xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=path, listitem=li, isFolder=False)
+            item["streamdetails"] = {'video': [{ 'Codec': 'h264', 'Width' : 1280 }]}
+            liz = createListItem(item)
+            liz.setProperty('IsPlayable', 'false')
+            directoryItems.append((item['file'], liz, False))
+    
+    xbmcplugin.addDirectoryItems(int(sys.argv[1]), directoryItems)
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
     
 def getThumb(searchphrase):

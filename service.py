@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import xbmc
+import time
 from resources.lib.Utils import *
 from resources.lib.BackgroundsUpdater import BackgroundsUpdater
 from resources.lib.LibraryMonitor import LibraryMonitor

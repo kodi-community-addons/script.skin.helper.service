@@ -22,7 +22,7 @@ class HomeMonitor(threading.Thread):
     
     event = None
     exit = False
-    delayedTaskInterval = 1800
+    delayedTaskInterval = 1799
     lastWeatherNotificationCheck = None
     lastNextAiredNotificationCheck = None
     

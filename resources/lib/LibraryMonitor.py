@@ -32,7 +32,7 @@ class LibraryMonitor(threading.Thread):
     allStudioLogosColor = {}
     LastCustomStudioImagesPath = None
     delayedTaskInterval = 1800
-    widgetTaskInterval = 590
+    widgetTaskInterval = 595
     moviesetCache = {}
     extraFanartCache = {}
     musicArtCache = {}
@@ -65,7 +65,7 @@ class LibraryMonitor(threading.Thread):
         libraryCache["PVRArtCache"] = self.pvrArtCache
         libraryCache["SetsCache"] = self.moviesetCache
         libraryCache["streamdetailsCache"] = self.streamdetailsCache
-        libraryCache["rottenCache"] = self.rottenCache
+        libraryCache["rottenCache"] = self.rottenCache       
         json.dump(libraryCache, open(self.cachePath,'w'))
        
     def getCacheFromFile(self):
@@ -472,6 +472,10 @@ class LibraryMonitor(threading.Thread):
             self.pvrArtCache[dbID + "SkinHelper.PVR.Poster"] = poster
      
     def setStudioLogo(self, studio=None):
+        
+        if xbmc.getCondVisibility("Container.Content(studios)"):
+            studio = xbmc.getInfoLabel('ListItem.Label').decode('utf-8')
+        
         if not studio:
             studio = xbmc.getInfoLabel('ListItem.Studio').decode('utf-8')
         studiologo = None
