@@ -331,6 +331,7 @@ def createListItem(item):
         liz.setInfo( type=itemtype, infoLabels={ "EpisodeName": item['episodename'] })
     if "channel" in item:
         liz.setInfo( type=itemtype, infoLabels={ "Channel": item['channel'] })
+        liz.setInfo( type=itemtype, infoLabels={ "ChannelName": item['channel'] })
         liz.setProperty("ChannelName", item['channel'])
         liz.setLabel2(item['channel'])
         
@@ -471,6 +472,25 @@ def getTMDBimage(title):
     
     logMsg("TMDB match NOT found for %s !" %title)
     return ("", "")
+
+def double_urlencode(text):
+   """double URL-encode a given 'text'.  Do not return the 'variablename=' portion."""
+
+   text = single_urlencode(text)
+   text = single_urlencode(text)
+
+   return text
+
+def single_urlencode(text):
+   """single URL-encode a given 'text'.  Do not return the 'variablename=' portion."""
+
+   blah = urllib.urlencode({'blahblahblah':text})
+
+   #we know the length of the 'blahblahblah=' is equal to 13.  This lets us avoid any messy string matches
+   blah = blah[13:]
+
+   return blah
+
     
 def getPVRThumbs(persistant_cache,title,channel,enableYouTubeSearch=False):
     dbID = title + channel
@@ -489,7 +509,7 @@ def getPVRThumbs(persistant_cache,title,channel,enableYouTubeSearch=False):
         poster = WINDOW.getProperty(dbID.encode('utf-8') + "SkinHelper.PVR.Poster").decode('utf-8')
         logo = WINDOW.getProperty(channel.encode('utf-8') + "SkinHelper.PVR.ChannelLogo").decode('utf-8')
         thumb = WINDOW.getProperty(dbID.encode('utf-8') + "SkinHelper.PVR.Thumb").decode('utf-8')
-        cacheFound = True
+        cacheFound = True       
     
     if not cacheFound:
         logMsg("getPVRThumb no cache found for dbID--> " + dbID)
@@ -566,7 +586,11 @@ def getPVRThumbs(persistant_cache,title,channel,enableYouTubeSearch=False):
             WINDOW.setProperty(dbID.encode('utf-8') + "SkinHelper.PVR.Thumb",try_encode(thumb))
     else:
         logMsg("getPVRThumb cache found for dbID--> " + dbID)
-    
+    #use kodi texture cache only if item exists in cache
+    if thumb and cacheFound: thumb = "image://" + single_urlencode(thumb) + "/"
+    if fanart and cacheFound: fanart = "image://" + single_urlencode(fanart) + "/"
+    if poster and cacheFound: poster = "image://" + single_urlencode(poster) + "/"
+    if logo and cacheFound: logo = "image://" + single_urlencode(logo) + "/"
     return (thumb,fanart,poster,logo)
 
 def createSmartShortcutSubmenu(windowProp,iconimage):
