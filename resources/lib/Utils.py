@@ -409,7 +409,7 @@ def getLocalDateTimeFromUtc(utc):
         else:
             return (correcttime.strftime("%d-%m-%Y"),correcttime.strftime("%H:%M"))
     except:
-        logMsg("ERROR in getLocalDateTimeFromUtc ! --> " + str(e), 0)
+        logMsg("ERROR in getLocalDateTimeFromUtc !", 0)
         return (utc.split(" ")[0],utc.split(" ")[1])
     
 def getTMDBimage(title):
