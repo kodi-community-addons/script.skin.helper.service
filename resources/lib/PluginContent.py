@@ -1307,7 +1307,8 @@ def getCast(movie=None,tvshow=None,movieset=None):
                             liz.setProperty('IsPlayable', 'false')
                             allCast.append([cast["name"],cast["role"],cast["thumbnail"]])
                             castNames.append(cast["name"])
-                            xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url="", listitem=liz, isFolder=True)
+                            url = "RunScript(script.extendedinfo,info=extendedactorinfo,name=%s)"%cast["name"]
+                            xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=url, listitem=liz, isFolder=True)
                             moviesetCastList.append(cast["name"])
             
         WINDOW.setProperty(cachedataStr,repr(allCast))
