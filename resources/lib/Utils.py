@@ -324,7 +324,6 @@ def createListItem(item):
         liz.setProperty("EndDate", endtime[0])
         fulldate = starttime[0] + " " + starttime[1] + "-" + endtime[1]
         liz.setProperty("Date",fulldate )
-        liz.setInfo( type=itemtype, infoLabels={ "Date": fulldate })
     if "channelicon" in item:
         liz.setProperty("ChannelIcon", item['channelicon'])
     if "episodename" in item:
@@ -397,19 +396,20 @@ def detectPluginContent(plugin,skipscan=False):
         type = "unknown"
     return (type, None)
 
-def getLocalDateTimeFromUtc(utc):
+def getLocalDateTimeFromUtc(timestring):
     try:
         systemtime = xbmc.getInfoLabel("System.Time")
-        utc = datetime.strptime(utc, '%Y-%m-%d %H:%M:%S')
+        utc = datetime.strptime(timestring, '%Y-%m-%d %H:%M:%S')
         epoch = time.mktime(utc.timetuple())
-        offset = datetime.fromtimestamp (epoch) - datetime.utcfromtimestamp (epoch)
+        offset = datetime.fromtimestamp (epoch) - datetime.utcfromtimestamp(epoch)
         correcttime = utc + offset
         if "AM" in systemtime or "PM" in systemtime:
             return (correcttime.strftime("%Y-%m-%d"),correcttime.strftime("%I:%M %p"))
         else:
             return (correcttime.strftime("%d-%m-%Y"),correcttime.strftime("%H:%M"))
     except:
-        logMsg("ERROR in getLocalDateTimeFromUtc !", 0)
+        logMsg("ERROR in getLocalDateTimeFromUtc --> " + timestring, 0)
+        
         return (utc.split(" ")[0],utc.split(" ")[1])
     
 def getTMDBimage(title):

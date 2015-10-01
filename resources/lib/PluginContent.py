@@ -449,6 +449,7 @@ def getPVRChannels(limit):
         else:
             #channel without epg
             item = channel
+            item["title"] = item["label"]
             channelname = channel["label"]
             channelid = channel["channelid"]
             channelicon = channel['thumbnail']
