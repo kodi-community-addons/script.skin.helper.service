@@ -167,6 +167,9 @@ def createListItem(item):
         else:
             liz.setInfo( type=itemtype, infoLabels={ "duration": item['runtime'] })
     
+    if "duration" in item:
+        liz.setInfo( type=itemtype, infoLabels={ "duration": item['duration'] })
+    
     if "file" in item:
         liz.setPath(item['file'])
         liz.setProperty("path", item['file'])
@@ -321,17 +324,14 @@ def createListItem(item):
         fulldate = starttime[0] + " " + starttime[1] + "-" + endtime[1]
         liz.setProperty("Date",fulldate )
         liz.setInfo( type=itemtype, infoLabels={ "Date": fulldate })
-    if "channelname" in item:
-        liz.setProperty("ChannelName", item['channelname'])
-        liz.setInfo( type=itemtype, infoLabels={ "ChannelName": item['channelname'] })
     if "channelicon" in item:
         liz.setProperty("ChannelIcon", item['channelicon'])
-        liz.setInfo( type=itemtype, infoLabels={ "ChannelIcon": item['channelicon'] })
     if "episodename" in item:
         liz.setProperty("EpisodeName", item['episodename'])
         liz.setInfo( type=itemtype, infoLabels={ "EpisodeName": item['episodename'] })
     if "channel" in item:
         liz.setInfo( type=itemtype, infoLabels={ "Channel": item['channel'] })
+        liz.setProperty("ChannelName", item['channel'])
         liz.setLabel2(item['channel'])
         
     return liz

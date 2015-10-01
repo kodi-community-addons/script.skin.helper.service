@@ -439,19 +439,30 @@ def getPVRChannels(limit):
         channelid = channel["channelid"]
         channelicon = channel['thumbnail']
         if channel.has_key('broadcastnow'):
+            #channel with epg data
             item = channel['broadcastnow']
             thumb,fanart,poster,logo = getPVRThumbs(pvrArtCache, item["title"], channelname)
             if not channelicon: channelicon = logo
             if not thumb: thumb = channelicon
-            item["file"] = sys.argv[0] + "?action=launchpvr&path=" + str(channelid)
-            item["channelicon"] = channelicon
-            item["channel"] = channelname
             item["art"] = { 'poster': poster, 'fanart' : fanart, 'thumb': thumb}
-            #add fake streaminfo to prevent kodi from probing the listitem
-            item["streamdetails"] = {'video': [{ 'Codec': 'h264', 'Width' : 1280 }]}
-            liz = createListItem(item)
-            liz.setProperty('IsPlayable', 'false')
-            directoryItems.append((item['file'], liz, False))
+        else:
+            #channel without epg
+            item = channel
+            channelname = channel["label"]
+            channelid = channel["channelid"]
+            channelicon = channel['thumbnail']
+            if not channelicon: channelicon = searchChannelLogo(channelname)
+        item["file"] = sys.argv[0] + "?action=launchpvr&path=" + str(channelid)
+        item["channelicon"] = channelicon
+        item["icon"] = channelicon
+        item["channel"] = channelname
+        
+        #add fake streaminfo to prevent kodi from probing the listitem
+        item["streamdetails"] = {'video': [{ 'Codec': 'h264', 'Width' : 1280 }]}
+        liz = createListItem(item)
+        liz.setProperty('IsPlayable', 'false')
+        directoryItems.append((item['file'], liz, False))
+            
     
     xbmcplugin.addDirectoryItems(int(sys.argv[1]), directoryItems)
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
