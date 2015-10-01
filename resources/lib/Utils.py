@@ -276,14 +276,15 @@ def createListItem(item):
         liz.setInfo( type=itemtype, infoLabels={ "premiered": item['premiered'] })
         
     if "cast" in item:
-        listCast = []
-        listCastAndRole = []
-        for castmember in item["cast"]:
-            listCast.append( castmember["name"] )
-            listCastAndRole.append( (castmember["name"], castmember["role"]) ) 
-        cast = [listCast, listCastAndRole]
-        liz.setInfo( type=itemtype, infoLabels={ "Cast": cast[0] })
-        liz.setInfo( type=itemtype, infoLabels={ "CastAndRole": cast[1] })
+        if item["cast"]:
+            listCast = []
+            listCastAndRole = []
+            for castmember in item["cast"]:
+                listCast.append( castmember["name"] )
+                listCastAndRole.append( (castmember["name"], castmember["role"]) ) 
+            cast = [listCast, listCastAndRole]
+            liz.setInfo( type=itemtype, infoLabels={ "Cast": cast[0] })
+            liz.setInfo( type=itemtype, infoLabels={ "CastAndRole": cast[1] })
     
     if "resume" in item:
         liz.setProperty("resumetime", str(item['resume']['position']))
@@ -407,7 +408,9 @@ def getLocalDateTimeFromUtc(utc):
             return (correcttime.strftime("%Y-%m-%d"),correcttime.strftime("%I:%M %p"))
         else:
             return (correcttime.strftime("%d-%m-%Y"),correcttime.strftime("%H:%M"))
-    except: return ("","")
+    except:
+        logMsg("ERROR in getLocalDateTimeFromUtc ! --> " + str(e), 0)
+        return (utc.split(" ")[0],utc.split(" ")[1])
     
 def getTMDBimage(title):
     apiKey = base64.b64decode("NDc2N2I0YjJiYjk0YjEwNGZhNTUxNWM1ZmY0ZTFmZWM=")

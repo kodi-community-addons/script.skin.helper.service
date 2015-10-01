@@ -418,6 +418,7 @@ def getPVRRecordings(limit):
         item["channelicon"] = logo
         item["channel"] = channelname
         item["art"] = { 'poster': poster, 'fanart' : fanart, 'thumb': thumb}
+        item["cast"] = None
         liz = createListItem(item)
         liz.setProperty('IsPlayable', 'true')
         liz.setIconImage(thumb)
@@ -456,6 +457,7 @@ def getPVRChannels(limit):
         item["channelicon"] = channelicon
         item["icon"] = channelicon
         item["channel"] = channelname
+        item["cast"] = None
         
         #add fake streaminfo to prevent kodi from probing the listitem
         item["streamdetails"] = {'video': [{ 'Codec': 'h264', 'Width' : 1280 }]}
