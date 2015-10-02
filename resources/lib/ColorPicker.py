@@ -170,12 +170,12 @@ class ColorPicker(xbmcgui.WindowXMLDialog):
             self.closeDialog()
         elif controlID == 3012:
             #save button clicked
+            self.createColorSwatchImage(colorstring)
             if self.skinString and colorstring:
                 xbmc.executebuiltin("Skin.SetString(" + self.skinString + '.name,'+ colorname + ')')
                 colorbase = "ff" + colorstring[2:]
                 xbmc.executebuiltin("Skin.SetString(" + self.skinString + ','+ colorstring + ')')
                 xbmc.executebuiltin("Skin.SetString(" + self.skinString + '.base,'+ colorbase + ')')
-                self.createColorSwatchImage(colorstring)
                 self.closeDialog()
             elif self.winProperty and colorstring:
                 WINDOW.setProperty(self.winProperty, colorstring)
