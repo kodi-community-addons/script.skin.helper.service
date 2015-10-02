@@ -15,6 +15,7 @@ import urllib,urllib2,re
 import base64
 from traceback import print_exc
 from datetime import datetime
+import _strptime
 import time
 
 ADDON = xbmcaddon.Addon()
@@ -411,7 +412,7 @@ def getLocalDateTimeFromUtc(timestring):
     except:
         logMsg("ERROR in getLocalDateTimeFromUtc --> " + timestring, 0)
         
-        return (utc.split(" ")[0],utc.split(" ")[1])
+        return (timestring,timestring)
     
 def getTMDBimage(title):
     apiKey = base64.b64decode("NDc2N2I0YjJiYjk0YjEwNGZhNTUxNWM1ZmY0ZTFmZWM=")
