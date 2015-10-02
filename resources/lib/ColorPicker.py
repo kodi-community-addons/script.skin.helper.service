@@ -36,35 +36,34 @@ class ColorPicker(xbmcgui.WindowXMLDialog):
         self.result = -1
         
     def addColorToList(self, colorname, colorstring):
-        
-        colorImageFile = os.path.join(self.colorsPath,colorstring + ".png")
-        
-        if not xbmcvfs.exists(colorImageFile) and hasPilModule:
-            colorstring = colorstring.strip()
-            if colorstring[0] == '#': colorstring = colorstring[1:]
-            if len(colorstring) != 8:
-                raise ValueError, "input #%s is not in #AARRGGBB format" % colorstring
-            a, r, g, b = colorstring[:2], colorstring[2:4], colorstring[4:6], colorstring[6:]
-            a, r, g, b = [int(n, 16) for n in (a, r, g, b)]
-            color = (r, g, b, a)
-            im = Image.new("RGBA", (64, 64), color)
-            im.save(colorImageFile)
-        elif not xbmcvfs.exists(colorImageFile) and not hasPilModule:
-            return
-        
+        colorImageFile = self.createColorSwatchImage(colorstring)
         listitem = xbmcgui.ListItem(label=colorname, iconImage=colorImageFile)
         listitem.setProperty("colorstring",colorstring)
         self.colorsList.addItem(listitem)
         
-    
+    def createColorSwatchImage(self, colorstring):
+        paths = []
+        paths.append(os.path.join(ADDON_PATH, 'resources', 'colors' ,colorstring + ".png"))
+        if xbmcvfs.exists( "special://skin/extras/colors/colors.xml" ):
+            paths.append(os.path.join(xbmc.translatePath("special://skin/extras/colors/").decode("utf-8") ,colorstring + ".png"))
+        for colorImageFile in paths:
+            if not xbmcvfs.exists(colorImageFile) and hasPilModule:
+                try:
+                    colorstring = colorstring.strip()
+                    if colorstring[0] == '#': colorstring = colorstring[1:]
+                    a, r, g, b = colorstring[:2], colorstring[2:4], colorstring[4:6], colorstring[6:]
+                    a, r, g, b = [int(n, 16) for n in (a, r, g, b)]
+                    color = (r, g, b, a)
+                    im = Image.new("RGBA", (16, 16), color)
+                    im.save(colorImageFile)
+                except:
+                    logMsg("ERROR in createColorSwatchImage for colorstring: " + colorstring, 0)
+        return colorImageFile
     
     def onInit(self):
         self.action_exitkeys_id = [10, 13]
         xbmc.executebuiltin( "ActivateWindow(busydialog)" )
         self.currentWindow = xbmcgui.Window( xbmcgui.getCurrentWindowDialogId() )
-
-        if not xbmcvfs.exists(self.colorsPath):
-            xbmcvfs.mkdir(self.colorsPath)
         
         self.colorsList = self.getControl(3110)
         self.win = xbmcgui.Window( 10000 )
@@ -137,17 +136,18 @@ class ColorPicker(xbmcgui.WindowXMLDialog):
                 self.currentWindow.setProperty("colorname",item.getLabel())
                 self.setOpacitySlider()
 
-
     def closeDialog(self):
         self.close()
 
     def setOpacitySlider(self):
         colorstring = self.currentWindow.getProperty("colorstring")
-        if colorstring != "" and colorstring != None and colorstring.lower() != "none":
-            a, r, g, b = colorstring[:2], colorstring[2:4], colorstring[4:6], colorstring[6:]
-            a, r, g, b = [int(n, 16) for n in (a, r, g, b)]
-            a = 100.0 * a / 255
-            self.getControl( 3015 ).setPercent( float(a) )
+        try:
+            if colorstring != "" and colorstring != None and colorstring.lower() != "none":
+                a, r, g, b = colorstring[:2], colorstring[2:4], colorstring[4:6], colorstring[6:]
+                a, r, g, b = [int(n, 16) for n in (a, r, g, b)]
+                a = 100.0 * a / 255
+                self.getControl( 3015 ).setPercent( float(a) )
+        except: pass
         
     def onClick(self, controlID):
         colorname = self.currentWindow.getProperty("colorname")
@@ -175,6 +175,7 @@ class ColorPicker(xbmcgui.WindowXMLDialog):
                 colorbase = "ff" + colorstring[2:]
                 xbmc.executebuiltin("Skin.SetString(" + self.skinString + ','+ colorstring + ')')
                 xbmc.executebuiltin("Skin.SetString(" + self.skinString + '.base,'+ colorbase + ')')
+                self.createColorSwatchImage(colorstring)
                 self.closeDialog()
             elif self.winProperty and colorstring:
                 WINDOW.setProperty(self.winProperty, colorstring)
@@ -184,19 +185,17 @@ class ColorPicker(xbmcgui.WindowXMLDialog):
                 self.closeDialog()
           
         elif controlID == 3015:
-            opacity = self.getControl( 3015 ).getPercent()
-            
-            num = opacity / 100.0 * 255
-            e = num - math.floor( num )
-            a = e < 0.5 and int( math.floor( num ) ) or int( math.ceil( num ) )
-            
-            colorstring = colorstring.strip()
-            r, g, b = colorstring[2:4], colorstring[4:6], colorstring[6:]
-            r, g, b = [int(n, 16) for n in (r, g, b)]
-            color = (a, r, g, b)
-            colorstringvalue = '%02x%02x%02x%02x' % color
-
-            self.currentWindow.setProperty("colorstring",colorstringvalue)
-
+            try:
+                opacity = self.getControl( 3015 ).getPercent()
+                num = opacity / 100.0 * 255
+                e = num - math.floor( num )
+                a = e < 0.5 and int( math.floor( num ) ) or int( math.ceil( num ) )
+                colorstring = colorstring.strip()
+                r, g, b = colorstring[2:4], colorstring[4:6], colorstring[6:]
+                r, g, b = [int(n, 16) for n in (r, g, b)]
+                color = (a, r, g, b)
+                colorstringvalue = '%02x%02x%02x%02x' % color
+                self.currentWindow.setProperty("colorstring",colorstringvalue)
+            except: pass
             
             
