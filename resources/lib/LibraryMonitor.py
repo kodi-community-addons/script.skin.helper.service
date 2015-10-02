@@ -122,6 +122,9 @@ class LibraryMonitor(threading.Thread):
                         self.lastMusicDbId = None
                         self.musicArtCache = {}
                         WINDOW.clearProperty("resetMusicArtCache")
+                    liLabel = xbmc.getInfoLabel("ListItem.Label").decode('utf-8')
+                    if liLabel != lastListItemLabel:
+                        lastListItemLabel = liLabel
                         self.checkMusicArt()
                         self.setGenre()
                 except Exception as e:
