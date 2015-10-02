@@ -924,15 +924,15 @@ class LibraryMonitor(threading.Thread):
                 awards = result.get('Awards',"")
                 boxoffice = result.get('BoxOffice',"")
                 if criticsscore:
-                    WINDOW.setProperty("SkinHelper.RottenTomatoesRating",str(criticsscore))
+                    WINDOW.setProperty("SkinHelper.RottenTomatoesRating",criticsscore)
                 if audiencescore:
-                    WINDOW.setProperty("SkinHelper.RottenTomatoesAudienceRating",str(audiencescore))
+                    WINDOW.setProperty("SkinHelper.RottenTomatoesAudienceRating",audiencescore)
                 if criticconsensus:
-                    WINDOW.setProperty("SkinHelper.RottenTomatoesConsensus",str(criticconsensus))
+                    WINDOW.setProperty("SkinHelper.RottenTomatoesConsensus",criticconsensus)
                 if awards:
-                    WINDOW.setProperty("SkinHelper.RottenTomatoesAwards",str(awards))
+                    WINDOW.setProperty("SkinHelper.RottenTomatoesAwards",awards)
                 if boxoffice:
-                    WINDOW.setProperty("SkinHelper.RottenTomatoesBoxOffice",str(boxoffice))
+                    WINDOW.setProperty("SkinHelper.RottenTomatoesBoxOffice",boxoffice)
 
 class Kodi_Monitor(xbmc.Monitor):
     
