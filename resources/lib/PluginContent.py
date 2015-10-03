@@ -37,6 +37,7 @@ def doMainListing():
     addDirectoryItem(ADDON.getLocalizedString(32087), "plugin://script.skin.helper.service/?action=recentsongs&limit=100")
     addDirectoryItem(xbmc.getLocalizedString(517), "plugin://script.skin.helper.service/?action=recentplayedalbums&limit=100")
     addDirectoryItem(ADDON.getLocalizedString(32088), "plugin://script.skin.helper.service/?action=recentplayedsongs&limit=100")
+    addDirectoryItem("getcast", "plugin://script.skin.helper.service/?action=getcast&movie=interstellar")
     if xbmc.getCondVisibility("System.HasAddon(script.tv.show.next.aired)"):
         addDirectoryItem(ADDON.getLocalizedString(32055), "plugin://script.skin.helper.service/?action=nextairedtvshows&limit=100")
 
@@ -1289,11 +1290,13 @@ def getCast(movie=None,tvshow=None,movieset=None):
         #process cast for regular movie or show
         if item and item.has_key("cast"):
             for cast in item["cast"]:
-                liz = xbmcgui.ListItem(label=cast["name"],label2=cast["role"],iconImage=cast["thumbnail"])
-                liz.setProperty('IsPlayable', 'false')
-                allCast.append([cast["name"],cast["role"],cast["thumbnail"]])
+                liz = xbmcgui.ListItem(label=cast["name"],label2=cast["role"],iconImage=cast.get("thumbnail",""))
+                allCast.append([cast["name"],cast["role"],cast.get("thumbnail","")])
                 castNames.append(cast["name"])
-                xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url="", listitem=liz, isFolder=True)
+                url = "RunScript(script.extendedinfo,info=extendedactorinfo,name=%s)"%cast["name"]
+                path="plugin://script.skin.helper.service/?action=launch&path=" + url
+                liz.setProperty('IsPlayable', 'false')
+                xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=path, listitem=liz, isFolder=False)
         
         #process cast for all movies in a movieset
         elif moviesetmovies:
@@ -1303,12 +1306,13 @@ def getCast(movie=None,tvshow=None,movieset=None):
                 if json_result:
                     for cast in json_result["cast"]:
                         if not cast["name"] in moviesetCastList:
-                            liz = xbmcgui.ListItem(label=cast["name"],label2=cast["role"],iconImage=cast["thumbnail"])
-                            liz.setProperty('IsPlayable', 'false')
+                            liz = xbmcgui.ListItem(label=cast["name"],label2=cast["role"],iconImage=cast.get("thumbnail",""))
                             allCast.append([cast["name"],cast["role"],cast["thumbnail"]])
                             castNames.append(cast["name"])
                             url = "RunScript(script.extendedinfo,info=extendedactorinfo,name=%s)"%cast["name"]
-                            xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=url, listitem=liz, isFolder=True)
+                            path="plugin://script.skin.helper.service/?action=launch&path=" + url
+                            liz.setProperty('IsPlayable', 'false')
+                            xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=path, listitem=liz, isFolder=False)
                             moviesetCastList.append(cast["name"])
             
         WINDOW.setProperty(cachedataStr,repr(allCast))
