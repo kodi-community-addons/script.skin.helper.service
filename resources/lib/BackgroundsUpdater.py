@@ -250,7 +250,7 @@ class BackgroundsUpdater(threading.Thread):
                     #pick all images from path
                     for file in files:
                         if file.endswith(".jpg") or file.endswith(".png") or file.endswith(".JPG") or file.endswith(".PNG"):
-                            image = os.path.join(customPath,file)
+                            image = os.path.join(customPath,file.decode("utf-8","ignore"))
                             images.append(image)
                 else:
                     #load picture sources
@@ -262,16 +262,16 @@ class BackgroundsUpdater(threading.Thread):
                                 if dirs:
                                     #pick 10 random dirs
                                     randomdirs = []
-                                    randomdirs.append(os.path.join(source["file"],random.choice(dirs)))
-                                    randomdirs.append(os.path.join(source["file"],random.choice(dirs)))
-                                    randomdirs.append(os.path.join(source["file"],random.choice(dirs)))
-                                    randomdirs.append(os.path.join(source["file"],random.choice(dirs)))
-                                    randomdirs.append(os.path.join(source["file"],random.choice(dirs)))
-                                    randomdirs.append(os.path.join(source["file"],random.choice(dirs)))
-                                    randomdirs.append(os.path.join(source["file"],random.choice(dirs)))
-                                    randomdirs.append(os.path.join(source["file"],random.choice(dirs)))
-                                    randomdirs.append(os.path.join(source["file"],random.choice(dirs)))
-                                    randomdirs.append(os.path.join(source["file"],random.choice(dirs)))
+                                    randomdirs.append(os.path.join(source["file"],random.choice(dirs).decode("utf-8","ignore")))
+                                    randomdirs.append(os.path.join(source["file"],random.choice(dirs).decode("utf-8","ignore")))
+                                    randomdirs.append(os.path.join(source["file"],random.choice(dirs).decode("utf-8","ignore")))
+                                    randomdirs.append(os.path.join(source["file"],random.choice(dirs).decode("utf-8","ignore")))
+                                    randomdirs.append(os.path.join(source["file"],random.choice(dirs).decode("utf-8","ignore")))
+                                    randomdirs.append(os.path.join(source["file"],random.choice(dirs).decode("utf-8","ignore")))
+                                    randomdirs.append(os.path.join(source["file"],random.choice(dirs).decode("utf-8","ignore")))
+                                    randomdirs.append(os.path.join(source["file"],random.choice(dirs).decode("utf-8","ignore")))
+                                    randomdirs.append(os.path.join(source["file"],random.choice(dirs).decode("utf-8","ignore")))
+                                    randomdirs.append(os.path.join(source["file"],random.choice(dirs).decode("utf-8","ignore")))
                                     
                                     #pick 5 images from each dir
                                     for dir in randomdirs:
@@ -279,7 +279,7 @@ class BackgroundsUpdater(threading.Thread):
                                         count = 0
                                         for file in files:
                                             if ((file.endswith(".jpg") or file.endswith(".png") or file.endswith(".JPG") or file.endswith(".PNG")) and count < 5):
-                                                image = os.path.join(dir,file)
+                                                image = os.path.join(dir,file.decode("utf-8","ignore"))
                                                 images.append(image)
                                                 count += 1
                                 if files:
@@ -287,7 +287,7 @@ class BackgroundsUpdater(threading.Thread):
                                     count = 0
                                     for file in files:
                                         if ((file.endswith(".jpg") or file.endswith(".png") or file.endswith(".JPG") or file.endswith(".PNG")) and count < 10):
-                                            image = os.path.join(source["file"],file)
+                                            image = os.path.join(source["file"],file.decode("utf-8","ignore"))
                                             images.append(image)
                                             count += 1
                 
