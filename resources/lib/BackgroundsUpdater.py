@@ -420,7 +420,7 @@ class BackgroundsUpdater(threading.Thread):
                 else:
                     logMsg("no cache - Get playlist entries from file.... ")
                     playlistCount = 0
-                    playlists = []                   
+                    playlists = []
                     
                     paths = [['special://videoplaylists/','VideoLibrary'], ['special://musicplaylists/','MusicLibrary']]
                     for playlistpath in paths:

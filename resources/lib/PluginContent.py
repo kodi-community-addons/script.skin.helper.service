@@ -234,8 +234,6 @@ def buildWidgetsListing():
         matchFound = False
         if "windowparameter" in fav:
             content = fav["windowparameter"]
-            if content.startswith("plugin://") and not content.endswith("/"):
-                content = content + "&reload=$INFO[Window(Home).Property(widgetreload2)]"
             #check if this is a valid path with content
             if not "script://" in content.lower() and not "mode=9" in content.lower() and not "search" in content.lower() and not "play" in content.lower():
                 window = fav["window"]

@@ -180,6 +180,7 @@ class LibraryMonitor(threading.Thread):
                         self.setAddonName()
                         self.setStreamDetails()
                         self.setRottenRatings()
+                        self.focusEpisode()
                 except Exception as e:
                     logMsg("ERROR in LibraryMonitor ! --> " + str(e), 0)
 
@@ -503,7 +504,7 @@ class LibraryMonitor(threading.Thread):
             if not studiologo and not studiologoColor:
                 #find logo by substituting characters
                 if " (" in studio:
-                    studio = studio.split(" (")[-1]
+                    studio = studio.split(" (")[0]
                     if self.allStudioLogos.has_key(studio):
                         studiologo = self.allStudioLogos[studio]
                     if self.allStudioLogosColor.has_key(studio):
@@ -937,6 +938,65 @@ class LibraryMonitor(threading.Thread):
                 if boxoffice:
                     WINDOW.setProperty("SkinHelper.RottenTomatoesBoxOffice",boxoffice)
 
+    def focusEpisode(self):
+        # monitor episodes for auto focus first unwatched - Helix only as it is included in Kodi as of Isengard by default
+        if xbmc.getCondVisibility("Skin.HasSetting(AutoFocusUnwatchedEpisode)"):
+            
+            #store unwatched episodes
+            if ((xbmc.getCondVisibility("Container.Content(seasons) | Container.Content(tvshows)")) and xbmc.getCondVisibility("!IsEmpty(ListItem.Property(UnWatchedEpisodes))")):
+                try:
+                    self.unwatched = int(xbmc.getInfoLabel("ListItem.Property(UnWatchedEpisodes)"))
+                except: pass
+            
+            if (xbmc.getCondVisibility("Container.Content(episodes) | Container.Content(seasons)")):
+                
+                if (xbmc.getInfoLabel("Container.FolderPath") != self.lastEpPath and self.unwatched != 0):
+                    totalItems = 0
+                    curView = xbmc.getInfoLabel("Container.Viewmode") 
+                    
+                    # get all views from views-file
+                    viewId = None
+                    skin_view_file = os.path.join(xbmc.translatePath('special://skin/extras'), "views.xml")
+                    tree = etree.parse(skin_view_file)
+                    root = tree.getroot()
+                    for view in root.findall('view'):
+                        if viewString == xbmc.getLocalizedString(int(view.attrib['languageid'])):
+                            viewId=view.attrib['value']
+                    
+                    wid = xbmcgui.getCurrentWindowId()
+                    window = xbmcgui.Window( wid )        
+                    control = window.getControl(int(viewId))
+                    totalItems = int(xbmc.getInfoLabel("Container.NumItems"))
+                    
+                    #only do a focus if we're on top of the list, else skip to prevent bouncing of the list
+                    if not int(xbmc.getInfoLabel("Container.Position")) > 1:
+                        if (xbmc.getCondVisibility("Container.SortDirection(ascending)")):
+                            curItem = 0
+                            control.selectItem(0)
+                            xbmc.sleep(250)
+                            while ((xbmc.getCondVisibility("Container.Content(episodes) | Container.Content(seasons)")) and totalItems >= curItem):
+                                if (xbmc.getInfoLabel("Container.ListItem(" + str(curItem) + ").Overlay") != "OverlayWatched.png" and xbmc.getInfoLabel("Container.ListItem(" + str(curItem) + ").Label") != ".." and not xbmc.getInfoLabel("Container.ListItem(" + str(curItem) + ").Label").startswith("*")):
+                                    if curItem != 0:
+                                        control.selectItem(curItem)
+                                    break
+                                else:
+                                    curItem += 1
+                        
+                        elif (xbmc.getCondVisibility("Container.SortDirection(descending)")):
+                            curItem = totalItems
+                            control.selectItem(totalItems)
+                            xbmc.sleep(250)
+                            while ((xbmc.getCondVisibility("Container.Content(episodes) | Container.Content(seasons)")) and curItem != 0):
+                                
+                                if (xbmc.getInfoLabel("Container.ListItem(" + str(curItem) + ").Overlay") != "OverlayWatched.png"):
+                                    control.selectItem(curItem-1)
+                                    break
+                                else:    
+                                    curItem -= 1
+                                        
+            self.lastEpPath = xbmc.getInfoLabel("Container.FolderPath")
+
+                    
 class Kodi_Monitor(xbmc.Monitor):
     
     def __init__(self, *args, **kwargs):

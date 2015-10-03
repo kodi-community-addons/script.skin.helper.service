@@ -408,7 +408,7 @@ def detectPluginContent(plugin,skipscan=False):
 def getLocalDateTimeFromUtc(timestring):
     try:
         systemtime = xbmc.getInfoLabel("System.Time")
-        utc = datetime.strptime(timestring, '%Y-%m-%d %H:%M:%S')
+        utc = datetime.fromtimestamp(time.mktime(time.strptime(timestring, '%Y-%m-%d %H:%M:%S')))
         epoch = time.mktime(utc.timetuple())
         offset = datetime.fromtimestamp (epoch) - datetime.utcfromtimestamp(epoch)
         correcttime = utc + offset
