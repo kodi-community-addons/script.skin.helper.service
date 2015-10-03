@@ -17,6 +17,8 @@ from Utils import *
 hasPilModule = True
 try:
     from PIL import Image
+    im = Image.new("RGB", (1, 1))
+    del im
 except:
     hasPilModule = False
 
