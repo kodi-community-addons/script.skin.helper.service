@@ -259,13 +259,19 @@ def createListItem(item):
         liz.setInfo( type=itemtype, infoLabels={ "Playcount": item['playcount'] })
     
     if "director" in item:
-        liz.setInfo( type=itemtype, infoLabels={ "Director": " / ".join(item['director']) })
+        director = item['director']
+        if isinstance(director, list): director = " / ".join(director)
+        liz.setInfo( type=itemtype, infoLabels={ "Director": director })
     
     if "writer" in item:
-        liz.setInfo( type=itemtype, infoLabels={ "Writer": " / ".join(item['writer']) })
+        writer = item['writer']
+        if isinstance(writer, list): writer = " / ".join(writer)
+        liz.setInfo( type=itemtype, infoLabels={ "Writer": writer })
     
     if "genre" in item:
-        liz.setInfo( type=itemtype, infoLabels={ "genre": " / ".join(item['genre']) })
+        genre = item['genre']
+        if isinstance(genre, list): genre = " / ".join(genre)
+        liz.setInfo( type=itemtype, infoLabels={ "genre": genre })
         
     if "year" in item:
         liz.setInfo( type=itemtype, infoLabels={ "year": item['year'] })
@@ -334,6 +340,7 @@ def createListItem(item):
         liz.setInfo( type=itemtype, infoLabels={ "Channel": item['channel'] })
         liz.setInfo( type=itemtype, infoLabels={ "ChannelName": item['channel'] })
         liz.setProperty("ChannelName", item['channel'])
+        liz.setProperty("Channel", item['channel'])
         liz.setLabel2(item['channel'])
         
     return liz
