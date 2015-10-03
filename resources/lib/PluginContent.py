@@ -37,7 +37,6 @@ def doMainListing():
     addDirectoryItem(ADDON.getLocalizedString(32087), "plugin://script.skin.helper.service/?action=recentsongs&limit=100")
     addDirectoryItem(xbmc.getLocalizedString(517), "plugin://script.skin.helper.service/?action=recentplayedalbums&limit=100")
     addDirectoryItem(ADDON.getLocalizedString(32088), "plugin://script.skin.helper.service/?action=recentplayedsongs&limit=100")
-    addDirectoryItem("getcast", "plugin://script.skin.helper.service/?action=getcast&movie=interstellar")
     if xbmc.getCondVisibility("System.HasAddon(script.tv.show.next.aired)"):
         addDirectoryItem(ADDON.getLocalizedString(32055), "plugin://script.skin.helper.service/?action=nextairedtvshows&limit=100")
 
