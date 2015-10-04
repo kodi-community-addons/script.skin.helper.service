@@ -409,6 +409,13 @@ class LibraryMonitor(threading.Thread):
                 WINDOW.clearProperty("SkinHelper.Player.AddonName")
     
     def setGenre(self, genre=None):
+
+        totalNodes = 10
+        for i in range(totalNodes):
+            if not self.win.getProperty('SkinHelper.ListItemGenre.' + str(i)):
+                break
+            self.win.clearProperty('SkinHelper.ListItemGenre.' + str(i))
+
         if not genre:
             genre = xbmc.getInfoLabel('ListItem.Genre').decode('utf-8')
         
@@ -419,6 +426,11 @@ class LibraryMonitor(threading.Thread):
             genres.append(genre)
         
         WINDOW.setProperty('SkinHelper.ListItemGenres', "[CR]".join(genres))
+
+        count = 0
+        for genre in genres:
+            self.win.setProperty("SkinHelper.ListItemGenre." + str(count),genre)
+            count +=1
     
     def setDirector(self, director=None):
         if not director:
