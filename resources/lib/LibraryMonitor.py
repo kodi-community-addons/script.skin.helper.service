@@ -815,8 +815,9 @@ class LibraryMonitor(threading.Thread):
             if contenttype != self.lastContentType:
                 currentForcedView = xbmc.getInfoLabel("Skin.String(SkinHelper.ForcedViews.%s)" %contenttype)
                 if contenttype and currentForcedView and currentForcedView != "None":
+                    xbmc.executebuiltin("Container.SetViewMode(%s)" %currentForcedView)
                     WINDOW.setProperty("SkinHelper.ForcedView",currentForcedView)
-                    xbmc.sleep(25)
+                    xbmc.sleep(250)
                     xbmc.executebuiltin("Container.SetViewMode(%s)" %currentForcedView)
                     xbmc.executebuiltin("SetFocus(%s)" %currentForcedView)
                     self.lastContentType = contenttype
