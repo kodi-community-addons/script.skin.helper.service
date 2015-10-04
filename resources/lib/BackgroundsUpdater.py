@@ -404,35 +404,34 @@ class BackgroundsUpdater(threading.Thread):
         #smart shortcuts --> playlists
         if xbmc.getCondVisibility("Skin.HasSetting(SmartShortcuts.playlists)"):
             logMsg("Processing smart shortcuts for playlists.... ")
-            try:
-                if self.smartShortcuts.has_key("playlists") and not self.refreshSmartshortcuts:
-                    logMsg("get playlist entries from cache.... ")
-                    playlists = self.smartShortcuts["playlists"]
-                    for playlist in playlists:
-                        playlistCount = playlist[0]
-                        self.setImageFromPath("playlist." + str(playlistCount) + ".image",playlist[3])
-                        WINDOW.setProperty("playlist." + str(playlistCount) + ".label",  playlist[1])
-                        WINDOW.setProperty("playlist." + str(playlistCount) + ".title",  playlist[1])
-                        WINDOW.setProperty("playlist." + str(playlistCount) + ".action", playlist[2])
-                        WINDOW.setProperty("playlist." + str(playlistCount) + ".path", playlist[2])
-                        WINDOW.setProperty("playlist." + str(playlistCount) + ".content", playlist[3])
-                        WINDOW.setProperty("playlist." + str(playlistCount) + ".type", playlist[4])
-                else:
-                    logMsg("no cache - Get playlist entries from file.... ")
-                    playlistCount = 0
-                    playlists = []
-                    
-                    paths = [['special://videoplaylists/','VideoLibrary'], ['special://musicplaylists/','MusicLibrary']]
-                    for playlistpath in paths:
-                        media_array = None
-                        media_array = getJSON('Files.GetDirectory','{ "directory": "%s", "media": "files" }' % playlistpath[0] )
-                        for item in media_array:
+            if self.smartShortcuts.has_key("playlists") and not self.refreshSmartshortcuts:
+                logMsg("get playlist entries from cache.... ")
+                playlists = self.smartShortcuts["playlists"]
+                for playlist in playlists:
+                    playlistCount = playlist[0]
+                    self.setImageFromPath("playlist." + str(playlistCount) + ".image",playlist[3])
+                    WINDOW.setProperty("playlist." + str(playlistCount) + ".label",  playlist[1])
+                    WINDOW.setProperty("playlist." + str(playlistCount) + ".title",  playlist[1])
+                    WINDOW.setProperty("playlist." + str(playlistCount) + ".action", playlist[2])
+                    WINDOW.setProperty("playlist." + str(playlistCount) + ".path", playlist[2])
+                    WINDOW.setProperty("playlist." + str(playlistCount) + ".content", playlist[3])
+                    WINDOW.setProperty("playlist." + str(playlistCount) + ".type", playlist[4])
+            else:
+                logMsg("no cache - Get playlist entries from file.... ")
+                playlistCount = 0
+                playlists = []
+                paths = [['special://videoplaylists/','VideoLibrary'], ['special://musicplaylists/','MusicLibrary']]
+                for playlistpath in paths:
+                    media_array = getJSON('Files.GetDirectory','{ "directory": "%s", "media": "files" }' % playlistpath[0] )
+                    for item in media_array:
+                        try:
+                            label = ""
                             if item["file"].endswith(".xsp"):
                                 playlist = item["file"]
                                 contents = xbmcvfs.File(playlist, 'r')
-                                contents_data = contents.read().decode('utf-8')
+                                contents_data = contents.read()
                                 contents.close()
-                                xmldata = xmltree.fromstring(contents_data.encode('utf-8'))
+                                xmldata = xmltree.fromstring(contents_data)
                                 type = "unknown"
                                 label = item["label"]
                                 if self.setImageFromPath("playlist." + str(playlistCount) + ".image",playlist):
@@ -451,13 +450,9 @@ class BackgroundsUpdater(threading.Thread):
                                     allSmartShortcuts.append("playlist." + str(playlistCount) )
                                     playlists.append( (playlistCount, label, path, playlist, type ))
                                     playlistCount += 1
-                    
-                    self.smartShortcuts["playlists"] = playlists
-            except Exception as e:
-                #something wrong so disable the smartshortcuts for this section for now
-                xbmc.executebuiltin("Skin.Reset(SmartShortcuts.playlists)")
-                logMsg("Error while processing smart shortcuts for playlists - set disabled.... ", 0)
-                logMsg(str(e),0)
+                        except: logMsg("Error while processing smart shortcuts for playlist %s  --> "%label, 0)
+                self.smartShortcuts["playlists"] = playlists
+            
                     
         #smart shortcuts --> favorites
         if xbmc.getCondVisibility("Skin.HasSetting(SmartShortcuts.favorites)"):
