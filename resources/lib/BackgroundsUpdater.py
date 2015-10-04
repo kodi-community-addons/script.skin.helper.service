@@ -318,11 +318,11 @@ class BackgroundsUpdater(threading.Thread):
             for key in self.allBackgrounds:
                 if self.allBackgrounds.has_key(key):
                     for background in self.allBackgrounds[key]:
-                        images.append(background)
+                        if background:
+                            images.append(background)
             if images:
                 image = random.choice(images)
-
-            WINDOW.setProperty("SkinHelper.GlobalFanartBackground", image)
+            if image: WINDOW.setProperty("SkinHelper.GlobalFanartBackground", image)
                   
     def UpdateBackgrounds(self):
         
@@ -361,7 +361,9 @@ class BackgroundsUpdater(threading.Thread):
         self.getGlobalBackground()
 
         #pictures background
-        WINDOW.setProperty("SkinHelper.PicturesBackground", self.getPicturesBackground())
+        picturesbg = self.getPicturesBackground()
+        if picturesbg:
+            WINDOW.setProperty("SkinHelper.PicturesBackground", self.getPicturesBackground())
         
         #smart shortcuts --> emby nodes
         if xbmc.getCondVisibility("System.HasAddon(plugin.video.emby) + Skin.HasSetting(SmartShortcuts.emby)"):

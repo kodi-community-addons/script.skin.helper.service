@@ -139,7 +139,8 @@ class DialogSelectBig( xbmcgui.WindowXMLDialog ):
             self.fav_list.addItem( listitem )
 
         self.setFocus(self.fav_list)
-        self.fav_list.selectItem(self.autoFocusId)
+        try: self.fav_list.selectItem(self.autoFocusId)
+        except: self.fav_list.selectItem(0)
 
     def onAction(self, action):
         if action.getId() in ( 9, 10, 92, 216, 247, 257, 275, 61467, 61448, ):
