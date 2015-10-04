@@ -412,9 +412,9 @@ class LibraryMonitor(threading.Thread):
 
         totalNodes = 10
         for i in range(totalNodes):
-            if not self.win.getProperty('SkinHelper.ListItemGenre.' + str(i)):
+            if not WINDOW.getProperty('SkinHelper.ListItemGenre.' + str(i)):
                 break
-            self.win.clearProperty('SkinHelper.ListItemGenre.' + str(i))
+            WINDOW.clearProperty('SkinHelper.ListItemGenre.' + str(i))
 
         if not genre:
             genre = xbmc.getInfoLabel('ListItem.Genre').decode('utf-8')
@@ -429,7 +429,7 @@ class LibraryMonitor(threading.Thread):
 
         count = 0
         for genre in genres:
-            self.win.setProperty("SkinHelper.ListItemGenre." + str(count),genre)
+            WINDOW.setProperty("SkinHelper.ListItemGenre." + str(count),genre)
             count +=1
     
     def setDirector(self, director=None):
