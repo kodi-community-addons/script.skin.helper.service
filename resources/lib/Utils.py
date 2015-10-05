@@ -301,6 +301,12 @@ def createListItem(item):
         art = item['art']
         if art and not art.get("fanart") and art.get("tvshow.fanart"):
             art["fanart"] = art.get("tvshow.fanart")
+        if art and not art.get("poster") and art.get("tvshow.poster"):
+            art["poster"] = art.get("tvshow.poster")
+        if art and not art.get("clearlogo") and art.get("tvshow.clearlogo"):
+            art["clearlogo"] = art.get("tvshow.clearlogo")
+        if art and not art.get("landscape") and art.get("tvshow.landscape"):
+            art["landscape"] = art.get("tvshow.landscape")
         liz.setThumbnailImage(item['art'].get('thumb',''))
     else:
         art = []
