@@ -20,7 +20,7 @@ class HomeMonitor(threading.Thread):
     
     event = None
     exit = False
-    delayedTaskInterval = 1799
+    delayedTaskInterval = 1795
     lastWeatherNotificationCheck = None
     lastNextAiredNotificationCheck = None
     
@@ -100,7 +100,7 @@ class HomeMonitor(threading.Thread):
                 xbmc.executebuiltin('RunScript(plugin.video.plexbmc,amberskin)')
                 #wait for max 20 seconds untill the plex nodes are available
                 count = 0
-                while (count < 80 and WINDOW.getProperty("plexbmc.0.title") == ""):
+                while (count < 80 and not WINDOW.getProperty("plexbmc.0.title")):
                     xbmc.sleep(250)
                     count += 1
             
@@ -108,13 +108,14 @@ class HomeMonitor(threading.Thread):
             if not WINDOW.getProperty("plexbmc.0.title"):
                 xbmc.executebuiltin('RunScript(plugin.video.plexbmc,skin)')
                 count = 0
-                while (count < 40 and WINDOW.getProperty("plexbmc.0.title") == ""):
+                while (count < 40 and not WINDOW.getProperty("plexbmc.0.title")):
                     xbmc.sleep(250)
                     count += 1
             
             #get the plex setting if there are subnodes
             plexaddon = xbmcaddon.Addon(id='plugin.video.plexbmc')
             hasSecondayMenus = plexaddon.getSetting("secondary") == "true"
+            del plexaddon
             
             #update plex window properties
             linkCount = 0
@@ -141,7 +142,6 @@ class HomeMonitor(threading.Thread):
                     WINDOW.setProperty(plexstring + ".recent", recentlink)
                     WINDOW.setProperty(plexstring + ".ondeck", progresslink)
                     
-                
                 logMsg(plexstring + ".all --> " + alllink)
                 
                 WINDOW.setProperty(plexstring + ".recent.content", getContentPath(recentlink))

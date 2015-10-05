@@ -219,6 +219,7 @@ class LibraryMonitor(threading.Thread):
                 WINDOW.clearProperty("SkinHelper.PVR.FanArt") 
                 WINDOW.clearProperty("SkinHelper.PVR.ChannelLogo")
                 WINDOW.clearProperty("SkinHelper.PVR.Poster")
+                WINDOW.clearProperty("SkinHelper.Player.AddonName")
             xbmc.sleep(100)
             self.delayedTaskInterval += 0.10
             self.widgetTaskInterval += 0.10

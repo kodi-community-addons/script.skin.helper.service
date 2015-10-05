@@ -517,8 +517,7 @@ class BackgroundsUpdater(threading.Thread):
                     self.setImageFromPath(key + ".background",node[2])
                     self.setImageFromPath(key + ".image",node[2])
             elif WINDOW.getProperty("plexbmc.0.title"):
-                logMsg("no cache - Get plex entries from file.... ")    
-                                   
+                logMsg("no cache - Get plex entries from file.... ")                      
                 contentStrings = ["", ".ondeck", ".recent", ".unwatched"]
                 if WINDOW.getProperty("plexbmc.0.title"):
                     nodes = []
