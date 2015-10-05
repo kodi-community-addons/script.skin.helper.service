@@ -275,9 +275,9 @@ class BackgroundsUpdater(threading.Thread):
                                     
                                     #pick 5 images from each dir
                                     for dir in randomdirs:
-                                        subdirs, files = xbmcvfs.listdir(dir)
+                                        subdirs, files2 = xbmcvfs.listdir(dir)
                                         count = 0
-                                        for file in files:
+                                        for file in files2:
                                             if ((file.endswith(".jpg") or file.endswith(".png") or file.endswith(".JPG") or file.endswith(".PNG")) and count < 5):
                                                 image = os.path.join(dir,file.decode("utf-8","ignore"))
                                                 images.append(image)

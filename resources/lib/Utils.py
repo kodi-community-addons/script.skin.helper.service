@@ -162,12 +162,6 @@ def createListItem(item):
     season = None
     episode = None
     
-    if "runtime" in item:
-        if isinstance(item['runtime'], int):
-            liz.setInfo( type=itemtype, infoLabels={ "duration": str(item['runtime']/60) })
-        else:
-            liz.setInfo( type=itemtype, infoLabels={ "duration": item['runtime'] })
-    
     if "duration" in item:
         liz.setInfo( type=itemtype, infoLabels={ "duration": item['duration'] })
     
@@ -195,7 +189,6 @@ def createListItem(item):
     if "songid" in item:
         liz.setProperty("DBID", str(item['songid']))
         liz.setIconImage('DefaultAudio.png')
-        liz.setLabel2(item['artist'][0])
         
     if "movieid" in item:
         liz.setProperty("DBID", str(item['movieid']))
@@ -320,14 +313,18 @@ def createListItem(item):
             liz.setThumbnailImage(item["icon"])
     liz.setArt(art)
     
-
+    hasVideoStream = False
     if "streamdetails" in item:
         for key, value in item['streamdetails'].iteritems():
             for stream in value:
-                liz.addStreamInfo( key, stream )
+                if 'video' in key: hasVideoStream = True
+                liz.addStreamInfo(key, stream)
+
+    if not hasVideoStream and "runtime" in item:
+        stream = {'duration': item['runtime']}
+        liz.addStreamInfo("video", stream)
     
     #pvr properties
-    
     if "progresspercentage" in item:
         liz.setInfo( type=itemtype, infoLabels={ "Progress": item['progresspercentage'] })
     if "starttime" in item:

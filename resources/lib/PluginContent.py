@@ -457,9 +457,7 @@ def getPVRChannels(limit):
         item["icon"] = channelicon
         item["channel"] = channelname
         item["cast"] = None
-        
-        #add fake streaminfo to prevent kodi from probing the listitem
-        item["streamdetails"] = {'video': [{ 'Codec': 'h264', 'Width' : 1280 }]}
+
         liz = createListItem(item)
         liz.setProperty('IsPlayable', 'false')
         directoryItems.append((item['file'], liz, False))
