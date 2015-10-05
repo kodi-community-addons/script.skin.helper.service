@@ -14,9 +14,7 @@ import random
 import xml.etree.ElementTree as etree
 import base64
 import time
-
 from Utils import *
-import PluginContent as pluginContent
 
 class HomeMonitor(threading.Thread):
     
@@ -88,7 +86,6 @@ class HomeMonitor(threading.Thread):
             self.checkNetflixReady()
             self.updatePlexlinks()
             self.genericWindowProps()
-            pluginContent.buildWidgetsListing()
             self.checkNotifications()
         except Exception as e:
             logMsg("ERROR in HomeMonitor doBackgroundWork ! --> " + str(e), 0)

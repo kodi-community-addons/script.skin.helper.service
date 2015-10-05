@@ -154,8 +154,6 @@ def getSmartShortcuts(sublevel=None):
 
 def buildWidgetsListing():
     allWidgets = {}
-    if WINDOW.getProperty("allwidgets"):
-        allWidgets = eval(WINDOW.getProperty("allwidgets"))
     
     #addons that provide dynamic content for widgets
     #will only be loaded once so no cache refreshes
@@ -266,7 +264,8 @@ def buildWidgetsListing():
             
             allWidgets[widget] = foundWidgets
             
-    WINDOW.setProperty("allwidgets",repr(allWidgets))    
+    WINDOW.setProperty("SkinHelper.allwidgets",repr(allWidgets))
+    
        
 def getWidgets(itemstoInclude = None):
     xbmcplugin.setContent(int(sys.argv[1]), 'files')
@@ -277,10 +276,10 @@ def getWidgets(itemstoInclude = None):
         itemstoInclude = ["skinplaylists", "librarydataprovider", "scriptwidgets", "extendedinfo", "smartshortcuts","pvr", "smartishwidgets", "favourites" ]
     
     #load the widget listing from the cache
-    allWidgets = WINDOW.getProperty("allwidgets")
+    allWidgets = WINDOW.getProperty("SkinHelper.allwidgets")
     if not allWidgets:
         buildWidgetsListing()
-        allWidgets = WINDOW.getProperty("allwidgets")
+        allWidgets = WINDOW.getProperty("SkinHelper.allwidgets")
     
     if allWidgets:
         allWidgets = eval(allWidgets)

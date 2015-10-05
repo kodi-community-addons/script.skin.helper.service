@@ -17,6 +17,7 @@ import json
 import requests
 from datetime import datetime
 from Utils import *
+import PluginContent as pluginContent
 
 class LibraryMonitor(threading.Thread):
     
@@ -46,6 +47,7 @@ class LibraryMonitor(threading.Thread):
         
         logMsg("LibraryMonitor - started")
         self.cachePath = os.path.join(ADDON_DATA_PATH,"librarycache.json")
+        self.widgetCachePath = os.path.join(ADDON_DATA_PATH,"widgetscache.json")
         self.event =  threading.Event()
         threading.Thread.__init__(self, *args)    
     
@@ -67,6 +69,15 @@ class LibraryMonitor(threading.Thread):
         libraryCache["streamdetailsCache"] = self.streamdetailsCache
         libraryCache["rottenCache"] = self.rottenCache       
         json.dump(libraryCache, open(self.cachePath,'w'))
+        
+        #safe widget cache
+        widgetCache = {}
+        allWidgets = WINDOW.getProperty("SkinHelper.allwidgets")
+        if allWidgets:
+            widgetCache["allwidgets"] = eval(allWidgets)
+        
+        json.dump(widgetCache, open(self.widgetCachePath,'w'))
+            
        
     def getCacheFromFile(self):
         #TODO --> clear the cache in some conditions
@@ -84,6 +95,12 @@ class LibraryMonitor(threading.Thread):
                 if data.has_key("PVRArtCache"):
                     self.pvrArtCache = data["PVRArtCache"]
                     WINDOW.setProperty("SkinHelper.pvrArtCache",repr(data["PVRArtCache"]))
+        #widgets cache
+        if xbmcvfs.exists(self.widgetCachePath):
+            with open(self.widgetCachePath) as data_file:    
+                data = json.load(data_file)
+                if data.has_key("allwidgets"):
+                    WINDOW.setProperty("SkinHelper.allwidgets",repr(data["allwidgets"]))
 
     def run(self):
 
@@ -210,6 +227,7 @@ class LibraryMonitor(threading.Thread):
         #background worker for any long running tasks
         try:
             self.getStudioLogos()
+            pluginContent.buildWidgetsListing()
         except Exception as e:
             logMsg("ERROR in LibraryMonitor.doBackgroundWork ! --> " + str(e), 0)
                        

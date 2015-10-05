@@ -300,7 +300,11 @@ def createListItem(item):
             art["clearlogo"] = art.get("tvshow.clearlogo")
         if art and not art.get("landscape") and art.get("tvshow.landscape"):
             art["landscape"] = art.get("tvshow.landscape")
-        liz.setThumbnailImage(item['art'].get('thumb',''))
+        thumb = None
+        if item['art'].get('thumb',''): thumb = item['art'].get('thumb','')
+        elif item.get('icon',''): thumb = item.get('icon','')
+        elif item['art'].get('poster',''): thumb = item['art'].get('poster','')
+        liz.setThumbnailImage(thumb)
     else:
         art = []
         if "fanart" in item:
@@ -308,9 +312,9 @@ def createListItem(item):
         if "thumbnail" in item:
             art.append(("thumb",item["thumbnail"]))
             liz.setThumbnailImage(item["thumbnail"])
-        if "icon" in item:
+        elif "icon" in item:
             art.append(("thumb",item["icon"]))
-            liz.setThumbnailImage(item["icon"])
+            liz.setIconImage(item["icon"])
     liz.setArt(art)
     
     hasVideoStream = False
