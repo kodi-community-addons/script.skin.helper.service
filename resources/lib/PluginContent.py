@@ -1178,8 +1178,6 @@ def getFavouriteMedia(limit):
                     xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=tvshowpath, listitem=liz)                   
         if fav["type"] == "media":
             path = fav["path"]
-            if isinstance(path, unicode):
-                path = path.encode("utf-8")
             if "/" in path:
                 sep = "/"
             else:
