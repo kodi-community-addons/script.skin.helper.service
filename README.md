@@ -684,7 +684,7 @@ ________________________________________________________________________________
 plugin://script.skin.helper.service/?action=similarmovies&limit=[LIMIT]
 ```
 This will provide a list with movies that are similar to a random watched movie from the library.
-TIP: The listitem provided by this list will have a property "originaltitle" which contains the movie from which this list is generated. That way you can create a "Because you watched $INFO[Container.ListItem.Property(originaltitle)]" label....
+TIP: The listitem provided by this list will have a property "similartitle" which contains the movie from which this list is generated. That way you can create a "Because you watched $INFO[Container.ListItem.Property(originaltitle)]" label....
 Note: You can optionally provide the reload= parameter if you want to refresh the widget on library changes. If you want to refresh the widget on other circumstances just provide any changing info with the reload parameter, such as the window title or some window Property which you change on X interval.
 
 

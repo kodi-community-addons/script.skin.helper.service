@@ -148,7 +148,7 @@ def setSkinVersion():
     WINDOW.setProperty("SkinHelper.skinTitle",skinLabel + " - " + xbmc.getLocalizedString(19114) + ": " + skinVersion)
     WINDOW.setProperty("SkinHelper.skinVersion",xbmc.getLocalizedString(19114) + ": " + skinVersion)
     WINDOW.setProperty("SkinHelper.Version",ADDON_VERSION.replace(".",""))
-        
+    
 def createListItem(item):
 
     itemtype = "Video"

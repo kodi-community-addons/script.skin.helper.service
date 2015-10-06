@@ -33,7 +33,7 @@ class LibraryMonitor(threading.Thread):
     allStudioLogosColor = {}
     LastCustomStudioImagesPath = None
     delayedTaskInterval = 1800
-    widgetTaskInterval = 595
+    widgetTaskInterval = 590
     moviesetCache = {}
     extraFanartCache = {}
     musicArtCache = {}
@@ -72,15 +72,44 @@ class LibraryMonitor(threading.Thread):
         
         #safe widget cache
         widgetCache = {}
-        allWidgets = WINDOW.getProperty("SkinHelper.allwidgets")
-        if allWidgets:
-            widgetCache["allwidgets"] = eval(allWidgets)
+        widget = WINDOW.getProperty("skinhelper-recommendedmovies")
+        if widget: widgetCache["skinhelper-recommendedmovies"] = eval(widget)
+        widget = WINDOW.getProperty("SkinHelper.allwidgets")
+        if widget: widgetCache["SkinHelper.allwidgets"] = eval(widget)
+        widget = WINDOW.getProperty("skinhelper-InProgressAndRecommendedMedia")
+        if widget: widgetCache["skinhelper-InProgressAndRecommendedMedia"] = eval(widget)
+        widget = WINDOW.getProperty("skinhelper-InProgressMedia")
+        if widget: widgetCache["skinhelper-InProgressMedia"] = eval(widget)
+        widget = WINDOW.getProperty("skinhelper-RecommendedMedia")
+        if widget: widgetCache["skinhelper-RecommendedMedia"] = eval(widget)
+        widget = WINDOW.getProperty("skinhelper-favourites")
+        if widget: widgetCache["skinhelper-favourites"] = eval(widget)
+        widget = WINDOW.getProperty("skinhelper-pvrrecordings")
+        if widget: widgetCache["skinhelper-pvrrecordings"] = eval(widget)
+        widget = WINDOW.getProperty("skinhelper-pvrchannels")
+        if widget: widgetCache["skinhelper-pvrchannels"] = eval(widget)
+        widget = WINDOW.getProperty("skinhelper-recentalbums")
+        if widget: widgetCache["skinhelper-recentalbums"] = eval(widget)
+        widget = WINDOW.getProperty("skinhelper-recentplayedalbums")
+        if widget: widgetCache["skinhelper-recentplayedalbums"] = eval(widget)
+        widget = WINDOW.getProperty("skinhelper-recentplayedsongs")
+        if widget: widgetCache["skinhelper-recentplayedsongs"] = eval(widget)
+        widget = WINDOW.getProperty("skinhelper-recentsongs")
+        if widget: widgetCache["skinhelper-recentsongs"] = eval(widget)
+        widget = WINDOW.getProperty("skinhelper-nextepisodes")
+        if widget: widgetCache["skinhelper-nextepisodes"] = eval(widget)
+        widget = WINDOW.getProperty("skinhelper-nextairedtvshows")
+        if widget: widgetCache["skinhelper-nextairedtvshows"] = eval(widget)
+        widget = WINDOW.getProperty("skinhelper-similarmovies")
+        if widget: widgetCache["skinhelper-similarmovies"] = eval(widget)
+        widget = WINDOW.getProperty("skinhelper-recentmedia")
+        if widget: widgetCache["skinhelper-recentmedia"] = eval(widget)
+        widget = WINDOW.getProperty("skinhelper-favouritemedia")
+        if widget: widgetCache["skinhelper-favouritemedia"] = eval(widget)
         
         json.dump(widgetCache, open(self.widgetCachePath,'w'))
-            
-       
+             
     def getCacheFromFile(self):
-        #TODO --> clear the cache in some conditions
         if xbmcvfs.exists(self.cachePath):
             with open(self.cachePath) as data_file:    
                 data = json.load(data_file)
@@ -99,8 +128,9 @@ class LibraryMonitor(threading.Thread):
         if xbmcvfs.exists(self.widgetCachePath):
             with open(self.widgetCachePath) as data_file:    
                 data = json.load(data_file)
-                if data.has_key("allwidgets"):
-                    WINDOW.setProperty("SkinHelper.allwidgets",repr(data["allwidgets"]))
+                if data:
+                    for key in data:
+                        WINDOW.setProperty(key,repr(data[key]))
 
     def run(self):
 
@@ -122,6 +152,12 @@ class LibraryMonitor(threading.Thread):
             #reload some widgets every 10 minutes
             if (xbmc.getCondVisibility("!Window.IsActive(videolibrary) + !Window.IsActive(musiclibrary) + !Window.IsActive(fullscreenvideo)")):
                 if (self.widgetTaskInterval >= 600):
+                    WINDOW.clearProperty("skinhelper-favourites")
+                    WINDOW.clearProperty("skinhelper-pvrrecordings")
+                    WINDOW.clearProperty("skinhelper-pvrchannels")
+                    WINDOW.clearProperty("skinhelper-nextairedtvshows")
+                    WINDOW.clearProperty("skinhelper-similarmovies")
+                    WINDOW.clearProperty("skinhelper-favouritemedia")
                     WINDOW.setProperty("widgetreload2", datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
                     self.widgetTaskInterval = 0
 
@@ -1033,21 +1069,49 @@ class Kodi_Monitor(xbmc.Monitor):
     
     def __init__(self, *args, **kwargs):
         xbmc.Monitor.__init__(self)
-
-    def onNotification(self,sender,method,data):
+        
+    def resetMusicWidgets(self):
+        #clear the cache for the music widgets
+        WINDOW.clearProperty("skinhelper-recentalbums")
+        WINDOW.clearProperty("skinhelper-recentplayedalbums")
+        WINDOW.clearProperty("skinhelper-recentplayedsongs")
+        WINDOW.clearProperty("skinhelper-recentsongs")
     
+    def resetVideoWidgets(self):
+        #clear the cache for the video widgets
+        WINDOW.clearProperty("skinhelper-recommendedmovies")
+        WINDOW.clearProperty("skinhelper-InProgressAndRecommendedMedia")
+        WINDOW.clearProperty("skinhelper-InProgressMedia")
+        WINDOW.clearProperty("skinhelper-RecommendedMedia")
+        WINDOW.clearProperty("skinhelper-nextepisodes")
+        WINDOW.clearProperty("skinhelper-similarmovies")
+        WINDOW.clearProperty("skinhelper-recentmedia")
+        WINDOW.clearProperty("skinhelper-favouritemedia")
+    
+    def onDatabaseUpdated(self,database):
+        if database == "video" and WINDOW.getProperty("resetVideoDbCache") != "reset":
+            self.resetVideoWidgets()
+            WINDOW.setProperty("widgetreload", datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        if database == "music" and WINDOW.getProperty("resetMusicArtCache") != "reset":
+            self.resetMusicWidgets()
+            WINDOW.setProperty("widgetreloadmusic", datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+           
+    def onNotification(self,sender,method,data):
+               
         if method == "VideoLibrary.OnUpdate":
             #update nextup list when library has changed
+            self.resetVideoWidgets()
             WINDOW.setProperty("widgetreload", datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
             #refresh some widgets when library has changed
             WINDOW.setProperty("resetVideoDbCache","reset")
         
-        if method == "AudioLibrary.OnUpdate":
+        elif method == "AudioLibrary.OnUpdate":
+            self.resetMusicWidgets()
             WINDOW.setProperty("widgetreloadmusic", datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
             #refresh some widgets when library has changed
             WINDOW.setProperty("resetMusicArtCache","reset")
         
-        if method == "Player.OnPlay":
+        elif method == "Player.OnPlay":
             
             try:
                 secondsToDisplay = int(xbmc.getInfoLabel("Skin.String(SkinHelper.ShowInfoAtPlaybackStart)"))
