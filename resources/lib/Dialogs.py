@@ -73,7 +73,17 @@ class DialogSelectSmall( xbmcgui.WindowXMLDialog ):
 
     def onAction(self, action):
         if action.getId() in ( 9, 10, 92, 216, 247, 257, 275, 61467, 61448, ):
-            self.result = -1
+            if self.multiselect == True:
+                itemsList = []
+                itemcount = self.totalitems -1
+                while (itemcount != -1):
+                    li = self.fav_list.getListItem(itemcount)
+                    if li.isSelected() == True:
+                        itemsList.append(itemcount)
+                    itemcount -= 1
+                self.result = itemsList
+            else:        
+                self.result = -1
             self.close()
         
         # select item in list

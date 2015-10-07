@@ -626,14 +626,14 @@ def createSmartShortcutSubmenu(windowProp,iconimage):
         logMsg("ERROR in createSmartShortcutSubmenu ! --> " + str(e), 0)
 
 def getCurrentContentType():
-    contenttype="other"
+    contenttype=""
     if xbmc.getCondVisibility("Container.Content(episodes)"):
         contenttype = "episodes"
     elif xbmc.getCondVisibility("Container.Content(movies) + !substring(Container.FolderPath,setid=)"):
         contenttype = "movies"  
     elif xbmc.getCondVisibility("[Container.Content(sets) | StringCompare(Container.Folderpath,videodb://movies/sets/)] + !substring(Container.FolderPath,setid=)"):
         contenttype = "sets"
-    elif xbmc.getCondVisibility("substring(Container.FolderPath,setid=)"):
+    elif xbmc.getCondVisibility("substring(Container.FolderPath,?setid=)"):
         contenttype = "setmovies" 
     elif xbmc.getCondVisibility("Container.Content(tvshows)"):
         contenttype = "tvshows"
@@ -659,7 +659,7 @@ def getCurrentContentType():
         contenttype = "pictures"
     elif xbmc.getCondVisibility("Container.Content(files)"):
         contenttype = "files"
-    elif xbmc.getCondVisibility("Container.Content(songs) | Container.Content(singles) | SubString(ListItem.FolderPath,.)"):
+    elif xbmc.getCondVisibility("Container.Content(songs) | Container.Content(singles) | SubString(ListItem.FolderPath,.mp3,right) | SubString(ListItem.FolderPath,.flac,right)"):
         contenttype = "songs"
     return contenttype
         
