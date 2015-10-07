@@ -114,27 +114,30 @@ class LibraryMonitor(threading.Thread):
         json.dump(widgetCache, open(self.widgetCachePath,'w'))
              
     def getCacheFromFile(self):
-        if xbmcvfs.exists(self.cachePath):
-            with open(self.cachePath) as data_file:    
-                data = json.load(data_file)
-                if data.has_key("MusicArtCache"):
-                    self.musicArtCache = data["MusicArtCache"]
-                if data.has_key("SetsCache"):
-                    self.moviesetCache = data["SetsCache"]
-                if data.has_key("streamdetailsCache"):
-                    self.streamdetailsCache = data["streamdetailsCache"]
-                if data.has_key("rottenCache"):
-                    self.rottenCache = data["rottenCache"]
-                if data.has_key("PVRArtCache"):
-                    self.pvrArtCache = data["PVRArtCache"]
-                    WINDOW.setProperty("SkinHelper.pvrArtCache",repr(data["PVRArtCache"]))
-        #widgets cache
-        if xbmcvfs.exists(self.widgetCachePath):
-            with open(self.widgetCachePath) as data_file:    
-                data = json.load(data_file)
-                if data:
-                    for key in data:
-                        WINDOW.setProperty(key,repr(data[key]))
+        try:
+            if xbmcvfs.exists(self.cachePath):
+                with open(self.cachePath) as data_file:    
+                    data = json.load(data_file)
+                    if data.has_key("MusicArtCache"):
+                        self.musicArtCache = data["MusicArtCache"]
+                    if data.has_key("SetsCache"):
+                        self.moviesetCache = data["SetsCache"]
+                    if data.has_key("streamdetailsCache"):
+                        self.streamdetailsCache = data["streamdetailsCache"]
+                    if data.has_key("rottenCache"):
+                        self.rottenCache = data["rottenCache"]
+                    if data.has_key("PVRArtCache"):
+                        self.pvrArtCache = data["PVRArtCache"]
+                        WINDOW.setProperty("SkinHelper.pvrArtCache",repr(data["PVRArtCache"]))
+            #widgets cache
+            if xbmcvfs.exists(self.widgetCachePath):
+                with open(self.widgetCachePath) as data_file:    
+                    data = json.load(data_file)
+                    if data:
+                        for key in data:
+                            WINDOW.setProperty(key,repr(data[key]))
+        except Exception as e:
+            logMsg("ERROR in getCacheFromFile ! --> " + str(e), 0)
 
     def run(self):
 
@@ -144,7 +147,7 @@ class LibraryMonitor(threading.Thread):
         while (self.exit != True):
             
             #actions when medialibrary active
-            if xbmc.getCondVisibility("Window.IsMedia"):
+            if xbmc.getCondVisibility("Window.IsMedia | SubString(Window.Property(xmlfile),PVR)"):
                 
                 #set some globals
                 self.liPath = xbmc.getInfoLabel("ListItem.Path").decode('utf-8')

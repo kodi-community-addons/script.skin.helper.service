@@ -197,7 +197,7 @@ def buildWidgetsListing():
             allWidgets[addon[1]] = foundWidgets
     
     #skin provided playlists
-    paths = ["special://skin/playlists/","special://skin/extras/widgetplaylists/"]
+    paths = ["special://skin/playlists/","special://skin/extras/widgetplaylists/","special://skin/extras/playlists/"]
     playlistsFound = []
     for path in paths:
         if xbmcvfs.exists(path):

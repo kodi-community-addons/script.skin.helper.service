@@ -649,6 +649,8 @@ def getCurrentContentType():
         contenttype = "tvchannels"
     elif xbmc.getCondVisibility("Window.IsActive(tvrecordings) | Window.IsActive(radiorecordings)"):
         contenttype = "tvrecordings"
+    elif xbmc.getCondVisibility("Window.IsActive(tvguide) | Window.IsActive(radioguide)"):
+        contenttype = "tvguide"
     elif xbmc.getCondVisibility("Window.IsActive(tvtimers) | Window.IsActive(radiotimers)"):
         contenttype = "tvtimers"
     elif xbmc.getCondVisibility("Window.IsActive(tvsearch) | Window.IsActive(radiosearch)"):
