@@ -704,8 +704,8 @@ def searchChannelLogo(searchphrase):
                 url = 'http://www.thelogodb.com/api/json/v1/1/tvchannel.php?s=%s' %try_encode(search_alt)
                 response = requests.get(url)
                 data = json.loads(response.content.decode('utf-8','replace'))
-                if js and js.has_key('channels'):
-                    results = js['channels']
+                if data and data.has_key('channels'):
+                    results = data['channels']
                     if results:
                         for i in results: 
                             rest = i['strLogoWide']

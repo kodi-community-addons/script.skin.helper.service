@@ -147,7 +147,7 @@ class LibraryMonitor(threading.Thread):
         while (self.exit != True):
             
             #actions when medialibrary active
-            if xbmc.getCondVisibility("Window.IsMedia | SubString(Window.Property(xmlfile),PVR)"):
+            if xbmc.getCondVisibility("Window.IsActive(videos) | Window.IsActive(music) | Window.IsActive(MyMusicSongs.xml) | Window.IsActive(pictures) | Window.IsActive(programs)"):
                 
                 #set some globals
                 self.liPath = xbmc.getInfoLabel("ListItem.Path").decode('utf-8')
@@ -174,15 +174,6 @@ class LibraryMonitor(threading.Thread):
                             self.setGenre()
                         except Exception as e:
                             logMsg("ERROR in checkMusicArt ! --> " + str(e), 0)
-                            
-                    # monitor listitem props when PVR is active
-                    elif xbmc.getCondVisibility("Window.IsActive(MyPVRChannels.xml) | Window.IsActive(MyPVRGuide.xml) | Window.IsActive(MyPVRTimers.xml) | Window.IsActive(MyPVRSearch.xml) | Window.IsActive(MyPVRRecordings.xml)"):
-                        try:
-                            self.setDuration()
-                            self.setPVRThumbs()
-                            self.setGenre()
-                        except Exception as e:
-                            logMsg("ERROR in LibraryMonitor ! --> " + str(e), 0)
                                 
                     # monitor listitem props when videolibrary is active
                     elif xbmc.getCondVisibility("Window.IsActive(videolibrary) | Window.IsActive(movieinformation)"):
@@ -204,6 +195,15 @@ class LibraryMonitor(threading.Thread):
                     self.folderPathLast = self.folderPath
                     self.liLabelLast = self.liLabel
 
+            # monitor listitem props when PVR is active
+            elif xbmc.getCondVisibility("Window.IsActive(MyPVRChannels.xml) | Window.IsActive(MyPVRGuide.xml) | Window.IsActive(MyPVRTimers.xml) | Window.IsActive(MyPVRSearch.xml) | Window.IsActive(MyPVRRecordings.xml)"):
+                try:
+                    self.setDuration()
+                    self.setPVRThumbs()
+                    self.setGenre()
+                except Exception as e:
+                    logMsg("ERROR in LibraryMonitor ! --> " + str(e), 0)
+            
             #perform other background tasks (when not fullscreen video)
             elif not xbmc.getCondVisibility("Window.IsActive(fullscreenvideo)"):
             
