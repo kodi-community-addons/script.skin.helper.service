@@ -83,6 +83,7 @@ class Main:
                     if path:
                         xbmc.executeJSONRPC('{ "jsonrpc": "2.0", "id": 0, "method": "Player.Open", "params": { "item": {"channelid": ' + path + '} } }')
                 elif action == "LAUNCH":
+                    path = sys.argv[2].split("&path=")[1]
                     if path:
                         xbmc.executebuiltin(path)
     

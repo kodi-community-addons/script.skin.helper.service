@@ -376,43 +376,31 @@ def getFavourites(limit):
     count = 0
     allItems = []
     xbmcplugin.setContent(int(sys.argv[1]), 'files')
-    cache = WINDOW.getProperty("skinhelper-favourites")
-    if cache:
-        #load from cache
-        allItems = eval(cache)
-    else:
-        try:
-            xbmcplugin.setContent(int(sys.argv[1]), 'files')
-            fav_file = xbmc.translatePath( 'special://profile/favourites.xml' ).decode("utf-8")
-            if xbmcvfs.exists( fav_file ):
-                doc = parse( fav_file )
-                listing = doc.documentElement.getElementsByTagName( 'favourite' )
-                
-                for count, favourite in enumerate(listing):
-                    label = ""
-                    image = "DefaultFile.png"
-                    for (name, value) in favourite.attributes.items():
-                        if name == "name":
-                            label = value
-                        if name == "thumb":
-                            image = value
-                    path = favourite.childNodes [ 0 ].nodeValue
-                    path="plugin://script.skin.helper.service/?action=launch&path=" + path
-                    allItems.append( (label,path,image) )
-                    if count == limit:
-                        break
-        except Exception as e: 
-            logMsg("ERROR in PluginContent.getFavourites ! --> " + str(e), 0)
-        
-        if allItems: WINDOW.setProperty("skinhelper-favourites", repr(allItems))
-    for item in allItems:
-        li = xbmcgui.ListItem(item[0], path=item[1])
-        li.setThumbnailImage(item[2])
-        li.setProperty('IsPlayable', 'false')
-        xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=item[1], listitem=li, isFolder=False)
-        count += 1
-        if count == limit:
-            break
+    try:
+        xbmcplugin.setContent(int(sys.argv[1]), 'files')
+        fav_file = xbmc.translatePath( 'special://profile/favourites.xml' ).decode("utf-8")
+        if xbmcvfs.exists( fav_file ):
+            doc = parse( fav_file )
+            listing = doc.documentElement.getElementsByTagName( 'favourite' )
+            
+            for count, favourite in enumerate(listing):
+                label = ""
+                image = "DefaultFile.png"
+                for (name, value) in favourite.attributes.items():
+                    if name == "name":
+                        label = value
+                    if name == "thumb":
+                        image = value
+                path = favourite.childNodes [ 0 ].nodeValue
+                path="plugin://script.skin.helper.service/?action=launch&path=" + path
+                li = xbmcgui.ListItem(label, path=path)
+                li.setThumbnailImage(image)
+                li.setProperty('IsPlayable', 'false')
+                xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=path, listitem=li, isFolder=False)
+                if count == limit:
+                    break
+    except Exception as e: 
+        logMsg("ERROR in PluginContent.getFavourites ! --> " + str(e), 0)
     xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
 
 def getPVRRecordings(limit):

@@ -28,10 +28,10 @@ class Kodi_Monitor(xbmc.Monitor):
         WINDOW.clearProperty("skinhelper-favouritemedia")
     
     def onDatabaseUpdated(self,database):
-        if database == "video" and WINDOW.getProperty("resetVideoDbCache") != "reset":
+        if database == "video":
             self.resetVideoWidgets()
             WINDOW.setProperty("widgetreload", datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-        if database == "music" and WINDOW.getProperty("resetMusicArtCache") != "reset":
+        if database == "music" :
             self.resetMusicWidgets()
             WINDOW.setProperty("widgetreloadmusic", datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
            

@@ -222,8 +222,6 @@ class ListItemMonitor(threading.Thread):
         if widget: widgetCache["skinhelper-InProgressMedia"] = eval(widget)
         widget = WINDOW.getProperty("skinhelper-RecommendedMedia")
         if widget: widgetCache["skinhelper-RecommendedMedia"] = eval(widget)
-        widget = WINDOW.getProperty("skinhelper-favourites")
-        if widget: widgetCache["skinhelper-favourites"] = eval(widget)
         widget = WINDOW.getProperty("skinhelper-pvrrecordings")
         if widget: widgetCache["skinhelper-pvrrecordings"] = eval(widget)
         widget = WINDOW.getProperty("skinhelper-pvrchannels")
@@ -1204,29 +1202,24 @@ class ListItemMonitor(threading.Thread):
                     control = window.getControl(int(viewId))
                     totalItems = int(xbmc.getInfoLabel("Container.NumItems"))
                     
-                    #only do a focus if we're on top of the list, else skip to prevent bouncing of the list
-                    if not int(xbmc.getInfoLabel("Container.Position")) > 1:
-                        if (xbmc.getCondVisibility("Container.SortDirection(ascending)")):
-                            curItem = 0
-                            control.selectItem(0)
-                            xbmc.sleep(250)
-                            while ((xbmc.getCondVisibility("Container.Content(episodes) | Container.Content(seasons)")) and totalItems >= curItem):
-                                if (xbmc.getInfoLabel("Container.ListItem(" + str(curItem) + ").Overlay") != "OverlayWatched.png" and xbmc.getInfoLabel("Container.ListItem(" + str(curItem) + ").Label") != ".." and not xbmc.getInfoLabel("Container.ListItem(" + str(curItem) + ").Label").startswith("*")):
-                                    if curItem != 0:
-                                        control.selectItem(curItem)
-                                    break
-                                else:
-                                    curItem += 1
-                        
-                        elif (xbmc.getCondVisibility("Container.SortDirection(descending)")):
-                            curItem = totalItems
-                            control.selectItem(totalItems)
-                            xbmc.sleep(250)
-                            while ((xbmc.getCondVisibility("Container.Content(episodes) | Container.Content(seasons)")) and curItem != 0):
-                                
-                                if (xbmc.getInfoLabel("Container.ListItem(" + str(curItem) + ").Overlay") != "OverlayWatched.png"):
-                                    control.selectItem(curItem-1)
-                                    break
-                                else:    
-                                    curItem -= 1
+                    if (xbmc.getCondVisibility("Container.SortDirection(ascending)")):
+                        curItem = 0
+                        while ((xbmc.getCondVisibility("Container.Content(episodes) | Container.Content(seasons)")) and totalItems >= curItem):
+                            if (xbmc.getInfoLabel("Container.ListItem(" + str(curItem) + ").Overlay") != "OverlayWatched.png" and xbmc.getInfoLabel("Container.ListItem(" + str(curItem) + ").Label") != ".." and not xbmc.getInfoLabel("Container.ListItem(" + str(curItem) + ").Label").startswith("*")):
+                                if curItem != 0:
+                                    #control.selectItem(curItem)
+                                    xbmc.executebuiltin("Control.Move(%s,%s)" %(str(viewId),str(curItem)))
+                                break
+                            else:
+                                curItem += 1
+                    
+                    elif (xbmc.getCondVisibility("Container.SortDirection(descending)")):
+                        curItem = totalItems
+                        while ((xbmc.getCondVisibility("Container.Content(episodes) | Container.Content(seasons)")) and curItem != 0):
+                            
+                            if (xbmc.getInfoLabel("Container.ListItem(" + str(curItem) + ").Overlay") != "OverlayWatched.png"):
+                                xbmc.executebuiltin("Control.Move(%s,%s)" %(str(viewId),str(curItem)))
+                                break
+                            else:    
+                                curItem -= 1
            

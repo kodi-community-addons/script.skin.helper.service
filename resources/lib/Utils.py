@@ -699,6 +699,7 @@ def getCurrentContentType():
         contenttype = "files"
     elif xbmc.getCondVisibility("Container.Content(songs) | Container.Content(singles) | SubString(ListItem.FolderPath,.mp3,right) | SubString(ListItem.FolderPath,.flac,right)"):
         contenttype = "songs"
+    WINDOW.setProperty("contenttype",contenttype)
     return contenttype
         
 def searchChannelLogo(searchphrase):
