@@ -677,9 +677,11 @@ def getCurrentContentType():
         contenttype = "seasons"
     elif xbmc.getCondVisibility("Container.Content(musicvideos)"):
         contenttype = "musicvideos"
-    elif xbmc.getCondVisibility("[Container.Content(artists) | SubString(ListItem.FolderPath,musicdb://artists)] + !SubString(ListItem.FolderPath,artistid=)"):
+    elif xbmc.getCondVisibility("Container.Content(songs) | Container.Content(singles) | SubString(Container.ListItem(1).FolderPath,.mp3,right) | SubString(Container.ListItem(1).FolderPath,.flac,right)"):
+        contenttype = "songs"
+    elif xbmc.getCondVisibility("[Container.Content(artists) | SubString(Container.FolderPath,musicdb://artists)] + !SubString(Container.FolderPath,?)"):
         contenttype = "artists"
-    elif xbmc.getCondVisibility("Container.Content(albums) | SubString(ListItem.FolderPath,musicdb://albums) | SubString(ListItem.FolderPath,artistid=)"):
+    elif xbmc.getCondVisibility("Container.Content(albums) | SubString(Container.FolderPath,musicdb://albums) | SubString(Container.FolderPath,artistid=)"):
         contenttype = "albums"
     elif xbmc.getCondVisibility("Window.IsActive(tvchannels) | Window.IsActive(radiochannels)"):
         contenttype = "tvchannels"
@@ -697,8 +699,6 @@ def getCurrentContentType():
         contenttype = "pictures"
     elif xbmc.getCondVisibility("Container.Content(files)"):
         contenttype = "files"
-    elif xbmc.getCondVisibility("Container.Content(songs) | Container.Content(singles) | SubString(ListItem.FolderPath,.mp3,right) | SubString(ListItem.FolderPath,.flac,right)"):
-        contenttype = "songs"
     WINDOW.setProperty("contenttype",contenttype)
     return contenttype
         
@@ -857,6 +857,21 @@ def getCleanImage(image):
         if image.endswith("/"):
             image = image[:-1]
     return image
+
+def normalize_string(text):
+    text = text.replace(":", "")
+    text = text.replace("/", "-")
+    text = text.replace("\\", "-")
+    text = text.replace("<", "")
+    text = text.replace(">", "")
+    text = text.replace("*", "")
+    text = text.replace("?", "")
+    text = text.replace('|', "")
+    text = text.replace('(', "")
+    text = text.replace(')', "")
+    text = text.strip()
+    text = text.rstrip('.')
+    text = unicodedata.normalize('NFKD', unicode(text, 'utf-8')).encode('ascii', 'ignore')
     
 def getMusicArtByDbId(dbid,itemtype):
     cdArt = None

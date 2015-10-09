@@ -80,10 +80,13 @@ class ListItemMonitor(threading.Thread):
                     self.contentType = getCurrentContentType()
                     self.setForcedView()
                     self.focusEpisode()
+                elif not self.folderPath and self.folderPathLast:
+                    self.folderPathLast = None
+                    self.resetWindowProps()
                 
                 #only perform actions when the listitem has actually changed
                 if curListItem and curListItem != self.lastListItem and self.contentType:
-                    self.resetWindowProps()
+                    WINDOW.setProperty("curListItem",curListItem)
 
                     # monitor listitem props when musiclibrary is active
                     if xbmc.getCondVisibility("Window.IsActive(musiclibrary) | Window.IsActive(MyMusicSongs.xml)"):
@@ -954,7 +957,7 @@ class ListItemMonitor(threading.Thread):
             json_response = None
             folderPath = xbmc.getInfoLabel("ListItem.FolderPath").decode('utf-8')
             dbid = xbmc.getInfoLabel("ListItem.DBID")
-            cdArt, LogoArt, BannerArt, extraFanArt, Info, TrackList = getMusicArtByDbId(dbid, getCurrentContentType())
+            cdArt, LogoArt, BannerArt, extraFanArt, Info, TrackList = getMusicArtByDbId(dbid, self.contentType)
       
             self.musicArtCache[dbID + "extraFanArt"] = extraFanArt
             self.musicArtCache[dbID + "SkinHelper.Music.DiscArt"] = cdArt

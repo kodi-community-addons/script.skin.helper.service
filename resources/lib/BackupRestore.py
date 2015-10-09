@@ -133,8 +133,8 @@ def backup(filterString="",silent=None,promptfilename="false"):
                                                 if thumb and(".jpg" in thumb or ".png" in thumb) and not thumb.startswith("special://") and not thumb.startswith("$") and not thumb.startswith("androidapp"):
                                                     thumb = getCleanImage(thumb) 
                                                     extension = thumb.split(".")[-1]
-                                                    newthumb = os.path.join(skinshortcuts_path,"%s-thumb-%s.%s" %(xbmc.getSkinDir(),defaultID,extension))
-                                                    newthumb_vfs = "special://profile/addon_data/script.skinshortcuts/%s-thumb-%s.%s"%(xbmc.getSkinDir(),defaultID,extension)
+                                                    newthumb = os.path.join(skinshortcuts_path,"%s-thumb-%s.%s" %(xbmc.getSkinDir(),normalize_string(defaultID),extension))
+                                                    newthumb_vfs = "special://profile/addon_data/script.skinshortcuts/%s-thumb-%s.%s"%(xbmc.getSkinDir(),normalize_string(defaultID),extension)
                                                     if xbmcvfs.exists(thumb):
                                                         xbmcvfs.copy(thumb,newthumb)
                                                         shortcut.getElementsByTagName( 'thumb' )[0].firstChild.data = newthumb_vfs
@@ -157,8 +157,8 @@ def backup(filterString="",silent=None,promptfilename="false"):
                                         if background and (".jpg" in background or ".png" in background) and not background.startswith("special://") and not background.startswith("$") and not background.startswith("androidapp"):
                                             background = getCleanImage(background)
                                             extension = background.split(".")[-1]
-                                            newthumb = os.path.join(skinshortcuts_path,"%s-background-%s.%s" %(xbmc.getSkinDir(),defaultID,extension))
-                                            newthumb_vfs = "special://profile/addon_data/script.skinshortcuts/%s-background-%s.%s"%(xbmc.getSkinDir(),defaultID,extension)
+                                            newthumb = os.path.join(skinshortcuts_path,"%s-background-%s.%s" %(xbmc.getSkinDir(),normalize_string(defaultID),extension))
+                                            newthumb_vfs = "special://profile/addon_data/script.skinshortcuts/%s-background-%s.%s"%(xbmc.getSkinDir(),normalize_string(defaultID),extension)
                                             if xbmcvfs.exists(background):
                                                 xbmcvfs.copy(background,newthumb)
                                                 allprops[count] = [prop[0],prop[1],prop[2],newthumb_vfs]
