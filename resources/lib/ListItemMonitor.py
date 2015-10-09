@@ -16,6 +16,7 @@ import base64
 import time
 from Utils import *
 
+
 class ListItemMonitor(threading.Thread):
     
     event = None
@@ -61,8 +62,6 @@ class ListItemMonitor(threading.Thread):
 
     def run(self):
         
-        listItem = None
-        lastListItem = None
         self.getCacheFromFile()
 
         while (self.exit != True):
@@ -83,7 +82,7 @@ class ListItemMonitor(threading.Thread):
                     self.focusEpisode()
                 
                 #only perform actions when the listitem has actually changed
-                if curListItem != self.lastListItem and self.contentType:
+                if curListItem and curListItem != self.lastListItem and self.contentType:
                     self.resetWindowProps()
 
                     # monitor listitem props when musiclibrary is active
@@ -118,42 +117,28 @@ class ListItemMonitor(threading.Thread):
                         except Exception as e:
                             logMsg("ERROR in LibraryMonitor ! --> " + str(e), 0)
                             
-                    #monitor listitem props when home active
-                    elif xbmc.getCondVisibility("Window.IsActive(home)"):
-                        try:
-                            #way to set the active widget when multiple widgets are used in skinshortcuts. TODO --> find a better way todo this in skin code
-                            mainMenuContainer = WINDOW.getProperty("SkinHelper.MainMenuContainer")
-                            menuItem = xbmc.getInfoLabel("Container(%s).ListItem.Property(defaultID)" %mainMenuContainer)
-                            if mainMenuContainer and menuItem:
-                                #set the active widget
-                                activewidget = xbmc.getInfoLabel("$INFO[Skin.String(widgetvalue-%s)]" %listItem)
-                                if activewidget and activewidget != "0":
-                                    if not xbmc.getInfoLabel("$INFO[Container(%s).ListItem.Property(widget.%s)]" %(mainMenuContainer,activewidget)):
-                                        activewidget = "0"
-                                    WINDOW.setProperty("SkinHelper.ActiveWidget",activewidget)
-                                else: 
-                                    WINDOW.setProperty("SkinHelper.ActiveWidget","0")
-                            
-                            #set last used background
-                            background = xbmc.getInfoLabel("Container(%s).ListItem.Property(Background)" %mainMenuContainer)
-                            WINDOW.setProperty("SkinHelper.SectionBackground", background)
-                            
-                            #set listitem window props for widget container
-                            widgetContainer = WINDOW.getProperty("SkinHelper.WidgetContainer")
-                            if widgetContainer:
-                                self.setDuration(xbmc.getInfoLabel("Container(%s).ListItem.Duration" %widgetContainer))
-                                self.setStudioLogo(xbmc.getInfoLabel("Container(%s).ListItem.Studio" %widgetContainer).decode('utf-8'))
-                                self.setDirector(xbmc.getInfoLabel("Container(%s).ListItem.Director" %widgetContainer).decode('utf-8'))
-                                self.checkMusicArt(xbmc.getInfoLabel("Container(%s).ListItem.Artist" %widgetContainer).decode('utf-8')+xbmc.getInfoLabel("Container(%s).ListItem.Album" %widgetContainer).decode('utf-8'))
-                        except Exception as e:
-                            logMsg("ERROR in LibraryMonitor Home Properties ! --> " + str(e), 0)
-                   
                     #set some globals
                     self.liPathLast = self.liPath
                     self.folderPathLast = self.folderPath
                     self.liLabelLast = self.liLabel
                     self.lastListItem = curListItem
                 
+                #monitor listitem props when home active
+                elif xbmc.getCondVisibility("Window.IsActive(Home) + !IsEmpty(Window(home).Property(SkinHelper.WidgetContainer))"):
+                    try:                
+                        #set listitem window props for widget container
+                        widgetContainer = WINDOW.getProperty("SkinHelper.WidgetContainer")
+                        curListItem = xbmc.getInfoLabel("Container(%s).ListItem.Label" %widgetContainer)
+                        if curListItem and curListItem != self.lastListItem:
+                            self.setDuration(xbmc.getInfoLabel("Container(%s).ListItem.Duration" %widgetContainer))
+                            self.setStudioLogo(xbmc.getInfoLabel("Container(%s).ListItem.Studio" %widgetContainer).decode('utf-8'))
+                            self.setDirector(xbmc.getInfoLabel("Container(%s).ListItem.Director" %widgetContainer).decode('utf-8'))
+                            self.setGenre(xbmc.getInfoLabel("Container(%s).ListItem.Genre" %widgetContainer).decode('utf-8'))
+                            self.checkMusicArt(xbmc.getInfoLabel("Container(%s).ListItem.Artist" %widgetContainer).decode('utf-8')+xbmc.getInfoLabel("Container(%s).ListItem.Album" %widgetContainer).decode('utf-8'))
+                            self.lastListItem = curListItem
+                    except Exception as e:
+                        logMsg("ERROR in LibraryMonitor HomeWidget ! --> " + str(e), 0)
+                   
                 #do some background stuff every 30 minutes
                 elif (self.delayedTaskInterval >= 1800):
                     thread.start_new_thread(self.doBackgroundWork, ())
@@ -209,7 +194,6 @@ class ListItemMonitor(threading.Thread):
             self.updatePlexlinks()
             self.checkNotifications()
             self.getStudioLogos()
-            pluginContent.buildWidgetsListing()
         except Exception as e:
             logMsg("ERROR in HomeMonitor doBackgroundWork ! --> " + str(e), 0)
     
@@ -230,8 +214,8 @@ class ListItemMonitor(threading.Thread):
         widgetCache = {}
         widget = WINDOW.getProperty("skinhelper-recommendedmovies")
         if widget: widgetCache["skinhelper-recommendedmovies"] = eval(widget)
-        widget = WINDOW.getProperty("SkinHelper.allwidgets")
-        if widget: widgetCache["SkinHelper.allwidgets"] = eval(widget)
+        widget = WINDOW.getProperty("skinhelper-widgetcontenttype-persistant")
+        if widget: widgetCache["skinhelper-widgetcontenttype"] = eval(widget)
         widget = WINDOW.getProperty("skinhelper-InProgressAndRecommendedMedia")
         if widget: widgetCache["skinhelper-InProgressAndRecommendedMedia"] = eval(widget)
         widget = WINDOW.getProperty("skinhelper-InProgressMedia")

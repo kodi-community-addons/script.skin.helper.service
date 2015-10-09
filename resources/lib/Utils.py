@@ -357,62 +357,99 @@ def createListItem(item):
 def detectPluginContent(plugin,skipscan=False):
     #based on the properties in the listitem we try to detect the content
     image = None
-    #safety check: check if no library windows are active to prevent any addons setting the view
-    curWindow = xbmc.getInfoLabel("$INFO[Window.Property(xmlfile)]")
-    if curWindow.endswith("Nav.xml") or curWindow == "AddonBrowser.xml" or curWindow.startswith("MyPVR"):
-        return None, None
-    
-    if not skipscan:
-        media_array = getJSON('Files.GetDirectory','{ "directory": "%s", "media": "files", "properties": ["title", "file", "thumbnail", "episode", "showtitle", "season", "album", "artist", "imdbnumber", "firstaired", "mpaa", "trailer", "studio", "art"], "limits": {"end":3} }' %plugin)
-        for item in media_array:
-            
-            if item.has_key("art") and not image:
-                if item["art"].has_key("fanart"):
-                    image = item["art"]["fanart"]
-                elif item["art"].has_key("tvshow.fanart") and not image:
-                    image = item["art"]["tvshow.fanart"]
-            if not item.has_key("showtitle") and not item.has_key("artist"):
-                #these properties are only returned in the json response if we're looking at actual file content...
-                # if it's missing it means this is a main directory listing and no need to scan the underlying listitems.
-                return ("files", image)
-            if not item.has_key("showtitle") and item.has_key("artist"):
-                ##### AUDIO ITEMS ####
-                if item["type"] == "artist" or item["artist"][0] == item["title"]:
-                    return ("artists", image)
-                elif item["type"] == "album" or item["album"] == item["title"]:
-                    return ("albums", image)
-                elif (item["type"] == "song" and not "play_album" in item["file"]) or (item["artist"] and item["album"]):
-                    return ("songs", image)
-            else:    
-                ##### VIDEO ITEMS ####
-                if (item["showtitle"] and not item["artist"]):
-                    #this is a tvshow, episode or season...
-                    if item["type"] == "season" or (item["season"] > -1 and item["episode"] == -1):
-                        return ("seasons", image)
-                    elif item["type"] == "episode" or item["season"] > -1 and item["episode"] > -1:
-                        return ("episodes", image)
-                    else:
-                        return ("tvshows", image)
-                elif (item["artist"]):
-                    #this is a musicvideo!
-                    return ("musicvideos", image)
-                elif item["type"] == "movie" or item["imdbnumber"] or item["mpaa"] or item["trailer"] or item["studio"]:
-                    return ("movies", image)
+    contentType = None
+    #load from cache first
+    cache = WINDOW.getProperty("skinhelper-widgetcontenttype")
+    if cache:
+        cache = eval(cache)
+        if cache and cache.has_key(plugin):
+            contentType = cache[plugin][0]
+            image = cache[plugin][1]
+            return (contentType, image)
+    else: cache = {}
+        
+    #probe path to determine content
+    if not contentType:
+        #safety check: check if no library windows are active to prevent any addons setting the view
+        curWindow = xbmc.getInfoLabel("$INFO[Window.Property(xmlfile)]")
+        if curWindow.endswith("Nav.xml") or curWindow == "AddonBrowser.xml" or curWindow.startswith("MyPVR"):
+            return None, None
+        
+        if not skipscan:
+            media_array = getJSON('Files.GetDirectory','{ "directory": "%s", "media": "files", "properties": ["title", "file", "thumbnail", "episode", "showtitle", "season", "album", "artist", "imdbnumber", "firstaired", "mpaa", "trailer", "studio", "art"], "limits": {"end":1} }' %plugin)
+            if not media_array: contentType="empty"
+            for item in media_array:
+                if item.has_key("art") and not image:
+                    if item["art"].has_key("fanart") and not image:
+                        image = item["art"]["fanart"]
+                    elif item["art"].has_key("tvshow.fanart") and not image:
+                        image = item["art"]["tvshow.fanart"]
+                    elif item["art"].has_key("thumb") and not image:
+                        image = item["art"]["thumb"]
+                    elif item.has_key("fanart_image") and not image:
+                        image = item["fanart_image"]
+                    elif item.has_key("thumbnail") and not image:
+                        image = item["thumbnail"]
+                if not item.has_key("showtitle") and not item.has_key("artist"):
+                    #these properties are only returned in the json response if we're looking at actual file content...
+                    # if it's missing it means this is a main directory listing and no need to scan the underlying listitems.
+                    contentType = "files"
+                    break
+                if not item.has_key("showtitle") and item.has_key("artist"):
+                    ##### AUDIO ITEMS ####
+                    if item["type"] == "artist" or item["artist"][0] == item["title"]:
+                        contentType = "artists"
+                        break
+                    elif item["type"] == "album" or item["album"] == item["title"]:
+                        contentType = "albums"
+                        break
+                    elif (item["type"] == "song" and not "play_album" in item["file"]) or (item["artist"] and item["album"]):
+                        contentType = "songs"
+                        break
+                else:    
+                    ##### VIDEO ITEMS ####
+                    if (item["showtitle"] and not item["artist"]):
+                        #this is a tvshow, episode or season...
+                        if item["type"] == "season" or (item["season"] > -1 and item["episode"] == -1):
+                            contentType = "seasons"
+                            break
+                        elif item["type"] == "episode" or item["season"] > -1 and item["episode"] > -1:
+                            contentType = "episodes"
+                            break
+                        else:
+                            contentType = "tvshows"
+                            break
+                    elif (item["artist"]):
+                        #this is a musicvideo!
+                        contentType = "musicvideos"
+                        break
+                    elif item["type"] == "movie" or item["imdbnumber"] or item["mpaa"] or item["trailer"] or item["studio"]:
+                        contentType = "movies"
+                        break
     
     #last resort or skipscan chosen - detect content based on the path
-    if "movie" in plugin or "box" in plugin or "dvd" in plugin or "rentals" in plugin:
-        type = "movies"
-    elif "album" in plugin:
-        type = "albums"
-    elif "show" in plugin:
-        type = "tvshows"
-    elif "song" in plugin:
-        type = "songs"
-    elif "musicvideo" in plugin:
-        type = "musicvideos"
-    else:
-        type = "unknown"
-    return (type, None)
+    if not contentType:
+        if "movie" in plugin or "box" in plugin or "dvd" in plugin or "rentals" in plugin:
+            contentType = "movies"
+        elif "album" in plugin:
+            contentType = "albums"
+        elif "show" in plugin:
+            contentType = "tvshows"
+        elif "song" in plugin:
+            contentType = "songs"
+        elif "musicvideo" in plugin:
+            contentType = "musicvideos"
+        else:
+            contentType = "unknown"
+        
+    #save to cache
+    cache[plugin] = (contentType,image)
+    cache = repr(cache)
+    if contentType != "empty": WINDOW.setProperty("skinhelper-widgetcontenttype-persistant",cache)
+    WINDOW.setProperty("skinhelper-widgetcontenttype",cache)
+    
+    #return the values
+    return (contentType, getCleanImage(image))
 
 def getLocalDateTimeFromUtc(timestring):
     try:
@@ -508,7 +545,6 @@ def single_urlencode(text):
 
    return blah
 
-    
 def getPVRThumbs(persistant_cache,title,channel,enableYouTubeSearch=False):
     dbID = title + channel
     cacheFound = False
@@ -814,7 +850,7 @@ def searchThumb(searchphrase, searchphrase2=""):
     return image
     
 def getCleanImage(image):
-    if "image://" in image:
+    if image and "image://" in image:
         image = image.replace("image://","")
         image=urllib.unquote(image.encode("utf-8"))
         if image.endswith("/"):

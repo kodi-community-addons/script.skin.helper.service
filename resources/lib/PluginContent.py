@@ -165,6 +165,13 @@ def buildWidgetsListing():
         if not allWidgets.has_key(addon[1]):
             foundWidgets = []
             if xbmc.getCondVisibility("System.HasAddon(%s)" %addon[0]):
+                hasTMDBCredentials = False
+                #extendedinfo has some login-required widgets, skip those
+                if addon[0] == "script.extendedinfo":
+                    exinfoaddon = xbmcaddon.Addon(id=addon[0])
+                    if exinfoaddon.getSetting("tmdb_username") != "" and exinfoaddon.getSetting("tmdb_password") != "":
+                        hasTMDBCredentials = True
+                    del exinfoaddon
                 media_array = getJSON('Files.GetDirectory','{ "directory": "plugin://%s", "media": "files" }' %addon[0])
                 for item in media_array:
                     #safety check: check if no library windows are active to prevent any addons setting the view
@@ -172,7 +179,11 @@ def buildWidgetsListing():
                     if curWindow.endswith("Nav.xml") or curWindow == "AddonBrowser.xml" or curWindow.startswith("MyPVR"):
                         return
                     content = item["file"]
-                    if not "reload=" in content and not addon[0] == "script.extendedinfo":
+                    #extendedinfo has some login-required widgets, skip those
+                    if (addon[0] == "script.extendedinfo" and hasTMDBCredentials==False and ("info=starred" in content or "info=rated" in content or "info=account" in content)):
+                        continue
+                    #add reload param for skinhelper and libraryprovider widgets
+                    if not "reload=" in content and (addon == "script.skin.helper.service" or addon == "service.library.data.provider"):
                         if "albums" in content or "songs" in content:
                             reloadstr = "&reload=$INFO[Window(Home).Property(widgetreloadmusic)]"
                         else:
@@ -180,10 +191,8 @@ def buildWidgetsListing():
                         content = content + reloadstr
                     content = content.replace("&limit=100","&limit=25")
                     label = item["label"]
-                    if addon[1] == "extendedinfo":
-                        type, image = detectPluginContent(item["file"], True)
-                    else:
-                        type, image = detectPluginContent(item["file"], False)
+                    type, image = detectPluginContent(item["file"], False)
+                    if type == "empty": continue
                     foundWidgets.append([label, content, image, type])
                 if addon[1] == "extendedinfo":
                     #some additional entrypoints for extendedinfo...
@@ -191,8 +200,8 @@ def buildWidgetsListing():
                     for entry in entrypoints:
                         content = entry
                         label = entry.split("id=")[1]
-                        type = "video"
-                        foundWidgets.append([label, content, "", type])
+                        type, image = detectPluginContent(content, False)
+                        foundWidgets.append([label, content, image, type])
 
             allWidgets[addon[1]] = foundWidgets
     
@@ -212,6 +221,7 @@ def buildWidgetsListing():
                     type = "unknown"
                     label = item["label"]
                     type2, image = detectPluginContent(item["file"])
+                    if type2 == "empty": continue
                     for line in xmldata.getiterator():
                         if line.tag == "smartplaylist":
                             type = line.attrib['type']
@@ -263,7 +273,7 @@ def buildWidgetsListing():
             
             allWidgets[widget] = foundWidgets
             
-    WINDOW.setProperty("SkinHelper.allwidgets",repr(allWidgets))
+    return allWidgets
           
 def getWidgets(itemstoInclude = None):
     xbmcplugin.setContent(int(sys.argv[1]), 'files')
@@ -273,14 +283,8 @@ def getWidgets(itemstoInclude = None):
     else:
         itemstoInclude = ["skinplaylists", "librarydataprovider", "scriptwidgets", "extendedinfo", "smartshortcuts","pvr", "smartishwidgets", "favourites" ]
     
-    #load the widget listing from the cache
-    allWidgets = WINDOW.getProperty("SkinHelper.allwidgets")
-    if not allWidgets:
-        buildWidgetsListing()
-        allWidgets = WINDOW.getProperty("SkinHelper.allwidgets")
-    
+    allWidgets = buildWidgetsListing()   
     if allWidgets:
-        allWidgets = eval(allWidgets)
         for widgetType in itemstoInclude:
             if widgetType == "smartshortcuts":
                 allSmartShortcuts = WINDOW.getProperty("allSmartShortcuts")

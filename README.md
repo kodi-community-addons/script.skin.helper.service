@@ -54,7 +54,6 @@ ________________________________________________________________________________
 |Window(Home).Property(SkinHelper.TotalFavourites) | total number of favourites |
 |Window(Home).Property(SkinHelper.TotalTVChannels) | total number of TV channels in the PVR |
 |Window(Home).Property(SkinHelper.TotalRadioChannels) | total number of Radio channels in the PVR |
-|Window(Home).Property(SkinHelper.SectionBackground) | this will store the last background in the mainmenu (skinshortcuts only) so it can be used in other section. You need to set the window property SkinHelper.MainmenuContainer to the ID of your main menu |
 ________________________________________________________________________________________________________
 #### Video library window properties
 Some additional window properties that can be used in the video library. 

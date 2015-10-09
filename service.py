@@ -22,21 +22,19 @@ class Main:
         listItemMonitor.start()
         backgroundsUpdater.start()
         
-        while True:
+        while not KodiMonitor.abortRequested():
             
             #set skin info
             if lastSkin != xbmc.getSkinDir():
                 setSkinVersion()
             
-            KodiMonitor.waitForAbort(1000)
+            KodiMonitor.waitForAbort(5000)
         else:
             # Abort was requested while waiting. We should exit
             xbmc.log('SKIN HELPER SERVICE --> shutdown requested !')
             #stop the extra threads
             backgroundsUpdater.stop()
-            libraryMonitor.stop()
-            homeMonitor.stop()
-                              
+            listItemMonitor.stop()                             
 
 xbmc.log('skin helper service version %s started' % ADDON_VERSION)
 Main()
