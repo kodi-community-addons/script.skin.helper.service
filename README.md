@@ -1044,7 +1044,7 @@ This will display a complete list of widgets available to select if the user pre
 
 Currently available widgets (more to be added soon):
 
-skinplaylist --> all playlists that are stored in "yourskin\extras\widgetplaylists" or "yourskin\playlists"
+skinplaylist --> all playlists that are stored in "yourskin\extras\widgetplaylists" or "yourskin\playlists" or "yourskin\extras\playlists"
 
 librarydataprovider --> all widgets that are provided by the Library Data Provider script
 

@@ -13,16 +13,16 @@ import xbmcvfs
 import random
 import xml.etree.ElementTree as etree
 import base64
-import json
-import requests
-from datetime import datetime
+import time
 from Utils import *
-import PluginContent as pluginContent
 
-class LibraryMonitor(threading.Thread):
+class ListItemMonitor(threading.Thread):
     
     event = None
     exit = False
+    delayedTaskInterval = 1795
+    lastWeatherNotificationCheck = None
+    lastNextAiredNotificationCheck = None
     liPath = ""
     liPathLast = ""
     liLabel = ""
@@ -45,22 +45,174 @@ class LibraryMonitor(threading.Thread):
     streamdetailsCache = {}
     pvrArtCache = {}
     rottenCache = {}
-    
+    cachePath = os.path.join(ADDON_DATA_PATH,"librarycache.json")
+    widgetCachePath = os.path.join(ADDON_DATA_PATH,"widgetscache.json")
     
     def __init__(self, *args):
-        
-        logMsg("LibraryMonitor - started")
-        self.cachePath = os.path.join(ADDON_DATA_PATH,"librarycache.json")
-        self.widgetCachePath = os.path.join(ADDON_DATA_PATH,"widgetscache.json")
+        logMsg("HomeMonitor - started")
         self.event =  threading.Event()
-        threading.Thread.__init__(self, *args)    
+        threading.Thread.__init__(self, *args)
     
     def stop(self):
-        logMsg("LibraryMonitor - stop called",0)
+        logMsg("HomeMonitor - stop called",0)
         self.saveCacheToFile()
         self.exit = True
         self.event.set()
 
+    def run(self):
+        
+        listItem = None
+        lastListItem = None
+        self.getCacheFromFile()
+
+        while (self.exit != True):
+        
+            if not xbmc.getCondVisibility("Window.IsActive(fullscreenvideo)"):
+        
+                #set some globals
+                self.liPath = xbmc.getInfoLabel("ListItem.Path").decode('utf-8')
+                self.liLabel = xbmc.getInfoLabel("ListItem.Label").decode('utf-8')
+                self.folderPath = xbmc.getInfoLabel("Container.FolderPath").decode('utf-8')
+                curListItem = self.liPath + self.liLabel
+                
+                #perform actions if the container path has changed
+                #always wait for the contenttype because plugins can be slow
+                if self.folderPath and self.folderPath != self.folderPathLast or not self.contentType:
+                    self.contentType = getCurrentContentType()
+                    self.setForcedView()
+                    self.focusEpisode()
+                
+                #only perform actions when the listitem has actually changed
+                if curListItem != self.lastListItem and self.contentType:
+                    self.resetWindowProps()
+
+                    # monitor listitem props when musiclibrary is active
+                    if xbmc.getCondVisibility("Window.IsActive(musiclibrary) | Window.IsActive(MyMusicSongs.xml)"):
+                        try:
+                            self.checkMusicArt()
+                            self.setGenre()
+                        except Exception as e:
+                            logMsg("ERROR in checkMusicArt ! --> " + str(e), 0)
+                                
+                    # monitor listitem props when videolibrary is active
+                    elif xbmc.getCondVisibility("Window.IsActive(videos) | Window.IsActive(movieinformation)"):
+                        try:
+                            self.setDuration()
+                            self.setStudioLogo()
+                            self.setGenre()
+                            self.setDirector()
+                            self.checkExtraFanArt()
+                            self.setMovieSetDetails()
+                            self.setAddonName()
+                            self.setStreamDetails()
+                            self.setRottenRatings()
+                        except Exception as e:
+                            logMsg("ERROR in LibraryMonitor ! --> " + str(e), 0)
+                    
+                    # monitor listitem props when PVR is active
+                    elif xbmc.getCondVisibility("Window.IsActive(MyPVRChannels.xml) | Window.IsActive(MyPVRGuide.xml) | Window.IsActive(MyPVRTimers.xml) | Window.IsActive(MyPVRSearch.xml) | Window.IsActive(MyPVRRecordings.xml)"):
+                        try:
+                            self.setDuration()
+                            self.setPVRThumbs()
+                            self.setGenre()
+                        except Exception as e:
+                            logMsg("ERROR in LibraryMonitor ! --> " + str(e), 0)
+                            
+                    #monitor listitem props when home active
+                    elif xbmc.getCondVisibility("Window.IsActive(home)"):
+                        try:
+                            #way to set the active widget when multiple widgets are used in skinshortcuts. TODO --> find a better way todo this in skin code
+                            mainMenuContainer = WINDOW.getProperty("SkinHelper.MainMenuContainer")
+                            menuItem = xbmc.getInfoLabel("Container(%s).ListItem.Property(defaultID)" %mainMenuContainer)
+                            if mainMenuContainer and menuItem:
+                                #set the active widget
+                                activewidget = xbmc.getInfoLabel("$INFO[Skin.String(widgetvalue-%s)]" %listItem)
+                                if activewidget and activewidget != "0":
+                                    if not xbmc.getInfoLabel("$INFO[Container(%s).ListItem.Property(widget.%s)]" %(mainMenuContainer,activewidget)):
+                                        activewidget = "0"
+                                    WINDOW.setProperty("SkinHelper.ActiveWidget",activewidget)
+                                else: 
+                                    WINDOW.setProperty("SkinHelper.ActiveWidget","0")
+                            
+                            #set last used background
+                            background = xbmc.getInfoLabel("Container(%s).ListItem.Property(Background)" %mainMenuContainer)
+                            WINDOW.setProperty("SkinHelper.SectionBackground", background)
+                            
+                            #set listitem window props for widget container
+                            widgetContainer = WINDOW.getProperty("SkinHelper.WidgetContainer")
+                            if widgetContainer:
+                                self.setDuration(xbmc.getInfoLabel("Container(%s).ListItem.Duration" %widgetContainer))
+                                self.setStudioLogo(xbmc.getInfoLabel("Container(%s).ListItem.Studio" %widgetContainer).decode('utf-8'))
+                                self.setDirector(xbmc.getInfoLabel("Container(%s).ListItem.Director" %widgetContainer).decode('utf-8'))
+                                self.checkMusicArt(xbmc.getInfoLabel("Container(%s).ListItem.Artist" %widgetContainer).decode('utf-8')+xbmc.getInfoLabel("Container(%s).ListItem.Album" %widgetContainer).decode('utf-8'))
+                        except Exception as e:
+                            logMsg("ERROR in LibraryMonitor Home Properties ! --> " + str(e), 0)
+                   
+                    #set some globals
+                    self.liPathLast = self.liPath
+                    self.folderPathLast = self.folderPath
+                    self.liLabelLast = self.liLabel
+                    self.lastListItem = curListItem
+                
+                #do some background stuff every 30 minutes
+                elif (self.delayedTaskInterval >= 1800):
+                    thread.start_new_thread(self.doBackgroundWork, ())
+                    self.delayedTaskInterval = 0          
+                
+                #reload some widgets every 10 minutes
+                if (self.widgetTaskInterval >= 600):
+                    WINDOW.clearProperty("skinhelper-favourites")
+                    WINDOW.clearProperty("skinhelper-pvrrecordings")
+                    WINDOW.clearProperty("skinhelper-pvrchannels")
+                    WINDOW.clearProperty("skinhelper-nextairedtvshows")
+                    WINDOW.clearProperty("skinhelper-similarmovies")
+                    WINDOW.clearProperty("skinhelper-favouritemedia")
+                    WINDOW.setProperty("widgetreload2", datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+                    self.widgetTaskInterval = 0
+                
+                #flush cache if videolibrary has changed
+                elif WINDOW.getProperty("resetVideoDbCache") == "reset":
+                    self.moviesetCache = {}
+                    self.extraFanartCache = {}
+                    self.streamdetailsCache = {}
+                    WINDOW.clearProperty("resetVideoDbCache")
+                
+                #flush cache if musiclibrary has changed
+                elif WINDOW.getProperty("resetMusicArtCache") == "reset":
+                    self.lastMusicDbId = ""
+                    self.musicArtCache = {}
+                    WINDOW.clearProperty("resetMusicArtCache")
+                else:
+                    xbmc.sleep(100)
+                    self.delayedTaskInterval += 0.1
+                    self.widgetTaskInterval += 0.1
+
+            else:
+                #fullscreen video is playing
+                xbmc.sleep(2000)
+                self.delayedTaskInterval += 2
+                self.widgetTaskInterval += 2
+    
+    def checkNetflixReady(self):
+        if xbmc.getCondVisibility("System.HasAddon(plugin.video.netflixbmc)"):
+            #set windowprop if netflix addon has a username filled in to prevent login loop box
+            nfaddon = xbmcaddon.Addon(id='plugin.video.netflixbmc')
+            if nfaddon.getSetting("username") and nfaddon.getSetting("html5MessageShown"):
+                WINDOW.setProperty("netflixready","ready")
+            else:
+                WINDOW.clearProperty("netflixready")
+    
+    def doBackgroundWork(self):
+        try:
+            self.genericWindowProps()
+            self.checkNetflixReady()
+            self.updatePlexlinks()
+            self.checkNotifications()
+            self.getStudioLogos()
+            pluginContent.buildWidgetsListing()
+        except Exception as e:
+            logMsg("ERROR in HomeMonitor doBackgroundWork ! --> " + str(e), 0)
+    
     def saveCacheToFile(self):
         #safety check: does the config directory exist?
         if not xbmcvfs.exists(ADDON_DATA_PATH + os.sep):
@@ -139,136 +291,157 @@ class LibraryMonitor(threading.Thread):
         except Exception as e:
             logMsg("ERROR in getCacheFromFile ! --> " + str(e), 0)
 
-    def run(self):
-
-        self.getCacheFromFile()
-        KodiMonitor = xbmc.Monitor()
-
-        while (self.exit != True):
+    def updatePlexlinks(self):
+        
+        if xbmc.getCondVisibility("System.HasAddon(plugin.video.plexbmc) + Skin.HasSetting(SmartShortcuts.plex)"): 
+            logMsg("update plexlinks started...")
             
-            #actions when medialibrary active
-            if xbmc.getCondVisibility("Window.IsActive(videos) | Window.IsActive(music) | Window.IsActive(MyMusicSongs.xml) | Window.IsActive(pictures) | Window.IsActive(programs)"):
-                
-                #set some globals
-                self.liPath = xbmc.getInfoLabel("ListItem.Path").decode('utf-8')
-                self.liLabel = xbmc.getInfoLabel("ListItem.Label").decode('utf-8')
-                self.folderPath = xbmc.getInfoLabel("Container.FolderPath").decode('utf-8')
-                curListItem = self.liPath + self.liLabel
-                
-                #perform actions if the container path has changed
-                #always wait for the contenttype because plugins can be slow
-                if self.folderPath != self.folderPathLast or not self.contentType:
-                    self.contentType = getCurrentContentType()
-                    self.setForcedView()
-                    self.focusEpisode()
-                
-                #only perform actions when the listitem has actually changed
-                if curListItem != self.lastListItem and self.contentType:
-                    self.lastListItem = curListItem
-                    self.resetWindowProps()
+            #initialize plex window props by using the amberskin entrypoint for now
+            if not WINDOW.getProperty("plexbmc.0.title"):
+                xbmc.executebuiltin('RunScript(plugin.video.plexbmc,amberskin)')
+                #wait for max 20 seconds untill the plex nodes are available
+                count = 0
+                while (count < 80 and not WINDOW.getProperty("plexbmc.0.title")):
+                    xbmc.sleep(250)
+                    count += 1
+            
+            #fallback to normal skin init
+            if not WINDOW.getProperty("plexbmc.0.title"):
+                xbmc.executebuiltin('RunScript(plugin.video.plexbmc,skin)')
+                count = 0
+                while (count < 40 and not WINDOW.getProperty("plexbmc.0.title")):
+                    xbmc.sleep(250)
+                    count += 1
+            
+            #get the plex setting if there are subnodes
+            plexaddon = xbmcaddon.Addon(id='plugin.video.plexbmc')
+            hasSecondayMenus = plexaddon.getSetting("secondary") == "true"
+            del plexaddon
+            
+            #update plex window properties
+            linkCount = 0
+            while linkCount !=50:
+                plexstring = "plexbmc." + str(linkCount)
+                link = WINDOW.getProperty(plexstring + ".title")
+                if not link:
+                    break
+                logMsg(plexstring + ".title --> " + link)
+                plexType = WINDOW.getProperty(plexstring + ".type")
+                logMsg(plexstring + ".type --> " + plexType)            
 
-                    # monitor listitem props when musiclibrary is active
-                    if xbmc.getCondVisibility("Window.IsActive(musiclibrary) | Window.IsActive(MyMusicSongs.xml)"):
-                        try:
-                            self.checkMusicArt()
-                            self.setGenre()
-                        except Exception as e:
-                            logMsg("ERROR in checkMusicArt ! --> " + str(e), 0)
-                                
-                    # monitor listitem props when videolibrary is active
-                    elif xbmc.getCondVisibility("Window.IsActive(videolibrary) | Window.IsActive(movieinformation)"):
-                        try:
-                            self.setDuration()
-                            self.setStudioLogo()
-                            self.setGenre()
-                            self.setDirector()
-                            self.checkExtraFanArt()
-                            self.setMovieSetDetails()
-                            self.setAddonName()
-                            self.setStreamDetails()
-                            self.setRottenRatings()
-                        except Exception as e:
-                            logMsg("ERROR in LibraryMonitor ! --> " + str(e), 0)
+                if hasSecondayMenus == True:
+                    recentlink = WINDOW.getProperty(plexstring + ".recent")
+                    progresslink = WINDOW.getProperty(plexstring + ".ondeck")
+                    alllink = WINDOW.getProperty(plexstring + ".all")
+                else:
+                    link = WINDOW.getProperty(plexstring + ".path")
+                    alllink = link
+                    link = link.replace("mode=1", "mode=0")
+                    link = link.replace("mode=2", "mode=0")
+                    recentlink = link.replace("/all", "/recentlyAdded")
+                    progresslink = link.replace("/all", "/onDeck")
+                    WINDOW.setProperty(plexstring + ".recent", recentlink)
+                    WINDOW.setProperty(plexstring + ".ondeck", progresslink)
                     
-                    #set some globals
-                    self.liPathLast = self.liPath
-                    self.folderPathLast = self.folderPath
-                    self.liLabelLast = self.liLabel
-
-            # monitor listitem props when PVR is active
-            elif xbmc.getCondVisibility("Window.IsActive(MyPVRChannels.xml) | Window.IsActive(MyPVRGuide.xml) | Window.IsActive(MyPVRTimers.xml) | Window.IsActive(MyPVRSearch.xml) | Window.IsActive(MyPVRRecordings.xml)"):
-                try:
-                    self.setDuration()
-                    self.setPVRThumbs()
-                    self.setGenre()
-                except Exception as e:
-                    logMsg("ERROR in LibraryMonitor ! --> " + str(e), 0)
+                logMsg(plexstring + ".all --> " + alllink)
+                
+                WINDOW.setProperty(plexstring + ".recent.content", getContentPath(recentlink))
+                WINDOW.setProperty(plexstring + ".recent.path", recentlink)
+                WINDOW.setProperty(plexstring + ".recent.title", "recently added")
+                logMsg(plexstring + ".recent --> " + recentlink)       
+                WINDOW.setProperty(plexstring + ".ondeck.content", getContentPath(progresslink))
+                WINDOW.setProperty(plexstring + ".ondeck.path", progresslink)
+                WINDOW.setProperty(plexstring + ".ondeck.title", "on deck")
+                logMsg(plexstring + ".ondeck --> " + progresslink)
+                
+                unwatchedlink = alllink.replace("mode=1", "mode=0")
+                unwatchedlink = alllink.replace("mode=2", "mode=0")
+                unwatchedlink = alllink.replace("/all", "/unwatched")
+                WINDOW.setProperty(plexstring + ".unwatched", unwatchedlink)
+                WINDOW.setProperty(plexstring + ".unwatched.content", getContentPath(unwatchedlink))
+                WINDOW.setProperty(plexstring + ".unwatched.path", unwatchedlink)
+                WINDOW.setProperty(plexstring + ".unwatched.title", "unwatched")
+                
+                WINDOW.setProperty(plexstring + ".content", getContentPath(alllink))
+                WINDOW.setProperty(plexstring + ".path", alllink)
+                
+                linkCount += 1
+                
+            #add plex channels as entry - extract path from one of the nodes as a workaround because main plex addon channels listing is in error
+            link = WINDOW.getProperty("plexbmc.0.path")
             
-            #perform other background tasks (when not fullscreen video)
-            elif not xbmc.getCondVisibility("Window.IsActive(fullscreenvideo)"):
-            
-                self.resetWindowProps()
-                self.liPathLast = ""
-                self.folderPathLast = ""
-                self.liLabelLast = ""
-                self.lastListItem = ""
-                
-                #monitor home widget
-                if xbmc.getCondVisibility("Window.IsActive(home)") and WINDOW.getProperty("SkinHelper.WidgetContainer"):
-                    try:
-                        widgetContainer = WINDOW.getProperty("SkinHelper.WidgetContainer")
-                        liLabel = xbmc.getInfoLabel("Container(%s).ListItem.Label"%widgetContainer).decode('utf-8')
-                        if ((liLabel != self.liLabelLast) and xbmc.getCondVisibility("!Container(%s).Scrolling" %widgetContainer)):
-                            self.liLabelLast = liLabel
-                            self.setDuration(xbmc.getInfoLabel("Container(%s).ListItem.Duration" %widgetContainer))
-                            self.setStudioLogo(xbmc.getInfoLabel("Container(%s).ListItem.Studio" %widgetContainer).decode('utf-8'))
-                            self.setDirector(xbmc.getInfoLabel("Container(%s).ListItem.Director" %widgetContainer).decode('utf-8'))
-                            self.checkMusicArt(xbmc.getInfoLabel("Container(%s).ListItem.Artist" %widgetContainer).decode('utf-8')+xbmc.getInfoLabel("Container(%s).ListItem.Album" %widgetContainer).decode('utf-8'))
-                    except Exception as e:
-                        logMsg("ERROR in LibraryMonitor widgets ! --> " + str(e), 0)
-                
-                #do some background stuff every 30 minutes
-                if (self.delayedTaskInterval >= 1800):
-                    thread.start_new_thread(self.doBackgroundWork, ())
-                    self.delayedTaskInterval = 0          
-                
-                #reload some widgets every 10 minutes
-                if (self.widgetTaskInterval >= 600):
-                    WINDOW.clearProperty("skinhelper-favourites")
-                    WINDOW.clearProperty("skinhelper-pvrrecordings")
-                    WINDOW.clearProperty("skinhelper-pvrchannels")
-                    WINDOW.clearProperty("skinhelper-nextairedtvshows")
-                    WINDOW.clearProperty("skinhelper-similarmovies")
-                    WINDOW.clearProperty("skinhelper-favouritemedia")
-                    WINDOW.setProperty("widgetreload2", datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-                    self.widgetTaskInterval = 0
-                
-                #flush cache if videolibrary has changed
-                if WINDOW.getProperty("resetVideoDbCache") == "reset":
-                    self.moviesetCache = {}
-                    self.extraFanartCache = {}
-                    self.streamdetailsCache = {}
-                    WINDOW.clearProperty("resetVideoDbCache")
-                
-                #flush cache if musiclibrary has changed
-                if WINDOW.getProperty("resetMusicArtCache") == "reset":
-                    self.lastMusicDbId = ""
-                    self.musicArtCache = {}
-                    WINDOW.clearProperty("resetMusicArtCache")        
+            if link:
+                link = link.split("/library/")[0]
+                link = link + "/channels/all&mode=21"
+                link = link + ", return)"
+                plexstring = "plexbmc.channels"
+                WINDOW.setProperty(plexstring + ".title", "Channels")
+                logMsg(plexstring + ".path --> " + link)
+                WINDOW.setProperty(plexstring + ".path", link)
+                WINDOW.setProperty(plexstring + ".content", getContentPath(link))
 
-        xbmc.sleep(100)
-        self.delayedTaskInterval += 0.10
-        self.widgetTaskInterval += 0.10
-            
-
-    def doBackgroundWork(self):
-        #background worker for any long running tasks
-        try:
-            self.getStudioLogos()
-            pluginContent.buildWidgetsListing()
-        except Exception as e:
-            logMsg("ERROR in LibraryMonitor.doBackgroundWork ! --> " + str(e), 0)
+    def checkNotifications(self):
+        
+        currentHour = time.strftime("%H")
+        
+        #weather notifications
+        winw = xbmcgui.Window(12600)
+        if (winw.getProperty("Alerts.RSS") and winw.getProperty("Current.Condition") and currentHour != self.lastWeatherNotificationCheck):
+            dialog = xbmcgui.Dialog()
+            dialog.notification(xbmc.getLocalizedString(31294), winw.getProperty("Alerts"), xbmcgui.NOTIFICATION_WARNING, 8000)
+            self.lastWeatherNotificationCheck = currentHour
+        
+        #nextaired notifications
+        if (xbmc.getCondVisibility("Skin.HasSetting(EnableNextAiredNotifications) + System.HasAddon(script.tv.show.next.aired)") and currentHour != self.lastNextAiredNotificationCheck):
+            if (WINDOW.getProperty("NextAired.TodayShow")):
+                dialog = xbmcgui.Dialog()
+                dialog.notification(xbmc.getLocalizedString(31295), WINDOW.getProperty("NextAired.TodayShow"), xbmcgui.NOTIFICATION_WARNING, 8000)
+                self.lastNextAiredNotificationCheck = currentHour
     
+    def genericWindowProps(self):
+        
+        #GET TOTAL ADDONS COUNT       
+        allAddonsCount = 0
+        media_array = getJSON('Addons.GetAddons','{ }')
+        for item in media_array:
+            allAddonsCount += 1
+        WINDOW.setProperty("SkinHelper.TotalAddons",str(allAddonsCount))
+        
+        addontypes = []
+        addontypes.append( ["executable", "SkinHelper.TotalProgramAddons", 0] )
+        addontypes.append( ["video", "SkinHelper.TotalVideoAddons", 0] )
+        addontypes.append( ["audio", "SkinHelper.TotalAudioAddons", 0] )
+        addontypes.append( ["image", "SkinHelper.TotalPicturesAddons", 0] )
+
+        for type in addontypes:
+            media_array = getJSON('Addons.GetAddons','{ "content": "%s" }' %type[0])
+            for item in media_array:
+                type[2] += 1
+            WINDOW.setProperty(type[1],str(type[2]))    
+                
+        #GET FAVOURITES COUNT        
+        allFavouritesCount = 0
+        media_array = getJSON('Favourites.GetFavourites','{ }')
+        for item in media_array:
+            allFavouritesCount += 1
+        WINDOW.setProperty("SkinHelper.TotalFavourites",str(allFavouritesCount))
+
+        #GET TV CHANNELS COUNT
+        if xbmc.getCondVisibility("Pvr.HasTVChannels"):
+            allTvChannelsCount = 0
+            media_array = getJSON('PVR.GetChannels','{"channelgroupid": "alltv" }' )
+            for item in media_array:
+                allTvChannelsCount += 1
+            WINDOW.setProperty("SkinHelper.TotalTVChannels",str(allTvChannelsCount))        
+
+        #GET RADIO CHANNELS COUNT
+        if xbmc.getCondVisibility("Pvr.HasRadioChannels"):
+            allRadioChannelsCount = 0
+            media_array = getJSON('PVR.GetChannels','{"channelgroupid": "allradio" }' )
+            for item in media_array:
+                allRadioChannelsCount += 1
+            WINDOW.setProperty("SkinHelper.TotalRadioChannels",str(allRadioChannelsCount))        
+               
     def resetWindowProps(self):
         #reset window props
         WINDOW.clearProperty("SkinHelper.ListItemStudioLogo")
@@ -533,7 +706,7 @@ class LibraryMonitor(threading.Thread):
         
         if xbmc.getCondVisibility("ListItem.IsFolder") and not channel and not title:
             #assume grouped recordings folderPath
-            title = self.liLabel
+            title = xbmc.getInfoLabel("ListItem.Label").decode('utf-8')
 
         if not xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnablePVRThumbs)") or not title:
             return
@@ -1072,76 +1245,4 @@ class LibraryMonitor(threading.Thread):
                                     break
                                 else:    
                                     curItem -= 1
-
-                    
-class Kodi_Monitor(xbmc.Monitor):
-    
-    def __init__(self, *args, **kwargs):
-        xbmc.Monitor.__init__(self)
-        
-    def resetMusicWidgets(self):
-        #clear the cache for the music widgets
-        WINDOW.clearProperty("skinhelper-recentalbums")
-        WINDOW.clearProperty("skinhelper-recentplayedalbums")
-        WINDOW.clearProperty("skinhelper-recentplayedsongs")
-        WINDOW.clearProperty("skinhelper-recentsongs")
-    
-    def resetVideoWidgets(self):
-        #clear the cache for the video widgets
-        WINDOW.clearProperty("skinhelper-recommendedmovies")
-        WINDOW.clearProperty("skinhelper-InProgressAndRecommendedMedia")
-        WINDOW.clearProperty("skinhelper-InProgressMedia")
-        WINDOW.clearProperty("skinhelper-RecommendedMedia")
-        WINDOW.clearProperty("skinhelper-nextepisodes")
-        WINDOW.clearProperty("skinhelper-similarmovies")
-        WINDOW.clearProperty("skinhelper-recentmedia")
-        WINDOW.clearProperty("skinhelper-favouritemedia")
-    
-    def onDatabaseUpdated(self,database):
-        if database == "video" and WINDOW.getProperty("resetVideoDbCache") != "reset":
-            self.resetVideoWidgets()
-            WINDOW.setProperty("widgetreload", datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-        if database == "music" and WINDOW.getProperty("resetMusicArtCache") != "reset":
-            self.resetMusicWidgets()
-            WINDOW.setProperty("widgetreloadmusic", datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
            
-    def onNotification(self,sender,method,data):
-               
-        if method == "VideoLibrary.OnUpdate":
-            #update nextup list when library has changed
-            self.resetVideoWidgets()
-            WINDOW.setProperty("widgetreload", datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-            #refresh some widgets when library has changed
-            WINDOW.setProperty("resetVideoDbCache","reset")
-        
-        elif method == "AudioLibrary.OnUpdate":
-            self.resetMusicWidgets()
-            WINDOW.setProperty("widgetreloadmusic", datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-            #refresh some widgets when library has changed
-            WINDOW.setProperty("resetMusicArtCache","reset")
-        
-        elif method == "Player.OnPlay":
-            
-            try:
-                secondsToDisplay = int(xbmc.getInfoLabel("Skin.String(SkinHelper.ShowInfoAtPlaybackStart)"))
-            except:
-                secondsToDisplay = 0
-            
-            logMsg("onNotification - ShowInfoAtPlaybackStart - number of seconds: " + str(secondsToDisplay),0)
-            
-            #Show the OSD info panel on playback start
-            if secondsToDisplay != 0:
-                tryCount = 0
-                if WINDOW.getProperty("VideoScreensaverRunning") != "true":
-                    while tryCount !=50 and xbmc.getCondVisibility("!Window.IsActive(fullscreeninfo)"):
-                        xbmc.sleep(100)
-                        if xbmc.getCondVisibility("!Window.IsActive(fullscreeninfo) + Window.IsActive(fullscreenvideo)"):
-                            xbmc.executebuiltin('Action(info)')
-                        tryCount += 1
-                    
-                    # close info again
-                    xbmc.sleep(secondsToDisplay*1000)
-                    if xbmc.getCondVisibility("Window.IsActive(fullscreeninfo)"):
-                        xbmc.executebuiltin('Action(info)')
-
-                                           
