@@ -480,6 +480,7 @@ class ListItemMonitor(threading.Thread):
                 break
             WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.Title')
             WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.FanArt')
+            WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.Poster')
             WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.Landscape')
             WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.DiscArt')
             WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.ClearLogo')
