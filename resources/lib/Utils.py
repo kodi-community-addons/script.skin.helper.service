@@ -17,6 +17,7 @@ from traceback import print_exc
 from datetime import datetime
 import _strptime
 import time
+import unicodedata
 
 ADDON = xbmcaddon.Addon()
 ADDON_ID = ADDON.getAddonInfo('id')
