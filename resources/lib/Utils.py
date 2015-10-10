@@ -141,7 +141,13 @@ def try_encode(text, encoding="utf-8"):
         return text.encode(encoding,"ignore")
     except:
         return text       
-        
+
+def try_decode(text, encoding="utf-8"):
+    try:
+        return text.decode(encoding,"ignore")
+    except:
+        return text       
+         
 def setSkinVersion():
     skin = xbmc.getSkinDir()
     skinLabel = xbmcaddon.Addon(id=skin).getAddonInfo('name')
@@ -872,7 +878,8 @@ def normalize_string(text):
     text = text.replace(')', "")
     text = text.strip()
     text = text.rstrip('.')
-    text = unicodedata.normalize('NFKD', unicode(text, 'utf-8')).encode('ascii', 'ignore')
+    text = unicodedata.normalize('NFKD', try_decode(text)).encode('ascii', 'ignore')
+    return text
     
 def getMusicArtByDbId(dbid,itemtype):
     cdArt = None

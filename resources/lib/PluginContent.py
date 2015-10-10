@@ -625,7 +625,7 @@ def getNextEpisodes(limit):
     xbmcplugin.setContent(int(sys.argv[1]), 'episodes')
     cache = WINDOW.getProperty("skinhelper-nextepisodes")
     if cache: allItems = eval(cache)
-    if not allItems:
+    if not allItems or len(allItems) == 0:
         # First we get a list of all the in-progress TV shows
         json_result = getJSON('VideoLibrary.GetTVShows', '{ "sort": { "order": "descending", "method": "lastplayed" }, "filter": {"and": [{"operator":"true", "field":"inprogress", "value":""}]}, "properties": [ "title", "studio", "mpaa", "file", "art" ] }')
         # If we found any, find the oldest unwatched show for each one.

@@ -124,20 +124,22 @@ def backup(filterString="",silent=None,promptfilename="false"):
                                     defaultID = defaultID[0].firstChild
                                     if defaultID:
                                         defaultID = defaultID.data
-                                        label = shortcut.getElementsByTagName( 'label' )[0].firstChild.data
-                                        thumb = shortcut.getElementsByTagName( 'thumb' )
+                                    if not defaultID: 
+                                        defaultID = shortcut.getElementsByTagName( 'label' )[0].firstChild.data
+                                    thumb = shortcut.getElementsByTagName( 'thumb' )
+                                    print defaultID.encode("utf-8")
+                                    if thumb:
+                                        thumb = thumb[0].firstChild
                                         if thumb:
-                                            thumb = thumb[0].firstChild
-                                            if thumb:
-                                                thumb = thumb.data
-                                                if thumb and(".jpg" in thumb or ".png" in thumb) and not thumb.startswith("special://") and not thumb.startswith("$") and not thumb.startswith("androidapp"):
-                                                    thumb = getCleanImage(thumb) 
-                                                    extension = thumb.split(".")[-1]
-                                                    newthumb = os.path.join(skinshortcuts_path,"%s-thumb-%s.%s" %(xbmc.getSkinDir(),normalize_string(defaultID),extension))
-                                                    newthumb_vfs = "special://profile/addon_data/script.skinshortcuts/%s-thumb-%s.%s"%(xbmc.getSkinDir(),normalize_string(defaultID),extension)
-                                                    if xbmcvfs.exists(thumb):
-                                                        xbmcvfs.copy(thumb,newthumb)
-                                                        shortcut.getElementsByTagName( 'thumb' )[0].firstChild.data = newthumb_vfs
+                                            thumb = thumb.data
+                                            if thumb and(".jpg" in thumb or ".png" in thumb) and not thumb.startswith("special://") and not thumb.startswith("$") and not thumb.startswith("androidapp"):
+                                                thumb = getCleanImage(thumb) 
+                                                extension = thumb.split(".")[-1]
+                                                newthumb = os.path.join(skinshortcuts_path,"%s-thumb-%s.%s" %(xbmc.getSkinDir(),normalize_string(defaultID),extension))
+                                                newthumb_vfs = "special://profile/addon_data/script.skinshortcuts/%s-thumb-%s.%s"%(xbmc.getSkinDir(),normalize_string(defaultID),extension)
+                                                if xbmcvfs.exists(thumb):
+                                                    xbmcvfs.copy(thumb,newthumb)
+                                                    shortcut.getElementsByTagName( 'thumb' )[0].firstChild.data = newthumb_vfs
                             with open(destfile, 'w') as f:
                                 f.write(doc.toxml(encoding='utf-8'))
                                                 
