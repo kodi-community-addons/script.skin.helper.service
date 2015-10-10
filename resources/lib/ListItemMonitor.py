@@ -87,7 +87,10 @@ class ListItemMonitor(threading.Thread):
                 
                 #only perform actions when the listitem has actually changed
                 if curListItem and curListItem != self.lastListItem and self.contentType:
-
+                    
+                    #clear all window props first
+                    self.resetWindowProps()
+                    
                     # monitor listitem props when musiclibrary is active
                     if xbmc.getCondVisibility("Window.IsActive(musiclibrary) | Window.IsActive(MyMusicSongs.xml)"):
                         try:
@@ -143,7 +146,7 @@ class ListItemMonitor(threading.Thread):
                         logMsg("ERROR in LibraryMonitor HomeWidget ! --> " + str(e), 0)
                    
                 #do some background stuff every 30 minutes
-                elif (self.delayedTaskInterval >= 1800):
+                if (self.delayedTaskInterval >= 1800):
                     thread.start_new_thread(self.doBackgroundWork, ())
                     self.delayedTaskInterval = 0          
                 
@@ -153,7 +156,7 @@ class ListItemMonitor(threading.Thread):
                     self.widgetTaskInterval = 0
                 
                 #flush cache if videolibrary has changed
-                elif WINDOW.getProperty("resetVideoDbCache") == "reset":
+                if WINDOW.getProperty("resetVideoDbCache") == "reset":
                     self.moviesetCache = {}
                     self.extraFanartCache = {}
                     self.streamdetailsCache = {}
@@ -161,7 +164,7 @@ class ListItemMonitor(threading.Thread):
                     WINDOW.clearProperty("resetVideoDbCache")
                 
                 #flush cache if musiclibrary has changed
-                elif WINDOW.getProperty("resetMusicArtCache") == "reset":
+                if WINDOW.getProperty("resetMusicArtCache") == "reset":
                     self.lastMusicDbId = ""
                     self.musicArtCache = {}
                     WINDOW.clearProperty("resetMusicArtCache")
@@ -196,11 +199,15 @@ class ListItemMonitor(threading.Thread):
                     
     def doBackgroundWork(self):
         try:
+            logMsg("Started Background worker...",0)
             self.genericWindowProps()
             self.checkNetflixReady()
             self.updatePlexlinks()
             self.checkNotifications()
             self.getStudioLogos()
+            #precache widgets listing
+            getJSON('Files.GetDirectory','{ "directory": "plugin://script.skin.helper.service/?action=widgets", "media": "files" }')
+            logMsg("Ended Background worker...",0)
         except Exception as e:
             logMsg("ERROR in HomeMonitor doBackgroundWork ! --> " + str(e), 0)
     
@@ -283,14 +290,14 @@ class ListItemMonitor(threading.Thread):
     def updatePlexlinks(self):
         
         if xbmc.getCondVisibility("System.HasAddon(plugin.video.plexbmc) + Skin.HasSetting(SmartShortcuts.plex)"): 
-            logMsg("update plexlinks started...")
+            logMsg("update plexlinks started...",0)
             
             #initialize plex window props by using the amberskin entrypoint for now
             if not WINDOW.getProperty("plexbmc.0.title"):
                 xbmc.executebuiltin('RunScript(plugin.video.plexbmc,amberskin)')
-                #wait for max 20 seconds untill the plex nodes are available
+                #wait for max 40 seconds untill the plex nodes are available
                 count = 0
-                while (count < 80 and not WINDOW.getProperty("plexbmc.0.title")):
+                while (count < 160 and not WINDOW.getProperty("plexbmc.0.title")):
                     xbmc.sleep(250)
                     count += 1
             
@@ -298,7 +305,7 @@ class ListItemMonitor(threading.Thread):
             if not WINDOW.getProperty("plexbmc.0.title"):
                 xbmc.executebuiltin('RunScript(plugin.video.plexbmc,skin)')
                 count = 0
-                while (count < 40 and not WINDOW.getProperty("plexbmc.0.title")):
+                while (count < 80 and not WINDOW.getProperty("plexbmc.0.title")):
                     xbmc.sleep(250)
                     count += 1
             
@@ -368,6 +375,8 @@ class ListItemMonitor(threading.Thread):
                 logMsg(plexstring + ".path --> " + link)
                 WINDOW.setProperty(plexstring + ".path", link)
                 WINDOW.setProperty(plexstring + ".content", getContentPath(link))
+                
+            logMsg("update plexlinks ended...",0)
 
     def checkNotifications(self):
         
@@ -433,6 +442,15 @@ class ListItemMonitor(threading.Thread):
                
     def resetWindowProps(self):
         #reset window props
+        WINDOW.clearProperty('SkinHelper.RottenTomatoesRating')
+        WINDOW.clearProperty('SkinHelper.RottenTomatoesAudienceRating')
+        WINDOW.clearProperty('SkinHelper.RottenTomatoesConsensus')
+        WINDOW.clearProperty('SkinHelper.RottenTomatoesAwards')
+        WINDOW.clearProperty('SkinHelper.RottenTomatoesBoxOffice')
+        WINDOW.clearProperty("SkinHelper.PVR.Thumb") 
+        WINDOW.clearProperty("SkinHelper.PVR.FanArt") 
+        WINDOW.clearProperty("SkinHelper.PVR.ChannelLogo")
+        WINDOW.clearProperty("SkinHelper.PVR.Poster")
         WINDOW.clearProperty("SkinHelper.ListItemStudioLogo")
         WINDOW.clearProperty('SkinHelper.ListItemDuration')
         WINDOW.setProperty("SkinHelper.ExtraFanArtPath","") 
@@ -451,10 +469,6 @@ class ListItemMonitor(threading.Thread):
         WINDOW.clearProperty("SkinHelper.PVR.Poster")
         WINDOW.clearProperty("SkinHelper.Player.AddonName")
         WINDOW.clearProperty("SkinHelper.ForcedView")
-    
-    def setMovieSetDetails(self):
-        #get movie set details -- thanks to phil65 - used this idea from his skin info script
-        
         WINDOW.clearProperty('SkinHelper.MovieSet.Title')
         WINDOW.clearProperty('SkinHelper.MovieSet.Runtime')
         WINDOW.clearProperty('SkinHelper.MovieSet.Duration')
@@ -495,8 +509,9 @@ class ListItemMonitor(threading.Thread):
             WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.AudioChannels')
             WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.AudioLanguage')
             WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.Subtitle')
-        
-            
+    
+    def setMovieSetDetails(self):
+        #get movie set details -- thanks to phil65 - used this idea from his skin info script     
         if xbmc.getCondVisibility("SubString(ListItem.Path,videodb://movies/sets/,left)"):
             dbId = xbmc.getInfoLabel("ListItem.DBID")   
             if dbId:
@@ -686,11 +701,7 @@ class ListItemMonitor(threading.Thread):
        
     def setPVRThumbs(self):
         thumb = None
-        WINDOW.clearProperty("SkinHelper.PVR.Thumb") 
-        WINDOW.clearProperty("SkinHelper.PVR.FanArt") 
-        WINDOW.clearProperty("SkinHelper.PVR.ChannelLogo")
-        WINDOW.clearProperty("SkinHelper.PVR.Poster")
-        
+
         title = xbmc.getInfoLabel("ListItem.Title").decode('utf-8')
         channel = xbmc.getInfoLabel("ListItem.ChannelName").decode('utf-8')
         
@@ -1147,11 +1158,6 @@ class ListItemMonitor(threading.Thread):
             WINDOW.setProperty("SkinHelper.ExtraFanArtPath","")
 
     def setRottenRatings(self):
-        WINDOW.clearProperty('SkinHelper.RottenTomatoesRating')
-        WINDOW.clearProperty('SkinHelper.RottenTomatoesAudienceRating')
-        WINDOW.clearProperty('SkinHelper.RottenTomatoesConsensus')
-        WINDOW.clearProperty('SkinHelper.RottenTomatoesAwards')
-        WINDOW.clearProperty('SkinHelper.RottenTomatoesBoxOffice')
         imdbnumber = xbmc.getInfoLabel("ListItem.IMDBNumber")
         if (self.contentType == "movies" or self.contentType=="setmovies") and imdbnumber:
             if self.rottenCache.has_key(imdbnumber):

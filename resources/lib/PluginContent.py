@@ -123,12 +123,11 @@ def addSmartShortcutsSublevel(entry):
             elif type == "movies" or type == "movie" or type == "artist" or "netflix" in entry:
                 widget = entry + ".recent"
                 widget2 = entry + ".inprogress"
-            elif type == "tvshows" and "emby" in "entry":
+            elif type == "tvshows" and "emby" in entry:
                 widget = entry + ".nextepisodes"
                 widget2 = entry + ".recent"
             else:
                 widget = entry
-        
         if xbmc.getInfoLabel("$INFO[Window(Home).Property(%s.path)]" %key):
             addSmartShortcutDirectoryItem(key,False, widget,widget2)
 

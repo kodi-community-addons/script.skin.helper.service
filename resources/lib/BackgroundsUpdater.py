@@ -75,7 +75,7 @@ class BackgroundsUpdater(threading.Thread):
                     backgroundDelay = 30
                 
                 # force refresh smart shortcuts when skin settings launched (so user sees any newly added smartshortcuts)
-                currentWindow = WINDOW.getProperty("xmlfile")
+                currentWindow = xbmc.getInfoLabel("$INFO[Window.Property(xmlfile)]")
                 if ("skinshortcuts.xml" in currentWindow or "SkinSettings" in currentWindow) and currentWindow != self.lastWindow and self.refreshSmartshortcuts == False:
                     self.lastWindow = currentWindow
                     self.refreshSmartshortcuts = True
