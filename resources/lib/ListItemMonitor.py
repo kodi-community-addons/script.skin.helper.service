@@ -87,7 +87,6 @@ class ListItemMonitor(threading.Thread):
                 
                 #only perform actions when the listitem has actually changed
                 if curListItem and curListItem != self.lastListItem and self.contentType:
-                    WINDOW.setProperty("curListItem",curListItem)
 
                     # monitor listitem props when musiclibrary is active
                     if xbmc.getCondVisibility("Window.IsActive(musiclibrary) | Window.IsActive(MyMusicSongs.xml)"):
@@ -1062,16 +1061,16 @@ class ListItemMonitor(threading.Thread):
             WINDOW.setProperty('SkinHelper.ListItemAllAudioStreams', " / ".join(allAudioStr))
       
     def setForcedView(self):
-        if self.folderPath != self.folderPathLast:
-            currentForcedView = xbmc.getInfoLabel("Skin.String(SkinHelper.ForcedViews.%s)" %self.contentType)
-            if self.contentType and currentForcedView and currentForcedView != "None":
-                WINDOW.setProperty("SkinHelper.ForcedView",currentForcedView)
-                xbmc.executebuiltin("Container.SetViewMode(%s)" %currentForcedView)
+        currentForcedView = xbmc.getInfoLabel("Skin.String(SkinHelper.ForcedViews.%s)" %self.contentType)
+        if self.contentType and currentForcedView and currentForcedView != "None" and xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.ForcedViews.Enabled)"):
+            WINDOW.setProperty("SkinHelper.ForcedView",currentForcedView)
+            xbmc.executebuiltin("Container.SetViewMode(%s)" %currentForcedView)
+            if not xbmc.getCondVisibility("Control.HasFocus(%s)" %currentForcedView):
                 xbmc.sleep(100)
                 xbmc.executebuiltin("Container.SetViewMode(%s)" %currentForcedView)
                 xbmc.executebuiltin("SetFocus(%s)" %currentForcedView)
-            else:
-                WINDOW.clearProperty("SkinHelper.ForcedView")
+        else:
+            WINDOW.clearProperty("SkinHelper.ForcedView")
         
     def checkExtraFanArt(self):
         

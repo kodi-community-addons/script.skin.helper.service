@@ -624,9 +624,8 @@ def getNextEpisodes(limit):
     allItems = []
     xbmcplugin.setContent(int(sys.argv[1]), 'episodes')
     cache = WINDOW.getProperty("skinhelper-nextepisodes")
-    if cache:
-        allItems = eval(cache)
-    else:
+    if cache: allItems = eval(cache)
+    if not allItems:
         # First we get a list of all the in-progress TV shows
         json_result = getJSON('VideoLibrary.GetTVShows', '{ "sort": { "order": "descending", "method": "lastplayed" }, "filter": {"and": [{"operator":"true", "field":"inprogress", "value":""}]}, "properties": [ "title", "studio", "mpaa", "file", "art" ] }')
         # If we found any, find the oldest unwatched show for each one.
@@ -732,9 +731,8 @@ def getRecommendedMovies(limit):
     allItems = []
     xbmcplugin.setContent(int(sys.argv[1]), 'movies')
     cache = WINDOW.getProperty("skinhelper-recommendedmovies")
-    if cache:
-        allItems = eval(cache)
-    else:
+    if cache: allItems = eval(cache)
+    if not allItems:
         # First we get a list of all the in-progress Movies
         numitems = 0
         json_result = getJSON('VideoLibrary.GetMovies','{ "sort": { "order": "descending", "method": "lastplayed" }, "filter": {"and": [{"operator":"true", "field":"inprogress", "value":""}]}, "properties": [ %s ] }' %fields_movies)
