@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import xbmc
 from datetime import datetime
+from random import randint
 from Utils import *
 
 class Kodi_Monitor(xbmc.Monitor):
@@ -30,23 +31,25 @@ class Kodi_Monitor(xbmc.Monitor):
     def onDatabaseUpdated(self,database):
         if database == "video":
             self.resetVideoWidgets()
-            WINDOW.setProperty("widgetreload", datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+            WINDOW.setProperty("widgetreload", datetime.now().strftime('%Y-%m-%d %H:%M:%S') + str(randint(0,9)))
+            WINDOW.setProperty("resetVideoDbCache","reset")
         if database == "music" :
             self.resetMusicWidgets()
-            WINDOW.setProperty("widgetreloadmusic", datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+            WINDOW.setProperty("widgetreloadmusic", datetime.now().strftime('%Y-%m-%d %H:%M:%S') + str(randint(0,9)))
+            WINDOW.setProperty("resetMusicArtCache","reset")
            
     def onNotification(self,sender,method,data):
                
         if method == "VideoLibrary.OnUpdate":
             #update nextup list when library has changed
             self.resetVideoWidgets()
-            WINDOW.setProperty("widgetreload", datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+            WINDOW.setProperty("widgetreload", datetime.now().strftime('%Y-%m-%d %H:%M:%S') + str(randint(0,9)))
             #refresh some widgets when library has changed
             WINDOW.setProperty("resetVideoDbCache","reset")
         
         elif method == "AudioLibrary.OnUpdate":
             self.resetMusicWidgets()
-            WINDOW.setProperty("widgetreloadmusic", datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+            WINDOW.setProperty("widgetreloadmusic", datetime.now().strftime('%Y-%m-%d %H:%M:%S') + str(randint(0,9)))
             #refresh some widgets when library has changed
             WINDOW.setProperty("resetMusicArtCache","reset")
         
@@ -57,7 +60,7 @@ class Kodi_Monitor(xbmc.Monitor):
             except:
                 secondsToDisplay = 0
             
-            logMsg("onNotification - ShowInfoAtPlaybackStart - number of seconds: " + str(secondsToDisplay),0)
+            logMsg("onNotification - ShowInfoAtPlaybackStart - number of seconds: " + str(secondsToDisplay))
             
             #Show the OSD info panel on playback start
             if secondsToDisplay != 0:

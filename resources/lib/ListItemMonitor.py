@@ -14,6 +14,7 @@ import random
 import xml.etree.ElementTree as etree
 import base64
 import time
+from random import randint
 from Utils import *
 
 
@@ -149,13 +150,7 @@ class ListItemMonitor(threading.Thread):
                 
                 #reload some widgets every 10 minutes
                 if (self.widgetTaskInterval >= 600):
-                    WINDOW.clearProperty("skinhelper-favourites")
-                    WINDOW.clearProperty("skinhelper-pvrrecordings")
-                    WINDOW.clearProperty("skinhelper-pvrchannels")
-                    WINDOW.clearProperty("skinhelper-nextairedtvshows")
-                    WINDOW.clearProperty("skinhelper-similarmovies")
-                    WINDOW.clearProperty("skinhelper-favouritemedia")
-                    WINDOW.setProperty("widgetreload2", datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+                    self.resetGlobalWidgets()
                     self.widgetTaskInterval = 0
                 
                 #flush cache if videolibrary has changed
@@ -163,6 +158,7 @@ class ListItemMonitor(threading.Thread):
                     self.moviesetCache = {}
                     self.extraFanartCache = {}
                     self.streamdetailsCache = {}
+                    self.resetGlobalWidgets()
                     WINDOW.clearProperty("resetVideoDbCache")
                 
                 #flush cache if musiclibrary has changed
@@ -190,6 +186,15 @@ class ListItemMonitor(threading.Thread):
             else:
                 WINDOW.clearProperty("netflixready")
     
+    def resetGlobalWidgets(self):
+        WINDOW.clearProperty("skinhelper-favourites")
+        WINDOW.clearProperty("skinhelper-pvrrecordings")
+        WINDOW.clearProperty("skinhelper-pvrchannels")
+        WINDOW.clearProperty("skinhelper-nextairedtvshows")
+        WINDOW.clearProperty("skinhelper-similarmovies")
+        WINDOW.clearProperty("skinhelper-favouritemedia")
+        WINDOW.setProperty("widgetreload2", datetime.now().strftime('%Y-%m-%d %H:%M:%S') + str(randint(0,9)))
+                    
     def doBackgroundWork(self):
         try:
             self.genericWindowProps()
