@@ -39,7 +39,7 @@ class ListItemMonitor(threading.Thread):
     allStudioLogos = {}
     allStudioLogosColor = {}
     LastCustomStudioImagesPath = ""
-    delayedTaskInterval = 1800
+    delayedTaskInterval = 1795
     widgetTaskInterval = 590
     moviesetCache = {}
     extraFanartCache = {}
