@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<settings>
+    <category label="PVR Artwork">
+        <setting label="PVR Thumbs are disabled or not supported in this skin" type="lsep" visible="!Skin.HasSetting(SkinHelper.EnablePVRThumbs)"/>
+        <setting id="useTMDBLookups" type="bool" label="Use TMDB for lookups" default="true" visible="Skin.HasSetting(SkinHelper.EnablePVRThumbs)"/>
+        <setting id="useFanArtTv" type="bool" label="Use extended images from Fanart.tv" default="true" enable="eq(-1,true)" visible="Skin.HasSetting(SkinHelper.EnablePVRThumbs)"/>
+        <setting id="useGoogleLookups" type="bool" label="Use Google images for lookups" default="true" visible="Skin.HasSetting(SkinHelper.EnablePVRThumbs)"/>
+        <setting id="useYoutubeLookups" type="bool" label="Use Youtube for lookups" default="false" visible="Skin.HasSetting(SkinHelper.EnablePVRThumbs)"/>
+        <setting id="useLocalLibraryLookups" type="bool" label="Use local video Library for lookups" default="true" visible="Skin.HasSetting(SkinHelper.EnablePVRThumbs)"/>
+        <setting label="Custom (recordings) folder for lookups" type="folder" id="customlookuppath" source="auto" visible="Skin.HasSetting(SkinHelper.EnablePVRThumbs)"/>
+        <setting id="usePVRAddonthumb" type="bool" label="Use thumb provided by PVR addon" default="false" visible="Skin.HasSetting(SkinHelper.EnablePVRThumbs)"/>
+        <setting id="cacheRecordings" type="bool" label="Cache thumbs for PVR Recordings" default="true" visible="Skin.HasSetting(SkinHelper.EnablePVRThumbs)"/>
+        <setting id="cacheGuideEntries" type="bool" label="Cache thumbs for PVR Guide entries" default="true" visible="Skin.HasSetting(SkinHelper.EnablePVRThumbs)"/>
+        <setting label="Location of the persistant cache" type="folder" id="pvrthumbspath" source="auto" default="special://profile/addon_data/script.skin.helper.service/pvrthumbs/" option="writeable" visible="Skin.HasSetting(SkinHelper.EnablePVRThumbs)"/>
+    </category>
+</settings>

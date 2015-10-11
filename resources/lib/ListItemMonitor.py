@@ -63,6 +63,7 @@ class ListItemMonitor(threading.Thread):
 
     def run(self):
         
+        setAddonsettings()
         self.getCacheFromFile()
 
         while (self.exit != True):
@@ -70,9 +71,11 @@ class ListItemMonitor(threading.Thread):
             if not xbmc.getCondVisibility("Window.IsActive(fullscreenvideo)"):
         
                 #set some globals
-                self.liPath = xbmc.getInfoLabel("ListItem.Path").decode('utf-8')
-                self.liLabel = xbmc.getInfoLabel("ListItem.Label").decode('utf-8')
-                self.folderPath = xbmc.getInfoLabel("Container.FolderPath").decode('utf-8')
+                try:
+                    self.liPath = xbmc.getInfoLabel("ListItem.Path").decode('utf-8')
+                    self.liLabel = xbmc.getInfoLabel("ListItem.Label").decode('utf-8')
+                    self.folderPath = xbmc.getInfoLabel("Container.FolderPath").decode('utf-8')
+                except: pass
                 curListItem = self.liPath + self.liLabel
                 
                 #perform actions if the container path has changed
@@ -162,17 +165,22 @@ class ListItemMonitor(threading.Thread):
                     self.streamdetailsCache = {}
                     self.resetGlobalWidgets()
                     WINDOW.clearProperty("resetVideoDbCache")
+
+                #flush cache if pvr settings have changed
+                if WINDOW.getProperty("resetPvrArtCache") == "reset":
+                    self.pvrArtCache = {}
+                    WINDOW.clearProperty("SkinHelper.PVR.ArtWork")
+                    WINDOW.clearProperty("resetPvrArtCache")
                 
                 #flush cache if musiclibrary has changed
                 if WINDOW.getProperty("resetMusicArtCache") == "reset":
                     self.lastMusicDbId = ""
                     self.musicArtCache = {}
                     WINDOW.clearProperty("resetMusicArtCache")
-                else:
-                    xbmc.sleep(100)
-                    self.delayedTaskInterval += 0.1
-                    self.widgetTaskInterval += 0.1
-
+                
+                xbmc.sleep(100)
+                self.delayedTaskInterval += 0.1
+                self.widgetTaskInterval += 0.1
             else:
                 #fullscreen video is playing
                 xbmc.sleep(2000)
@@ -218,7 +226,6 @@ class ListItemMonitor(threading.Thread):
         
         libraryCache = {}
         libraryCache["MusicArtCache"] = self.musicArtCache
-        libraryCache["PVRArtCache"] = self.pvrArtCache
         libraryCache["SetsCache"] = self.moviesetCache
         libraryCache["streamdetailsCache"] = self.streamdetailsCache
         libraryCache["rottenCache"] = self.rottenCache       
@@ -274,9 +281,6 @@ class ListItemMonitor(threading.Thread):
                         self.streamdetailsCache = data["streamdetailsCache"]
                     if data.has_key("rottenCache"):
                         self.rottenCache = data["rottenCache"]
-                    if data.has_key("PVRArtCache"):
-                        self.pvrArtCache = data["PVRArtCache"]
-                        WINDOW.setProperty("SkinHelper.pvrArtCache",repr(data["PVRArtCache"]))
             #widgets cache
             if xbmcvfs.exists(self.widgetCachePath):
                 with open(self.widgetCachePath) as data_file:    
@@ -467,6 +471,10 @@ class ListItemMonitor(threading.Thread):
         WINDOW.clearProperty("SkinHelper.PVR.FanArt") 
         WINDOW.clearProperty("SkinHelper.PVR.ChannelLogo")
         WINDOW.clearProperty("SkinHelper.PVR.Poster")
+        WINDOW.clearProperty("SkinHelper.PVR.Landscape")
+        WINDOW.clearProperty("SkinHelper.PVR.ClearArt")
+        WINDOW.clearProperty("SkinHelper.PVR.Logo")
+        WINDOW.clearProperty("SkinHelper.PVR.Banner")
         WINDOW.clearProperty("SkinHelper.Player.AddonName")
         WINDOW.clearProperty("SkinHelper.ForcedView")
         WINDOW.clearProperty('SkinHelper.MovieSet.Title')
@@ -701,7 +709,6 @@ class ListItemMonitor(threading.Thread):
        
     def setPVRThumbs(self):
         thumb = None
-
         title = xbmc.getInfoLabel("ListItem.Title").decode('utf-8')
         channel = xbmc.getInfoLabel("ListItem.ChannelName").decode('utf-8')
         
@@ -713,30 +720,41 @@ class ListItemMonitor(threading.Thread):
             return
         
         dbID = title + channel
-        
-        if channel:
-            logo = searchChannelLogo(channel)
-            WINDOW.setProperty("SkinHelper.PVR.ChannelLogo",logo)
             
         logMsg("setPVRThumb dbID--> " + dbID)
 
         if xbmc.getInfoLabel("ListItem.Label").decode('utf-8') == "..":
             return
         
-        thumb,fanart,poster,logo = getPVRThumbs(self.pvrArtCache, title, channel)
+        if self.pvrArtCache.has_key(dbID + "SkinHelper.PVR.Artwork"):
+            artwork = self.pvrArtCache[dbID + "SkinHelper.PVR.Artwork"]
+        else:
+            if WINDOW.getProperty("cacheRecordings") == "true" and self.contentType == "tvrecordings":
+                cacheLocal = True
+            elif WINDOW.getProperty("cacheGuideEntries") == "true" and self.contentType != "tvrecordings":
+                cacheLocal = True    
+            else: cacheLocal = False
+            artwork = getPVRThumbs(title, channel, cacheLocal)
+            self.pvrArtCache[dbID + "SkinHelper.PVR.Artwork"] = artwork
         
-        if thumb:
-            WINDOW.setProperty("SkinHelper.PVR.Thumb",thumb)
-            self.pvrArtCache[dbID + "SkinHelper.PVR.Thumb"] = thumb
-        if fanart:
-            WINDOW.setProperty("SkinHelper.PVR.FanArt",fanart)
-            self.pvrArtCache[dbID + "SkinHelper.PVR.FanArt"] = fanart
-        if logo and channel:
-            WINDOW.setProperty("SkinHelper.PVR.ChannelLogo",logo)
-            self.pvrArtCache[channel + "SkinHelper.PVR.ChannelLogo"] = logo
-        if poster:
-            WINDOW.setProperty("SkinHelper.PVR.Poster",poster)
-            self.pvrArtCache[dbID + "SkinHelper.PVR.Poster"] = poster
+        if artwork.has_key("thumb"):
+            WINDOW.setProperty("SkinHelper.PVR.Thumb",artwork["thumb"])
+        if artwork.has_key("fanart"):
+            WINDOW.setProperty("SkinHelper.PVR.FanArt",artwork["fanart"])
+        if artwork.has_key("poster"):
+            WINDOW.setProperty("SkinHelper.PVR.Poster",artwork["poster"])
+        if artwork.has_key("clearlogo"):
+            WINDOW.setProperty("SkinHelper.PVR.Logo",artwork["clearlogo"])
+        if artwork.has_key("discart"):
+            WINDOW.setProperty("SkinHelper.PVR.DiscArt",artwork["discart"])
+        if artwork.has_key("landscape"):
+            WINDOW.setProperty("SkinHelper.PVR.Landscape",artwork["landscape"])
+        if artwork.has_key("banner"):
+            WINDOW.setProperty("SkinHelper.PVR.Banner",artwork["banner"])
+        if artwork.has_key("clearart"):
+            WINDOW.setProperty("SkinHelper.PVR.ClearArt",artwork["clearart"])
+        if artwork.has_key("channellogo"):
+            WINDOW.setProperty("SkinHelper.PVR.ChannelLogo",artwork["channellogo"])
      
     def setStudioLogo(self, studio=None):
         

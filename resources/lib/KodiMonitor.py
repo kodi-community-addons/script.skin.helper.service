@@ -9,7 +9,11 @@ class Kodi_Monitor(xbmc.Monitor):
     
     def __init__(self, *args, **kwargs):
         xbmc.Monitor.__init__(self)
-        
+    
+    def onSettingsChanged(self):
+        setAddonsettings()
+        WINDOW.setProperty("resetPvrArtCache","reset")
+
     def resetMusicWidgets(self):
         #clear the cache for the music widgets
         WINDOW.clearProperty("skinhelper-recentalbums")

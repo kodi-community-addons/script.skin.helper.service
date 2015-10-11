@@ -183,10 +183,16 @@ You must set the following Skin Bool to true --> SkinHelper.EnablePVRThumbs for 
 | :----------------------------	| :----------- |
 | Window(Home).Property(SkinHelper.PVR.Poster) | Will return the IMDB poster image for the currently selected show/movie (only if found) |
 | Window(Home).Property(SkinHelper.PVR.FanArt) | Will return the IMDB fanart image for the currently selected show/movie (only if found) |
-| Window(Home).Property(SkinHelper.PVR.Thumb) | Will return a random thumb (google search) for the currently selected show/movie (only if found) |
+| Window(Home).Property(SkinHelper.PVR.Thumb) | Will return the thumb for the currently selected show/movie (only if found) |
+| Window(Home).Property(SkinHelper.PVR.Logo) | Will return the clearlogo for the currently selected show/movie (only if found) |
+| Window(Home).Property(SkinHelper.PVR.Landscape) | Will return the landscape art for the currently selected show/movie (only if found) |
+| Window(Home).Property(SkinHelper.PVR.ClearArt) | Will return the ClearArt for the currently selected show/movie (only if found) |
+| Window(Home).Property(SkinHelper.PVR.Banner) | Will return the Banner for the currently selected show/movie (only if found) |
 | Window(Home).Property(SkinHelper.PVR.ChannelLogo) | Will return the channel logo for the currently selected channel (only if found) |
 
 NOTE: The images will only be scraped if you have set the following Skin Bool to true --> SkinHelper.EnablePVRThumbs
+
+Also note that the addon-settings for this addon will allow fine-tuning of the PVR thumbs feature
 ________________________________________________________________________________________________________
 
 

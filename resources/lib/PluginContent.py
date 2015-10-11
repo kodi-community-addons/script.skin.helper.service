@@ -410,19 +410,17 @@ def getPVRRecordings(limit):
         #load from cache
         allItems = eval(cache)
     else:
-        pvrArtCache = WINDOW.getProperty("SkinHelper.pvrArtCache")
-        if pvrArtCache: pvrArtCache = eval(pvrArtCache)
-        else: pvrArtCache = {} 
         # Perform a JSON query to get all recordings
         json_query = getJSON('PVR.GetRecordings', '{ "properties": [ %s ], "limits": {"end": %d}}' %( fields_pvrrecordings, limit))
         for item in json_query:
             channelname = item["channel"]
-            thumb,fanart,poster,logo = getPVRThumbs(pvrArtCache, item["title"], channelname)
-            item["channelicon"] = logo
             item["channel"] = channelname
-            item["art"] = { 'poster': poster, 'fanart' : fanart, 'thumb': thumb}
+            if WINDOW.getProperty("cacheRecordings") == "true":
+                cacheLocal = True
+            else: cacheLocal = False
+            item["art"] = getPVRThumbs(item["title"], channelname, cacheLocal)
+            item["channelicon"] = item["art"].get("channelicon","")
             item["cast"] = None
-            item["thumbnail"] = thumb
             allItems.append(item)
         if allItems: WINDOW.setProperty("skinhelper-pvrrecordings", repr(allItems))
     for item in allItems:
@@ -443,9 +441,6 @@ def getPVRChannels(limit):
         #load from cache
         allItems = eval(cache)
     else:
-        pvrArtCache = WINDOW.getProperty("SkinHelper.pvrArtCache")
-        if pvrArtCache: pvrArtCache = eval(pvrArtCache)
-        else: pvrArtCache = {} 
         # Perform a JSON query to get all channels
         json_query = getJSON('PVR.GetChannels', '{"channelgroupid": "alltv", "properties": [ "thumbnail", "channeltype", "hidden", "locked", "channel", "lastplayed", "broadcastnow" ], "limits": {"end": %d}}' %( limit ) )
         for channel in json_query:
@@ -455,10 +450,11 @@ def getPVRChannels(limit):
             if channel.has_key('broadcastnow'):
                 #channel with epg data
                 item = channel['broadcastnow']
-                thumb,fanart,poster,logo = getPVRThumbs(pvrArtCache, item["title"], channelname)
-                if not channelicon: channelicon = logo
-                if not thumb: thumb = channelicon
-                item["art"] = { 'poster': poster, 'fanart' : fanart, 'thumb': thumb}
+                if WINDOW.getProperty("cacheGuideEntries") == "true":
+                    cacheLocal = True
+                else: cacheLocal = False
+                item["art"] = getPVRThumbs(item["title"], channelname, cacheLocal)
+                if not channelicon: channelicon = item["art"].get("channelicon")
             else:
                 #channel without epg
                 item = channel
@@ -800,12 +796,6 @@ def buildRecommendedMediaListing(limit,ondeckContent=False,recommendedContent=Tr
     allTitles = list()
     allItems = []
     
-    pvrArtCache = WINDOW.getProperty("SkinHelper.pvrArtCache")
-    if pvrArtCache:
-        pvrArtCache = eval(pvrArtCache)
-    else:
-        pvrArtCache = {}
-    
     if ondeckContent:
         allOndeckItems = []
 
@@ -847,9 +837,10 @@ def buildRecommendedMediaListing(limit,ondeckContent=False,recommendedContent=Tr
         for item in json_result:
             lastplayed = None
             if not item["title"] in allTitles and item["playcount"] == 0:
-                thumb,fanart,poster,logo = getPVRThumbs(pvrArtCache, item["title"], item["channel"])
-                art = { 'poster': poster, 'fanart' : fanart, 'thumb': thumb }
-                item["art"] = art
+                if WINDOW.getProperty("cacheRecordings") == "true":
+                    cacheLocal = True
+                else: cacheLocal = False
+                item["art"] = getPVRThumbs(item["title"], item["channel"],cacheLocal)
                 allOndeckItems.append((lastplayed,item))
                 allTitles.append(item["title"])
           
@@ -1019,9 +1010,10 @@ def getRecentMedia(limit):
         for item in json_result:
             lastplayed = item["endtime"]
             if not item["title"] in allTitles and item["playcount"] == 0:
-                thumb,fanart,poster,logo = getPVRThumbs(pvrArtCache, item["title"], item["channel"])
-                art = { 'poster': poster, 'fanart' : fanart, 'thumb': thumb }
-                item["art"] = art
+                if WINDOW.getProperty("cacheRecordings") == "true":
+                    cacheLocal = True
+                else: cacheLocal = False
+                item["art"] = getPVRThumbs(item["title"], item["channel"],cacheLocal)
                 allItems.append((lastplayed,item))
                 allTitles.append(item["title"])
         
