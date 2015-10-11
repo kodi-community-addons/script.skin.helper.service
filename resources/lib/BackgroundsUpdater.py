@@ -424,6 +424,7 @@ class BackgroundsUpdater(threading.Thread):
                 playlists = []
                 paths = [['special://videoplaylists/','VideoLibrary'], ['special://musicplaylists/','MusicLibrary']]
                 for playlistpath in paths:
+                    if not xbmcvfs.exists(playlistpath[0]): continue
                     media_array = getJSON('Files.GetDirectory','{ "directory": "%s", "media": "files" }' % playlistpath[0] )
                     for item in media_array:
                         try:
