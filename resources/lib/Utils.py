@@ -533,6 +533,8 @@ def getfanartTVimages(type,id):
             artwork["fanart"] = data["moviebackground"][0].get("url")
         if data.has_key("tvposter") and len(data["tvposter"]) > 0:
             artwork["poster"] = data["tvposter"][0].get("url")
+        if data.has_key("movieposter") and len(data["movieposter"]) > 0:
+            artwork["poster"] = data["movieposter"][0].get("url")
     return artwork
 
 def getOfficialArtWork(title,includeAllArtwork=True):
