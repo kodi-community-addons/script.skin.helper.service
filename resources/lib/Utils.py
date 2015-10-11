@@ -473,67 +473,133 @@ def getLocalDateTimeFromUtc(timestring):
         logMsg("ERROR in getLocalDateTimeFromUtc --> " + timestring, 0)
         
         return (timestring,timestring)
+
+def getfanartTVimage(type,id,title):
+    #gets fanart.tv images for given tmdb id
+    api_key = "639191cb0774661597f28a47e7e2bad5"
+    logo = ""
+    disc = ""
+    clearart = ""
+    banner = ""
+    landscape = ""
+    downloadAllArt = False
     
+    print "get fanart.tv images for type: %s - id: %s  - title: %s" %(try_encode(type),try_encode(id),try_encode(title))
+    
+    if type == "movie":
+        url = 'http://webservice.fanart.tv/v3/movies/%s?api_key=%s' %(id,api_key)
+    else:
+        url = 'http://webservice.fanart.tv/v3/tv/%s?api_key=%s' %(id,api_key)
+    response = requests.get(url)
+    data = json.loads(response.content.decode('utf-8','replace'))
+    if data:
+        if data.has_key("hdmovielogo") and len(data["hdmovielogo"]) > 0:
+            logo = data["hdmovielogo"][0].get("url")
+            logo = downloadImage(logo,title,"logo.png")
+        if data.has_key("moviedisc") and len(data["moviedisc"]) > 0:
+            disc = data["moviedisc"][0].get("url")
+            disc = downloadImage(disc,title,"disc.png")    
+        if data.has_key("hdmovieclearart") and len(data["hdmovieclearart"]) > 0:
+            clearart = data["hdmovieclearart"][0].get("url")
+            clearart = downloadImage(clearart,title,"clearart.png")
+        if data.has_key("moviebanner") and len(data["moviebanner"]) > 0:
+            banner = data["moviebanner"][0].get("url")
+            banner = downloadImage(banner,title,"banner.jpg")
+        if data.has_key("moviethumb") and len(data["moviethumb"]) > 0:
+            landscape = data["moviethumb"][0].get("url")
+            landscape = downloadImage(landscape,title,"landscape.jpg")
+            
+        if data.has_key("hdclearart") and len(data["hdclearart"]) > 0:
+            clearart = data["hdclearart"][0].get("url")
+            clearart = downloadImage(clearart,title,"clearart.png")
+        if data.has_key("clearlogo") and len(data["clearlogo"]) > 0:
+            logo = data["clearlogo"][0].get("url")
+            logo = downloadImage(logo,title,"logo.png")
+        if data.has_key("tvthumb") and len(data["tvthumb"]) > 0:
+            landscape = data["tvthumb"][0].get("url")
+            landscape = downloadImage(landscape,title,"landscape.jpg")
+        if data.has_key("tvbanner") and len(data["tvbanner"]) > 0:
+            banner = data["tvbanner"][0].get("url")
+            banner = downloadImage(banner,title,"banner.jpg")
+        if downloadAllArt:
+            if data.has_key("seasonthumb"):
+                for item in data["seasonthumb"]:
+                    downloadImage(item["url"],title,"season0%s-landscape.jpg" %item["season"])
+            if data.has_key("seasonbanner"):
+                for item in data["seasonbanner"]:
+                    downloadImage(item["url"],title,"season0%s-banner.jpg" %item["season"])
+    return (logo, disc, clearart, banner, landscape)
+
 def getTMDBimage(title):
     apiKey = base64.b64decode("NDc2N2I0YjJiYjk0YjEwNGZhNTUxNWM1ZmY0ZTFmZWM=")
-    opener = urllib2.build_opener()
-    userAgent = "Mozilla/5.0 (Windows NT 5.1; rv:25.0) Gecko/20100101 Firefox/25.0"
-    opener.addheaders = [('User-agent', userAgent)]
     coverUrl = ""
     fanartUrl = ""
     matchFound = False
-    videoTypes = ["tv","movie"]
-    
-    for videoType in videoTypes:
-    
-        try: 
-            url = 'http://api.themoviedb.org/3/search/%s?api_key=%s&language=en&query=%s' %(videoType,apiKey,try_encode(title))
-            response = requests.get(url)
-            data = json.loads(response.content.decode('utf-8','replace'))
-            if data and data.get("results",None):
-                for item in data["results"]:
-                    name = item.get("name")
-                    if not name: name = item.get("title")
-                    if name:
-                        original_name = item.get("original_name","")
-                        title_alt = title.lower().replace(" ","").replace("-","").replace(":","").replace("&","").replace(",","")
-                        name_alt = name.lower().replace(" ","").replace("-","").replace(":","").replace("&","").replace(",","")
-                        org_name_alt = original_name.lower().replace(" ","").replace("-","").replace(":","").replace("&","").replace(",","")
+    try: 
+        url = 'http://api.themoviedb.org/3/search/multi?api_key=%s&language=en&query=%s' %(apiKey,try_encode(title))
+        response = requests.get(url)
+        data = json.loads(response.content.decode('utf-8','replace'))
+        if data and data.get("results",None):
+            for item in data["results"]:
+                name = item.get("name")
+                if not name: name = item.get("title")
+                if name:
+                    original_name = item.get("original_name","")
+                    id = item.get("id","")
+                    mediaType = item.get("media_type","")
+                    title_alt = title.lower().replace(" ","").replace("-","").replace(":","").replace("&","").replace(",","")
+                    name_alt = name.lower().replace(" ","").replace("-","").replace(":","").replace("&","").replace(",","")
+                    org_name_alt = original_name.lower().replace(" ","").replace("-","").replace(":","").replace("&","").replace(",","")
+                    
+                    original_name = item.get("original_name")
+                    if title in name == title or original_name == title:
+                        matchFound = True
+                    elif name.split(" (")[0] == title or title_alt == name_alt or title_alt == org_name_alt:
+                        matchFound = True
                         
-                        original_name = item.get("original_name")
-                        if title in name == title or original_name == title:
-                            matchFound = True
-                        elif name.split(" (")[0] == title or title_alt == name_alt or title_alt == org_name_alt:
-                            matchFound = True
+                    if matchFound:
+                        coverUrl = item.get("poster_path","")
+                        fanartUrl = item.get("backdrop_path","")
+                        
+                        logMsg("getTMDBimage - TMDB match found for %s !" %title)
+                        
+                        if coverUrl:
+                            coverUrl = downloadImage("http://image.tmdb.org/t/p/original"+coverUrl,title,"poster.jpg")
                             
-                        if matchFound:
-                            coverUrl = item.get("poster_path","")
-                            fanartUrl = item.get("backdrop_path","")
+                        if fanartUrl:
+                            fanartUrl = downloadImage("http://image.tmdb.org/t/p/original"+fanartUrl,title,"fanart.jpg")
                             
-                            logMsg("getTMDBimage - TMDB match found for %s !" %title)
-                            
-                            if coverUrl:
-                                coverUrl = "http://image.tmdb.org/t/p/original"+coverUrl
-                                try: opener.open(coverUrl).read()
-                                except: pass
-                                
-                            if fanartUrl:
-                                fanartUrl = "http://image.tmdb.org/t/p/original"+fanartUrl
-                                try: opener.open(fanartUrl).read()
-                                except: pass
-                            return (coverUrl, fanartUrl)
-        
-        except Exception as e:
-            if "getaddrinfo failed" in str(e):
-                #no internet access - disable lookups for now
-                WINDOW.setProperty("SkinHelper.DisableInternetLookups","disable")
-                logMsg("getTMDBimage - no internet access, disabling internet lookups for now")
-            else:
-                logMsg("getTMDBimage - Error in getTMDBimage --> " + str(e),0)
+                        url = 'http://api.themoviedb.org/3/%s/%s/external_ids?api_key=%s' %(mediaType,id,apiKey)
+                        response = requests.get(url)
+                        data = json.loads(response.content.decode('utf-8','replace'))
+                        if data: id = data.get("tvdb_id")
+
+                        return (coverUrl, fanartUrl, mediaType, id)
+    
+    except Exception as e:
+        if "getaddrinfo failed" in str(e):
+            #no internet access - disable lookups for now
+            WINDOW.setProperty("SkinHelper.DisableInternetLookups","disable")
+            logMsg("getTMDBimage - no internet access, disabling internet lookups for now")
+        else:
+            logMsg("getTMDBimage - Error in getTMDBimage --> " + str(e),0)
     
     logMsg("TMDB match NOT found for %s !" %title)
-    return ("", "")
+    return ("", "", "", "")
 
+def downloadImage(imageUrl,title, filename):
+    try:
+        thumbsPath = "special://profile/addon_data/script.skin.helper.service/"
+        if not xbmcvfs.exists(thumbsPath):
+            xbmcvfs.mkdir(thumbsPath)
+        thumbsPath = os.path.join(thumbsPath,normalize_string(title))
+        if not xbmcvfs.exists(thumbsPath):
+            xbmcvfs.mkdir(thumbsPath)
+        newFile = os.path.join(thumbsPath,filename)
+        xbmcvfs.copy(imageUrl,newFile)
+        return newFile
+    except: return imageUrl
+    
 def double_urlencode(text):
    """double URL-encode a given 'text'.  Do not return the 'variablename=' portion."""
 
@@ -559,6 +625,8 @@ def getPVRThumbs(persistant_cache,title,channel,enableYouTubeSearch=False):
     logo = ""
     poster = ""
     thumb = ""
+    type = ""
+    tmdb_id = ""    
 
     logMsg("getPVRThumb for %s %s--> "%(title,channel))
         
@@ -624,10 +692,14 @@ def getPVRThumbs(persistant_cache,title,channel,enableYouTubeSearch=False):
                 logMsg("ERROR in getPVRThumbs - get thumb from recordings ! --> " + str(e))
             
             if not poster and channel:
-                poster, fanart = getTMDBimage(title)
+                poster, fanart, type, tmdb_id = getTMDBimage(title)
+                
+            if type and tmdb_id:
+                logo, disc, clearart, banner, thumb = getfanartTVimage(type,tmdb_id,title)
                 
             if not thumb and channel:
-                thumb = searchGoogleImage(title + " " + channel)           
+                thumb = searchGoogleImage(title + " " + channel)
+                if poster or fanart: thumb = downloadImage(thumb,title,"thumb.jpg")
             
             if not thumb and channel and enableYouTubeSearch:
                 #last resort: youtube search
@@ -647,10 +719,10 @@ def getPVRThumbs(persistant_cache,title,channel,enableYouTubeSearch=False):
     else:
         logMsg("getPVRThumb cache found for dbID--> " + dbID)
     #use kodi texture cache only if item exists in cache
-    if thumb and cacheFound: thumb = "image://" + single_urlencode(thumb) + "/"
-    if fanart and cacheFound: fanart = "image://" + single_urlencode(fanart) + "/"
-    if poster and cacheFound: poster = "image://" + single_urlencode(poster) + "/"
-    if logo and cacheFound: logo = "image://" + single_urlencode(logo) + "/"
+    if thumb and cacheFound and not "special://" in thumb: thumb = "image://" + single_urlencode(thumb) + "/"
+    if fanart and cacheFound and not "special://" in fanart: fanart = "image://" + single_urlencode(fanart) + "/"
+    if poster and cacheFound and not "special://" in poster: poster = "image://" + single_urlencode(poster) + "/"
+    if logo and cacheFound and not "special://" in logo: logo = "image://" + single_urlencode(logo) + "/"
     return (thumb,fanart,poster,logo)
 
 def createSmartShortcutSubmenu(windowProp,iconimage):

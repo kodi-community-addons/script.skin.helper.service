@@ -132,22 +132,21 @@ def addSmartShortcutsSublevel(entry):
             addSmartShortcutDirectoryItem(key,False, widget,widget2)
 
 def getSmartShortcuts(sublevel=None):
-    xbmcplugin.setContent(int(sys.argv[1]), 'files')
-    if sublevel:
-        addSmartShortcutsSublevel(sublevel)
-    else:
-        allSmartShortcuts = WINDOW.getProperty("allSmartShortcuts")
-        if allSmartShortcuts:
-            for node in eval (allSmartShortcuts):
-                if "emby" in node or "plex" in node or "netflix" in node:
-                    #create main folder entry
-                    addSmartShortcutDirectoryItem(node)
-                else:
-                    label = "$INFO[Window(Home).Property(%s.title)]" %node
-                    #create final listitem entry (playlist, favorites)
-                    addSmartShortcutDirectoryItem(node,False, node)
-                    
-
+    if xbmc.getCondVisibility("Window.IsActive(script-skinshortcuts.xml)"):
+        xbmcplugin.setContent(int(sys.argv[1]), 'files')
+        if sublevel:
+            addSmartShortcutsSublevel(sublevel)
+        else:
+            allSmartShortcuts = WINDOW.getProperty("allSmartShortcuts")
+            if allSmartShortcuts:
+                for node in eval (allSmartShortcuts):
+                    if "emby" in node or "plex" in node or "netflix" in node:
+                        #create main folder entry
+                        addSmartShortcutDirectoryItem(node)
+                    else:
+                        label = "$INFO[Window(Home).Property(%s.title)]" %node
+                        #create final listitem entry (playlist, favorites)
+                        addSmartShortcutDirectoryItem(node,False, node)
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 def buildWidgetsListing():
