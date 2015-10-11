@@ -635,7 +635,7 @@ def getPVRThumbs(title,channel,downloadLocal=False):
     cacheFound = False
     artwork = {}
     
-    logMsg("getPVRThumb for %s %s--> "%(title,channel),0)
+    logMsg("getPVRThumb for %s %s--> "%(title,channel))
         
     #get the items from cache first
     cache = WINDOW.getProperty("SkinHelper.PVR.Artwork").decode('utf-8')

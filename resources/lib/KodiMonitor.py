@@ -12,6 +12,7 @@ class Kodi_Monitor(xbmc.Monitor):
     
     def onSettingsChanged(self):
         setAddonsettings()
+        logMsg("onNotification - Addon settings changed!")
         WINDOW.setProperty("resetPvrArtCache","reset")
 
     def resetMusicWidgets(self):

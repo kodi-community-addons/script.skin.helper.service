@@ -4,6 +4,7 @@
 import xbmc
 import xbmcplugin
 import xbmcgui
+import shutil
 
 from resources.lib.Utils import *
 from resources.lib.MainModule import *
@@ -109,7 +110,27 @@ class Main:
                 selectOverlayTexture()
             
             elif action == "BUSYTEXTURE":    
-                selectBusyTexture()     
+                selectBusyTexture()
+
+            elif action == "RESETPVRTHUMBS":
+                path = WINDOW.getProperty("pvrthumbspath").decode("utf-8")
+                WINDOW.setProperty("resetPvrArtCache","reset")
+                success = True
+                ret = xbmcgui.Dialog().yesno(heading=ADDON.getLocalizedString(32089), line1=ADDON.getLocalizedString(32090)+WINDOW.getProperty("pvrthumbspath"))
+                if ret:
+                    dirs, files = xbmcvfs.listdir(path)
+                    for file in files:
+                        success = xbmcvfs.delete(os.path.join(path,file))
+                    for dir in dirs:
+                        dirs2, files2 = xbmcvfs.listdir(os.path.join(path,dir))
+                        for file in files2:
+                            success = xbmcvfs.delete(os.path.join(path,dir,file))
+                        success = xbmcvfs.rmdir(os.path.join(path,dir))
+                    if success:
+                        xbmcgui.Dialog().ok(heading=ADDON.getLocalizedString(32089), line1=ADDON.getLocalizedString(32091))
+                    else:
+                        xbmcgui.Dialog().ok(heading=ADDON.getLocalizedString(32089), line1=ADDON.getLocalizedString(32092))
+                    
             
             elif action == "BACKUP":
                 import resources.lib.BackupRestore as backup
