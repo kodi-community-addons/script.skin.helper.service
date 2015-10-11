@@ -116,7 +116,7 @@ class Main:
                 path = WINDOW.getProperty("pvrthumbspath").decode("utf-8")
                 WINDOW.setProperty("resetPvrArtCache","reset")
                 success = True
-                ret = xbmcgui.Dialog().yesno(heading=ADDON.getLocalizedString(32089), line1=ADDON.getLocalizedString(32090)+WINDOW.getProperty("pvrthumbspath"))
+                ret = xbmcgui.Dialog().yesno(heading=ADDON.getLocalizedString(32089), line1=ADDON.getLocalizedString(32090)+path)
                 if ret:
                     dirs, files = xbmcvfs.listdir(path)
                     for file in files:
