@@ -141,6 +141,7 @@ def getJSON(method,params):
 def setAddonsettings():
     #get the addonsettings and store them in memory
     WINDOW.setProperty("pvrthumbspath",SETTING("pvrthumbspath"))
+    xbmc.executebuiltin("Skin.SetString(pvrthumbspath,%s)" %SETTING("pvrthumbspath"))
     WINDOW.setProperty("cacheRecordings",SETTING("cacheRecordings"))
     WINDOW.setProperty("cacheGuideEntries",SETTING("cacheGuideEntries"))
     WINDOW.setProperty("customRecordingsPath",SETTING("customRecordingsPath"))
@@ -573,13 +574,17 @@ def getOfficialArtWork(title,includeAllArtwork=True):
                         logMsg("getTMDBimage - TMDB match found for %s !" %title)
                         #lookup external tmdb_id and perform artwork lookup on fanart.tv
                         if WINDOW.getProperty("useFanArtTv") == "true" and id:
-                            url = 'http://api.themoviedb.org/3/%s/%s/external_ids?api_key=%s' %(media_type,id,apiKey)
+                            if media_type == "movie":
+                                url = 'http://api.themoviedb.org/3/movie/%s?api_key=%s' %(id,apiKey)
+                                idparam = "imdb_id"
+                            else:
+                                url = 'http://api.themoviedb.org/3/tv/%s/external_ids?api_key=%s' %(id,apiKey)
+                                idparam = "tvdb_id"
                             response = requests.get(url)
                             data = json.loads(response.content.decode('utf-8','replace'))
-                            if data: media_id = data.get("tvdb_id")
+                            if data: 
+                                media_id = data.get(idparam) 
                         break
-                    else:
-                        media_id = None
         
         #lookup artwork on fanart.tv
         if media_id and media_type:
