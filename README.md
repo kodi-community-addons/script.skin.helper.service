@@ -187,12 +187,33 @@ You must set the following Skin Bool to true --> SkinHelper.EnablePVRThumbs for 
 | Window(Home).Property(SkinHelper.PVR.Logo) | Will return the clearlogo for the currently selected show/movie (only if found) |
 | Window(Home).Property(SkinHelper.PVR.Landscape) | Will return the landscape art for the currently selected show/movie (only if found) |
 | Window(Home).Property(SkinHelper.PVR.ClearArt) | Will return the ClearArt for the currently selected show/movie (only if found) |
+| Window(Home).Property(SkinHelper.PVR.DiscArt) | Will return the DiscArt for the currently selected show/movie (only if found) |
+| Window(Home).Property(SkinHelper.PVR.CharacterArt) | Will return the CharacterArt for the currently selected show/movie (only if found) |
 | Window(Home).Property(SkinHelper.PVR.Banner) | Will return the Banner for the currently selected show/movie (only if found) |
 | Window(Home).Property(SkinHelper.PVR.ChannelLogo) | Will return the channel logo for the currently selected channel (only if found) |
 
 NOTE: The images will only be scraped if you have set the following Skin Bool to true --> SkinHelper.EnablePVRThumbs
 
 Also note that the addon-settings for this addon will allow fine-tuning of the PVR thumbs feature
+
+
+##### PVR images inside lists
+All Windows properties of the script are only provided for the current selected listitem.
+If you have a panel container in the PVR windows and you want to show the PVR artwork, the script has a little helper-webservice to deliver the artwork:
+
+```xml
+<control type="image">
+    <!--pvr thumb image-->
+    <texture background="true">http://localhost:8888/getthumb&title=$VAR[ListTitlePVR]&channel=$INFO[ListItem.ChannelName]</texture>
+    <visible>Skin.HasSetting(SkinHelper.EnablePVRThumbs)</visible>
+</control>
+```
+The above example will return the PVR artwork, in general the landscape, fanart or thumb is returned.
+If you prefer a specific art-type you can specify that with type=[kodi artwork type]
+For example:
+
+http://localhost:8888/getthumb&title=$VAR[ListTitlePVR]&channel=$INFO[ListItem.ChannelName]&type=poster
+
 ________________________________________________________________________________________________________
 
 
@@ -256,7 +277,7 @@ In your skin you can just use the skin string to color a control, example: <text
 Note: If you want to display the name of the selected color, add a prefix .name to your skin string.
 For example: <label>Default color for labels: $INFO[Skin.String(defaultLabelColor.name)]</label>
 
-If you want to customize the look and feel of the color picker window, make sure to include script-skin_helper_service-ColorPicker.xml in your skin and skin in to your needs.
+If you want to customize the look and feel of the color picker window, make sure to include script-skin_helper_service-ColorPicker.xml in your skin and skin it to your needs.
 
 TIP: By default the colorpicker will provide a list of available colors.
 If you want to provide that list yourself, create a file "colors.xml" in skin\extras\colors\colors.xml

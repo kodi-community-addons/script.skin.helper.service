@@ -207,7 +207,7 @@ class ListItemMonitor(threading.Thread):
                     
     def doBackgroundWork(self):
         try:
-            logMsg("Started Background worker...",0)
+            logMsg("Started Background worker...")
             self.genericWindowProps()
             self.checkNetflixReady()
             self.updatePlexlinks()
@@ -215,7 +215,7 @@ class ListItemMonitor(threading.Thread):
             self.getStudioLogos()
             #precache widgets listing
             getJSON('Files.GetDirectory','{ "directory": "plugin://script.skin.helper.service/?action=widgets", "media": "files" }')
-            logMsg("Ended Background worker...",0)
+            logMsg("Ended Background worker...")
         except Exception as e:
             logMsg("ERROR in HomeMonitor doBackgroundWork ! --> " + str(e), 0)
     
@@ -473,6 +473,7 @@ class ListItemMonitor(threading.Thread):
         WINDOW.clearProperty("SkinHelper.PVR.Poster")
         WINDOW.clearProperty("SkinHelper.PVR.Landscape")
         WINDOW.clearProperty("SkinHelper.PVR.ClearArt")
+        WINDOW.clearProperty("SkinHelper.PVR.CharacterArt") 
         WINDOW.clearProperty("SkinHelper.PVR.Logo")
         WINDOW.clearProperty("SkinHelper.PVR.Banner")
         WINDOW.clearProperty("SkinHelper.Player.AddonName")
@@ -728,13 +729,11 @@ class ListItemMonitor(threading.Thread):
         
         if self.pvrArtCache.has_key(dbID + "SkinHelper.PVR.Artwork"):
             artwork = self.pvrArtCache[dbID + "SkinHelper.PVR.Artwork"]
-        else:
-            if WINDOW.getProperty("cacheRecordings") == "true" and self.contentType == "tvrecordings":
-                cacheLocal = True
-            elif WINDOW.getProperty("cacheGuideEntries") == "true" and self.contentType != "tvrecordings":
-                cacheLocal = True    
-            else: cacheLocal = False
-            artwork = getPVRThumbs(title, channel, cacheLocal)
+        else:           
+            if self.contentType == "tvrecordings": type = "recordings"
+            else: type = "channels"
+            
+            artwork = getPVRThumbs(title, channel, type)
             self.pvrArtCache[dbID + "SkinHelper.PVR.Artwork"] = artwork
         
         if artwork.has_key("thumb"):
@@ -755,6 +754,9 @@ class ListItemMonitor(threading.Thread):
             WINDOW.setProperty("SkinHelper.PVR.ClearArt",artwork["clearart"])
         if artwork.has_key("channellogo"):
             WINDOW.setProperty("SkinHelper.PVR.ChannelLogo",artwork["channellogo"])
+        if artwork.has_key("characterart"):
+            WINDOW.setProperty("SkinHelper.PVR.CharacterArt",artwork["characterart"]) 
+
      
     def setStudioLogo(self, studio=None):
         

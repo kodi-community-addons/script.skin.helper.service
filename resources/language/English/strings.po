@@ -373,7 +373,7 @@ msgid "Recently played songs"
 msgstr ""
 
 msgctxt "#32089"
-msgid "Reset permanent cache for PVR thumbs"
+msgid "Reset persistant cache for PVR thumbs"
 msgstr ""
 
 msgctxt "#32090"
@@ -430,4 +430,12 @@ msgstr ""
 
 msgctxt "#32103"
 msgid "Location of the persistant cache"
+msgstr ""
+
+msgctxt "#32104"
+msgid "Live TV channels (with artwork)"
+msgstr ""
+
+msgctxt "#32105"
+msgid "Live TV Recordings (with artwork)"
 msgstr ""

@@ -254,8 +254,10 @@ def buildWidgetsListing():
         if not allWidgets.has_key(widget):
             foundWidgets = []
             if widget=="pvr" and xbmc.getCondVisibility("PVR.HasTVChannels"):
-                foundWidgets.append(["$LOCALIZE[19023]", "plugin://script.skin.helper.service/?action=pvrchannels&limit=25&reload=$INFO[Window(home).Property(widgetreload2)]", "", "pvr"])
-                foundWidgets.append(["$LOCALIZE[19017]", "plugin://script.skin.helper.service/?action=pvrrecordings&limit=25&reload=$INFO[Window(home).Property(widgetreload2)]", "", "pvr"])   
+                foundWidgets.append(["$LOCALIZE[19023]", "pvr://channels/tv/all channels", "", "pvr"])
+                foundWidgets.append(["$LOCALIZE[19017]", "pvr://recordings", "", "pvr"])
+                foundWidgets.append(["$ADDON[script.extendedinfo 32104]", "plugin://script.skin.helper.service/?action=pvrchannels&limit=25&reload=$INFO[Window(home).Property(widgetreload2)]", "", "pvr"])
+                foundWidgets.append(["$ADDON[script.extendedinfo 32105]", "plugin://script.skin.helper.service/?action=pvrrecordings&limit=25&reload=$INFO[Window(home).Property(widgetreload2)]", "", "pvr"])   
             if widget=="smartishwidgets" and xbmc.getCondVisibility("System.HasAddon(service.smartish.widgets) + Skin.HasSetting(enable.smartish.widgets)"):
                 foundWidgets.append(["Smart(ish) Movies widget", "plugin://service.smartish.widgets?type=movies&reload=$INFO[Window.Property(smartish.movies)]", "", "movies"])
                 foundWidgets.append(["Smart(ish) Episodes widget", "plugin://service.smartish.widgets?type=episodes&reload=$INFO[Window.Property(smartish.episodes)]", "", "episodes"])
@@ -415,10 +417,7 @@ def getPVRRecordings(limit):
         for item in json_query:
             channelname = item["channel"]
             item["channel"] = channelname
-            if WINDOW.getProperty("cacheRecordings") == "true":
-                cacheLocal = True
-            else: cacheLocal = False
-            item["art"] = getPVRThumbs(item["title"], channelname, cacheLocal)
+            item["art"] = getPVRThumbs(item["title"], channelname, "recordings")
             item["channelicon"] = item["art"].get("channelicon","")
             item["cast"] = None
             allItems.append(item)
@@ -450,10 +449,7 @@ def getPVRChannels(limit):
             if channel.has_key('broadcastnow'):
                 #channel with epg data
                 item = channel['broadcastnow']
-                if WINDOW.getProperty("cacheGuideEntries") == "true":
-                    cacheLocal = True
-                else: cacheLocal = False
-                item["art"] = getPVRThumbs(item["title"], channelname, cacheLocal)
+                item["art"] = getPVRThumbs(item["title"], channelname, "channels")
                 if not channelicon: channelicon = item["art"].get("channelicon")
             else:
                 #channel without epg
@@ -837,10 +833,7 @@ def buildRecommendedMediaListing(limit,ondeckContent=False,recommendedContent=Tr
         for item in json_result:
             lastplayed = None
             if not item["title"] in allTitles and item["playcount"] == 0:
-                if WINDOW.getProperty("cacheRecordings") == "true":
-                    cacheLocal = True
-                else: cacheLocal = False
-                item["art"] = getPVRThumbs(item["title"], item["channel"],cacheLocal)
+                item["art"] = getPVRThumbs(item["title"], item["channel"],"recordings")
                 allOndeckItems.append((lastplayed,item))
                 allTitles.append(item["title"])
           
@@ -1010,10 +1003,7 @@ def getRecentMedia(limit):
         for item in json_result:
             lastplayed = item["endtime"]
             if not item["title"] in allTitles and item["playcount"] == 0:
-                if WINDOW.getProperty("cacheRecordings") == "true":
-                    cacheLocal = True
-                else: cacheLocal = False
-                item["art"] = getPVRThumbs(item["title"], item["channel"],cacheLocal)
+                item["art"] = getPVRThumbs(item["title"], item["channel"],"recordings")
                 allItems.append((lastplayed,item))
                 allTitles.append(item["title"])
         

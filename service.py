@@ -8,6 +8,9 @@ from resources.lib.Utils import *
 from resources.lib.BackgroundsUpdater import BackgroundsUpdater
 from resources.lib.ListItemMonitor import ListItemMonitor
 from resources.lib.KodiMonitor import Kodi_Monitor
+from resources.lib.WebService import WebService
+
+
 
 class Main:
     
@@ -16,11 +19,13 @@ class Main:
         KodiMonitor = Kodi_Monitor()
         listItemMonitor = ListItemMonitor()
         backgroundsUpdater = BackgroundsUpdater()
+        webService = WebService()
         lastSkin = None
                    
         #start the extra threads
         listItemMonitor.start()
         backgroundsUpdater.start()
+        webService.start()
         
         while not KodiMonitor.abortRequested():
             
@@ -34,7 +39,8 @@ class Main:
             xbmc.log('SKIN HELPER SERVICE --> shutdown requested !')
             #stop the extra threads
             backgroundsUpdater.stop()
-            listItemMonitor.stop()                             
+            listItemMonitor.stop()
+            webService.stop()
 
 xbmc.log('skin helper service version %s started' % ADDON_VERSION)
 Main()

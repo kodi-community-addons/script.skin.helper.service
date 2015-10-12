@@ -40,8 +40,7 @@ fields_files = fields_file + fields_movies + ", " + fields_tvshows + ", " + fiel
 fields_songs = '"artist", "title", "rating", "fanart", "thumbnail", "duration", "playcount", "comment", "file", "album", "lastplayed"'
 fields_albums = '"title", "fanart", "thumbnail", "genre", "displayartist", "artist", "genreid", "musicbrainzalbumartistid", "year", "rating", "artistid", "musicbrainzalbumid", "theme", "description", "type", "style", "playcount", "albumlabel", "mood"'
 fields_pvrrecordings = '"art", "channel", "directory", "endtime", "file", "genre", "icon", "playcount", "plot", "plotoutline", "resume", "runtime", "starttime", "streamurl", "title"'
-
-PVRartTypes = [ ("thumb","thumb.jpg"),("poster","poster.jpg"),("fanart","fanart.jpg"),("banner","banner.jpg"),("landscape","landscape.jpg"),("clearlogo","logo.png"),("clearart","clearart.png"),("channellogo","channellogo.png") ]
+PVRartTypes = [ ("thumb","thumb.jpg"),("poster","poster.jpg"),("fanart","fanart.jpg"),("banner","banner.jpg"),("landscape","landscape.jpg"),("clearlogo","logo.png"),("clearart","clearart.png"),("channellogo","channellogo.png"),("discart","disc.png"),("characterart","characterart.png") ]
 
 def logMsg(msg, level = 1):
     doDebugLog = False
@@ -141,7 +140,6 @@ def getJSON(method,params):
 def setAddonsettings():
     #get the addonsettings and store them in memory
     WINDOW.setProperty("pvrthumbspath",SETTING("pvrthumbspath"))
-    xbmc.executebuiltin("Skin.SetString(pvrthumbspath,%s)" %SETTING("pvrthumbspath"))
     WINDOW.setProperty("cacheRecordings",SETTING("cacheRecordings"))
     WINDOW.setProperty("cacheGuideEntries",SETTING("cacheGuideEntries"))
     WINDOW.setProperty("customRecordingsPath",SETTING("customRecordingsPath"))
@@ -151,6 +149,9 @@ def setAddonsettings():
     WINDOW.setProperty("useLocalLibraryLookups",SETTING("useLocalLibraryLookups"))
     WINDOW.setProperty("customlookuppath",SETTING("customlookuppath"))
     WINDOW.setProperty("useFanArtTv",SETTING("useFanArtTv"))
+    if not xbmcvfs.exists(SETTING("pvrthumbspath")):
+        xbmcvfs.mkdir(SETTING("pvrthumbspath"))   
+    WINDOW.setProperty("SkinHelper.lastUpdate","%s" %datetime.now())    
 
 def try_encode(text, encoding="utf-8"):
     try:
@@ -490,10 +491,9 @@ def getLocalDateTimeFromUtc(timestring):
         
         return (timestring,timestring)
 
-def getfanartTVimages(type,id):
+def getfanartTVimages(type,id,artwork={}):
     #gets fanart.tv images for given tmdb id
     api_key = "639191cb0774661597f28a47e7e2bad5"
-    artwork = {}
     
     logMsg("get fanart.tv images for type: %s - id: %s" %(type,id))
     
@@ -502,7 +502,10 @@ def getfanartTVimages(type,id):
     else:
         url = 'http://webservice.fanart.tv/v3/tv/%s?api_key=%s' %(id,api_key)
     response = requests.get(url)
-    data = json.loads(response.content.decode('utf-8','replace'))
+    if response and response.content:
+        data = json.loads(response.content.decode('utf-8','replace'))
+    else:
+        return artwork
     if data:
         if data.has_key("movielogo") and len(data["movielogo"]) > 0:
             artwork["clearlogo"] = data["movielogo"][0].get("url")
@@ -536,12 +539,13 @@ def getfanartTVimages(type,id):
             artwork["poster"] = data["tvposter"][0].get("url")
         if data.has_key("movieposter") and len(data["movieposter"]) > 0:
             artwork["poster"] = data["movieposter"][0].get("url")
+        if data.has_key("characterart") and len(data["characterart"]) > 0:
+            artwork["characterart"] = data["characterart"][0].get("url") 
     return artwork
 
-def getOfficialArtWork(title,includeAllArtwork=True):
+def getOfficialArtWork(title,artwork={}):
     #perform search on TMDB and return artwork
     apiKey = base64.b64decode("NDc2N2I0YjJiYjk0YjEwNGZhNTUxNWM1ZmY0ZTFmZWM=")
-    artwork = {}
     coverUrl = ""
     fanartUrl = ""
     matchFound = False
@@ -588,7 +592,7 @@ def getOfficialArtWork(title,includeAllArtwork=True):
         
         #lookup artwork on fanart.tv
         if media_id and media_type:
-            artwork = getfanartTVimages(media_type,media_id)
+            artwork = getfanartTVimages(media_type,media_id,artwork)
         
         #use tmdb art as fallback when no fanart.tv art
         if coverUrl and not artwork.get("poster"):
@@ -606,12 +610,8 @@ def getOfficialArtWork(title,includeAllArtwork=True):
         else:
             logMsg("getOfficialArtWork - Error in getOfficialArtWork --> " + str(e),0)
     
-def downloadImage(imageUrl,foldername, filename):
+def downloadImage(imageUrl,thumbsPath, filename):
     try:
-        PVRthumbsPath = WINDOW.getProperty("pvrthumbspath").decode("utf-8")
-        if not xbmcvfs.exists(PVRthumbsPath):
-            xbmcvfs.mkdir(PVRthumbsPath)
-        thumbsPath = os.path.join(PVRthumbsPath,normalize_string(foldername)) + os.sep
         if not xbmcvfs.exists(thumbsPath):
             xbmcvfs.mkdir(thumbsPath)
         newFile = os.path.join(thumbsPath,filename)
@@ -637,12 +637,35 @@ def single_urlencode(text):
 
    return blah
 
-def getPVRThumbs(title,channel,downloadLocal=False):
+def getPVRThumbs(title,channel,type="channels"):
     dbID = title + channel
     cacheFound = False
     artwork = {}
     
     logMsg("getPVRThumb for %s %s--> "%(title,channel))
+    
+    #make sure we have our settings cached in memory...
+    if not WINDOW.getProperty("pvrthumbspath"):
+        setAddonsettings()
+    
+    if type=="channels" and WINDOW.getProperty("cacheGuideEntries")=="true":
+        downloadLocal = True
+    elif type=="recordings" and WINDOW.getProperty("cacheRecordings")=="true":
+        downloadLocal = True
+    else:
+        downloadLocal = False
+    
+    #lookup actual recordings if channel is empty (assume grouped recordings here)
+    if not channel:
+        try:
+            json_query = getJSON('PVR.GetRecordings', '{ "properties": [ %s ]}' %( fields_pvrrecordings))
+            for item in json_query:
+                if title in item['title'] or title in item["file"]:
+                    channel = item["channel"]
+                    logMsg("getPVRThumbs - title matches an existing recording: " + title)
+                    break
+        except Exception as e:
+            logMsg("ERROR in getPVRThumbs - get thumb from recordings ! --> " + str(e))
         
     #get the items from cache first
     cache = WINDOW.getProperty("SkinHelper.PVR.Artwork").decode('utf-8')
@@ -651,39 +674,52 @@ def getPVRThumbs(title,channel,downloadLocal=False):
         if cache.has_key(dbID): 
             artwork = cache[dbID]
             cacheFound = True
+            logMsg("getPVRThumb cache found for dbID--> " + dbID)
     else: cache = {}
     
-    if not artwork:
+    if not cacheFound:
         logMsg("getPVRThumb no cache found for dbID--> " + dbID)
         
-        #lookup existing artwork in pvrthumbs paths
-        paths = []
-        paths.append(WINDOW.getProperty("pvrthumbspath").decode("utf-8"))
+        pvrThumbPath = None
+        #lookup existing pvrthumbs paths - try to find a match in custom path, else path is just the title
+        #images will be looked up or stored to that path
         if WINDOW.getProperty("customlookuppath"): 
-            paths.append( WINDOW.getProperty("customlookuppath").decode("utf-8") )
-        for path in paths:
-            thumbspath = os.path.join(path,normalize_string(title)) + os.sep
-            if xbmcvfs.exists(thumbspath) and not cacheFound:
-                logMsg("thumbspath found on disk for " + title)
-                #entry exists in pvr thumbs folder on disk
-                for artType in PVRartTypes:
-                    artpath = os.path.join(thumbspath,artType[1])
-                    if xbmcvfs.exists(artpath): 
+            path = WINDOW.getProperty("customlookuppath").decode("utf-8")
+            dirs, files = xbmcvfs.listdir(path)
+            for dir in dirs:
+                #try to find a match...
+                if dir == title:
+                    pvrThumbPath = os.path.join(path,dir)
+                    break
+                elif dir.lower().replace(" ","").replace("_","") == title.lower().replace(" ","").replace("_",""):
+                    pvrThumbPath = os.path.join(path,dir)
+                    break
+                elif dir.lower().replace(" ","").replace("_","") in title.lower().replace(" ","").replace("_",""):
+                    pvrThumbPath = os.path.join(path,dir)
+                    break
+                elif title.lower().replace(" ","").replace("_","") in dir.lower().replace(" ","").replace("_",""):
+                    pvrThumbPath = os.path.join(path,dir)
+                    break
+        if not pvrThumbPath: 
+            pvrThumbPath = os.path.join(WINDOW.getProperty("pvrthumbspath").decode("utf-8"),normalize_string(channel + " - " + title))
+        if "/" in pvrThumbPath: sep = "/"
+        else: sep = "\\"
+        if not pvrThumbPath.endswith(sep): pvrThumbPath = pvrThumbPath + sep
+                    
+        logMsg("pvr thumbs path --> " + pvrThumbPath)
+        
+        #lookup existing artwork in pvrthumbs paths
+        if xbmcvfs.exists(pvrThumbPath):
+            logMsg("thumbspath found on disk for " + title)
+            for artType in PVRartTypes:
+                artpath = os.path.join(pvrThumbPath,artType[1])
+                if xbmcvfs.exists(artpath):
+                    if not artwork.has_key(artType[0]):
                         artwork[artType[0]] = artpath
-                        cacheFound = True
                         logMsg("%s found on disk for %s" %(artType[0],title))
         
-        #also locate thumb in root files of custom directory for non-grouped recordings
-        if WINDOW.getProperty("customlookuppath") and not artwork.get("thumb"):
-            dirs, files = xbmcvfs.listdir(WINDOW.getProperty("customlookuppath").decode("utf-8"))
-            for file in files:
-                file = file.decode("utf-8")
-                if title in file and ".jpg" in file:
-                    artwork["thumb"] = os.path.join(WINDOW.getProperty("customlookuppath").decode("utf-8"),file)
-                    break
-        
         #lookup local library
-        if not artwork and WINDOW.getProperty("useLocalLibraryLookups") == "true":
+        if WINDOW.getProperty("useLocalLibraryLookups") == "true":
             item = None
             json_result = getJSON('VideoLibrary.GetTvShows','{ "filter": {"operator":"is", "field":"title", "value":"%s"}, "properties": [ %s ] }' %(title,fields_tvshows))
             if len(json_result) > 0:
@@ -694,11 +730,20 @@ def getPVRThumbs(title,channel,downloadLocal=False):
                     item = json_result[0]
             if item and item.has_key("art"): 
                 artwork = item["art"]
-                cacheFound = True
                 logMsg("getPVRThumb artwork found in local library for dbID--> " + dbID)
                 
+        #also locate thumb in root files of custom directory for recordings not in folder
+        if WINDOW.getProperty("customlookuppath") and not artwork.get("thumb"):
+            dirs, files = xbmcvfs.listdir(WINDOW.getProperty("customlookuppath").decode("utf-8"))
+            for file in files:
+                file_norm = file.decode("utf-8").replace(" ","").replace("_","")
+                if normalize_string(title.replace(" ","").replace("_","")) in normalize_string(file_norm) and ".jpg" in file_norm:
+                    artwork["thumb"] = os.path.join(WINDOW.getProperty("customlookuppath").decode("utf-8"),file)
+                    logMsg("single pvr thumb found for  --> " + title + " --> "+ artwork["thumb"])
+                    break
+        
         #if nothing in library or persistant cache, perform the internet scraping
-        if not artwork and not WINDOW.getProperty("SkinHelper.DisableInternetLookups"):
+        if not cacheFound and not WINDOW.getProperty("SkinHelper.DisableInternetLookups"):
             
             #get logo if none found
             if not artwork.has_key("channellogo") and channel:
@@ -706,21 +751,7 @@ def getPVRThumbs(title,channel,downloadLocal=False):
             
             #grab artwork from tmdb/fanart.tv
             if WINDOW.getProperty("useTMDBLookups") == "true":
-                artwork = getOfficialArtWork(title)
-            
-            #lookup actual recordings (for grouped recordings and actual icons provided by pvr)
-            if not artwork.get("thumb") and WINDOW.getProperty("usePVRAddonthumb") == "true":
-                try:
-                    json_query = getJSON('PVR.GetRecordings', '{ "properties": [ %s ]}' %( fields_pvrrecordings))
-                    for item in json_query:
-                        if title in item['title'] or title in item["file"]:
-                            if not channel: 
-                                channel = item["channel"]
-                            artwork["thumb"] = item['icon']
-                            logMsg("getPVRThumbs - title matches an existing recording: " + title)
-                            break
-                except Exception as e:
-                    logMsg("ERROR in getPVRThumbs - get thumb from recordings ! --> " + str(e))
+                artwork = getOfficialArtWork(title,artwork)
                 
             #lookup thumb on google as fallback
             if not artwork.get("thumb") and channel and WINDOW.getProperty("useGoogleLookups") == "true":
@@ -733,7 +764,7 @@ def getPVRThumbs(title,channel,downloadLocal=False):
             if downloadLocal:
                 #download images if we want them local
                 for artType in PVRartTypes:
-                    if artwork.has_key(artType[0]) and artType[0] != "channellogo": artwork[artType[0]] = downloadImage(artwork[artType[0]],title,artType[1])
+                    if artwork.has_key(artType[0]) and artType[0] != "channellogo" and "http" in artwork[artType[0]]: artwork[artType[0]] = downloadImage(artwork[artType[0]],pvrThumbPath,artType[1])
                 
             #store in cache for quick access later
             if not artwork: artwork["cache"] = "None"
@@ -744,9 +775,9 @@ def getPVRThumbs(title,channel,downloadLocal=False):
         
     #use kodi texture cache only if item exists in cache and the path is not local
     for artType in PVRartTypes:
-        if artwork.has_key(artType[0]) and cacheFound and artwork[artType[0]].startswith("http"): artwork[artType[0]] = "image://" + single_urlencode(artwork[artType[0]]) + "/"
-
-    
+        if artwork.get(artType[0]) and cacheFound and not artwork[artType[0]].startswith("special") and not artwork[artType[0]].startswith("image://"): 
+            artwork[artType[0]] = "image://" + single_urlencode(artwork[artType[0]])
+        elif artwork.get(artType[0]): artwork[artType[0]] = getCleanImage(artwork[artType[0]])
     return artwork
 
 def createSmartShortcutSubmenu(windowProp,iconimage):

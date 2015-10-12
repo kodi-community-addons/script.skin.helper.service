@@ -120,12 +120,12 @@ class Main:
                 if ret:
                     dirs, files = xbmcvfs.listdir(path)
                     for file in files:
-                        success = xbmcvfs.delete(os.path.join(path,file))
+                        success = xbmcvfs.delete(os.path.join(path,file.decode("utf-8")))
                     for dir in dirs:
-                        dirs2, files2 = xbmcvfs.listdir(os.path.join(path,dir))
+                        dirs2, files2 = xbmcvfs.listdir(os.path.join(path,dir.decode("utf-8")))
                         for file in files2:
-                            success = xbmcvfs.delete(os.path.join(path,dir,file))
-                        success = xbmcvfs.rmdir(os.path.join(path,dir))
+                            success = xbmcvfs.delete(os.path.join(path,dir.decode("utf-8"),file.decode("utf-8")))
+                        success = xbmcvfs.rmdir(os.path.join(path,dir.decode("utf-8")))
                     if success:
                         xbmcgui.Dialog().ok(heading=ADDON.getLocalizedString(32089), line1=ADDON.getLocalizedString(32091))
                     else:
