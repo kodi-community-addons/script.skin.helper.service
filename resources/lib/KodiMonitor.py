@@ -44,6 +44,8 @@ class Kodi_Monitor(xbmc.Monitor):
             WINDOW.setProperty("resetMusicArtCache","reset")
            
     def onNotification(self,sender,method,data):
+        
+        logMsg("Kodi_Monitor: sender %s - method: %s  - data: %s"%(sender,method,data))
                
         if method == "VideoLibrary.OnUpdate":
             #update nextup list when library has changed
@@ -58,15 +60,18 @@ class Kodi_Monitor(xbmc.Monitor):
             #refresh some widgets when library has changed
             WINDOW.setProperty("resetMusicArtCache","reset")
         
+        elif method == "Player.OnStop":
+            WINDOW.clearProperty("Skinhelper.PlayerPlaying")
+        
         elif method == "Player.OnPlay":
             
-            try:
-                secondsToDisplay = int(xbmc.getInfoLabel("Skin.String(SkinHelper.ShowInfoAtPlaybackStart)"))
-            except:
-                secondsToDisplay = 0
+            #skip if the player is already playing
+            if WINDOW.getProperty("Skinhelper.PlayerPlaying") == "playing": return
+            try: secondsToDisplay = int(xbmc.getInfoLabel("Skin.String(SkinHelper.ShowInfoAtPlaybackStart)"))
+            except: return
             
             logMsg("onNotification - ShowInfoAtPlaybackStart - number of seconds: " + str(secondsToDisplay))
-            
+            WINDOW.setProperty("Skinhelper.PlayerPlaying","playing")
             #Show the OSD info panel on playback start
             if secondsToDisplay != 0:
                 tryCount = 0

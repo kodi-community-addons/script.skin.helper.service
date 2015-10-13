@@ -507,40 +507,22 @@ def getfanartTVimages(type,id,artwork={}):
     else:
         return artwork
     if data:
-        if data.has_key("movielogo") and len(data["movielogo"]) > 0:
-            artwork["clearlogo"] = data["movielogo"][0].get("url")
-        if data.has_key("hdmovielogo") and len(data["hdmovielogo"]) > 0:
-            artwork["clearlogo"] = data["hdmovielogo"][0].get("url")
-        if data.has_key("moviedisc") and len(data["moviedisc"]) > 0:
-            artwork["discart"] = data["moviedisc"][0].get("url")  
-        if data.has_key("movieclearart") and len(data["movieclearart"]) > 0:
-            artwork["clearart"] = data["movieclearart"][0].get("url")
-        if data.has_key("hdmovieclearart") and len(data["hdmovieclearart"]) > 0:
-            artwork["clearart"] = data["hdmovieclearart"][0].get("url")
-        if data.has_key("moviebanner") and len(data["moviebanner"]) > 0:
-            artwork["banner"] = data["moviebanner"][0].get("url")
-        if data.has_key("moviethumb") and len(data["moviethumb"]) > 0:
-            artwork["landscape"] = data["moviethumb"][0].get("url")           
-        if data.has_key("clearart") and len(data["clearart"]) > 0:
-            artwork["clearart"] = data["clearart"][0].get("url")
-        if data.has_key("hdclearart") and len(data["hdclearart"]) > 0:
-            artwork["clearart"] = data["hdclearart"][0].get("url")
-        if data.has_key("clearlogo") and len(data["clearlogo"]) > 0:
-            artwork["clearlogo"] = data["clearlogo"][0].get("url")
-        if data.has_key("tvthumb") and len(data["tvthumb"]) > 0:
-            artwork["landscape"] = data["tvthumb"][0].get("url")
-        if data.has_key("tvbanner") and len(data["tvbanner"]) > 0:
-            artwork["banner"] = data["tvbanner"][0].get("url")
-        if data.has_key("showbackground") and len(data["showbackground"]) > 0:
-            artwork["fanart"] = data["showbackground"][0].get("url")
-        if data.has_key("moviebackground") and len(data["moviebackground"]) > 0:
-            artwork["fanart"] = data["moviebackground"][0].get("url")
-        if data.has_key("tvposter") and len(data["tvposter"]) > 0:
-            artwork["poster"] = data["tvposter"][0].get("url")
-        if data.has_key("movieposter") and len(data["movieposter"]) > 0:
-            artwork["poster"] = data["movieposter"][0].get("url")
-        if data.has_key("characterart") and len(data["characterart"]) > 0:
-            artwork["characterart"] = data["characterart"][0].get("url") 
+        #we need to use a little mapping between fanart.tv arttypes and kodi artttypes
+        fanartTVTypes = [ ("logo","clearlogo"),("disc","discart"),("clearart","clearart"),("banner","banner"),("thumb","landscape"),("clearlogo","clearlogo"),("poster","poster"),("background","fanart"),("showbackground","fanart"),("characterart","characterart") ]
+        prefixes = ["",type,"hd","hd"+type]
+        for fanarttype in fanartTVTypes:
+            for prefix in prefixes:
+                fanarttvimage = prefix+fanarttype[0]
+                if data.has_key(fanarttvimage):
+                    for item in data[fanarttvimage]:
+                        if item["lang"] == "en":
+                            #select image in english language preferred
+                            artwork[fanarttype[1]] = item.get("url")
+                            break
+                    if not artwork.has_key(fanarttype[1]) and len(data.get(fanarttvimage)) > 0:
+                        #just grab the first one as fallback
+                        artwork[fanarttype[1]] = data.get(fanarttvimage)[0].get("url")
+                        
     return artwork
 
 def getOfficialArtWork(title,artwork={}):
@@ -1004,18 +986,21 @@ def normalize_string(text):
     text = unicodedata.normalize('NFKD', try_decode(text))
     return text
     
-def getMusicArtByDbId(dbid,itemtype):
+def getMusicDetailsByDbId(dbid,itemtype):
     cdArt = None
     LogoArt = None
     BannerArt = None
     extraFanArt = None
     Info = None
     path = None
+    songCount = 0
+    albumsCount = 0
+    albums = []
     TrackList = ""
     if itemtype == "songs":
         json_response = getJSON('AudioLibrary.GetSongDetails', '{ "songid": %s, "properties": [ "file","artistid","albumid","comment"] }'%int(dbid))  
     elif itemtype == "artists":
-        json_response = getJSON('AudioLibrary.GetSongs', '{ "filter":{"artistid": %s}, "properties": [ "file","artistid","track","title","albumid" ] }'%int(dbid))
+        json_response = getJSON('AudioLibrary.GetSongs', '{ "filter":{"artistid": %s}, "properties": [ "file","artistid","track","title","albumid","album" ] }'%int(dbid))
     elif itemtype == "albums":
         json_response = getJSON('AudioLibrary.GetSongs', '{ "filter":{"albumid": %s}, "properties": [ "file","artistid","track","title","albumid" ] }'%int(dbid))
     
@@ -1027,10 +1012,12 @@ def getMusicArtByDbId(dbid,itemtype):
                 if not song:
                     song = item
                     path = item["file"]
-                if item["track"]:
-                    TrackList += "%s - %s[CR]" %(str(item["track"]), item["title"])
-                else:
-                    TrackList += "%s[CR]" %(item["title"])      
+                if item["track"]: TrackList += "%s - %s[CR]" %(str(item["track"]), item["title"])
+                else: TrackList += "%s[CR]" %(item["title"])
+                songCount += 1
+                if item.get("album") and item["album"] not in albums:
+                    albumsCount +=1
+                    albums.append(item["album"])            
         else:
             song = json_response
         path = song["file"]
@@ -1086,4 +1073,4 @@ def getMusicArtByDbId(dbid,itemtype):
             if xbmcvfs.exists(imgPath):
                 LogoArt = imgPath
                 
-    return (cdArt, LogoArt, BannerArt, extraFanArt, Info, TrackList)
+    return (cdArt, LogoArt, BannerArt, extraFanArt, Info, TrackList, str(songCount), str(albumsCount), "[CR]".join(albums))

@@ -97,10 +97,10 @@ class ListItemMonitor(threading.Thread):
                     # monitor listitem props when musiclibrary is active
                     if xbmc.getCondVisibility("Window.IsActive(musiclibrary) | Window.IsActive(MyMusicSongs.xml)"):
                         try:
-                            self.checkMusicArt()
+                            self.setMusicDetails()
                             self.setGenre()
                         except Exception as e:
-                            logMsg("ERROR in checkMusicArt ! --> " + str(e), 0)
+                            logMsg("ERROR in setMusicDetails ! --> " + str(e), 0)
                                 
                     # monitor listitem props when videolibrary is active
                     elif xbmc.getCondVisibility("Window.IsActive(videos) | Window.IsActive(movieinformation)"):
@@ -139,11 +139,14 @@ class ListItemMonitor(threading.Thread):
                         widgetContainer = WINDOW.getProperty("SkinHelper.WidgetContainer")
                         curListItem = xbmc.getInfoLabel("Container(%s).ListItem.Label" %widgetContainer)
                         if curListItem and curListItem != self.lastListItem:
+                            self.resetWindowProps()
                             self.setDuration(xbmc.getInfoLabel("Container(%s).ListItem.Duration" %widgetContainer))
                             self.setStudioLogo(xbmc.getInfoLabel("Container(%s).ListItem.Studio" %widgetContainer).decode('utf-8'))
                             self.setDirector(xbmc.getInfoLabel("Container(%s).ListItem.Director" %widgetContainer).decode('utf-8'))
                             self.setGenre(xbmc.getInfoLabel("Container(%s).ListItem.Genre" %widgetContainer).decode('utf-8'))
-                            self.checkMusicArt(xbmc.getInfoLabel("Container(%s).ListItem.Artist" %widgetContainer).decode('utf-8')+xbmc.getInfoLabel("Container(%s).ListItem.Album" %widgetContainer).decode('utf-8'))
+                            self.setMusicDetails(xbmc.getInfoLabel("Container(%s).ListItem.Artist" %widgetContainer).decode('utf-8')+xbmc.getInfoLabel("Container(%s).ListItem.Album" %widgetContainer).decode('utf-8'))
+                            if "pvr://" in xbmc.getInfoLabel("Container(%s).ListItem.FolderPath" %widgetContainer).decode('utf-8'):
+                                self.setPVRThumbs(xbmc.getInfoLabel("Container(%s).ListItem.Title" %widgetContainer).decode('utf-8'),xbmc.getInfoLabel("Container(%s).ListItem.ChannelName" %widgetContainer).decode('utf-8'))
                             self.lastListItem = curListItem
                     except Exception as e:
                         logMsg("ERROR in LibraryMonitor HomeWidget ! --> " + str(e), 0)
@@ -445,28 +448,27 @@ class ListItemMonitor(threading.Thread):
             WINDOW.setProperty("SkinHelper.TotalRadioChannels",str(allRadioChannelsCount))        
                
     def resetWindowProps(self):
-        #reset window props
-        WINDOW.clearProperty('SkinHelper.RottenTomatoesRating')
-        WINDOW.clearProperty('SkinHelper.RottenTomatoesAudienceRating')
-        WINDOW.clearProperty('SkinHelper.RottenTomatoesConsensus')
-        WINDOW.clearProperty('SkinHelper.RottenTomatoesAwards')
-        WINDOW.clearProperty('SkinHelper.RottenTomatoesBoxOffice')
-        WINDOW.clearProperty("SkinHelper.PVR.Thumb") 
-        WINDOW.clearProperty("SkinHelper.PVR.FanArt") 
-        WINDOW.clearProperty("SkinHelper.PVR.ChannelLogo")
-        WINDOW.clearProperty("SkinHelper.PVR.Poster")
+        #reset all window props provided by the script...
         WINDOW.clearProperty("SkinHelper.ListItemStudioLogo")
+        WINDOW.clearProperty("SkinHelper.ListItemStudioLogoColor")
+        WINDOW.clearProperty("SkinHelper.ListItemStudios")
         WINDOW.clearProperty('SkinHelper.ListItemDuration')
+        WINDOW.clearProperty('SkinHelper.ListItemDuration.Hours')
+        WINDOW.clearProperty('SkinHelper.ListItemDuration.Minutes')
+        WINDOW.clearProperty('SkinHelper.ListItemSubtitles')
+        WINDOW.clearProperty('SkinHelper.ListItemAllAudioStreams')
+        WINDOW.clearProperty('SkinHelper.ListItemLanguages')
+        WINDOW.clearProperty('SkinHelper.ListItemGenres')
+        WINDOW.clearProperty('SkinHelper.ListItemDirectors')
         WINDOW.setProperty("SkinHelper.ExtraFanArtPath","") 
         WINDOW.clearProperty("SkinHelper.Music.BannerArt") 
         WINDOW.clearProperty("SkinHelper.Music.LogoArt") 
         WINDOW.clearProperty("SkinHelper.Music.DiscArt")
         WINDOW.clearProperty("SkinHelper.Music.Info")
-        WINDOW.clearProperty('SkinHelper.RottenTomatoesRating')
-        WINDOW.clearProperty('SkinHelper.RottenTomatoesAudienceRating')
-        WINDOW.clearProperty('SkinHelper.RottenTomatoesConsensus')
-        WINDOW.clearProperty('SkinHelper.RottenTomatoesAwards')
-        WINDOW.clearProperty('SkinHelper.RottenTomatoesBoxOffice')
+        WINDOW.clearProperty("SkinHelper.Music.TrackList")
+        WINDOW.clearProperty("SkinHelper.Music.SongCount")
+        WINDOW.clearProperty("SkinHelper.Music.albumCount")
+        WINDOW.clearProperty("SkinHelper.Music.AlbumList")
         WINDOW.clearProperty("SkinHelper.PVR.Thumb") 
         WINDOW.clearProperty("SkinHelper.PVR.FanArt") 
         WINDOW.clearProperty("SkinHelper.PVR.ChannelLogo")
@@ -499,8 +501,7 @@ class ListItemMonitor(threading.Thread):
         WINDOW.clearProperty('SkinHelper.RottenTomatoesBoxOffice')
         totalNodes = 50
         for i in range(totalNodes):
-            if not WINDOW.getProperty('SkinHelper.MovieSet.' + str(i) + '.Title'):
-                break
+            if not WINDOW.getProperty('SkinHelper.MovieSet.' + str(i) + '.Title'): break
             WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.Title')
             WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.FanArt')
             WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.Poster')
@@ -518,6 +519,19 @@ class ListItemMonitor(threading.Thread):
             WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.AudioChannels')
             WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.AudioLanguage')
             WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.Subtitle')
+        for i in range(totalNodes):
+            if not WINDOW.getProperty('SkinHelper.ListItemGenre.' + str(i)): break
+            WINDOW.clearProperty('SkinHelper.ListItemGenre.' + str(i))
+        for i in range(totalNodes):
+            if not WINDOW.getProperty('SkinHelper.ListItemAudioStreams.%d.AudioCodec' % i): break
+            WINDOW.clearProperty('SkinHelper.ListItemAudioStreams.%d.Language' % i)
+            WINDOW.clearProperty('SkinHelper.ListItemAudioStreams.%d.AudioCodec' % i)
+            WINDOW.clearProperty('SkinHelper.ListItemAudioStreams.%d.AudioChannels' % i)
+            WINDOW.clearProperty('SkinHelper.ListItemAudioStreams.%d'%i)
+        for i in range(totalNodes):
+            if not WINDOW.getProperty('SkinHelper.ExtraFanArt.' + str(i)):
+                break
+            WINDOW.clearProperty('SkinHelper.ExtraFanArt.' + str(i))
     
     def setMovieSetDetails(self):
         #get movie set details -- thanks to phil65 - used this idea from his skin info script     
@@ -669,28 +683,16 @@ class ListItemMonitor(threading.Thread):
                 AddonName = xbmc.getInfoLabel('Container.PluginName').decode('utf-8')
                 AddonName = xbmcaddon.Addon(AddonName).getAddonInfo('name')
                 WINDOW.setProperty("SkinHelper.Player.AddonName", AddonName)
-            else:
-                WINDOW.clearProperty("SkinHelper.Player.AddonName")
     
     def setGenre(self, genre=None):
-
-        totalNodes = 10
-        for i in range(totalNodes):
-            if not WINDOW.getProperty('SkinHelper.ListItemGenre.' + str(i)):
-                break
-            WINDOW.clearProperty('SkinHelper.ListItemGenre.' + str(i))
-
         if not genre:
             genre = xbmc.getInfoLabel('ListItem.Genre').decode('utf-8')
-        
         genres = []
         if "/" in genre:
             genres = genre.split(" / ")
         else:
             genres.append(genre)
-        
         WINDOW.setProperty('SkinHelper.ListItemGenres', "[CR]".join(genres))
-
         count = 0
         for genre in genres:
             WINDOW.setProperty("SkinHelper.ListItemGenre." + str(count),genre)
@@ -699,7 +701,6 @@ class ListItemMonitor(threading.Thread):
     def setDirector(self, director=None):
         if not director:
             director = xbmc.getInfoLabel('ListItem.Director').decode('utf-8')
-        
         directors = []
         if "/" in director:
             directors = director.split(" / ")
@@ -708,24 +709,21 @@ class ListItemMonitor(threading.Thread):
         
         WINDOW.setProperty('SkinHelper.ListItemDirectors', "[CR]".join(directors))
        
-    def setPVRThumbs(self):
-        thumb = None
-        title = xbmc.getInfoLabel("ListItem.Title").decode('utf-8')
-        channel = xbmc.getInfoLabel("ListItem.ChannelName").decode('utf-8')
+    def setPVRThumbs(self,title=None,channel=None):
+        
+        if not title: title = xbmc.getInfoLabel("ListItem.Title").decode('utf-8')
+        if not channel: channel = xbmc.getInfoLabel("ListItem.ChannelName").decode('utf-8')
         
         if xbmc.getCondVisibility("ListItem.IsFolder") and not channel and not title:
             #assume grouped recordings folderPath
             title = xbmc.getInfoLabel("ListItem.Label").decode('utf-8')
-
-        if not xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnablePVRThumbs)") or not title:
+        
+        if not xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnablePVRThumbs)") or not title or xbmc.getInfoLabel("ListItem.Label").decode('utf-8') == "..":
             return
         
         dbID = title + channel
             
         logMsg("setPVRThumb dbID--> " + dbID)
-
-        if xbmc.getInfoLabel("ListItem.Label").decode('utf-8') == "..":
-            return
         
         if self.pvrArtCache.has_key(dbID + "SkinHelper.PVR.Artwork"):
             artwork = self.pvrArtCache[dbID + "SkinHelper.PVR.Artwork"]
@@ -757,7 +755,6 @@ class ListItemMonitor(threading.Thread):
         if artwork.has_key("characterart"):
             WINDOW.setProperty("SkinHelper.PVR.CharacterArt",artwork["characterart"]) 
 
-     
     def setStudioLogo(self, studio=None):
         
         if xbmc.getCondVisibility("Container.Content(studios)"):
@@ -805,15 +802,9 @@ class ListItemMonitor(threading.Thread):
                     studiologoColor = self.allStudioLogosColor[studio]  
         
         if studiologo:
-            WINDOW.setProperty("SkinHelper.ListItemStudioLogo", studiologo)
-        else:
-            WINDOW.clearProperty("SkinHelper.ListItemStudioLogo")
-        
+            WINDOW.setProperty("SkinHelper.ListItemStudioLogo", studiologo)        
         if studiologoColor:
-            WINDOW.setProperty("SkinHelper.ListItemStudioLogoColor", studiologo)
-        else:
-            WINDOW.clearProperty("SkinHelper.ListItemStudioLogoColor")
-        
+            WINDOW.setProperty("SkinHelper.ListItemStudioLogoColor", studiologo)        
         #set formatted studio logo
         WINDOW.setProperty('SkinHelper.ListItemStudios', "[CR]".join(studios))
         return studiologo
@@ -909,14 +900,6 @@ class ListItemMonitor(threading.Thread):
                 WINDOW.setProperty('SkinHelper.ListItemDuration', durationString[2])
                 WINDOW.setProperty('SkinHelper.ListItemDuration.Hours', durationString[0])
                 WINDOW.setProperty('SkinHelper.ListItemDuration.Minutes', durationString[1])
-            else:
-                WINDOW.clearProperty('SkinHelper.ListItemDuration')
-                WINDOW.clearProperty('SkinHelper.ListItemDuration.Hours')
-                WINDOW.clearProperty('SkinHelper.ListItemDuration.Minutes')
-        else:
-            WINDOW.clearProperty('SkinHelper.ListItemDuration')
-            WINDOW.clearProperty('SkinHelper.ListItemDuration.Hours')
-            WINDOW.clearProperty('SkinHelper.ListItemDuration.Minutes')
         
     def getDurationString(self, duration):
         if duration == None or duration == 0:
@@ -932,7 +915,7 @@ class ListItemMonitor(threading.Thread):
             return None
         return ( hours, minutes, durationString )
               
-    def checkMusicArt(self,widget=None):
+    def setMusicDetails(self,widget=None):
         cacheFound = False
         cdArt = None
         LogoArt = None
@@ -949,51 +932,41 @@ class ListItemMonitor(threading.Thread):
         if dbID and self.lastMusicDbId == dbID:
             return
         
-        logMsg("checkMusicArt dbID--> " + dbID)
+        logMsg("setMusicDetails dbID--> " + dbID)
 
         self.lastMusicDbId = dbID
         
         if not widget and (self.liLabel == ".." or not xbmc.getInfoLabel("ListItem.FolderPath").decode('utf-8').startswith("musicdb") or not dbID):
-            WINDOW.setProperty("SkinHelper.ExtraFanArtPath","") 
-            WINDOW.clearProperty("SkinHelper.Music.BannerArt") 
-            WINDOW.clearProperty("SkinHelper.Music.LogoArt") 
-            WINDOW.clearProperty("SkinHelper.Music.DiscArt")
-            WINDOW.clearProperty("SkinHelper.Music.Info")
-            WINDOW.clearProperty("SkinHelper.Music.TrackList")
             return
         
         #get the items from cache first
         if self.musicArtCache.has_key(dbID + "SkinHelper.Music.DiscArt"):
-            cacheFound = True
             cdArt = self.musicArtCache[dbID + "SkinHelper.Music.DiscArt"]            
-
         if self.musicArtCache.has_key(dbID + "SkinHelper.Music.LogoArt"):
-            cacheFound = True
-            LogoArt = self.musicArtCache[dbID + "SkinHelper.Music.LogoArt"]
-                
+            LogoArt = self.musicArtCache[dbID + "SkinHelper.Music.LogoArt"]   
         if self.musicArtCache.has_key(dbID + "SkinHelper.Music.BannerArt"):
-            cacheFound = True
             BannerArt = self.musicArtCache[dbID + "SkinHelper.Music.BannerArt"]
-        
         if self.musicArtCache.has_key(dbID + "extraFanArt"):
-            cacheFound = True
             extraFanArt = self.musicArtCache[dbID + "extraFanArt"]
-                
         if self.musicArtCache.has_key(dbID + "SkinHelper.Music.Info"):
-            cacheFound = True
             Info = self.musicArtCache[dbID + "SkinHelper.Music.Info"]
-        
         if self.musicArtCache.has_key(dbID + "SkinHelper.Music.TrackList"):
-            cacheFound = True
             TrackList = self.musicArtCache[dbID + "SkinHelper.Music.TrackList"]
-
+        if self.musicArtCache.has_key(dbID + "SkinHelper.Music.SongCount"):
+            SongCount = self.musicArtCache[dbID + "SkinHelper.Music.SongCount"]
+        if self.musicArtCache.has_key(dbID + "SkinHelper.Music.AlbumList"):
+            AlbumList = self.musicArtCache[dbID + "SkinHelper.Music.AlbumList"]
+        if self.musicArtCache.has_key(dbID + "SkinHelper.Music.albumCount"):
+            cacheFound = True
+            albumCount = self.musicArtCache[dbID + "SkinHelper.Music.albumCount"]
+            
         if not cacheFound and not widget:
-            logMsg("checkMusicArt no cache found for dbID--> " + dbID)
+            logMsg("setMusicDetails no cache found for dbID--> " + dbID)
             path = None
             json_response = None
             folderPath = xbmc.getInfoLabel("ListItem.FolderPath").decode('utf-8')
             dbid = xbmc.getInfoLabel("ListItem.DBID")
-            cdArt, LogoArt, BannerArt, extraFanArt, Info, TrackList = getMusicArtByDbId(dbid, self.contentType)
+            cdArt, LogoArt, BannerArt, extraFanArt, Info, TrackList, SongCount, albumCount, AlbumList = getMusicDetailsByDbId(dbid, self.contentType)
       
             self.musicArtCache[dbID + "extraFanArt"] = extraFanArt
             self.musicArtCache[dbID + "SkinHelper.Music.DiscArt"] = cdArt
@@ -1001,6 +974,9 @@ class ListItemMonitor(threading.Thread):
             self.musicArtCache[dbID + "SkinHelper.Music.LogoArt"] = LogoArt
             self.musicArtCache[dbID + "SkinHelper.Music.TrackList"] = TrackList
             self.musicArtCache[dbID + "SkinHelper.Music.Info"] = Info
+            self.musicArtCache[dbID + "SkinHelper.Music.SongCount"] = SongCount
+            self.musicArtCache[dbID + "SkinHelper.Music.albumCount"] = albumCount
+            self.musicArtCache[dbID + "SkinHelper.Music.AlbumList"] = AlbumList
 
         #set properties
         WINDOW.setProperty("SkinHelper.ExtraFanArtPath",extraFanArt)
@@ -1009,42 +985,31 @@ class ListItemMonitor(threading.Thread):
         WINDOW.setProperty("SkinHelper.Music.LogoArt",LogoArt)
         WINDOW.setProperty("SkinHelper.Music.TrackList",TrackList)
         WINDOW.setProperty("SkinHelper.Music.Info",Info)
+        WINDOW.setProperty("SkinHelper.Music.SongCount",SongCount)
+        WINDOW.setProperty("SkinHelper.Music.albumCount",albumCount)
+        WINDOW.setProperty("SkinHelper.Music.AlbumList",AlbumList)
               
     def setStreamDetails(self):
         streamdetails = None
-        #clear props first
-        WINDOW.clearProperty('SkinHelper.ListItemSubtitles')
-        WINDOW.clearProperty('SkinHelper.ListItemAllAudioStreams')
-        totalNodes = 50
-        for i in range(totalNodes):
-            if not WINDOW.getProperty('SkinHelper.ListItemAudioStreams.%d.AudioCodec' % i):
-                break
-            WINDOW.clearProperty('SkinHelper.ListItemAudioStreams.%d.Language' % i)
-            WINDOW.clearProperty('SkinHelper.ListItemAudioStreams.%d.AudioCodec' % i)
-            WINDOW.clearProperty('SkinHelper.ListItemAudioStreams.%d.AudioChannels' % i)
-            WINDOW.clearProperty('SkinHelper.ListItemAudioStreams.%d'%i)
-        
-        contenttype = getCurrentContentType()
         dbId = xbmc.getInfoLabel("ListItem.DBID")
-        if not dbId or dbId == "-1":
-            return
+        if not dbId or dbId == "-1": return
         
-        if self.streamdetailsCache.has_key(contenttype+dbId):
+        if self.streamdetailsCache.has_key(self.contentType+dbId):
             #get data from cache
-            streamdetails = self.streamdetailsCache[contenttype+dbId]
+            streamdetails = self.streamdetailsCache[self.contentType+dbId]
         else:
             streamdetails = None
             json_result = {}
             # get data from json
-            if contenttype == "movies" and dbId:
+            if self.contentType == "movies" and dbId:
                 json_result = getJSON('VideoLibrary.GetMovieDetails', '{ "movieid": %d, "properties": [ "title", "streamdetails" ] }' %int(dbId))
-            elif contenttype == "episodes" and dbId:
+            elif self.contentType == "episodes" and dbId:
                 json_result = getJSON('VideoLibrary.GetEpisodeDetails', '{ "episodeid": %d, "properties": [ "title", "streamdetails" ] }' %int(dbId))
-            elif contenttype == "musicvideos" and dbId:
+            elif self.contentType == "musicvideos" and dbId:
                 json_result = getJSON('VideoLibrary.GetMusicVideoDetails', '{ "musicvideoid": %d, "properties": [ "title", "streamdetails" ] }' %int(dbId))       
             if json_result.has_key("streamdetails"): 
                 streamdetails = json_result["streamdetails"]
-            self.streamdetailsCache[contenttype+dbId] = streamdetails
+            self.streamdetailsCache[self.contentType+dbId] = streamdetails
         
         if streamdetails:
             audio = streamdetails['audio']
@@ -1052,6 +1017,7 @@ class ListItemMonitor(threading.Thread):
             allAudio = []
             allAudioStr = []
             allSubs = []
+            allLang = []
             count = 0
             for item in audio:
                 if str(item['language']) not in allAudio:
@@ -1074,6 +1040,7 @@ class ListItemMonitor(threading.Thread):
                     elif channels == 10: channels = "9.1"
                     else: channels = str(channels)
                     language = item['language']
+                    allLang.append(language)
                     if not language: language = "?"
                     WINDOW.setProperty('SkinHelper.ListItemAudioStreams.%d.Language' % count, item['language'])
                     WINDOW.setProperty('SkinHelper.ListItemAudioStreams.%d.AudioCodec' % count, item['codec'])
@@ -1091,6 +1058,7 @@ class ListItemMonitor(threading.Thread):
                     count += 1
             WINDOW.setProperty('SkinHelper.ListItemSubtitles', " / ".join(allSubs))
             WINDOW.setProperty('SkinHelper.ListItemAllAudioStreams', " / ".join(allAudioStr))
+            WINDOW.setProperty('SkinHelper.ListItemLanguages', " / ".join(allLang))
       
     def setForcedView(self):
         currentForcedView = xbmc.getInfoLabel("Skin.String(SkinHelper.ForcedViews.%s)" %self.contentType)
@@ -1111,20 +1079,12 @@ class ListItemMonitor(threading.Thread):
         efaFound = False
         liArt = None
         
-        if xbmc.getCondVisibility("Window.IsActive(movieinformation)"):
+        if xbmc.getCondVisibility("Window.IsActive(movieinformation) | !Skin.HasSetting(SkinHelper.EnableExtraFanart)"):
             return
-        
-        #always clear the individual fanart items first
-        totalNodes = 50
-        for i in range(totalNodes):
-            if not WINDOW.getProperty('SkinHelper.ExtraFanArt.' + str(i)):
-                break
-            WINDOW.clearProperty('SkinHelper.ExtraFanArt.' + str(i))
         
         #get the item from cache first
         if self.extraFanartCache.has_key(self.liPath):
             if self.extraFanartCache[self.liPath][0] == "None":
-                WINDOW.setProperty("SkinHelper.ExtraFanArtPath","")
                 return
             else:
                 WINDOW.setProperty("SkinHelper.ExtraFanArtPath",self.extraFanartCache[self.liPath][0])
@@ -1134,10 +1094,6 @@ class ListItemMonitor(threading.Thread):
                     count +=1  
                 return
         
-        if not xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnableExtraFanart)"):
-            WINDOW.setProperty("SkinHelper.ExtraFanArtPath","")
-            return
-        
         if (self.liPath != None and self.liPath != self.liPathLast and (xbmc.getCondVisibility("Container.Content(movies) | Container.Content(seasons) | Container.Content(episodes) | Container.Content(tvshows)")) and not "videodb:" in self.liPath):
                            
             if xbmc.getCondVisibility("Container.Content(episodes)"):
@@ -1145,10 +1101,8 @@ class ListItemMonitor(threading.Thread):
             
             # do not set extra fanart for virtuals
             if (("plugin://" in self.liPath) or ("addon://" in self.liPath) or ("sources" in self.liPath) or ("plugin://" in self.folderPath) or ("sources://" in self.folderPath) or ("plugin://" in self.folderPath)):
-                WINDOW.setProperty("SkinHelper.ExtraFanArtPath","")
                 self.extraFanartCache[self.liPath] = "None"
             else:
-
                 if xbmcvfs.exists(self.liPath + "extrafanart/"):
                     efaPath = self.liPath + "extrafanart/"
                 else:
@@ -1172,13 +1126,11 @@ class ListItemMonitor(threading.Thread):
                     WINDOW.setProperty("SkinHelper.ExtraFanArtPath",efaPath)
                     self.extraFanartCache[self.liPath] = [efaPath, extraFanArtfiles]     
                 else:
-                    WINDOW.setProperty("SkinHelper.ExtraFanArtPath","")
                     self.extraFanartCache[self.liPath] = ["None",[]]
-        else:
-            WINDOW.setProperty("SkinHelper.ExtraFanArtPath","")
 
     def setRottenRatings(self):
         imdbnumber = xbmc.getInfoLabel("ListItem.IMDBNumber")
+        result = None
         if (self.contentType == "movies" or self.contentType=="setmovies") and imdbnumber:
             if self.rottenCache.has_key(imdbnumber):
                 #get data from cache

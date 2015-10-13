@@ -63,6 +63,7 @@ def getSkinSettings(filter=None):
     return newlist
 
 def backup(filterString="",silent=None,promptfilename="false"):
+    error = False
     try:
         if filterString:
             if "|" in filterString:
@@ -127,12 +128,11 @@ def backup(filterString="",silent=None,promptfilename="false"):
                                     if not defaultID: 
                                         defaultID = shortcut.getElementsByTagName( 'label' )[0].firstChild.data
                                     thumb = shortcut.getElementsByTagName( 'thumb' )
-                                    print defaultID.encode("utf-8")
                                     if thumb:
                                         thumb = thumb[0].firstChild
                                         if thumb:
                                             thumb = thumb.data
-                                            if thumb and(".jpg" in thumb or ".png" in thumb) and not thumb.startswith("special://") and not thumb.startswith("$") and not thumb.startswith("androidapp"):
+                                            if thumb and(".jpg" in thumb or ".png" in thumb) and not xbmc.getSkinDir() in background and not thumb.startswith("$") and not thumb.startswith("androidapp"):
                                                 thumb = getCleanImage(thumb) 
                                                 extension = thumb.split(".")[-1]
                                                 newthumb = os.path.join(skinshortcuts_path,"%s-thumb-%s.%s" %(xbmc.getSkinDir(),normalize_string(defaultID),extension))
@@ -156,7 +156,7 @@ def backup(filterString="",silent=None,promptfilename="false"):
                                     if prop[2] == "background":
                                         background = prop[3]
                                         defaultID = prop[1]
-                                        if background and (".jpg" in background or ".png" in background) and not background.startswith("special://") and not background.startswith("$") and not background.startswith("androidapp"):
+                                        if background and (".jpg" in background or ".png" in background) and not xbmc.getSkinDir() in background and not background.startswith("$") and not background.startswith("androidapp"):
                                             background = getCleanImage(background)
                                             extension = background.split(".")[-1]
                                             newthumb = os.path.join(skinshortcuts_path,"%s-background-%s.%s" %(xbmc.getSkinDir(),normalize_string(defaultID),extension))
@@ -201,22 +201,22 @@ def backup(filterString="",silent=None,promptfilename="false"):
                 #copy to final location
                 if xbmcvfs.exists(zip_final):
                     xbmcvfs.delete(zip_final)
-                xbmcvfs.copy(zip_temp + ".zip", zip_final)
+                if not xbmcvfs.copy(zip_temp + ".zip", zip_final):
+                    error = True
+                    e = "Problem creating file in destination folder"
                 
                 #cleanup temp
                 shutil.rmtree(temp_path)
                 xbmcvfs.delete(zip_temp + ".zip")
-                
-                if not silent:
-                    xbmcgui.Dialog().ok(ADDON.getLocalizedString(32028), ADDON.getLocalizedString(32029))
-    
+
     except Exception as e:
-        if not silent:
-            xbmcgui.Dialog().ok(ADDON.getLocalizedString(32028), ADDON.getLocalizedString(32030), str(e))
-        logMsg("ERROR while creating backup ! --> " + str(e), 0)
+        error = True
         
-        if silent:
-            logMsg("ERROR while creating silent backup ! --> Make sure you provide the FULL VFS path, for example special://skin/extras/mybackup.zip", 0)            
+    if error:
+        logMsg("ERROR while creating backup ! --> " + str(e), 0)            
+        if not silent: xbmcgui.Dialog().ok(ADDON.getLocalizedString(32028), ADDON.getLocalizedString(32030), str(e))
+    elif not silent:
+        xbmcgui.Dialog().ok(ADDON.getLocalizedString(32028), ADDON.getLocalizedString(32029))
         
 def restore(silent=None):
 
@@ -276,9 +276,6 @@ def restore(silent=None):
                         destfile = skinshortcuts_path_dest + file.replace("SKINPROPERTIES",xbmc.getSkinDir())
                     logMsg("source --> " + sourcefile)
                     logMsg("destination --> " + destfile)
-                    # if xbmcvfs.exists(destfile):
-                        # xbmcvfs.delete(destfile)
-                        # xbmc.sleep(500)
                     xbmcvfs.copy(sourcefile,destfile)
                         
             #read guisettings
@@ -331,8 +328,6 @@ def restore(silent=None):
             xbmcgui.Dialog().ok(ADDON.getLocalizedString(32032), ADDON.getLocalizedString(32035), str(e))
         logMsg("ERROR while restoring backup ! --> " + str(e), 0)
         
-
-
 def zip(src, dst):
     zf = zipfile.ZipFile("%s.zip" % (dst), "w", zipfile.ZIP_DEFLATED)
     abs_src = os.path.abspath(src)

@@ -14,7 +14,8 @@ Marcel
 ________________________________________________________________________________________________________
 
 ### Settings for the script
-The script does not have it's own settings dialog. The script is controlled by the skinner through skin settings to allow the skinner to fully integrate the settings of this script within the skin settings of the skin.
+The script is controlled by the skinner through skin settings to allow the skinner to fully integrate the settings of this script within the skin settings of the skin.
+This means that the skinner enables functions of the script with enabling some skin settings.
 
 Important settings:
 
@@ -64,13 +65,14 @@ Some additional window properties that can be used in the video library.
 |Window(Home).Property(SkinHelper.ExtraFanArt.X) | Get extrafanart image X, only available when extrafanart is enabled. Start counting from 0 |
 |Window(Home).Property(SkinHelper.Player.AddonName) | If you want to display the name of the addon in the player |
 |Window(Home).Property(SkinHelper.Player.AddonName) | If you want to display the name of the addon in the player |
-| Window(Home).Property(SkinHelper.ListItemDuration) | Formatted duration hours:minutes of the current listitem total runtime |
-| Window(Home).Property(SkinHelper.ListItemDuration.Hours) | Only the hours part of the current listitem duration |
-| Window(Home).Property(SkinHelper.ListItemDuration.Minutes) | Only the minutes part of the current listitem duration |
+|Window(Home).Property(SkinHelper.ListItemDuration) | Formatted duration hours:minutes of the current listitem total runtime |
+|Window(Home).Property(SkinHelper.ListItemDuration.Hours) | Only the hours part of the current listitem duration |
+|Window(Home).Property(SkinHelper.ListItemDuration.Minutes) | Only the minutes part of the current listitem duration |
 |Window(Home).Property(SkinHelper.ListItemGenres) | Will return all genres of the current listitem seperated by [CR] |
 |Window(Home).Property(SkinHelper.ListItemGenre.X) | Will return all genres of the current listitem. Start counting from 0|
 |Window(Home).Property(SkinHelper.ListItemDirectors) | Will return all directors of the current listitem seperated by [CR] |
 |Window(Home).Property(SkinHelper.ListItemSubtitles) | Will return all subtitles of the current listitem seperated by / |
+|Window(Home).Property(SkinHelper.ListItemLanguages) | Will return all audio languages of the current listitem seperated by / |
 |Window(Home).Property(SkinHelper.ListItemSubtitles.X) | Will return subtitle X of the current listitem. Start counting from 0 |
 |Window(Home).Property(SkinHelper.ListItemSubtitles.X) | Will return subtitle X of the current listitem. Start counting from 0 |
 |Window(Home).Property(SkinHelper.ListItemAudioStreams.X) | Will return the language-codec-channels of audiostream X for the current listitem. Start counting from 0 |
@@ -168,7 +170,10 @@ Some additional window properties that can be used in the music library.
 | Window(Home).Property(SkinHelper.Music.LogoArt) | Will return the Artist's logo image for the current selected item in the list. |
 | Window(Home).Property(SkinHelper.Music.DiscArt) | Will return the Album's cd art image for the current selected item in the list. |
 | Window(Home).Property(SkinHelper.Music.Info) | Returns the album's description or if empty the artist info. Can be used at both album- and songlevel.  |
-| Window(Home).Property(SkinHelper.Music.TrackList) | Returns the all tracks for the selected album or artist, separated by [CR] in the format tracknumber - title  |
+| Window(Home).Property(SkinHelper.Music.TrackList) | Returns all tracks for the selected album or artist, separated by [CR] in the format tracknumber - title  |
+| Window(Home).Property(SkinHelper.Music.AlbumList) | Returns all albums for the selected artist, separated by [CR] |
+| Window(Home).Property(SkinHelper.Music.SongCount) | Returns the number of songs for the selected artist or album |
+| Window(Home).Property(SkinHelper.Music.AlbumCount) | Returns the number of albums for the selected artist |
 
 
 ________________________________________________________________________________________________________
