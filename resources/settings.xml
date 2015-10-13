@@ -11,6 +11,10 @@
         <setting id="cacheRecordings" type="bool" label="32101" default="true" visible="Skin.HasSetting(SkinHelper.EnablePVRThumbs)"/>
         <setting id="cacheGuideEntries" type="bool" label="32102" default="true" visible="Skin.HasSetting(SkinHelper.EnablePVRThumbs)"/>
         <setting label="32103" type="folder" id="pvrthumbspath" source="auto" default="special://profile/addon_data/script.skin.helper.service/pvrthumbs/" option="writeable" visible="Skin.HasSetting(SkinHelper.EnablePVRThumbs)"/>
-         <setting label="32089" type="action" action="RunScript(script.skin.helper.service,action=RESETPVRTHUMBS)"/>
+        <setting label="32106" type="text" id="ignorechannels" />
+        <setting label="32107" type="text" id="ignoretitles" />
+        <setting label="32112" type="text" id="stripwords" />
+        <setting id="directory_structure" type="select" label="32108" lvalues="32109|32110|32111" />
+        <setting label="32089" type="action" action="RunScript(script.skin.helper.service,action=RESETPVRTHUMBS)"/>
     </category>
 </settings>

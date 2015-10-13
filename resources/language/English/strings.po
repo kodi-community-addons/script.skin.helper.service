@@ -439,3 +439,32 @@ msgstr ""
 msgctxt "#32105"
 msgid "Live TV Recordings (with artwork)"
 msgstr ""
+
+msgctxt "#32106"
+msgid "Channels to ignore with lookups, seperate with ;"
+msgstr ""
+
+msgctxt "#32107"
+msgid "Ignore titles with these words, seperate with ;"
+msgstr ""
+
+msgctxt "#32108"
+msgid "Directory structure for cache folder"
+msgstr ""
+
+msgctxt "#32109"
+msgid "Channelname\\Programtitle (default)"
+msgstr ""
+
+msgctxt "#32110"
+msgid "Programtitle"
+msgstr ""
+
+msgctxt "#32111"
+msgid "Channelname - Programtitle"
+msgstr ""
+
+msgctxt "#32112"
+msgid "Words to ignore (strip) in titles, seperate with ;"
+msgstr ""
+
