@@ -923,6 +923,10 @@ class ListItemMonitor(threading.Thread):
         extraFanArt = None
         Info = None
         TrackList = ""
+        SongCount = None
+        albumCount = None
+        AlbumList = None
+        
         
         if widget:
             dbID = widget

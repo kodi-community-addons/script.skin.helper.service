@@ -74,7 +74,6 @@ Some additional window properties that can be used in the video library.
 |Window(Home).Property(SkinHelper.ListItemSubtitles) | Will return all subtitles of the current listitem seperated by / |
 |Window(Home).Property(SkinHelper.ListItemLanguages) | Will return all audio languages of the current listitem seperated by / |
 |Window(Home).Property(SkinHelper.ListItemSubtitles.X) | Will return subtitle X of the current listitem. Start counting from 0 |
-|Window(Home).Property(SkinHelper.ListItemSubtitles.X) | Will return subtitle X of the current listitem. Start counting from 0 |
 |Window(Home).Property(SkinHelper.ListItemAudioStreams.X) | Will return the language-codec-channels of audiostream X for the current listitem. Start counting from 0 |
 |Window(Home).Property(SkinHelper.ListItemAudioStreams.X.Language) | Will return the language of audiostream X for the current listitem. Start counting from 0 |
 |Window(Home).Property(SkinHelper.ListItemAudioStreams.X.AudioCodec) | Will return the AudioCodec of audiostream X for the current listitem. Start counting from 0 |
@@ -175,6 +174,8 @@ Some additional window properties that can be used in the music library.
 | Window(Home).Property(SkinHelper.Music.SongCount) | Returns the number of songs for the selected artist or album |
 | Window(Home).Property(SkinHelper.Music.AlbumCount) | Returns the number of albums for the selected artist |
 
+Note: If you also want to have the Music Properties for your homescreen widgets, you need to set a Window Property "SkinHelper.WidgetContainer" with the ID of your widget container:
+For example in home.xml: <onload>SetProperty(SkinHelper.WidgetContainer,301)</onload>
 
 ________________________________________________________________________________________________________
 
@@ -183,6 +184,7 @@ ________________________________________________________________________________
 Some additional window properties that can be used in the PVR windows. 
 Enables a live scraper for images of the selected program in the PVR. Comes with smart caching so it will be faster once used more often.
 You must set the following Skin Bool to true --> SkinHelper.EnablePVRThumbs for the scraper to activate.
+The properties will also be available for your homescreen widgets if you set the kinHelper.WidgetContainer property.
 
 | property 			| description |
 | :----------------------------	| :----------- |
@@ -209,8 +211,8 @@ If you have a panel container in the PVR windows and you want to show the PVR ar
 ```xml
 <control type="image">
     <!--pvr thumb image-->
-    <texture background="true">http://localhost:8888/getthumb&title=$VAR[ListTitlePVR]&channel=$INFO[ListItem.ChannelName]</texture>
-    <visible>Skin.HasSetting(SkinHelper.EnablePVRThumbs)</visible>
+    <texture background="true">http://localhost:8888/getthumb&title=$INFO[Listitem.Title]&channel=$INFO[ListItem.ChannelName]</texture>
+    <visible>Skin.HasSetting(SkinHelper.EnablePVRThumbs) + SubString(ListItem.FolderPath,pvr://)</visible>
 </control>
 ```
 The above example will return the PVR artwork, in general the landscape, fanart or thumb is returned.
@@ -219,6 +221,8 @@ For example:
 
 http://localhost:8888/getthumb&title=$VAR[ListTitlePVR]&channel=$INFO[ListItem.ChannelName]&type=poster
 
+You can also supply multiple arttypes by using + as a seperator. In that case the script will supply the image for the first arttype found.
+Example type=landscape+fanart+thumb
 ________________________________________________________________________________________________________
 
 

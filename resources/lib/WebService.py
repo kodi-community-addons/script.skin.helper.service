@@ -18,12 +18,12 @@ class WebService(threading.Thread):
     exit = False
     
     def __init__(self, *args):
-        logMsg("WebService - started",0)
+        logMsg("WebService - started")
         self.event =  threading.Event()
         threading.Thread.__init__(self, *args)
     
     def stop(self):
-        logMsg("WebService - stop called",0)
+        logMsg("WebService - stop called")
         conn = httplib.HTTPConnection("localhost:%d" % port)
         conn.request("QUIT", "/")
         conn.getresponse()
@@ -115,14 +115,21 @@ class StoppableHttpRequestHandler (SimpleHTTPServer.SimpleHTTPRequestHandler):
             else: type = "channels"
             artwork = getPVRThumbs(title, channel, type)
             if preferred_type:
-                image = artwork.get(preferred_type)
+                preferred_types = preferred_type.split(" ")
+                for preftype in preferred_types:
+                    if artwork.get(preftype):
+                        image = artwork.get(preftype)
+                        break
             else:
                 if artwork.get("thumb"): image = artwork.get("thumb")
                 if artwork.get("fanart"): image = artwork.get("fanart")
                 if artwork.get("landscape"): image = artwork.get("landscape")
         if image:
             self.send_response(200)
-            self.send_header('Content-type','image/png')
+            if ".jpg" in image:
+                self.send_header('Content-type','image/jpeg')
+            else:
+                self.send_header('Content-type','image/png')
             self.send_header('Last-Modified',WINDOW.getProperty("SkinHelper.lastUpdate"))
             logMsg("found image for request %s  --> %s" %(try_encode(self.path),try_encode(image)))
             image = xbmcvfs.File(image)
