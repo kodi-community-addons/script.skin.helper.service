@@ -500,7 +500,7 @@ def getRecentAlbums(limit):
     else:
         json_result = getJSON('AudioLibrary.GetRecentlyAddedAlbums', '{ "sort": { "order": "descending", "method": "dateadded" }, "properties": [ %s ], "limits":{"end":%d} }' %(fields_albums,limit))
         for item in json_result:
-            cdArt, LogoArt, BannerArt, extraFanArt, Info, TrackList = getMusicDetailsByDbId(item["albumid"], "albums")
+            cdArt, LogoArt, BannerArt, extraFanArt, Info, TrackList, SongCount, albumCount, AlbumList = getMusicDetailsByDbId(item["albumid"], "albums")
             art = { 'discart': cdArt, 'fanart' : item["fanart"], 'banner' : BannerArt, 'thumb' : item["thumbnail"], 'clearlogo' : LogoArt  }
             item["art"] = art
             item["type"] = "album"
@@ -531,7 +531,7 @@ def getRecentPlayedAlbums(limit):
         #query json api
         json_result = getJSON('AudioLibrary.GetRecentlyPlayedAddedAlbums', '{ "sort": { "order": "descending", "method": "lastplayed" }, "properties": [ %s ], "limits":{"end":%d} }' %(fields_albums,limit))
         for item in json_result:
-            cdArt, LogoArt, BannerArt, extraFanArt, Info, TrackList = getMusicDetailsByDbId(item["albumid"], "albums")
+            cdArt, LogoArt, BannerArt, extraFanArt, Info, TrackList, SongCount, albumCount, AlbumList = getMusicDetailsByDbId(item["albumid"], "albums")
             art = { 'discart': cdArt, 'fanart' : item["fanart"], 'banner' : BannerArt, 'thumb' : item["thumbnail"], 'clearlogo' : LogoArt  }
             item["art"] = art
             item["type"] = "album"
@@ -562,7 +562,7 @@ def getRecentPlayedSongs(limit):
         #query json api
         json_result = getJSON('AudioLibrary.GetRecentlyPlayedSongs', '{ "sort": { "order": "descending", "method": "lastplayed" }, "properties": [ %s ], "limits":{"end":%d} }' %(fields_songs,limit))
         for item in json_result:
-            cdArt, LogoArt, BannerArt, extraFanArt, Info, TrackList = getMusicDetailsByDbId(item["songid"], "songs")
+            cdArt, LogoArt, BannerArt, extraFanArt, Info, TrackList, SongCount, albumCount, AlbumList = getMusicDetailsByDbId(item["songid"], "songs")
             art = { 'discart': cdArt, 'fanart' : item["fanart"], 'banner' : BannerArt, 'thumb' : item["thumbnail"], 'clearlogo' : LogoArt  }
             item["art"] = art
             item["type"] = "song"
@@ -591,7 +591,7 @@ def getRecentSongs(limit):
         #query json api
         json_result = getJSON('AudioLibrary.GetRecentlyAddedSongs', '{ "sort": { "order": "descending", "method": "dateadded" }, "properties": [ %s ], "limits":{"end":%d} }' %(fields_songs,limit))
         for item in json_result:
-            cdArt, LogoArt, BannerArt, extraFanArt, Info, TrackList = getMusicDetailsByDbId(item["songid"], "songs")
+            cdArt, LogoArt, BannerArt, extraFanArt, Info, TrackList, SongCount, albumCount, AlbumList = getMusicDetailsByDbId(item["songid"], "songs")
             art = { 'discart': cdArt, 'fanart' : item["fanart"], 'banner' : BannerArt, 'thumb' : item["thumbnail"], 'clearlogo' : LogoArt  }
             item["art"] = art
             item["type"] = "song"

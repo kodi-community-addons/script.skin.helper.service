@@ -453,11 +453,11 @@ msgid "Directory structure for cache folder"
 msgstr ""
 
 msgctxt "#32109"
-msgid "Channelname\\Programtitle (default)"
+msgid "Programtitle (default)"
 msgstr ""
 
 msgctxt "#32110"
-msgid "Programtitle"
+msgid "Channelname\\Programtitle"
 msgstr ""
 
 msgctxt "#32111"

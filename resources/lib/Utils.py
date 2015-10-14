@@ -138,6 +138,8 @@ def getJSON(method,params):
         return {}
 
 def setAddonsettings():
+    if not xbmcvfs.exists(SETTING("pvrthumbspath")):
+        xbmcvfs.mkdirs(SETTING("pvrthumbspath"))
     #get the addonsettings and store them in memory
     WINDOW.setProperty("pvrthumbspath",SETTING("pvrthumbspath"))
     WINDOW.setProperty("cacheRecordings",SETTING("cacheRecordings"))
@@ -153,8 +155,6 @@ def setAddonsettings():
     WINDOW.setProperty("ignoretitles",SETTING("ignoretitles"))
     WINDOW.setProperty("stripwords",SETTING("stripwords"))
     WINDOW.setProperty("directory_structure",SETTING("directory_structure"))
-    if not xbmcvfs.exists(SETTING("pvrthumbspath")):
-        xbmcvfs.mkdir(SETTING("pvrthumbspath"))   
     WINDOW.setProperty("SkinHelper.lastUpdate","%s" %datetime.now())    
 
 def try_encode(text, encoding="utf-8"):
@@ -428,6 +428,9 @@ def detectPluginContent(plugin,skipscan=False):
                     if item["type"] == "artist" or item["artist"][0] == item["title"]:
                         contentType = "artists"
                         break
+                    elif isinstance(item["artist"], list) and len(item["artist"]) > 0 and item["artist"][0] == item["title"]:
+                        contentType = "artists"
+                        break
                     elif item["type"] == "album" or item["album"] == item["title"]:
                         contentType = "albums"
                         break
@@ -677,7 +680,7 @@ def getPVRThumbs(title,channel,type="channels"):
             for item in ignoretitles.split(";"):
                 if item.lower() in title.lower(): ignore = True
         if stripwords:
-            for word in stripwordssplit(";"): title = title.replace(word,"")
+            for word in stripwords.split(";"): title = title.replace(word,"")
         
         if not ignore:
             pvrThumbPath = None
@@ -702,9 +705,9 @@ def getPVRThumbs(title,channel,type="channels"):
                         break
             if not pvrThumbPath:
                 directory_structure = WINDOW.getProperty("directory_structure")
-                if not directory_structure or directory_structure == "0": pvrThumbPath = os.path.join(WINDOW.getProperty("pvrthumbspath").decode("utf-8"),normalize_string(channel),normalize_string(title))
-                elif directory_structure == "1": pvrThumbPath = os.path.join(WINDOW.getProperty("pvrthumbspath").decode("utf-8"),normalize_string(title))
-                else: pvrThumbPath = os.path.join(WINDOW.getProperty("pvrthumbspath").decode("utf-8"),normalize_string(channel + " - " + title))
+                if directory_structure == "1": pvrThumbPath = os.path.join(WINDOW.getProperty("pvrthumbspath").decode("utf-8"),normalize_string(channel),normalize_string(title))
+                elif directory_structure == "2": os.path.join(WINDOW.getProperty("pvrthumbspath").decode("utf-8"),normalize_string(channel + " - " + title))
+                else: pvrThumbPath = pvrThumbPath = os.path.join(WINDOW.getProperty("pvrthumbspath").decode("utf-8"),normalize_string(title))
             if "/" in pvrThumbPath: sep = "/"
             else: sep = "\\"
             if not pvrThumbPath.endswith(sep): pvrThumbPath = pvrThumbPath + sep
@@ -717,9 +720,8 @@ def getPVRThumbs(title,channel,type="channels"):
                 for artType in PVRartTypes:
                     artpath = os.path.join(pvrThumbPath,artType[1])
                     if xbmcvfs.exists(artpath):
-                        if not artwork.has_key(artType[0]):
-                            artwork[artType[0]] = artpath
-                            logMsg("%s found on disk for %s" %(artType[0],title))
+                        artwork[artType[0]] = artpath
+                        logMsg("%s found on disk for %s" %(artType[0],title))
             
             #lookup local library
             if WINDOW.getProperty("useLocalLibraryLookups") == "true":
@@ -753,7 +755,7 @@ def getPVRThumbs(title,channel,type="channels"):
                     artwork["channellogo"] = searchChannelLogo(channel)
                 
                 #grab artwork from tmdb/fanart.tv
-                if WINDOW.getProperty("useTMDBLookups") == "true":
+                if WINDOW.getProperty("useTMDBLookups") == "true" and not (artwork.get("poster") or artwork.get("fanart")):
                     artwork = getOfficialArtWork(title,artwork)
                     
                 #lookup thumb on google as fallback

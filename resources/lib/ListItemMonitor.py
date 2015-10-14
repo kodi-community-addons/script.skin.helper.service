@@ -478,6 +478,7 @@ class ListItemMonitor(threading.Thread):
         WINDOW.clearProperty("SkinHelper.PVR.CharacterArt") 
         WINDOW.clearProperty("SkinHelper.PVR.Logo")
         WINDOW.clearProperty("SkinHelper.PVR.Banner")
+        WINDOW.clearProperty("SkinHelper.PVR.DiscArt")
         WINDOW.clearProperty("SkinHelper.Player.AddonName")
         WINDOW.clearProperty("SkinHelper.ForcedView")
         WINDOW.clearProperty('SkinHelper.MovieSet.Title')
