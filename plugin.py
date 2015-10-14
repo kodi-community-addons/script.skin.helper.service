@@ -68,7 +68,7 @@ class Main:
                 elif action == "WIDGETS":
                     getWidgets(path)
                 elif action == "GETTHUMB":
-                    getThumb(path)
+                    getThumb(try_decode(path))
                 elif action == "WIDGETS":
                     getWidgets(path)
                 elif action == "GETCAST":
