@@ -710,10 +710,11 @@ class ListItemMonitor(threading.Thread):
         
         WINDOW.setProperty('SkinHelper.ListItemDirectors', "[CR]".join(directors))
        
-    def setPVRThumbs(self,title=None,channel=None):
+    def setPVRThumbs(self,title=None,channel=None,path=None):
         
         if not title: title = xbmc.getInfoLabel("ListItem.Title").decode('utf-8')
         if not channel: channel = xbmc.getInfoLabel("ListItem.ChannelName").decode('utf-8')
+        if not path: path = xbmc.getInfoLabel("ListItem.FileNameAndPath").decode('utf-8')
         
         if xbmc.getCondVisibility("ListItem.IsFolder") and not channel and not title:
             #assume grouped recordings folderPath
@@ -724,7 +725,7 @@ class ListItemMonitor(threading.Thread):
         
         dbID = title + channel
             
-        logMsg("setPVRThumb dbID--> " + dbID)
+        logMsg("setPVRThumb dbID--> %s  - path: %s" %( dbID,path))
         
         if self.pvrArtCache.has_key(dbID + "SkinHelper.PVR.Artwork"):
             artwork = self.pvrArtCache[dbID + "SkinHelper.PVR.Artwork"]
@@ -732,7 +733,7 @@ class ListItemMonitor(threading.Thread):
             if self.contentType == "tvrecordings": type = "recordings"
             else: type = "channels"
             
-            artwork = getPVRThumbs(title, channel, type)
+            artwork = getPVRThumbs(title, channel, type, path)
             self.pvrArtCache[dbID + "SkinHelper.PVR.Artwork"] = artwork
         
         if artwork.has_key("thumb"):

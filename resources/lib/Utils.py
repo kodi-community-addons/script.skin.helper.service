@@ -626,11 +626,12 @@ def single_urlencode(text):
 
    return blah
 
-def getPVRThumbs(title,channel,type="channels"):
+def getPVRThumbs(title,channel,type="channels",path=None):
     dbID = title + channel
     cacheFound = False
     ignore = False
     artwork = {}
+    dateStr = ""
     
     logMsg("getPVRThumb for %s %s--> "%(title,channel))
     
@@ -644,18 +645,6 @@ def getPVRThumbs(title,channel,type="channels"):
         downloadLocal = True
     else:
         downloadLocal = False
-    
-    #lookup actual recordings if channel is empty (assume grouped recordings here)
-    if not channel:
-        try:
-            json_query = getJSON('PVR.GetRecordings', '{ "properties": [ %s ]}' %( fields_pvrrecordings))
-            for item in json_query:
-                if title in item['title'] or title in item["file"]:
-                    channel = item["channel"]
-                    logMsg("getPVRThumbs - title matches an existing recording: " + title)
-                    break
-        except Exception as e:
-            logMsg("ERROR in getPVRThumbs - get thumb from recordings ! --> " + str(e))
         
     #get the items from cache first
     cache = WINDOW.getProperty("SkinHelper.PVR.Artwork").decode('utf-8')
@@ -669,6 +658,18 @@ def getPVRThumbs(title,channel,type="channels"):
     
     if not cacheFound:
         logMsg("getPVRThumb no cache found for dbID--> " + dbID)
+        
+        #lookup actual recordings to get channel name (if empty) and the pvr provides thumbs
+        if type=="recordings":
+            json_query = getJSON('PVR.GetRecordings', '{ "properties": [ %s ]}' %( fields_pvrrecordings))
+            for item in json_query:
+                if path and path in item["file"] or not path and title in item["file"]:
+                    if not channel: channel = item["channel"]
+                    #get thumb from pvr addon - ignore pvr addons that don't provide a real thumb such as tvheadend
+                    if not artwork.get("thumb") and not "HTS" in xbmc.getInfoLabel("Pvr.BackendName"): artwork["thumb"] = item["icon"]
+                    dateStr = item["endtime"].split(" ")[0]
+                    logMsg("getPVRThumbs - title or path matches an existing recording: " + title)
+                    break
         
         ignoretitles = WINDOW.getProperty("ignoretitles")
         ignorechannels = WINDOW.getProperty("ignorechannels")
@@ -686,45 +687,72 @@ def getPVRThumbs(title,channel,type="channels"):
             pvrThumbPath = None
             #lookup existing pvrthumbs paths - try to find a match in custom path, else path is just the title
             #images will be looked up or stored to that path
-            if WINDOW.getProperty("customlookuppath"): 
-                path = WINDOW.getProperty("customlookuppath").decode("utf-8")
-                dirs, files = xbmcvfs.listdir(path)
+            customlookuppath = WINDOW.getProperty("customlookuppath").decode("utf-8")
+            if customlookuppath: 
+                dirs, files = xbmcvfs.listdir(customlookuppath)
+                comparetitle = normalize_string(title.lower().replace(channel,"").replace(" ","").replace("_","").replace("_","").replace(dateStr,""))
                 for dir in dirs:
+                    dir = dir.decode("utf-8")
                     #try to find a match...
-                    if dir == title:
-                        pvrThumbPath = os.path.join(path,dir)
+                    comparedir = normalize_string(dir.lower().replace(channel,"").replace(" ","").replace("_","").replace("_","").replace(dateStr,""))
+                    if comparedir == comparetitle:
+                        pvrThumbPath = os.path.join(customlookuppath,dir)
                         break
-                    elif dir.lower().replace(" ","").replace("_","").replace("_","") == title.lower().replace(" ","").replace("_","").replace("_",""):
-                        pvrThumbPath = os.path.join(path,dir)
-                        break
-                    elif dir.lower().replace(" ","").replace("_","").replace("_","") in title.lower().replace(" ","").replace("_","").replace("_",""):
-                        pvrThumbPath = os.path.join(path,dir)
-                        break
-                    elif title.lower().replace(" ","").replace("_","").replace("_","") in dir.lower().replace(" ","").replace("_","").replace("_",""):
-                        pvrThumbPath = os.path.join(path,dir)
-                        break
+                    elif dir.lower() == channel.lower():
+                        #user has setup subfolders per channel
+                        dirs2, files2 = xbmcvfs.listdir(os.path.join(customlookuppath,dir))
+                        for dir2 in dirs2:
+                            dir2 = dir2.decode("utf-8")
+                            comparedir = dir2.lower().replace(" ","").replace("_","").replace("_","").replace(channel,"")
+                            if comparedir == comparetitle:
+                                pvrThumbPath = os.path.join(customlookuppath,dir,dir2)
+                                break
+                                
+                #also locate thumb in root files of custom directory for recordings not in folder
+                if type=="recordings":
+                    paths = [customlookuppath]
+                    if customlookuppath != pvrThumbPath: paths.append(pvrThumbPath)
+                    for path in paths:
+                        dirs, files = xbmcvfs.listdir(path)
+                        comparetitle = normalize_string(title.lower().replace(channel,"").replace(" ","").replace("_","").replace("_",""))
+                        if artwork.get("thumb"): break
+                        for file in files:
+                            file = file.decode("utf-8")
+                            comparefile = normalize_string(file.lower().replace(channel,"").replace(" ","").replace("_","").replace("_",""))
+                            if ((comparetitle in comparefile and dateStr in file) or (comparetitle == comparefile.replace(".jpg",""))) and ".jpg" in file:
+                                artwork["thumb"] = os.path.join(path,file)
+                                logMsg("single pvr thumb found for  --> " + title + " --> "+ artwork["thumb"])
+                                break
+
             if not pvrThumbPath:
+                #nothing found in user custom path so use the global one...
                 directory_structure = WINDOW.getProperty("directory_structure")
-                if directory_structure == "1": pvrThumbPath = os.path.join(WINDOW.getProperty("pvrthumbspath").decode("utf-8"),normalize_string(channel),normalize_string(title))
-                elif directory_structure == "2": os.path.join(WINDOW.getProperty("pvrthumbspath").decode("utf-8"),normalize_string(channel + " - " + title))
-                else: pvrThumbPath = pvrThumbPath = os.path.join(WINDOW.getProperty("pvrthumbspath").decode("utf-8"),normalize_string(title))
+                pvrthumbspath = WINDOW.getProperty("pvrthumbspath").decode("utf-8")
+                if directory_structure == "1": pvrThumbPath = os.path.join(pvrthumbspath,normalize_string(channel),normalize_string(title))
+                elif directory_structure == "2": os.path.join(pvrthumbspath,normalize_string(channel + " - " + title))
+                else: pvrThumbPath = pvrThumbPath = os.path.join(pvrthumbspath,normalize_string(title))
+            #make sure our path ends with a slash
             if "/" in pvrThumbPath: sep = "/"
             else: sep = "\\"
             if not pvrThumbPath.endswith(sep): pvrThumbPath = pvrThumbPath + sep
                         
             logMsg("pvr thumbs path --> " + pvrThumbPath)
             
+            checkFile = os.path.join(pvrThumbPath,"checksum.txt")
             #lookup existing artwork in pvrthumbs paths
             if xbmcvfs.exists(pvrThumbPath):
                 logMsg("thumbspath found on disk for " + title)
                 for artType in PVRartTypes:
                     artpath = os.path.join(pvrThumbPath,artType[1])
-                    if xbmcvfs.exists(artpath):
+                    if xbmcvfs.exists(artpath) and not item.get(artType[0]):
                         artwork[artType[0]] = artpath
                         logMsg("%s found on disk for %s" %(artType[0],title))
+                if xbmcvfs.exists(checkFile):
+                    logMsg("checksum found on disk for %s" %(title))
+                    cacheFound = True
             
             #lookup local library
-            if WINDOW.getProperty("useLocalLibraryLookups") == "true":
+            if not cacheFound and WINDOW.getProperty("useLocalLibraryLookups") == "true":
                 item = None
                 json_result = getJSON('VideoLibrary.GetTvShows','{ "filter": {"operator":"is", "field":"title", "value":"%s"}, "properties": [ %s ] }' %(title,fields_tvshows))
                 if len(json_result) > 0:
@@ -735,18 +763,10 @@ def getPVRThumbs(title,channel,type="channels"):
                         item = json_result[0]
                 if item and item.has_key("art"): 
                     artwork = item["art"]
+                    cacheFound = True
                     logMsg("getPVRThumb artwork found in local library for dbID--> " + dbID)
                     
-            #also locate thumb in root files of custom directory for recordings not in folder
-            if WINDOW.getProperty("customlookuppath") and not artwork.get("thumb"):
-                dirs, files = xbmcvfs.listdir(WINDOW.getProperty("customlookuppath").decode("utf-8"))
-                for file in files:
-                    file_norm = file.decode("utf-8").replace(" ","").replace("_","")
-                    if normalize_string(title.replace(" ","").replace("_","")) in normalize_string(file_norm) and ".jpg" in file_norm:
-                        artwork["thumb"] = os.path.join(WINDOW.getProperty("customlookuppath").decode("utf-8"),file)
-                        logMsg("single pvr thumb found for  --> " + title + " --> "+ artwork["thumb"])
-                        break
-            
+
             #if nothing in library or persistant cache, perform the internet scraping
             if not cacheFound and not WINDOW.getProperty("SkinHelper.DisableInternetLookups"):
                 
@@ -770,6 +790,10 @@ def getPVRThumbs(title,channel,type="channels"):
                     #download images if we want them local
                     for artType in PVRartTypes:
                         if artwork.has_key(artType[0]) and artType[0] != "channellogo" and "http" in artwork[artType[0]]: artwork[artType[0]] = downloadImage(artwork[artType[0]],pvrThumbPath,artType[1])
+                    if not xbmcvfs.exists(checkFile):
+                        text_file = xbmcvfs.File(checkFile, "w")
+                        text_file.write("%s" %datetime.now())
+                        text_file.close()
                     
         #store in cache for quick access later
         if not artwork: artwork["cache"] = "None"
