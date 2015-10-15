@@ -744,7 +744,7 @@ def getPVRThumbs(title,channel,type="channels",path=None):
                 logMsg("thumbspath found on disk for " + title)
                 for artType in PVRartTypes:
                     artpath = os.path.join(pvrThumbPath,artType[1])
-                    if xbmcvfs.exists(artpath) and not item.get(artType[0]):
+                    if xbmcvfs.exists(artpath) and not artwork.get(artType[0]):
                         artwork[artType[0]] = artpath
                         logMsg("%s found on disk for %s" %(artType[0],title))
                 if xbmcvfs.exists(checkFile):
@@ -988,7 +988,7 @@ def searchThumb(searchphrase, searchphrase2=""):
     #get's a thumb image for the given search phrase
     
     #is this item already in the cache?
-    image = WINDOW.getProperty(searchphrase + searchphrase2 + "SkinHelper.PVR.Thumb")
+    image = WINDOW.getProperty(try_encode(searchphrase + searchphrase2) + "SkinHelper.PVR.Thumb").decode("utf-8")
     if not image and not WINDOW.getProperty("SkinHelper.DisableInternetLookups"):
         if searchphrase2:
             searchphrase = searchphrase + " " + searchphrase2
