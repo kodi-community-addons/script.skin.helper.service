@@ -604,7 +604,8 @@ def downloadImage(imageUrl,thumbsPath, filename):
         if not xbmcvfs.exists(thumbsPath):
             xbmcvfs.mkdirs(thumbsPath)
         newFile = os.path.join(thumbsPath,filename)
-        xbmcvfs.copy(imageUrl,newFile)
+        if not xbmcvfs.exists(newFile):
+            xbmcvfs.copy(imageUrl,newFile)
         return newFile
     except: return imageUrl
     
