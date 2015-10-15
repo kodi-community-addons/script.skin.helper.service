@@ -690,11 +690,11 @@ def getPVRThumbs(title,channel,type="channels",path=None):
             customlookuppath = WINDOW.getProperty("customlookuppath").decode("utf-8")
             if customlookuppath: 
                 dirs, files = xbmcvfs.listdir(customlookuppath)
-                comparetitle = normalize_string(title.lower().replace(channel,"").replace(" ","").replace("_","").replace("_","").replace(dateStr,""))
+                comparetitle = normalize_string(title.lower().replace("_new","").replace(channel,"").replace(" ","").replace("_","").replace("_","").replace(dateStr,""))
                 for dir in dirs:
                     dir = dir.decode("utf-8")
                     #try to find a match...
-                    comparedir = normalize_string(dir.lower().replace(channel,"").replace(" ","").replace("_","").replace("_","").replace(dateStr,""))
+                    comparedir = normalize_string(dir.lower().replace("_new","").replace(channel,"").replace(" ","").replace("_","").replace("_","").replace(dateStr,""))
                     if comparedir == comparetitle:
                         pvrThumbPath = os.path.join(customlookuppath,dir)
                         break
@@ -703,7 +703,7 @@ def getPVRThumbs(title,channel,type="channels",path=None):
                         dirs2, files2 = xbmcvfs.listdir(os.path.join(customlookuppath,dir))
                         for dir2 in dirs2:
                             dir2 = dir2.decode("utf-8")
-                            comparedir = dir2.lower().replace(" ","").replace("_","").replace("_","").replace(channel,"")
+                            comparedir = dir2.lower().replace(" ","").replace("_new","").replace("_","").replace("-","").replace(channel,"")
                             if comparedir == comparetitle:
                                 pvrThumbPath = os.path.join(customlookuppath,dir,dir2)
                                 break
@@ -714,11 +714,11 @@ def getPVRThumbs(title,channel,type="channels",path=None):
                     if customlookuppath != pvrThumbPath: paths.append(pvrThumbPath)
                     for path in paths:
                         dirs, files = xbmcvfs.listdir(path)
-                        comparetitle = normalize_string(title.lower().replace(channel,"").replace(" ","").replace("_","").replace("_",""))
+                        comparetitle = normalize_string(title.lower().replace("_new","").replace(channel,"").replace(" ","").replace("_","").replace("_",""))
                         if artwork.get("thumb"): break
                         for file in files:
                             file = file.decode("utf-8")
-                            comparefile = normalize_string(file.lower().replace(channel,"").replace(" ","").replace("_","").replace("_",""))
+                            comparefile = normalize_string(file.lower().replace("_new","").replace(channel,"").replace(" ","").replace("_","").replace("_",""))
                             if ((comparetitle in comparefile and dateStr in file) or (comparetitle == comparefile.replace(".jpg",""))) and ".jpg" in file:
                                 artwork["thumb"] = os.path.join(path,file)
                                 logMsg("single pvr thumb found for  --> " + title + " --> "+ artwork["thumb"])
