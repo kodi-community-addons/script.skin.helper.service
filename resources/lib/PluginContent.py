@@ -256,8 +256,8 @@ def buildWidgetsListing():
             if widget=="pvr" and xbmc.getCondVisibility("PVR.HasTVChannels"):
                 foundWidgets.append(["$LOCALIZE[19023]", "pvr://channels/tv/all channels", "", "pvr"])
                 foundWidgets.append(["$LOCALIZE[19017]", "pvr://recordings", "", "pvr"])
-                foundWidgets.append(["$ADDON[script.extendedinfo 32104]", "plugin://script.skin.helper.service/?action=pvrchannels&limit=25&reload=$INFO[Window(home).Property(widgetreload2)]", "", "pvr"])
-                foundWidgets.append(["$ADDON[script.extendedinfo 32105]", "plugin://script.skin.helper.service/?action=pvrrecordings&limit=25&reload=$INFO[Window(home).Property(widgetreload2)]", "", "pvr"])   
+                foundWidgets.append([ADDON.getLocalizedString(32104), "plugin://script.skin.helper.service/?action=pvrchannels&limit=25&reload=$INFO[Window(home).Property(widgetreload2)]", "", "pvr"])
+                foundWidgets.append([ADDON.getLocalizedString(32105), "plugin://script.skin.helper.service/?action=pvrrecordings&limit=25&reload=$INFO[Window(home).Property(widgetreload2)]", "", "pvr"])   
             if widget=="smartishwidgets" and xbmc.getCondVisibility("System.HasAddon(service.smartish.widgets) + Skin.HasSetting(enable.smartish.widgets)"):
                 foundWidgets.append(["Smart(ish) Movies widget", "plugin://service.smartish.widgets?type=movies&reload=$INFO[Window.Property(smartish.movies)]", "", "movies"])
                 foundWidgets.append(["Smart(ish) Episodes widget", "plugin://service.smartish.widgets?type=episodes&reload=$INFO[Window.Property(smartish.episodes)]", "", "episodes"])
@@ -345,6 +345,7 @@ def getBackgrounds():
     globalBackgrounds.append((ADDON.getLocalizedString(32046), "SkinHelper.PicturesBackground"))
     globalBackgrounds.append((ADDON.getLocalizedString(32047), "SkinHelper.AllMusicVideosBackground"))
     globalBackgrounds.append((ADDON.getLocalizedString(32048), "SkinHelper.AllMusicBackground"))
+    globalBackgrounds.append((ADDON.getLocalizedString(32113), "SkinHelper.PvrBackground"))
     
     if xbmc.getCondVisibility("System.HasAddon(script.extendedinfo)"):
         globalBackgrounds.append((xbmc.getInfoLabel("$ADDON[script.extendedinfo 32046]") + " (TheMovieDB)", "SkinHelper.TopRatedMovies"))

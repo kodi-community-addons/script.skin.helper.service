@@ -109,8 +109,7 @@ class BackgroundsUpdater(threading.Thread):
         
         #cache file for smart shortcuts
         json.dump(self.smartShortcuts, open(self.SmartShortcutsCachePath,'w'))
-        
-                
+                       
     def getCacheFromFile(self):
         if xbmcvfs.exists(self.cachePath):
             with open(self.cachePath) as data_file:    
@@ -121,7 +120,6 @@ class BackgroundsUpdater(threading.Thread):
             with open(self.SmartShortcutsCachePath) as data_file:    
                 self.smartShortcuts = json.load(data_file) 
     
-
     def setDayNightColorTheme(self):
         #check if a colro theme should be conditionally set
         if xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnableDayNightThemes)"):
@@ -307,7 +305,52 @@ class BackgroundsUpdater(threading.Thread):
         except:
             logMsg("exception occured in getPicturesBackground.... ",0)
             return None            
-               
+    
+    def getPvrBackground(self):
+        logMsg("setting pvr background...")
+        try:
+            if (self.allBackgrounds.has_key("pvrfanart")):
+                #get random image from our global cache file
+                if self.allBackgrounds["pvrfanart"]:
+                    image = random.choice(self.allBackgrounds["pvrfanart"])
+                    if image:
+                        logMsg("setting random pvrfanart from cache.... " + image)
+                    return image 
+            else:
+                images = []
+                customlookuppath = WINDOW.getProperty("customlookuppath").decode("utf-8")
+                pvrthumbspath = WINDOW.getProperty("pvrthumbspath").decode("utf-8")
+                paths = [customlookuppath, pvrthumbspath]
+                for path in paths:
+                    dirs, files = xbmcvfs.listdir(path)
+                    for dir in dirs:
+                        dir = os.path.join(path,dir.decode("utf-8"))
+                        dirs2, files2 = xbmcvfs.listdir(dir)
+                        for file in files2:
+                            if file == "fanart.jpg": images.append(os.path.join(dir,"fanart.jpg"))
+                        for dir2 in dirs2:
+                            dir2 = os.path.join(dir,dir2.decode("utf-8"))
+                            dirs3, files3 = xbmcvfs.listdir(dir2)
+                            for file in files3:
+                                if file == "fanart.jpg": images.append(os.path.join(dir2,"fanart.jpg"))
+                    
+                #store images in the cache
+                self.allBackgrounds["pvrfanart"] = images
+                
+                # return a random image
+                if images != []:
+                    random.shuffle(images)
+                    image = images[0]
+                    logMsg("setting random pvrfanart.... " + image)
+                    return image
+                else:
+                    logMsg("pvrfanart empty so skipping pvrfanart background untill next restart")
+                    return None
+        #if something fails, return None
+        except:
+            logMsg("exception occured in getPvrBackground.... ",0)
+            return None            
+    
     def getGlobalBackground(self, fallbackImage=None):
         #just get a random image from all the images in the cache
         image = fallbackImage
@@ -362,8 +405,11 @@ class BackgroundsUpdater(threading.Thread):
 
         #pictures background
         picturesbg = self.getPicturesBackground()
-        if picturesbg:
-            WINDOW.setProperty("SkinHelper.PicturesBackground", self.getPicturesBackground())
+        if picturesbg: WINDOW.setProperty("SkinHelper.PicturesBackground", picturesbg)
+        
+        #pvrbackground background
+        pvrbackground = self.getPvrBackground()
+        if pvrbackground: WINDOW.setProperty("SkinHelper.PvrBackground", pvrbackground)
         
         #smart shortcuts --> emby nodes
         if xbmc.getCondVisibility("System.HasAddon(plugin.video.emby) + Skin.HasSetting(SmartShortcuts.emby)"):

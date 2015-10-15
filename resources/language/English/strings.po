@@ -468,3 +468,6 @@ msgctxt "#32112"
 msgid "Words to ignore (strip) in titles, seperate with ;"
 msgstr ""
 
+msgctxt "#32113"
+msgid "Random PVR fanart background"
+msgstr ""
