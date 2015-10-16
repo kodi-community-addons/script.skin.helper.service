@@ -471,3 +471,7 @@ msgstr ""
 msgctxt "#32113"
 msgid "Random PVR fanart background"
 msgstr ""
+
+msgctxt "#32114"
+msgid "Preferred language for TMDB metadata"
+msgstr ""

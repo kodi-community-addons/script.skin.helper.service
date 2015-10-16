@@ -159,6 +159,7 @@ def setAddonsettings():
     WINDOW.setProperty("stripwords",SETTING("stripwords"))
     WINDOW.setProperty("directory_structure",SETTING("directory_structure"))
     WINDOW.setProperty("SkinHelper.lastUpdate","%s" %datetime.now())    
+    WINDOW.setProperty("scraper_language",SETTING("scraper_language"))
 
 def try_encode(text, encoding="utf-8"):
     try:
@@ -504,7 +505,7 @@ def getLocalDateTimeFromUtc(timestring):
 def getfanartTVimages(type,id,artwork={}):
     #gets fanart.tv images for given tmdb id
     api_key = "639191cb0774661597f28a47e7e2bad5"
-    
+    language = WINDOW.getProperty("scraper_language")
     logMsg("get fanart.tv images for type: %s - id: %s" %(type,id))
     
     if type == "movie":
@@ -525,8 +526,8 @@ def getfanartTVimages(type,id,artwork={}):
                 fanarttvimage = prefix+fanarttype[0]
                 if data.has_key(fanarttvimage):
                     for item in data[fanarttvimage]:
-                        if item["lang"] == "en":
-                            #select image in english language preferred
+                        if item["lang"] == language:
+                            #select image in preferred language
                             artwork[fanarttype[1]] = item.get("url")
                             break
                     if not artwork.has_key(fanarttype[1]) and len(data.get(fanarttvimage)) > 0:
@@ -543,9 +544,10 @@ def getOfficialArtWork(title,artwork={},type=None):
     matchFound = None
     media_id = None
     media_type = None
+    language = WINDOW.getProperty("scraper_language")
     if not type: type="multi"
     try: 
-        url = 'http://api.themoviedb.org/3/search/%s?api_key=%s&language=en&query=%s' %(type,apiKey,try_encode(title))
+        url = 'http://api.themoviedb.org/3/search/%s?api_key=%s&language=%s&query=%s' %(type,apiKey,language,try_encode(title))
         response = requests.get(url)
         data = json.loads(response.content.decode('utf-8','replace'))
         
@@ -580,7 +582,7 @@ def getOfficialArtWork(title,artwork={},type=None):
             if not name: name = item.get("title")
             artwork["tmdb_title"] = name
             artwork["tmdb_type"] = media_type
-            artwork["tmdb_plot"] = matchFound.get("overview")
+            artwork["plot"] = matchFound.get("overview")
             logMsg("getTMDBimage - TMDB match found for %s !" %title)
             #lookup external tmdb_id and perform artwork lookup on fanart.tv
             if WINDOW.getProperty("useFanArtTv") == "true" and id:
@@ -869,11 +871,6 @@ def getPVRThumbs(title,channel,type="channels",path="",genre=""):
     else:
         logMsg("getPVRThumb cache found for dbID--> " + dbID)
         
-    #use kodi texture cache only if item exists in cache and the path is not local
-    for artType in PVRartTypes:
-        if artwork.get(artType[0]) and cacheFound and not artwork[artType[0]].startswith("special") and not artwork[artType[0]].startswith("image://"): 
-            artwork[artType[0]] = "image://" + single_urlencode(artwork[artType[0]])
-        elif artwork.get(artType[0]): artwork[artType[0]] = getCleanImage(artwork[artType[0]])
     return artwork
 
 def createSmartShortcutSubmenu(windowProp,iconimage):
