@@ -421,11 +421,11 @@ msgid "Use thumb provided by PVR addon"
 msgstr ""
 
 msgctxt "#32101"
-msgid "Cache thumbs for PVR Recordings"
+msgid "Download artwork for PVR Recordings"
 msgstr ""
 
 msgctxt "#32102"
-msgid "Cache thumbs for PVR Guide entries"
+msgid "Download artwork for PVR Guide entries"
 msgstr ""
 
 msgctxt "#32103"

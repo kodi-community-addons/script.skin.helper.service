@@ -18,6 +18,9 @@ from datetime import datetime
 import _strptime
 import time
 import unicodedata
+from xml.dom.minidom import Document
+import xml.etree.ElementTree as ET
+
 
 ADDON = xbmcaddon.Addon()
 ADDON_ID = ADDON.getAddonInfo('id')
@@ -532,52 +535,72 @@ def getfanartTVimages(type,id,artwork={}):
                         
     return artwork
 
-def getOfficialArtWork(title,artwork={}):
+def getOfficialArtWork(title,artwork={},type=None):
     #perform search on TMDB and return artwork
     apiKey = base64.b64decode("NDc2N2I0YjJiYjk0YjEwNGZhNTUxNWM1ZmY0ZTFmZWM=")
     coverUrl = ""
     fanartUrl = ""
-    matchFound = False
+    matchFound = None
     media_id = None
     media_type = None
+    if not type: type="multi"
     try: 
-        url = 'http://api.themoviedb.org/3/search/multi?api_key=%s&language=en&query=%s' %(apiKey,try_encode(title))
+        url = 'http://api.themoviedb.org/3/search/%s?api_key=%s&language=en&query=%s' %(type,apiKey,try_encode(title))
         response = requests.get(url)
         data = json.loads(response.content.decode('utf-8','replace'))
+        
+        #find exact match first
         if data and data.get("results",None):
             for item in data["results"]:
                 name = item.get("name")
                 if not name: name = item.get("title")
-                if name:
-                    original_name = item.get("original_name","")
-                    id = item.get("id","")
-                    media_type = item.get("media_type","")
-                    title_alt = title.lower().replace(" ","").replace("-","").replace(":","").replace("&","").replace(",","")
-                    name_alt = name.lower().replace(" ","").replace("-","").replace(":","").replace("&","").replace(",","")
-                    org_name_alt = original_name.lower().replace(" ","").replace("-","").replace(":","").replace("&","").replace(",","")
-                    
-                    original_name = item.get("original_name")
-                    if title in name == title or original_name == title:
-                        matchFound = True
-                    elif name.split(" (")[0] == title or title_alt == name_alt or title_alt == org_name_alt:
-                        matchFound = True    
-                    if matchFound:
-                        coverUrl = item.get("poster_path","")
-                        fanartUrl = item.get("backdrop_path","")
-                        logMsg("getTMDBimage - TMDB match found for %s !" %title)
-                        #lookup external tmdb_id and perform artwork lookup on fanart.tv
-                        if WINDOW.getProperty("useFanArtTv") == "true" and id:
-                            if media_type == "movie":
-                                url = 'http://api.themoviedb.org/3/movie/%s?api_key=%s' %(id,apiKey)
-                                idparam = "imdb_id"
-                            else:
-                                url = 'http://api.themoviedb.org/3/tv/%s/external_ids?api_key=%s' %(id,apiKey)
-                                idparam = "tvdb_id"
-                            response = requests.get(url)
-                            data = json.loads(response.content.decode('utf-8','replace'))
-                            if data: 
-                                media_id = data.get(idparam) 
-                        break
+                original_name = item.get("original_name","")
+                title_alt = title.lower().replace(" ","").replace("-","").replace(":","").replace("&","").replace(",","")
+                name_alt = name.lower().replace(" ","").replace("-","").replace(":","").replace("&","").replace(",","")
+                org_name_alt = original_name.lower().replace(" ","").replace("-","").replace(":","").replace("&","").replace(",","")
+                if name == title or original_name == title:
+                    #match found for exact title name
+                    matchFound = item
+                    break
+                elif name.split(" (")[0] == title or title_alt == name_alt or title_alt == org_name_alt:
+                    #match found with substituting some stuff
+                    matchFound = item
+                    break
+        
+            #if a match was not found, we accept the closest match from TMDB
+            if not matchFound and len(data.get("results")) > 0 and not len(data.get("results")) > 5:
+                matchFound = item = data.get("results")[0]
+            
+        if matchFound:
+            coverUrl = matchFound.get("poster_path","")
+            fanartUrl = matchFound.get("backdrop_path","")
+            id = str(matchFound.get("id",""))
+            media_type = matchFound.get("media_type","")
+            name = item.get("name")
+            if not name: name = item.get("title")
+            artwork["tmdb_title"] = name
+            artwork["tmdb_type"] = media_type
+            artwork["tmdb_plot"] = matchFound.get("overview")
+            logMsg("getTMDBimage - TMDB match found for %s !" %title)
+            #lookup external tmdb_id and perform artwork lookup on fanart.tv
+            if WINDOW.getProperty("useFanArtTv") == "true" and id:
+                if media_type == "movie":
+                    url = 'http://api.themoviedb.org/3/movie/%s?api_key=%s' %(id,apiKey)
+                    idparam = "imdb_id"
+                elif not media_type:
+                    #assume movie is media type empty
+                    media_type = "movie"
+                    artwork["tmdb_type"] = media_type
+                    url = 'http://api.themoviedb.org/3/movie/%s?api_key=%s' %(id,apiKey)
+                    idparam = "imdb_id"
+                else:
+                    url = 'http://api.themoviedb.org/3/tv/%s/external_ids?api_key=%s' %(id,apiKey)
+                    idparam = "tvdb_id"
+                response = requests.get(url)
+                data = json.loads(response.content.decode('utf-8','replace'))
+                if data: 
+                    media_id = data.get(idparam)
+                    artwork[idparam] = str(media_id)
         
         #lookup artwork on fanart.tv
         if media_id and media_type:
@@ -608,7 +631,24 @@ def downloadImage(imageUrl,thumbsPath, filename):
             xbmcvfs.copy(imageUrl,newFile)
         return newFile
     except: return imageUrl
-    
+
+def createNFO(cachefile, artwork):
+    if not xbmcvfs.exists(cachefile):
+        doc = Document()
+        root = doc.createElement("pvrdetails")
+        doc.appendChild(root)
+
+        for key, value in artwork.iteritems():
+            child = doc.createElement(key)
+            if value:
+                nodeText = doc.createTextNode(value) 
+                child.appendChild(nodeText)
+            root.appendChild(child)
+
+        f = xbmcvfs.File(cachefile, 'w')
+        f.write(doc.toprettyxml(encoding='utf-8'))
+        f.close()
+        
 def double_urlencode(text):
    """double URL-encode a given 'text'.  Do not return the 'variablename=' portion."""
 
@@ -627,12 +667,13 @@ def single_urlencode(text):
 
    return blah
 
-def getPVRThumbs(title,channel,type="channels",path=None):
+def getPVRThumbs(title,channel,type="channels",path="",genre=""):
     dbID = title + channel
     cacheFound = False
     ignore = False
     artwork = {}
     dateStr = ""
+    isGroupedRecording=False
     
     logMsg("getPVRThumb for %s %s--> "%(title,channel))
     
@@ -660,14 +701,34 @@ def getPVRThumbs(title,channel,type="channels",path=None):
     if not cacheFound:
         logMsg("getPVRThumb no cache found for dbID--> " + dbID)
         
+        #lookup in the persistant cache...
+        cachefile = os.path.join(WINDOW.getProperty("pvrthumbspath").decode("utf-8"), normalize_string(channel) + " - " + normalize_string(title) + ".xml")
+        if xbmcvfs.exists(cachefile):
+            import xml.etree.ElementTree as ET
+            f = xbmcvfs.File(cachefile, 'r')
+            root = ET.fromstring(f.read())
+            f.close()
+            cacheFound = True
+            for child in root:
+                artwork[child.tag] = try_decode(child.text)
+        
         #lookup actual recordings to get channel name (if empty) and the pvr provides thumbs
-        if type=="recordings":
+        if type=="recordings" and not cacheFound:
+            pvrbackend = xbmc.getInfoLabel("Pvr.BackendName").decode("utf-8")
             json_query = getJSON('PVR.GetRecordings', '{ "properties": [ %s ]}' %( fields_pvrrecordings))
             for item in json_query:
-                if path and path in item["file"] or not path and title in item["file"]:
-                    if not channel: channel = item["channel"]
+                if (path and path in item["file"]) or (not path and title in item["file"]) or (not channel and title in item["file"]):
+                    if not channel: 
+                        channel = item["channel"]
+                        artwork["channel"] = channel
+                        artwork["plot"] = item["plot"]
+                        artwork["genre"] = " / ".join(item["genre"])
+                        genre = " / ".join(item["genre"])
+                        isGroupedRecording = True
                     #get thumb from pvr addon - ignore pvr addons that don't provide a real thumb such as tvheadend
-                    if not artwork.get("thumb") and not "HTS" in xbmc.getInfoLabel("Pvr.BackendName"): artwork["thumb"] = item["icon"]
+                    if not "HTS" in pvrbackend:
+                        artwork["thumb"] = item["icon"]
+                        artwork["actualthumb"] = item["icon"]
                     dateStr = item["endtime"].split(" ")[0]
                     logMsg("getPVRThumbs - title or path matches an existing recording: " + title)
                     break
@@ -684,7 +745,7 @@ def getPVRThumbs(title,channel,type="channels",path=None):
         if stripwords:
             for word in stripwords.split(";"): title = title.replace(word,"")
         
-        if not ignore:
+        if not ignore and not cacheFound:
             pvrThumbPath = None
             #lookup existing pvrthumbs paths - try to find a match in custom path, else path is just the title
             #images will be looked up or stored to that path
@@ -767,17 +828,19 @@ def getPVRThumbs(title,channel,type="channels",path=None):
                     cacheFound = True
                     logMsg("getPVRThumb artwork found in local library for dbID--> " + dbID)
                     
-
+            #get logo if none found
+            if not artwork.has_key("channellogo") and channel:
+                artwork["channellogo"] = searchChannelLogo(channel)
+                    
             #if nothing in library or persistant cache, perform the internet scraping
             if not cacheFound and not WINDOW.getProperty("SkinHelper.DisableInternetLookups"):
-                
-                #get logo if none found
-                if not artwork.has_key("channellogo") and channel:
-                    artwork["channellogo"] = searchChannelLogo(channel)
-                
+                                
                 #grab artwork from tmdb/fanart.tv
                 if WINDOW.getProperty("useTMDBLookups") == "true" and not (artwork.get("poster") or artwork.get("fanart")):
-                    artwork = getOfficialArtWork(title,artwork)
+                    if "movie" in genre.lower():
+                        artwork = getOfficialArtWork(title,artwork,"movie")
+                    else:
+                        artwork = getOfficialArtWork(title,artwork)
                     
                 #lookup thumb on google as fallback
                 if not artwork.get("thumb") and channel and WINDOW.getProperty("useGoogleLookups") == "true":
@@ -787,17 +850,20 @@ def getPVRThumbs(title,channel,type="channels",path=None):
                 if not artwork.get("thumb") and channel and WINDOW.getProperty("useYoutubeLookups") == "true":
                     artwork["thumb"] = searchYoutubeImage(title + " " + channel)
                 
-                if downloadLocal:
+                if downloadLocal == True:
                     #download images if we want them local
                     for artType in PVRartTypes:
                         if artwork.has_key(artType[0]) and artType[0] != "channellogo" and "http" in artwork[artType[0]]: artwork[artType[0]] = downloadImage(artwork[artType[0]],pvrThumbPath,artType[1])
-                    if not xbmcvfs.exists(checkFile):
-                        text_file = xbmcvfs.File(checkFile, "w")
-                        text_file.write("%s" %datetime.now())
-                        text_file.close()
+                
+        #always create NFO cache file
+        artwork["title"] = title
+        artwork["channel"] = channel
+        artwork["date_scraped"] = "%s" %datetime.now()
+        if path: artwork["path"] = path
+        if genre: artwork["genre"] = genre
+        createNFO(cachefile,artwork)
                     
         #store in cache for quick access later
-        if not artwork: artwork["cache"] = "None"
         cache[dbID] = artwork
         WINDOW.setProperty("SkinHelper.PVR.ArtWork",repr(cache).encode('utf-8'))
     else:

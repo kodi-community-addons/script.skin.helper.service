@@ -146,7 +146,7 @@ class ListItemMonitor(threading.Thread):
                             self.setGenre(xbmc.getInfoLabel("Container(%s).ListItem.Genre" %widgetContainer).decode('utf-8'))
                             self.setMusicDetails(xbmc.getInfoLabel("Container(%s).ListItem.Artist" %widgetContainer).decode('utf-8')+xbmc.getInfoLabel("Container(%s).ListItem.Album" %widgetContainer).decode('utf-8'))
                             if "pvr://" in xbmc.getInfoLabel("Container(%s).ListItem.FolderPath" %widgetContainer).decode('utf-8'):
-                                self.setPVRThumbs(xbmc.getInfoLabel("Container(%s).ListItem.Title" %widgetContainer).decode('utf-8'),xbmc.getInfoLabel("Container(%s).ListItem.ChannelName" %widgetContainer).decode('utf-8'))
+                                self.setPVRThumbs(xbmc.getInfoLabel("Container(%s).ListItem.Title" %widgetContainer).decode('utf-8'),xbmc.getInfoLabel("Container(%s).ListItem.ChannelName" %widgetContainer).decode('utf-8'),xbmc.getInfoLabel("Container(%s).ListItem.Genre" %widgetContainer).decode('utf-8'))
                             self.lastListItem = curListItem
                     except Exception as e:
                         logMsg("ERROR in LibraryMonitor HomeWidget ! --> " + str(e), 0)
@@ -479,6 +479,9 @@ class ListItemMonitor(threading.Thread):
         WINDOW.clearProperty("SkinHelper.PVR.Logo")
         WINDOW.clearProperty("SkinHelper.PVR.Banner")
         WINDOW.clearProperty("SkinHelper.PVR.DiscArt")
+        WINDOW.clearProperty("SkinHelper.PVR.Plot")
+        WINDOW.clearProperty("SkinHelper.PVR.Channel")
+        WINDOW.clearProperty("SkinHelper.PVR.Genre")
         WINDOW.clearProperty("SkinHelper.Player.AddonName")
         WINDOW.clearProperty("SkinHelper.ForcedView")
         WINDOW.clearProperty('SkinHelper.MovieSet.Title')
@@ -710,11 +713,12 @@ class ListItemMonitor(threading.Thread):
         
         WINDOW.setProperty('SkinHelper.ListItemDirectors', "[CR]".join(directors))
        
-    def setPVRThumbs(self,title=None,channel=None,path=None):
+    def setPVRThumbs(self,title="",channel="",path="",genre=""):
         
         if not title: title = xbmc.getInfoLabel("ListItem.Title").decode('utf-8')
         if not channel: channel = xbmc.getInfoLabel("ListItem.ChannelName").decode('utf-8')
         if not path: path = xbmc.getInfoLabel("ListItem.FileNameAndPath").decode('utf-8')
+        if not genre: genre = xbmc.getInfoLabel("ListItem.Genre").decode('utf-8')
         
         if xbmc.getCondVisibility("ListItem.IsFolder") and not channel and not title:
             #assume grouped recordings folderPath
@@ -733,7 +737,7 @@ class ListItemMonitor(threading.Thread):
             if self.contentType == "tvrecordings": type = "recordings"
             else: type = "channels"
             
-            artwork = getPVRThumbs(title, channel, type, path)
+            artwork = getPVRThumbs(title, channel, type, path, genre)
             self.pvrArtCache[dbID + "SkinHelper.PVR.Artwork"] = artwork
         
         if artwork.has_key("thumb"):
@@ -755,7 +759,13 @@ class ListItemMonitor(threading.Thread):
         if artwork.has_key("channellogo"):
             WINDOW.setProperty("SkinHelper.PVR.ChannelLogo",artwork["channellogo"])
         if artwork.has_key("characterart"):
-            WINDOW.setProperty("SkinHelper.PVR.CharacterArt",artwork["characterart"]) 
+            WINDOW.setProperty("SkinHelper.PVR.CharacterArt",artwork["characterart"])
+        if artwork.has_key("plot"):
+            WINDOW.setProperty("SkinHelper.PVR.Plot",artwork["plot"])
+        if artwork.has_key("channel"):
+            WINDOW.setProperty("SkinHelper.PVR.Channel",artwork["channel"])
+        if artwork.has_key("genre"):
+            WINDOW.setProperty("SkinHelper.PVR.Genre",artwork["genre"])
 
     def setStudioLogo(self, studio=None):
         

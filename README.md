@@ -191,6 +191,7 @@ The properties will also be available for your homescreen widgets if you set the
 | Window(Home).Property(SkinHelper.PVR.Poster) | Will return the IMDB poster image for the currently selected show/movie (only if found) |
 | Window(Home).Property(SkinHelper.PVR.FanArt) | Will return the IMDB fanart image for the currently selected show/movie (only if found) |
 | Window(Home).Property(SkinHelper.PVR.Thumb) | Will return the thumb for the currently selected show/movie (only if found) |
+| Window(Home).Property(SkinHelper.PVR.ActualThumb) | Will return the thumb returned by the PVR addon itself (if supported) |
 | Window(Home).Property(SkinHelper.PVR.Logo) | Will return the clearlogo for the currently selected show/movie (only if found) |
 | Window(Home).Property(SkinHelper.PVR.Landscape) | Will return the landscape art for the currently selected show/movie (only if found) |
 | Window(Home).Property(SkinHelper.PVR.ClearArt) | Will return the ClearArt for the currently selected show/movie (only if found) |
@@ -245,6 +246,7 @@ Note: the default interval for the backgrounds is set at 30 seconds. If you want
 | Window(Home).Property(SkinHelper.UnwatchedMoviesBackground) | Random fanart of unwatched movies|
 | Window(Home).Property(SkinHelper.InProgressShowsBackground) | Random fanart of in progress tv shows|
 | Window(Home).Property(SkinHelper.RecentEpisodesBackground) | Random fanart of recently added episodes|
+| Window(Home).Property(SkinHelper.PvrBackground) | Random fanart collected by the PVR thumbs feature|
 | Window(Home).Property(SkinHelper.PicturesBackground) | Random pictures from all picture sources. By default this pulls images from all picture sources the user has configured. It is however possible to provide a custom source from which the images should be pulled from by setting Skin String: SkinHelper.CustomPicturesBackgroundPath|
 ________________________________________________________________________________________________________
 ________________________________________________________________________________________________________

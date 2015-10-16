@@ -254,10 +254,8 @@ def buildWidgetsListing():
         if not allWidgets.has_key(widget):
             foundWidgets = []
             if widget=="pvr" and xbmc.getCondVisibility("PVR.HasTVChannels"):
-                foundWidgets.append(["$LOCALIZE[19023]", "pvr://channels/tv/all channels", "", "pvr"])
-                foundWidgets.append(["$LOCALIZE[19017]", "pvr://recordings", "", "pvr"])
-                foundWidgets.append([ADDON.getLocalizedString(32104), "plugin://script.skin.helper.service/?action=pvrchannels&limit=25&reload=$INFO[Window(home).Property(widgetreload2)]", "", "pvr"])
-                foundWidgets.append([ADDON.getLocalizedString(32105), "plugin://script.skin.helper.service/?action=pvrrecordings&limit=25&reload=$INFO[Window(home).Property(widgetreload2)]", "", "pvr"])   
+                foundWidgets.append(["$LOCALIZE[19023]", ";reload=$INFO[Window(Home).Property(widgetreload2)]", "", "pvr"])
+                foundWidgets.append(["$LOCALIZE[19017]", "plugin://script.skin.helper.service/?action=pvrrecordings&limit=25&reload=$INFO[Window(home).Property(widgetreload2)]", "", "pvr"])   
             if widget=="smartishwidgets" and xbmc.getCondVisibility("System.HasAddon(service.smartish.widgets) + Skin.HasSetting(enable.smartish.widgets)"):
                 foundWidgets.append(["Smart(ish) Movies widget", "plugin://service.smartish.widgets?type=movies&reload=$INFO[Window.Property(smartish.movies)]", "", "movies"])
                 foundWidgets.append(["Smart(ish) Episodes widget", "plugin://service.smartish.widgets?type=episodes&reload=$INFO[Window.Property(smartish.episodes)]", "", "episodes"])
@@ -426,7 +424,7 @@ def getPVRRecordings(limit):
     for item in allItems:
         liz = createListItem(item)
         liz.setProperty('IsPlayable', 'true')
-        xbmcplugin.addDirectoryItem(int(sys.argv[1]), item['file'], liz, True)
+        xbmcplugin.addDirectoryItem(int(sys.argv[1]), item['file'], liz, False)
         count += 1
         if count == limit:
             break
