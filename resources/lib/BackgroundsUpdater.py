@@ -210,7 +210,7 @@ class BackgroundsUpdater(threading.Thread):
             if customJson:
                 media_array = getJSON(customJson[0],customJson[1])
             else:
-                media_array = getJSON('Files.GetDirectory','{ "properties": ["title","art","thumbnail"], "directory": "%s", "media": "files", "limits": {"end":150}, "sort": { "order": "ascending", "method": "random", "ignorearticle": true } }' %libPath)
+                media_array = getJSON('Files.GetDirectory','{ "properties": ["title","art","thumbnail"], "directory": "%s", "media": "files", "limits": {"end":250}, "sort": { "order": "ascending", "method": "random", "ignorearticle": true } }' %libPath)
             if media_array:
                 for media in media_array:
                     image = None
@@ -223,7 +223,7 @@ class BackgroundsUpdater(threading.Thread):
                             image = media['art']['tvshow.fanart']
                     elif media.get('fanart') and not media['title'].lower() == "next page":
                         image = media['fanart']
-                    if image:
+                    if image and not image in images:
                         image = getCleanImage(image)
                         images.append(image)
             else:

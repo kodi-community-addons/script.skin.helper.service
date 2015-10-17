@@ -2,7 +2,7 @@
 
 from urllib import urlopen
 import json
-from random import choice
+import random
 import cStringIO
 from hashlib import md5
 import xbmcvfs
@@ -45,9 +45,9 @@ def createImageWall(images,windowProp,blackwhite=False,square=False):
     if not xbmcvfs.exists(wallpath):
         xbmcvfs.mkdir(wallpath)
     
-    count = 40
     wall_images = []
     return_images = []
+    images_required = img_columns*img_rows
     for image in images:
         if ".jpg" in image:
             file = xbmcvfs.File(image)
@@ -58,15 +58,23 @@ def createImageWall(images,windowProp,blackwhite=False,square=False):
                 wall_images.append(img)
             file.close()
     if wall_images:
-        for i in range(count):
+        #duplicate images if we don't have enough
+        
+        while len(wall_images) < images_required:
+            wall_images += wall_images
+            
+        for i in range(40):
+            random.shuffle(wall_images)
             img_canvas = Image.new(img_type, (img_width * img_columns, img_height * img_rows))
             out_file = xbmc.translatePath(os.path.join(wallpath,windowProp + "." + str(i) + ".jpg"))
             if xbmcvfs.exists(out_file):
                 xbmcvfs.delete(out_file)
-        
+            
+            counter = 0
             for x in range(img_rows):
                 for y in range(img_columns):
-                    img_canvas.paste(choice(wall_images), (y * img_width, x * img_height))
+                    img_canvas.paste(wall_images[counter], (y * img_width, x * img_height))
+                    counter += 1
 
             img_canvas.save(out_file, "JPEG")
             return_images.append(out_file)
