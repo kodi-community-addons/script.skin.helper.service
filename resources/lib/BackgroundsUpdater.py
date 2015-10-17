@@ -17,6 +17,7 @@ import json
 import urllib
 import ConditionalBackgrounds as conditionalBackgrounds
 from Utils import *
+from ImageWall import *
 import datetime
 import time
 
@@ -144,7 +145,29 @@ class BackgroundsUpdater(threading.Thread):
                         colorThemes.loadColorTheme(themefile)
             except Exception as e:
                 logMsg("ERROR in setDayNightColorTheme ! --> " + str(e), 0)
-                  
+    
+    def setWallImageFromPath(self, windowProp, libPath, blackWhite=False):
+        image = None
+        if self.exit:
+            return False
+        
+        #load from cache    
+        if self.allBackgrounds.get(windowProp):
+            image = random.choice(self.allBackgrounds[windowProp])
+            if image:
+                image = getCleanImage(image)
+                WINDOW.setProperty(windowProp, image)
+                return True
+               
+        #load images for libPath and generate wall
+        if self.allBackgrounds.get(libPath):
+            images = createImageWall(self.allBackgrounds[libPath],windowProp,blackWhite)
+            self.allBackgrounds[windowProp] = images
+            image = random.choice(images)
+            if image:
+                image = getCleanImage(image)
+                WINDOW.setProperty(windowProp, image)
+                
     def setImageFromPath(self, windowProp, libPath, fallbackImage=None, customJson=None):
         image = fallbackImage
         if self.exit:
@@ -380,7 +403,9 @@ class BackgroundsUpdater(threading.Thread):
             self.setImageFromPath("SkinHelper.InProgressMoviesBackground","SkinHelper.InProgressMoviesBackground","",['VideoLibrary.GetMovies','{ "properties": ["title","art"], "filter": {"and": [{"operator":"true", "field":"inprogress", "value":""}]}, "sort": { "order": "ascending", "method": "random", "ignorearticle": true } }'])
             self.setImageFromPath("SkinHelper.RecentMoviesBackground","SkinHelper.RecentMoviesBackground","",['VideoLibrary.GetRecentlyAddedMovies','{ "properties": ["title","art"], "limits": {"end":50}, "sort": { "order": "ascending", "method": "random", "ignorearticle": true } }'])
             self.setImageFromPath("SkinHelper.UnwatchedMoviesBackground","SkinHelper.UnwatchedMoviesBackground","",['VideoLibrary.GetMovies','{ "properties": ["title","art"], "filter": {"and": [{"operator":"is", "field":"playcount", "value":""}]}, "limits": {"end":50}, "sort": { "order": "ascending", "method": "random", "ignorearticle": true } }'])
-             
+            self.setWallImageFromPath("SkinHelper.AllMoviesBackground.Wall","SkinHelper.AllMoviesBackground")
+            self.setWallImageFromPath("SkinHelper.AllMoviesBackground.WallBW","SkinHelper.AllMoviesBackground",True)
+            
         #tvshows backgrounds
         if xbmc.getCondVisibility("Library.HasContent(tvshows)"):
             self.setImageFromPath("SkinHelper.AllTvShowsBackground","SkinHelper.AllTvShowsBackground","",['VideoLibrary.GetTVShows','{ "properties": ["title","art"], "limits": {"end":50}, "sort": { "order": "ascending", "method": "random", "ignorearticle": true } }'])
@@ -393,7 +418,9 @@ class BackgroundsUpdater(threading.Thread):
         
         #all music
         if xbmc.getCondVisibility("Library.HasContent(music)"):
-            self.setImageFromPath("SkinHelper.AllMusicBackground","musicdb://artists/")
+            self.setImageFromPath("SkinHelper.AllMusicBackground","musicdb://artists/","",None)
+            self.setWallImageFromPath("SkinHelper.AllMusicBackground.Wall","musicdb://artists/")
+            self.setWallImageFromPath("SkinHelper.AllMusicBackground.WallBW","musicdb://artists/",True)
         
         #tmdb backgrounds (extendedinfo)
         if xbmc.getCondVisibility("System.HasAddon(script.extendedinfo)"):

@@ -111,19 +111,22 @@ class StoppableHttpRequestHandler (SimpleHTTPServer.SimpleHTTPRequestHandler):
         if channel: channel = channel[0].decode("utf-8")
         if preferred_type: preferred_type = preferred_type[0]        
         if title and title != "..":
-            if xbmc.getCondVisibility("Window.IsActive(MyPVRRecordings.xml)"): type = "recordings"
-            else: type = "channels"
-            artwork = getPVRThumbs(title, channel, type)
-            if preferred_type:
-                preferred_types = preferred_type.split(" ")
-                for preftype in preferred_types:
-                    if artwork.get(preftype):
-                        image = artwork.get(preftype)
-                        break
+            if not channel or channel=="None":
+                image = searchGoogleImage(title)
             else:
-                if artwork.get("thumb"): image = artwork.get("thumb")
-                if artwork.get("fanart"): image = artwork.get("fanart")
-                if artwork.get("landscape"): image = artwork.get("landscape")
+                if xbmc.getCondVisibility("Window.IsActive(MyPVRRecordings.xml)"): type = "recordings"
+                else: type = "channels"
+                artwork = getPVRThumbs(title, channel, type)
+                if preferred_type:
+                    preferred_types = preferred_type.split(" ")
+                    for preftype in preferred_types:
+                        if artwork.get(preftype):
+                            image = artwork.get(preftype)
+                            break
+                else:
+                    if artwork.get("thumb"): image = artwork.get("thumb")
+                    if artwork.get("fanart"): image = artwork.get("fanart")
+                    if artwork.get("landscape"): image = artwork.get("landscape")
         if image:
             self.send_response(200)
             if ".jpg" in image:

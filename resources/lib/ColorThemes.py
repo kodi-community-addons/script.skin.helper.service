@@ -204,7 +204,6 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
         list = self.refreshListing()
         xbmc.executebuiltin("Control.SetFocus(6)")
 
-
     def onFocus(self, controlId):
         pass
         
@@ -339,7 +338,7 @@ def restoreColorTheme():
     import zipfile
     zip_path = None
     userThemesPath = os.path.join(userThemesDir,"themes") + os.sep
-    zip_path = get_browse_dialog(dlg_type=1,heading=ADDON.getLocalizedString(32020),mask=".zip")
+    zip_path = get_browse_dialog(dlg_type=1,heading=ADDON.getLocalizedString(32082),mask=".zip")
     if zip_path and zip_path != "protocol://":
         #create temp path
         temp_path = xbmc.translatePath('special://temp/skinbackup/').decode("utf-8")
