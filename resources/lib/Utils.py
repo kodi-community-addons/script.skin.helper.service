@@ -431,7 +431,7 @@ def detectPluginContent(plugin,skipscan=False):
                     break
                 if not item.has_key("showtitle") and item.has_key("artist"):
                     ##### AUDIO ITEMS ####
-                    if item["type"] == "artist" or item["artist"][0] == item["title"]:
+                    if item["type"] == "artist":
                         contentType = "artists"
                         break
                     elif isinstance(item["artist"], list) and len(item["artist"]) > 0 and item["artist"][0] == item["title"]:
