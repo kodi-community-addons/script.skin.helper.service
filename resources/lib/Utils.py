@@ -706,7 +706,7 @@ def getPVRThumbs(title,channel,type="channels",path="",genre=""):
         logMsg("getPVRThumb no cache found for dbID--> " + dbID)
         
         #lookup in the persistant cache...
-        cachefile = os.path.join(WINDOW.getProperty("pvrthumbspath").decode("utf-8"), normalize_string(channel) + " - " + normalize_string(title) + ".xml")
+        cachefile = os.path.join(WINDOW.getProperty("pvrthumbspath").decode("utf-8"), normalize_string(title) + ".xml")
         if xbmcvfs.exists(cachefile):
             import xml.etree.ElementTree as ET
             f = xbmcvfs.File(cachefile, 'r')
@@ -716,7 +716,7 @@ def getPVRThumbs(title,channel,type="channels",path="",genre=""):
             for child in root:
                 artwork[child.tag] = try_decode(child.text)
         
-        #lookup actual recordings to get channel name (if empty) and the pvr provides thumbs
+        #lookup actual recordings to get channel name (if empty) and the pvr provided thumbs
         if type=="recordings" and not cacheFound:
             pvrbackend = xbmc.getInfoLabel("Pvr.BackendName").decode("utf-8")
             json_query = getJSON('PVR.GetRecordings', '{ "properties": [ %s ]}' %( fields_pvrrecordings))

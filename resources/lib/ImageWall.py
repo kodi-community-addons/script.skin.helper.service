@@ -57,18 +57,18 @@ def createImageWall(images,windowProp,blackwhite=False,square=False):
                 img = img.resize(size)
                 wall_images.append(img)
             file.close()
-    
-    for i in range(count):
-        img_canvas = Image.new(img_type, (img_width * img_columns, img_height * img_rows))
-        out_file = xbmc.translatePath(os.path.join(wallpath,windowProp + "." + str(i) + ".jpg"))
-        if xbmcvfs.exists(out_file):
-            xbmcvfs.delete(out_file)
-    
-        for x in range(img_rows):
-            for y in range(img_columns):
-                img_canvas.paste(choice(wall_images), (y * img_width, x * img_height))
+    if wall_images:
+        for i in range(count):
+            img_canvas = Image.new(img_type, (img_width * img_columns, img_height * img_rows))
+            out_file = xbmc.translatePath(os.path.join(wallpath,windowProp + "." + str(i) + ".jpg"))
+            if xbmcvfs.exists(out_file):
+                xbmcvfs.delete(out_file)
+        
+            for x in range(img_rows):
+                for y in range(img_columns):
+                    img_canvas.paste(choice(wall_images), (y * img_width, x * img_height))
 
-        img_canvas.save(out_file, "JPEG")
-        return_images.append(out_file)
+            img_canvas.save(out_file, "JPEG")
+            return_images.append(out_file)
 
     return return_images
