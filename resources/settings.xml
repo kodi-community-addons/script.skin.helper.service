@@ -18,4 +18,8 @@
         <setting id="directory_structure" type="select" label="32108" lvalues="32109|32110|32111"  visible="Skin.HasSetting(SkinHelper.EnablePVRThumbs)"/>
         <setting label="32089" type="action" action="RunScript(script.skin.helper.service,action=RESETPVRTHUMBS)" visible="Skin.HasSetting(SkinHelper.EnablePVRThumbs)"/>
     </category>
+    <category label="Backgrounds">
+        <setting id="enablewallbackgrounds" type="bool" label="32115" default="true" visible="Skin.HasSetting(SkinHelper.EnablePVRThumbs)"/>
+        <setting id="preferBWwallbackgrounds" type="bool" label="32116" default="false" visible="eq(-1,true)"/>
+    </category>
 </settings>

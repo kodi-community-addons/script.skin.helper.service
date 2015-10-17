@@ -476,3 +476,22 @@ msgctxt "#32114"
 msgid "Preferred language for TMDB metadata"
 msgstr ""
 
+msgctxt "#32115"
+msgid "Enable creation of wall/grid backgrounds"
+msgstr ""
+
+msgctxt "#32116"
+msgid "Prefer black & white for wall backgrounds"
+msgstr ""
+
+msgctxt "#32117"
+msgid "Random Movies Wall/Grid"
+msgstr ""
+
+msgctxt "#32118"
+msgid "Random Artists Wall/Grid"
+msgstr ""
+
+msgctxt "#32119"
+msgid "Random Albums Wall/Grid"
+msgstr ""

@@ -334,8 +334,6 @@ def getBackgrounds():
     globalBackgrounds = []
     globalBackgrounds.append((ADDON.getLocalizedString(32038), "SkinHelper.GlobalFanartBackground"))
     globalBackgrounds.append((ADDON.getLocalizedString(32039), "SkinHelper.AllMoviesBackground"))
-    globalBackgrounds.append((ADDON.getLocalizedString(32039) + " WALL", "SkinHelper.AllMoviesBackground.Wall"))
-    globalBackgrounds.append((ADDON.getLocalizedString(32039) + " WALL B&W", "SkinHelper.AllMoviesBackground.WallBW"))
     globalBackgrounds.append((ADDON.getLocalizedString(32040), "SkinHelper.RecentMoviesBackground"))
     globalBackgrounds.append((ADDON.getLocalizedString(32041), "SkinHelper.InProgressMoviesBackground"))
     globalBackgrounds.append((ADDON.getLocalizedString(32042), "SkinHelper.UnwatchedMoviesBackground"))
@@ -345,9 +343,12 @@ def getBackgrounds():
     globalBackgrounds.append((ADDON.getLocalizedString(32046), "SkinHelper.PicturesBackground"))
     globalBackgrounds.append((ADDON.getLocalizedString(32047), "SkinHelper.AllMusicVideosBackground"))
     globalBackgrounds.append((ADDON.getLocalizedString(32048), "SkinHelper.AllMusicBackground"))
-    globalBackgrounds.append((ADDON.getLocalizedString(32048) + " WALL", "SkinHelper.AllMusicBackground.Wall"))
-    globalBackgrounds.append((ADDON.getLocalizedString(32048) + " WALL B&W", "SkinHelper.AllMusicBackground.WallBW"))
     globalBackgrounds.append((ADDON.getLocalizedString(32113), "SkinHelper.PvrBackground"))
+    
+    #wall backgrounds
+    globalBackgrounds.append((ADDON.getLocalizedString(32117), "SkinHelper.AllMoviesBackground.Wall"))
+    globalBackgrounds.append((ADDON.getLocalizedString(32118), "SkinHelper.AllMusicBackground.Wall"))
+    globalBackgrounds.append((ADDON.getLocalizedString(32119), "SkinHelper.AllMusicSongsBackground.Wall"))
     
     if xbmc.getCondVisibility("System.HasAddon(script.extendedinfo)"):
         globalBackgrounds.append((xbmc.getInfoLabel("$ADDON[script.extendedinfo 32046]") + " (TheMovieDB)", "SkinHelper.TopRatedMovies"))

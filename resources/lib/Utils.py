@@ -160,6 +160,8 @@ def setAddonsettings():
     WINDOW.setProperty("directory_structure",SETTING("directory_structure"))
     WINDOW.setProperty("SkinHelper.lastUpdate","%s" %datetime.now())    
     WINDOW.setProperty("scraper_language",SETTING("scraper_language"))
+    WINDOW.setProperty("enablewallbackgrounds",SETTING("enablewallbackgrounds"))
+    WINDOW.setProperty("preferBWwallbackgrounds",SETTING("preferBWwallbackgrounds"))
 
 def try_encode(text, encoding="utf-8"):
     try:

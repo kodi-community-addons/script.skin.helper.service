@@ -146,14 +146,17 @@ class BackgroundsUpdater(threading.Thread):
             except Exception as e:
                 logMsg("ERROR in setDayNightColorTheme ! --> " + str(e), 0)
     
-    def setWallImageFromPath(self, windowProp, libPath, blackWhite=False):
+    def setWallImageFromPath(self, windowProp, libPath, square=False):
         image = None
-        if self.exit:
-            return False
+        blackWhite = False
+        if WINDOW.getProperty("enablewallbackgrounds") != "true" or self.exit:
+            return
+        if WINDOW.getProperty("preferBWwallbackgrounds") == "true":
+            blackWhite = True
         
         #load from cache    
-        if self.allBackgrounds.get(windowProp):
-            image = random.choice(self.allBackgrounds[windowProp])
+        if self.allBackgrounds.get(windowProp+str(blackWhite)):
+            image = random.choice(self.allBackgrounds[windowProp+str(blackWhite)])
             if image:
                 image = getCleanImage(image)
                 WINDOW.setProperty(windowProp, image)
@@ -161,14 +164,14 @@ class BackgroundsUpdater(threading.Thread):
                
         #load images for libPath and generate wall
         if self.allBackgrounds.get(libPath):
-            images = createImageWall(self.allBackgrounds[libPath],windowProp,blackWhite)
-            self.allBackgrounds[windowProp] = images
+            images = createImageWall(self.allBackgrounds[libPath],windowProp,blackWhite,square)
+            self.allBackgrounds[windowProp+str(blackWhite)] = images
             image = random.choice(images)
             if image:
                 image = getCleanImage(image)
                 WINDOW.setProperty(windowProp, image)
                 
-    def setImageFromPath(self, windowProp, libPath, fallbackImage=None, customJson=None):
+    def setImageFromPath(self, windowProp, libPath, fallbackImage=None, customJson=None, useThumbsInsteadOfFanart=False):
         image = fallbackImage
         if self.exit:
             return False
@@ -207,16 +210,18 @@ class BackgroundsUpdater(threading.Thread):
             if customJson:
                 media_array = getJSON(customJson[0],customJson[1])
             else:
-                media_array = getJSON('Files.GetDirectory','{ "properties": ["title","art"], "directory": "%s", "media": "files", "limits": {"end":150}, "sort": { "order": "ascending", "method": "random", "ignorearticle": true } }' %libPath)
+                media_array = getJSON('Files.GetDirectory','{ "properties": ["title","art","thumbnail"], "directory": "%s", "media": "files", "limits": {"end":150}, "sort": { "order": "ascending", "method": "random", "ignorearticle": true } }' %libPath)
             if media_array:
                 for media in media_array:
                     image = None
-                    if media.has_key('art') and not media['title'].lower() == "next page":
-                        if media['art'].has_key('fanart'):
+                    if useThumbsInsteadOfFanart and media.get("thumbnail"):
+                        image =  media.get("thumbnail")
+                    elif media.get('art') and not media['title'].lower() == "next page":
+                        if media['art'].get('fanart'):
                             image = media['art']['fanart']
-                        elif media['art'].has_key('tvshow.fanart'):
+                        elif media['art'].get('tvshow.fanart'):
                             image = media['art']['tvshow.fanart']
-                    elif media.has_key('fanart') and not media['title'].lower() == "next page":
+                    elif media.get('fanart') and not media['title'].lower() == "next page":
                         image = media['fanart']
                     if image:
                         image = getCleanImage(image)
@@ -404,7 +409,6 @@ class BackgroundsUpdater(threading.Thread):
             self.setImageFromPath("SkinHelper.RecentMoviesBackground","SkinHelper.RecentMoviesBackground","",['VideoLibrary.GetRecentlyAddedMovies','{ "properties": ["title","art"], "limits": {"end":50}, "sort": { "order": "ascending", "method": "random", "ignorearticle": true } }'])
             self.setImageFromPath("SkinHelper.UnwatchedMoviesBackground","SkinHelper.UnwatchedMoviesBackground","",['VideoLibrary.GetMovies','{ "properties": ["title","art"], "filter": {"and": [{"operator":"is", "field":"playcount", "value":""}]}, "limits": {"end":50}, "sort": { "order": "ascending", "method": "random", "ignorearticle": true } }'])
             self.setWallImageFromPath("SkinHelper.AllMoviesBackground.Wall","SkinHelper.AllMoviesBackground")
-            self.setWallImageFromPath("SkinHelper.AllMoviesBackground.WallBW","SkinHelper.AllMoviesBackground",True)
             
         #tvshows backgrounds
         if xbmc.getCondVisibility("Library.HasContent(tvshows)"):
@@ -420,7 +424,8 @@ class BackgroundsUpdater(threading.Thread):
         if xbmc.getCondVisibility("Library.HasContent(music)"):
             self.setImageFromPath("SkinHelper.AllMusicBackground","musicdb://artists/","",None)
             self.setWallImageFromPath("SkinHelper.AllMusicBackground.Wall","musicdb://artists/")
-            self.setWallImageFromPath("SkinHelper.AllMusicBackground.WallBW","musicdb://artists/",True)
+            self.setImageFromPath("SkinHelper.AllMusicSongsBackground","musicdb://songs/",None,None,True)
+            self.setWallImageFromPath("SkinHelper.AllMusicSongsBackground.Wall","musicdb://songs/",True)
         
         #tmdb backgrounds (extendedinfo)
         if xbmc.getCondVisibility("System.HasAddon(script.extendedinfo)"):
