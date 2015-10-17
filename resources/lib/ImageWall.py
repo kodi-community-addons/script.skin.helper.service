@@ -49,7 +49,7 @@ def createImageWall(images,windowProp,blackwhite=False,square=False):
     return_images = []
     images_required = img_columns*img_rows
     for image in images:
-        if ".jpg" in image:
+        if not image.startswith("music@") and not ".mp3" in image:
             file = xbmcvfs.File(image)
             if file:
                 img_obj = io.BytesIO(bytearray(file.readBytes()))

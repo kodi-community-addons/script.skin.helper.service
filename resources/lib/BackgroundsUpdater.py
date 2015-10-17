@@ -166,10 +166,11 @@ class BackgroundsUpdater(threading.Thread):
         if self.allBackgrounds.get(libPath):
             images = createImageWall(self.allBackgrounds[libPath],windowProp,blackWhite,square)
             self.allBackgrounds[windowProp+str(blackWhite)] = images
-            image = random.choice(images)
-            if image:
-                image = getCleanImage(image)
-                WINDOW.setProperty(windowProp, image)
+            if images:
+                image = random.choice(images)
+                if image:
+                    image = getCleanImage(image)
+                    WINDOW.setProperty(windowProp, image)
                 
     def setImageFromPath(self, windowProp, libPath, fallbackImage=None, customJson=None, useThumbsInsteadOfFanart=False):
         image = fallbackImage
