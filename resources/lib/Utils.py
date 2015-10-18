@@ -772,7 +772,7 @@ def getPVRThumbs(title,channel,type="channels",path="",genre=""):
         
         #Do we have a persistant cache file (pvrdetails.xml) for this item ?
         cachefile = os.path.join(pvrThumbPath, "pvrdetails.xml")
-        artwork = getPVRartworkFromCacheFile(cache,artwork)
+        artwork = getPVRartworkFromCacheFile(cachefile,artwork)
                 
         if not cacheFound:
             
