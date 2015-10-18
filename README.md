@@ -212,7 +212,7 @@ If you have a panel container in the PVR windows and you want to show the PVR ar
 ```xml
 <control type="image">
     <!--pvr thumb image-->
-    <texture background="true">http://localhost:8888/getthumb&title=$INFO[Listitem.Title]&channel=$INFO[ListItem.ChannelName]</texture>
+    <texture background="true">http://localhost:52307/getthumb&title=$INFO[Listitem.Title]&channel=$INFO[ListItem.ChannelName]</texture>
     <visible>Skin.HasSetting(SkinHelper.EnablePVRThumbs) + SubString(ListItem.FolderPath,pvr://)</visible>
 </control>
 ```
@@ -220,7 +220,7 @@ The above example will return the PVR artwork, in general the landscape, fanart 
 If you prefer a specific art-type you can specify that with type=[kodi artwork type]
 For example:
 
-http://localhost:8888/getthumb&title=$VAR[ListTitlePVR]&channel=$INFO[ListItem.ChannelName]&type=poster
+http://localhost:52307/getthumb&title=$VAR[ListTitlePVR]&channel=$INFO[ListItem.ChannelName]&type=poster
 
 You can also supply multiple arttypes by using + as a seperator. In that case the script will supply the image for the first arttype found.
 Example type=landscape+fanart+thumb

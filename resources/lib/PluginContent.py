@@ -11,6 +11,7 @@ import xml.etree.ElementTree as xmltree
 from xml.dom.minidom import parse
 import json
 import random
+from operator import itemgetter
 
 from Utils import *
 
@@ -410,21 +411,31 @@ def getFavourites(limit):
 def getPVRRecordings(limit):
     count = 0
     allItems = []
+    allUnSortedItems = []
     xbmcplugin.setContent(int(sys.argv[1]), 'episodes')
     cache = WINDOW.getProperty("skinhelper-pvrrecordings")
     if cache:
         #load from cache
         allItems = eval(cache)
     else:
-        # Perform a JSON query to get all recordings
-        json_query = getJSON('PVR.GetRecordings', '{ "properties": [ %s ], "limits": {"end": %d}}' %( fields_pvrrecordings, limit))
-        for item in json_query:
-            channelname = item["channel"]
-            item["channel"] = channelname
-            item["art"] = getPVRThumbs(item["title"], channelname, "recordings")
-            item["channelicon"] = item["art"].get("channelicon","")
-            item["cast"] = None
-            allItems.append(item)
+        # Get a list of all the unwatched recent tv recordings   
+        json_result = getJSON('PVR.GetRecordings', '{"properties": [ %s ]}' %fields_pvrrecordings)
+        for item in json_result:
+            if item["playcount"] == 0:
+                channelname = item["channel"]
+                item["channel"] = channelname
+                item["art"] = getPVRThumbs(item["title"], channelname, "recordings")
+                if item.get("art") and item["art"].get("thumb"):
+                    item["art"]["thumb"] = item["art"].get("thumb")
+                item["channelicon"] = item["art"].get("channelicon","")
+                item["cast"] = None
+                allUnSortedItems.append((item["endtime"],item))
+                
+        #sort the list so we return a recently added list or recordings
+        allUnSortedItems = sorted(allUnSortedItems,key=itemgetter(0),reverse=True)
+        for item in allUnSortedItems:
+            allItems.append(item[1])
+        
         if allItems: WINDOW.setProperty("skinhelper-pvrrecordings", repr(allItems))
     for item in allItems:
         liz = createListItem(item)
@@ -778,7 +789,6 @@ def getSimilarMovies(limit):
                         allTitles.append(item["title"])
         
         #sort the list by rating 
-        from operator import itemgetter
         allItems = sorted(allItems,key=itemgetter(0),reverse=True)
         
         if allItems: WINDOW.setProperty("skinhelper-similarmovies", repr(allItems))
@@ -853,7 +863,6 @@ def buildRecommendedMediaListing(limit,ondeckContent=False,recommendedContent=Tr
                     allTitles.append(item["title"])         
         
         #sort the list with in progress items by lastplayed date   
-        from operator import itemgetter
         allItems = sorted(allOndeckItems,key=itemgetter(0),reverse=True)
         
     
@@ -882,7 +891,6 @@ def buildRecommendedMediaListing(limit,ondeckContent=False,recommendedContent=Tr
                     allTitles.append(item["title"])
                     
         #sort the list with recommended items by rating 
-        from operator import itemgetter
         allItems += sorted(allRecommendedItems,key=itemgetter(0),reverse=True)
 
     return allItems
@@ -1002,17 +1010,22 @@ def getRecentMedia(limit):
                 allTitles.append(item["title"])
                 
         
-        # Get a list of all the unwatched tv recordings   
+        # Get a list of all the unwatched recent tv recordings   
         json_result = getJSON('PVR.GetRecordings', '{"properties": [ %s ]}' %fields_pvrrecordings)
         for item in json_result:
             lastplayed = item["endtime"]
             if not item["title"] in allTitles and item["playcount"] == 0:
-                item["art"] = getPVRThumbs(item["title"], item["channel"],"recordings")
+                channelname = item["channel"]
+                item["channel"] = channelname
+                item["art"] = getPVRThumbs(item["title"], channelname, "recordings")
+                if item.get("art") and item["art"].get("thumb"):
+                    item["art"]["thumb"] = item["art"].get("thumb")
+                item["channelicon"] = item["art"].get("channelicon","")
+                item["cast"] = None
                 allItems.append((lastplayed,item))
                 allTitles.append(item["title"])
         
         #sort the list with in recent items by lastplayed date   
-        from operator import itemgetter
         allItems = sorted(allItems,key=itemgetter(0),reverse=True)
         if allItems: WINDOW.setProperty("skinhelper-recentmedia", repr(allItems))
     

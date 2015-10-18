@@ -11,7 +11,10 @@ import xbmcgui
 import xbmcvfs
 import urllib
 from Utils import *
-port = 8888
+
+#port is hardcoded as there is no way in Kodi to pass a INFO-label inside a panel, 
+#otherwise the portnumber could be passed to the skin though a skin setting or window prop
+port = 52307
 
 class WebService(threading.Thread):
     event = None
