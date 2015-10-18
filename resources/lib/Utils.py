@@ -672,7 +672,7 @@ def single_urlencode(text):
 
    return blah
 
-def getPVRartworkFromCacheFile(cachefile,artwork=[]):
+def getPVRartworkFromCacheFile(cachefile,artwork={}):
     if xbmcvfs.exists(cachefile):
         f = xbmcvfs.File(cachefile, 'r')
         root = ET.fromstring(f.read())
