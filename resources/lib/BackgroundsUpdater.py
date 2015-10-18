@@ -356,12 +356,16 @@ class BackgroundsUpdater(threading.Thread):
                         dir = os.path.join(path,dir.decode("utf-8"))
                         dirs2, files2 = xbmcvfs.listdir(dir)
                         for file in files2:
-                            if file == "fanart.jpg": images.append(os.path.join(dir,"fanart.jpg"))
+                            if file == "pvrdetails.xml": 
+                                artwork = getPVRartworkFromCacheFile(os.path.join(dir,"pvrdetails.xml"))
+                                if artwork.get("fanart"): images.append(artwork.get("fanart"))
                         for dir2 in dirs2:
                             dir2 = os.path.join(dir,dir2.decode("utf-8"))
                             dirs3, files3 = xbmcvfs.listdir(dir2)
                             for file in files3:
-                                if file == "fanart.jpg": images.append(os.path.join(dir2,"fanart.jpg"))
+                                if file == "pvrdetails.xml": 
+                                    artwork = getPVRartworkFromCacheFile(os.path.join(dir,"pvrdetails.xml"))
+                                    if artwork.get("fanart"): images.append(artwork.get("fanart"))
                     
                 #store images in the cache
                 self.allBackgrounds["pvrfanart"] = images

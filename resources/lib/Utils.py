@@ -672,6 +672,17 @@ def single_urlencode(text):
 
    return blah
 
+def getPVRartworkFromCacheFile(cachefile,artwork=[]):
+    if xbmcvfs.exists(cachefile):
+        f = xbmcvfs.File(cachefile, 'r')
+        root = ET.fromstring(f.read())
+        f.close()
+        cacheFound = True
+        for child in root:
+            if not artwork.get(child.tag):
+                artwork[child.tag] = try_decode(child.text)
+    return artwork
+   
 def getPVRThumbs(title,channel,type="channels",path="",genre=""):
     cacheFound = False
     ignore = False
@@ -761,15 +772,7 @@ def getPVRThumbs(title,channel,type="channels",path="",genre=""):
         
         #Do we have a persistant cache file (pvrdetails.xml) for this item ?
         cachefile = os.path.join(pvrThumbPath, "pvrdetails.xml")
-        if xbmcvfs.exists(cachefile):
-            import xml.etree.ElementTree as ET
-            f = xbmcvfs.File(cachefile, 'r')
-            root = ET.fromstring(f.read())
-            f.close()
-            cacheFound = True
-            for child in root:
-                if not artwork.get(child.tag):
-                    artwork[child.tag] = try_decode(child.text)
+        artwork = getPVRartworkFromCacheFile(cache,artwork)
                 
         if not cacheFound:
             
