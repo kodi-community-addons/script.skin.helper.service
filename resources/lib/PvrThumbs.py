@@ -348,14 +348,17 @@ def createNFO(cachefile, artwork):
 def getPVRartworkFromCacheFile(cachefile,artwork=None):
     if not artwork: artwork={}
     if xbmcvfs.exists(cachefile):
-        f = xbmcvfs.File(cachefile, 'r')
-        root = ET.fromstring(f.read())
-        f.close()
-        cacheFound = True
-        for child in root:
-            if not artwork.get(child.tag):
-                artwork[child.tag] = try_decode(child.text)
-        del root
+        try:
+            f = xbmcvfs.File(cachefile, 'r')
+            root = ET.fromstring(f.read())
+            f.close()
+            cacheFound = True
+            for child in root:
+                if not artwork.get(child.tag):
+                    artwork[child.tag] = try_decode(child.text)
+            del root
+        except Exception as e:
+            logMsg("ERROR in getPVRartworkFromCacheFile --> " + str(e), 0)
     return artwork
          
 def searchChannelLogo(searchphrase):
