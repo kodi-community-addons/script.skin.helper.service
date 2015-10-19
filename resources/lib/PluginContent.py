@@ -1,19 +1,12 @@
-import xbmcplugin
-import xbmcgui
-import xbmc
-import xbmcaddon
-import xbmcaddon
-import xbmcvfs
-import os, sys
-import time
-import urllib,urllib2
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
 import xml.etree.ElementTree as xmltree
 from xml.dom.minidom import parse
-import json
-import random
 from operator import itemgetter
 
 from Utils import *
+from PvrThumbs import *
 
 def addDirectoryItem(label, path, folder=True):
     li = xbmcgui.ListItem(label, path=path)

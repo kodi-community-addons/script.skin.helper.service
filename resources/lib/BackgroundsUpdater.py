@@ -1,26 +1,14 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import os
-import sys
-import xbmc
-import xbmcplugin
-import xbmcaddon
-import xbmcgui
 import threading
-import xbmcvfs
 import random
 from xml.dom.minidom import parse
 import xml.etree.ElementTree as xmltree
 import base64
-import json
-import urllib
 import ConditionalBackgrounds as conditionalBackgrounds
 from Utils import *
 from ImageWall import *
-import datetime
-import time
-
 
 class BackgroundsUpdater(threading.Thread):
     
@@ -342,30 +330,33 @@ class BackgroundsUpdater(threading.Thread):
                 #get random image from our global cache file
                 if self.allBackgrounds["pvrfanart"]:
                     image = random.choice(self.allBackgrounds["pvrfanart"])
-                    if image:
-                        logMsg("setting random pvrfanart from cache.... " + image)
                     return image 
             else:
                 images = []
+                import PvrThumbs as pvrthumbs
+                if not WINDOW.getProperty("pvrthumbspath"): setAddonsettings()
                 customlookuppath = WINDOW.getProperty("customlookuppath").decode("utf-8")
                 pvrthumbspath = WINDOW.getProperty("pvrthumbspath").decode("utf-8")
                 paths = [customlookuppath, pvrthumbspath]
                 for path in paths:
                     dirs, files = xbmcvfs.listdir(path)
                     for dir in dirs:
-                        dir = os.path.join(path,dir.decode("utf-8"))
-                        dirs2, files2 = xbmcvfs.listdir(dir)
+                        thumbdir = os.path.join(path,dir.decode("utf-8"))
+                        dirs2, files2 = xbmcvfs.listdir(thumbdir)
                         for file in files2:
-                            if file == "pvrdetails.xml": 
-                                artwork = getPVRartworkFromCacheFile(os.path.join(dir,"pvrdetails.xml"))
+                            if "pvrdetails.xml" in file:
+                                artwork = pvrthumbs.getPVRartworkFromCacheFile(os.path.join(thumbdir,"pvrdetails.xml"))
                                 if artwork.get("fanart"): images.append(artwork.get("fanart"))
+                                del artwork
                         for dir2 in dirs2:
-                            dir2 = os.path.join(dir,dir2.decode("utf-8"))
-                            dirs3, files3 = xbmcvfs.listdir(dir2)
+                            thumbdir = os.path.join(dir,dir2.decode("utf-8"))
+                            dirs3, files3 = xbmcvfs.listdir(thumbdir)
                             for file in files3:
-                                if file == "pvrdetails.xml": 
-                                    artwork = getPVRartworkFromCacheFile(os.path.join(dir,"pvrdetails.xml"))
+                               if "pvrdetails.xml" in file:
+                                    artwork = pvrthumbs.getPVRartworkFromCacheFile(os.path.join(thumbdir,"pvrdetails.xml"))
                                     if artwork.get("fanart"): images.append(artwork.get("fanart"))
+                                    del artwork
+                del pvrthumbs
                     
                 #store images in the cache
                 self.allBackgrounds["pvrfanart"] = images

@@ -1,16 +1,5 @@
-import xbmc
-import xbmcaddon
-import xbmcgui
-import xbmcvfs
-import xbmcplugin
-import os
-import json
 import shutil
-import hashlib
-import urllib
-import time
 import zipfile
-import shutil
 from Utils import *
 import random
 from xml.dom.minidom import parse

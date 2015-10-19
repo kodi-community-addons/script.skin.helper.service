@@ -1,9 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import xbmc
-import time
-import _strptime
 from resources.lib.Utils import *
 from resources.lib.BackgroundsUpdater import BackgroundsUpdater
 from resources.lib.ListItemMonitor import ListItemMonitor

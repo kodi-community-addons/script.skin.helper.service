@@ -1,12 +1,3 @@
-import sys
-import xbmc
-import xbmcgui
-import xbmcaddon
-import xbmcvfs
-import os, sys
-import urllib
-import threading
-import InfoDialog
 import math
 
 from xml.dom.minidom import parse

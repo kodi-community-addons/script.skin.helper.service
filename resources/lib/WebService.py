@@ -1,16 +1,11 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
 import SimpleHTTPServer, BaseHTTPServer, httplib
 import threading
 import thread
-import json
-import os
-import sys
-import xbmc
-import xbmcplugin
-import xbmcaddon
-import xbmcgui
-import xbmcvfs
-import urllib
 from Utils import *
+from PvrThumbs import *
 
 #port is hardcoded as there is no way in Kodi to pass a INFO-label inside a panel, 
 #otherwise the portnumber could be passed to the skin though a skin setting or window prop
@@ -21,7 +16,7 @@ class WebService(threading.Thread):
     exit = False
     
     def __init__(self, *args):
-        logMsg("WebService - started")
+        logMsg("WebService - start helper webservice on port " + str(port),0)
         self.event =  threading.Event()
         threading.Thread.__init__(self, *args)
     

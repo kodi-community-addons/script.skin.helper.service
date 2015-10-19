@@ -1,23 +1,5 @@
-import xbmcplugin
-import xbmcgui
-import xbmc
-import xbmcaddon
-import xbmcaddon
-import xbmcvfs
-import os, sys
-import time
-import urllib
-import xml.etree.ElementTree as etree
 from xml.dom.minidom import parse
-import json
-import random
-
 from Utils import *
-
-from xml.etree.ElementTree import Element, SubElement, Comment, tostring
-from xml.etree import ElementTree
-from xml.dom import minidom
-import xml.etree.cElementTree as ET
 
       
 def musicSearch():

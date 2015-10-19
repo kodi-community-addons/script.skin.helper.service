@@ -1,21 +1,12 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import os
-import sys
-import xbmc
-import xbmcplugin
-import xbmcaddon
-import xbmcgui
 import threading
 import thread
-import xbmcvfs
 import random
 import xml.etree.ElementTree as etree
-import base64
-import time
-from random import randint
 from Utils import *
+from PvrThumbs import *
 
 
 class ListItemMonitor(threading.Thread):
@@ -206,7 +197,7 @@ class ListItemMonitor(threading.Thread):
         WINDOW.clearProperty("skinhelper-nextairedtvshows")
         WINDOW.clearProperty("skinhelper-similarmovies")
         WINDOW.clearProperty("skinhelper-favouritemedia")
-        WINDOW.setProperty("widgetreload2", datetime.now().strftime('%Y-%m-%d %H:%M:%S') + str(randint(0,9)))
+        WINDOW.setProperty("widgetreload2", datetime.now().strftime('%Y-%m-%d %H:%M:%S') + str(random.randint(0,9)))
                     
     def doBackgroundWork(self):
         try:

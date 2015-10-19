@@ -1,18 +1,6 @@
-import sys
-import xbmc
-import xbmcgui
-import xbmcaddon
-import xbmcvfs
-import os, sys
-import urllib
-import threading
-import InfoDialog
-import json
 from xml.dom.minidom import parse
 from operator import itemgetter
 from Utils import *
-import datetime
-import time
 
 cachePath = os.path.join(ADDON_DATA_PATH,"conditionalbackgrounds.json")
 dateFormat = "%Y-%m-%d"
@@ -179,7 +167,7 @@ def getActiveConditionalBackground(backgroundsList=None):
     if backgroundsList:
         backgroundsList = eval(backgroundsList)
     background = None
-    dateToday = datetime.datetime.now().strftime(dateFormat)
+    dateToday = datetime.now().strftime(dateFormat)
     if not backgroundsList:
         backgroundsList = getConditionalBackgrounds()
     if backgroundsList:

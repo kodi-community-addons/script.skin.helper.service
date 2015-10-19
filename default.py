@@ -1,12 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-
-import xbmc
-import xbmcplugin
-import xbmcgui
 import shutil
 
-from resources.lib.Utils import *
+#from resources.lib.Utils import *
 from resources.lib.MainModule import *
 
 class Main:

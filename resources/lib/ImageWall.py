@@ -1,11 +1,7 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 
-from urllib import urlopen
-import json
 import random
-import cStringIO
-from hashlib import md5
-import xbmcvfs
 import io
 from Utils import *
 

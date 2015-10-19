@@ -1,7 +1,5 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import xbmc
-from datetime import datetime
 from random import randint
 from Utils import *
 

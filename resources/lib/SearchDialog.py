@@ -1,9 +1,3 @@
-import sys
-import xbmc
-import xbmcgui
-import xbmcaddon
-import json as json
-import urllib
 import threading
 import InfoDialog
 

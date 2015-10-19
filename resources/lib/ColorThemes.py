@@ -1,18 +1,4 @@
-import sys
-import xbmc
-import xbmcgui
-import xbmcaddon
-import xbmcvfs
-import os, sys
-import urllib
-import threading
-import InfoDialog
-import json
-from xml.dom.minidom import parse
-from operator import itemgetter
 from Utils import *
-import datetime
-import time
 
 skin = xbmcaddon.Addon(id=xbmc.getSkinDir())
 userThemesDir = xbmc.translatePath(skin.getAddonInfo('profile')).decode("utf-8")

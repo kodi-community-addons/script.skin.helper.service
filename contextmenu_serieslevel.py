@@ -1,8 +1,4 @@
 # -*- coding: utf-8 -*-
-import sys
-import os
-import xbmc
-import xbmcaddon
 from resources.lib.Utils import *
 
 #Kodi contextmenu item to go to the series level from a listing with episodes from multiple shows like in progress, recent etc.
