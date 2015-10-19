@@ -329,7 +329,7 @@ def restoreColorTheme():
         #create temp path
         temp_path = xbmc.translatePath('special://temp/skinbackup/').decode("utf-8")
         if xbmcvfs.exists(temp_path):
-            shutil.rmtree(temp_path)
+            shutil.rmtree(temp_path.encode(sys.getfilesystemencoding()))
         xbmcvfs.mkdir(temp_path)
         
         #unzip to temp
