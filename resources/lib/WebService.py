@@ -21,16 +21,21 @@ class WebService(threading.Thread):
         threading.Thread.__init__(self, *args)
     
     def stop(self):
-        logMsg("WebService - stop called")
-        conn = httplib.HTTPConnection("localhost:%d" % port)
-        conn.request("QUIT", "/")
-        conn.getresponse()
-        self.exit = True
-        self.event.set()
+        try:
+            logMsg("WebService - stop called")
+            conn = httplib.HTTPConnection("127.0.0.1:%d" % port)
+            conn.request("QUIT", "/")
+            conn.getresponse()
+            self.exit = True
+            self.event.set()
+        except Exception as e: logMsg("WebServer error occurred " + str(e),0)
 
     def run(self):
-        server = StoppableHttpServer(('localhost', port), StoppableHttpRequestHandler)
-        server.serve_forever()
+        try:
+            server = StoppableHttpServer(('127.0.0.1', port), StoppableHttpRequestHandler)
+            server.serve_forever()
+        except Exception as e: logMsg("WebServer error occurred " + str(e),0)
+            
 
 
 class Request(object):

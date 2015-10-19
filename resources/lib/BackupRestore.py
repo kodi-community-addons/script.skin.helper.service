@@ -98,8 +98,8 @@ def backup(filterString="",silent=None,promptfilename="false"):
                         xbmcvfs.mkdir(skinshortcuts_path)
                     dirs, files = xbmcvfs.listdir(skinshortcuts_path_source)
                     for file in files:
-                        sourcefile = skinshortcuts_path_source + file
-                        destfile = skinshortcuts_path + file
+                        sourcefile = skinshortcuts_path_source + file.decode("utf-8")
+                        destfile = skinshortcuts_path + file.decode("utf-8")
                         logMsg("source --> " + sourcefile)
                         logMsg("destination --> " + destfile)
 
