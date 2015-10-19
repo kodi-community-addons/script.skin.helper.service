@@ -47,12 +47,13 @@ def createImageWall(images,windowProp,blackwhite=False,square=False):
     for image in images:
         if not image.startswith("music@") and not ".mp3" in image:
             file = xbmcvfs.File(image)
-            if file:
+            try:
                 img_obj = io.BytesIO(bytearray(file.readBytes()))
                 img = Image.open(img_obj)
                 img = img.resize(size)
                 wall_images.append(img)
-            file.close()
+            except: pass
+            finally: file.close()
     if wall_images:
         #duplicate images if we don't have enough
         
