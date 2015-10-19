@@ -178,13 +178,14 @@ def getPVRThumbs(title,channel,type="channels",path="",genre=""):
                         if artwork.has_key(artType[0]) and artType[0] != "channellogo": artwork[artType[0]] = downloadImage(artwork[artType[0]],pvrThumbPath,artType[1])
                 
                 #create persistant cache pvrdetails.xml file...
-                artwork["title"] = title
-                artwork["channel"] = channel
-                artwork["date_scraped"] = "%s" %datetime.now()
-                if path: artwork["path"] = path
-                if genre: artwork["genre"] = genre
-                if not xbmcvfs.exists(pvrThumbPath): xbmcvfs.mkdirs(pvrThumbPath)
-                createNFO(cachefile,artwork)
+                if title and channel:
+                    artwork["title"] = title
+                    artwork["channel"] = channel
+                    artwork["date_scraped"] = "%s" %datetime.now()
+                    if path: artwork["path"] = path
+                    if genre: artwork["genre"] = genre
+                    if not xbmcvfs.exists(pvrThumbPath): xbmcvfs.mkdirs(pvrThumbPath)
+                    createNFO(cachefile,artwork)
                     
         #store in cache for quick access later
         cache[dbID] = artwork
