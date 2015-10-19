@@ -113,18 +113,18 @@ def getPVRThumbs(title,channel,type="channels",path="",genre=""):
             json_query = getJSON('PVR.GetRecordings', '{ "properties": [ %s ]}' %( fields_pvrrecordings))
             for item in json_query:
                 if (path and path in item["file"]) or (not path and title in item["file"]) or (not channel and title in item["file"]):
+                    logMsg("getPVRThumbs - title or path matches an existing recording: " + title)
                     if not channel: 
                         channel = item["channel"]
                         artwork["channel"] = channel
                     if not genre:
                         artwork["genre"] = " / ".join(item["genre"])
                         genre = " / ".join(item["genre"])
-                    if item.get("plot"):
-                        artwork["plot"] = item["plot"]
                     if item.get("art"):
                         artwork = item["art"]
-                    logMsg("getPVRThumbs - title or path matches an existing recording: " + title)
-                    break
+                    if item.get("plot"):
+                        artwork["plot"] = item["plot"]
+                        break
             
             #lookup existing artwork in pvrthumbs paths
             if xbmcvfs.exists(pvrThumbPath):

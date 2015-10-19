@@ -133,8 +133,8 @@ class StoppableHttpRequestHandler (SimpleHTTPServer.SimpleHTTPRequestHandler):
                 if preftype == "discart" and cdArt: image = cdArt
                 elif preftype == "banner" and BannerArt: image = BannerArt
                 elif preftype == "clearlogo" and LogoArt: image = LogoArt
-                if image: break
-                
+                if image: break     
+        
         #set fallback image if nothing else worked
         if not image and fallback: image = fallback
         

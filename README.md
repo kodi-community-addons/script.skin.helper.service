@@ -288,35 +288,7 @@ RunScript(script.skin.helper.service,action=colorpicker,shortcutproperty=XXX)
 ________________________________________________________________________________________________________
 
 
-
-#### Auto thumb generator
-The script has a feature to automatically retrieve a thumb/image for a specific search query
-It will first query TMDB, if that fails Google images and if that fails it will try youtube to get a thumb.
-This might come in handy if you want to provide a thumb for the currently selected show in the PVR channel list for example.
-Note 1: The script will build a cache in the background to prevent too many queries to google/youtube.
-Note 2: There is no way to guarantee which aspect ratio the retrieved image has, so use scale or keep as aspect ratio to display the images.
-
-How to use ?
-You must use a multiimage control for this thing to work, as that accepts a plugin path as the texturepath.
-Use the path property to define the searchquery, the more info you supply, the more accurate the resulting image will be.
-Note that if you want the TMDB poster to be returned the show or movie title has to be exact.
-For example to display a thumb of the selected TV program in MyPVRChannels.xml:
-
-
-```xml
-<control type="multiimage">
-	<width>300</width>
-	<height>300</height>
-	<imagepath>plugin://script.skin.helper.service/?action=getthumb&path=$INFO[ListItem.Title] $INFO[ListItem.ChannelName]</imagepath>
-	<aspectratio>keep</aspectratio>
-</control>
-```
-
-When the script is called it will also fill a window property with the image: SkinHelper.ListItemThumb
-
-________________________________________________________________________________________________________
-
-##### Webservice --> $INFO images inside list/panel containers
+##### Webservice --> $INFO images inside list/panel containers and image lookups
 This script comes with a little web-helper service to retrieve images that are normally only available as window property and/or only available for the current focused listitem, such as the pvr artwork or music artwork.
 NOTE: The scripts webservice runs on tcp port 52307. This is currently hardcoded because there is no way to pass the port as an variable to the skin inside a list (which was the whole purpose of the webservice in the first place)
 
@@ -371,6 +343,7 @@ You also need to specify the contenttype for the container: artists, albums or s
 
 Optional parameter: fallback --> Allows you to set a fallback image if no image was found.
 For example &amp;fallback=$INFO[ListItem.Thumb]
+
 ________________________________________________________________________________________________________
 
 
