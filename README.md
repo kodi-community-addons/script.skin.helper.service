@@ -204,28 +204,10 @@ NOTE: The images will only be scraped if you have set the following Skin Bool to
 
 Also note that the addon-settings for this addon will allow fine-tuning of the PVR thumbs feature
 
+If you want to use the PVR thumbs inside a Kodi list/panel container you can do that by using the scripts webservice.
+See below in this readme...
 
-##### PVR images inside lists
-All Windows properties of the script are only provided for the current selected listitem.
-If you have a panel container in the PVR windows and you want to show the PVR artwork, the script has a little helper-webservice to deliver the artwork:
-
-```xml
-<control type="image">
-    <!--pvr thumb image-->
-    <texture background="true">http://localhost:52307/getthumb&title=$INFO[Listitem.Title]&channel=$INFO[ListItem.ChannelName]</texture>
-    <visible>Skin.HasSetting(SkinHelper.EnablePVRThumbs) + SubString(ListItem.FolderPath,pvr://)</visible>
-</control>
-```
-The above example will return the PVR artwork, in general the landscape, fanart or thumb is returned.
-If you prefer a specific art-type you can specify that with type=[kodi artwork type]
-For example:
-
-http://localhost:52307/getthumb&title=$VAR[ListTitlePVR]&channel=$INFO[ListItem.ChannelName]&type=poster
-
-You can also supply multiple arttypes by using + as a seperator. In that case the script will supply the image for the first arttype found.
-Example type=landscape+fanart+thumb
 ________________________________________________________________________________________________________
-
 
 
 
@@ -334,6 +316,62 @@ When the script is called it will also fill a window property with the image: Sk
 
 ________________________________________________________________________________________________________
 
+##### Webservice --> $INFO images inside list/panel containers
+This script comes with a little web-helper service to retrieve images that are normally only available as window property and/or only available for the current focused listitem, such as the pvr artwork or music artwork.
+NOTE: The scripts webservice runs on tcp port 52307. This is currently hardcoded because there is no way to pass the port as an variable to the skin inside a list (which was the whole purpose of the webservice in the first place)
+
+The following use-cases are currently supported:
+
+##### PVR images inside lists
+All Windows properties for the PVR-thumbs feature only provided for the current selected listitem.
+If you want to use them inside a panel (so you can list all channels with correct artwork), you can use the webservice:
+
+```xml
+<control type="image">
+    <!--pvr thumb image-->
+    <texture background="true">http://localhost:52307/getpvrthumb&amp;title=$INFO[Listitem.Title]&amp;channel=$INFO[ListItem.ChannelName]&amp;type=poster</texture>
+    <visible>Skin.HasSetting(SkinHelper.EnablePVRThumbs) + SubString(ListItem.FolderPath,pvr://)</visible>
+</control>
+```
+The above example will return the PVR artwork, you can specify the type that should be returned with type=[kodi artwork type]
+You can also supply multiple arttypes by using + as a seperator. In that case the script will supply the image for the first arttype found.
+
+Optional parameter: fallback --> Allows you to set a fallback image if no image was found.
+For example &amp;fallback=$INFO[ListItem.Icon]
+
+##### General thumb/image for searchphrase
+You can use this to search for a general thumb using google images. For example to get a actor thumb.
+
+```xml
+<control type="image">
+    <!--thumb image-->
+    <texture background="true">http://localhost:52307/getthumb&amp;title=$INFO[Listitem.Label]</texture>
+</control>
+```
+The argument to pass is title which will be the searchphrase. In the above example replace $INFO[Listitem.Label] with any other infolabel or text.
+For example inside DialogVideoInfo.xml to supply a thumb of the director:
+
+<texture background="true">http://localhost:52307/getthumb&amp;title=$INFO[Listitem.Director] IMDB</texture>
+
+Optional parameter: fallback --> Allows you to set a fallback image if no image was found.
+For example &amp;fallback=DefaultDirector.png
+
+##### Music Artwork
+You can use this to have the music artwork inside a list/panel container.
+
+```xml
+<control type="image">
+    <!--music artwork-->
+    <texture background="true">http://localhost:52307/getmusicart&amp;dbid=$INFO[Listitem.DBID]&amp;type=banner,clearlogo,discart&amp;contenttype=artists</texture>
+</control>
+```
+The argument to pass is the DBID of the listitem and you must also supply the type= argument to provide the type of image that should be returned.
+Possibilities are banner, clearlogo and discart for music artwork. Fanart and album thumb should be provided by Kodi itself.
+You also need to specify the contenttype for the container: artists, albums or songs
+
+Optional parameter: fallback --> Allows you to set a fallback image if no image was found.
+For example &amp;fallback=$INFO[ListItem.Thumb]
+________________________________________________________________________________________________________
 
 
 

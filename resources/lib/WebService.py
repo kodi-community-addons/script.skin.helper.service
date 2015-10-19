@@ -72,23 +72,17 @@ class StoppableHttpRequestHandler (SimpleHTTPServer.SimpleHTTPRequestHandler):
     
     def parse_request(self):
         #hack to accept non url encoded strings to pass listitem details from Kodi to webservice
-        if ("GET /getthumb" in self.raw_requestline or "HEAD /getthumb" in self.raw_requestline) and not "%20" in self.raw_requestline and "title=" in self.raw_requestline and "channel=" in self.raw_requestline:
-            if self.raw_requestline.startswith("HEAD"): command = "HEAD /getthumb"
-            else: command = "GET /getthumb"
-            self.raw_requestline = self.raw_requestline.replace(command,"").replace(" HTTP/1.1","")
-            title = self.raw_requestline.split("&channel=")[0].replace("&title=","")
-            channel = self.raw_requestline.split("&channel=")[1].replace("\r\n","")
-            type = None
-            if "&type=" in channel:
-                channeltemp = channel
-                channel = channeltemp.split("&type=")[0]
-                type = "&type=" + channeltemp.split("&type=")[1]           
-            title = single_urlencode(try_encode(title))
-            channel = single_urlencode(try_encode(channel))
-            if type:
-                self.raw_requestline = "%s&title=%s&channel=%s&type=%s HTTP/1.1" %(command,title,channel,type)
-            else:
-                self.raw_requestline = "%s&title=%s&channel=%s HTTP/1.1" %(command,title,channel)
+        #strip the passed arguments apart, urlencode them and pass them back as new requestline properly formatted
+        if ("GET /" in self.raw_requestline or "HEAD /" in self.raw_requestline) and not "%20" in self.raw_requestline:
+            if self.raw_requestline.startswith("HEAD"): command = "HEAD /"
+            else: command = "GET /"
+            action = self.raw_requestline.split("&")[0].replace(command,"")
+            temp_requestline = self.raw_requestline.replace(command,"").replace(" HTTP/1.1","").replace("\r\n","").replace(action,"")
+            parameters = temp_requestline.split("&")
+            paramstring = "&action=%s" %action
+            for param in parameters:
+                if param and len(param.split("=")) > 1:  paramstring += "&%s=%s" %(param.split("=")[0], single_urlencode(param.split("=")[1]))
+            self.raw_requestline = "%s%s%s HTTP/1.1" %(command,action,paramstring)
         retval = SimpleHTTPServer.SimpleHTTPRequestHandler.parse_request(self)
         self.request = Request(self.path, self.headers, self.rfile)
         return retval
@@ -101,36 +95,53 @@ class StoppableHttpRequestHandler (SimpleHTTPServer.SimpleHTTPRequestHandler):
     def send_headers(self):
         image = None
         preferred_type = None
-        params = urlparse.parse_qs(self.path)       
+        params = urlparse.parse_qs(self.path)
+        action = params.get("action","")[0]
         title = params.get("title","")
-        channel = params.get("channel","")
-        preferred_type = params.get("type","")
         if title: title = title[0].decode("utf-8")
-        if channel: channel = channel[0].decode("utf-8")
-        if preferred_type: preferred_type = preferred_type[0]        
-        if title and title != "..":
-            if not channel or channel=="None":
-                image = searchGoogleImage(title)
+        fallback = params.get("fallback","")
+        if fallback: fallback = fallback[0].decode("utf-8")
+
+        if action == "getthumb":
+            image = searchGoogleImage(title)
+        elif action == "getpvrthumb":
+            channel = params.get("channel","")
+            preferred_type = params.get("type","")
+            if channel: channel = channel[0].decode("utf-8")
+            if preferred_type: preferred_type = preferred_type[0]
+            if xbmc.getCondVisibility("Window.IsActive(MyPVRRecordings.xml)"): type = "recordings"
+            else: type = "channels"
+            artwork = getPVRThumbs(title, channel, type)
+            if preferred_type:
+                preferred_types = preferred_type.split(",")
+                for preftype in preferred_types:
+                    if artwork.get(preftype):
+                        image = artwork.get(preftype)
+                        break
             else:
-                if xbmc.getCondVisibility("Window.IsActive(MyPVRRecordings.xml)"): type = "recordings"
-                else: type = "channels"
-                artwork = getPVRThumbs(title, channel, type)
-                if preferred_type:
-                    preferred_types = preferred_type.split(" ")
-                    for preftype in preferred_types:
-                        if artwork.get(preftype):
-                            image = artwork.get(preftype)
-                            break
-                else:
-                    if artwork.get("thumb"): image = artwork.get("thumb")
-                    if artwork.get("fanart"): image = artwork.get("fanart")
-                    if artwork.get("landscape"): image = artwork.get("landscape")
+                if artwork.get("thumb"): image = artwork.get("thumb")
+                if artwork.get("fanart"): image = artwork.get("fanart")
+                if artwork.get("landscape"): image = artwork.get("landscape")
+        
+        elif action == "getmusicart":
+            dbid = params.get("dbid","")[0]
+            preferred_type = params.get("type","")[0]
+            contenttype = params.get("contenttype","")[0]
+            cdArt, LogoArt, BannerArt, extraFanArt, Info, TrackList, SongCount, albumCount, AlbumList = getMusicDetailsByDbId(dbid, contenttype)
+            preferred_types = preferred_type.split(",")
+            for preftype in preferred_types:
+                if preftype == "discart" and cdArt: image = cdArt
+                elif preftype == "banner" and BannerArt: image = BannerArt
+                elif preftype == "clearlogo" and LogoArt: image = LogoArt
+                if image: break
+                
+        #set fallback image if nothing else worked
+        if not image and fallback: image = fallback
+        
         if image:
             self.send_response(200)
-            if ".jpg" in image:
-                self.send_header('Content-type','image/jpeg')
-            else:
-                self.send_header('Content-type','image/png')
+            if ".jpg" in image: self.send_header('Content-type','image/jpeg')
+            else: self.send_header('Content-type','image/png')
             self.send_header('Last-Modified',WINDOW.getProperty("SkinHelper.lastUpdate"))
             logMsg("found image for request %s  --> %s" %(try_encode(self.path),try_encode(image)))
             image = xbmcvfs.File(image)

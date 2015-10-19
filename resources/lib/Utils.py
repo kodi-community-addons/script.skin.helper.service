@@ -579,7 +579,7 @@ def getCleanImage(image):
         image=urllib.unquote(image.encode("utf-8"))
         if image.endswith("/"):
             image = image[:-1]
-    return image
+    return try_decode(image)
 
 def normalize_string(text):
     text = text.replace(":", "")
@@ -598,16 +598,17 @@ def normalize_string(text):
     return text
     
 def getMusicDetailsByDbId(dbid,itemtype):
-    cdArt = None
-    LogoArt = None
-    BannerArt = None
-    extraFanArt = None
-    Info = None
-    path = None
+    cdArt = ""
+    LogoArt = ""
+    BannerArt = ""
+    extraFanArt = ""
+    Info = ""
+    path = ""
     songCount = 0
     albumsCount = 0
     albums = []
     TrackList = ""
+    json_response = None
     if itemtype == "songs":
         json_response = getJSON('AudioLibrary.GetSongDetails', '{ "songid": %s, "properties": [ "file","artistid","albumid","comment"] }'%int(dbid))  
     elif itemtype == "artists":
