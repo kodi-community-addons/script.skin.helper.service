@@ -5,7 +5,7 @@ import SimpleHTTPServer, BaseHTTPServer, httplib
 import threading
 import thread
 from Utils import *
-from PvrThumbs import *
+from ArtworkUtils import *
 
 #port is hardcoded as there is no way in Kodi to pass a INFO-label inside a panel, 
 #otherwise the portnumber could be passed to the skin though a skin setting or window prop
@@ -130,15 +130,19 @@ class StoppableHttpRequestHandler (SimpleHTTPServer.SimpleHTTPRequestHandler):
         
         elif action == "getmusicart":
             dbid = params.get("dbid","")[0]
-            preferred_type = params.get("type","")[0]
+            preferred_type = params.get("type","")
+            if preferred_type: preferred_type = preferred_type[0]
             contenttype = params.get("contenttype","")[0]
-            cdArt, LogoArt, BannerArt, extraFanArt, Info, TrackList, SongCount, albumCount, AlbumList = getMusicDetailsByDbId(dbid, contenttype)
-            preferred_types = preferred_type.split(",")
-            for preftype in preferred_types:
-                if preftype == "discart" and cdArt: image = cdArt
-                elif preftype == "banner" and BannerArt: image = BannerArt
-                elif preftype == "clearlogo" and LogoArt: image = LogoArt
-                if image: break     
+            artwork = getMusicDetailsByDbId(dbid, contenttype)
+            if preferred_type:
+                preferred_types = preferred_type.split(",")
+                for preftype in preferred_types:
+                    if artwork.get(preftype):
+                        image = artwork.get(preftype)
+                        break
+            else:
+                if artwork.get("thumb"): image = artwork.get("thumb")
+                if artwork.get("fanart"): image = artwork.get("fanart")
         
         #set fallback image if nothing else worked
         if not image and fallback: image = fallback
