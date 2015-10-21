@@ -64,6 +64,8 @@ class Main:
                     getWidgets(path)
                 elif action == "GETTHUMB":
                     getThumb(try_decode(path))
+                elif action == "EXTRAFANART":
+                    getExtraFanArt(path)
                 elif action == "WIDGETS":
                     getWidgets(path)
                 elif action == "GETCAST":

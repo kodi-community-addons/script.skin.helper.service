@@ -22,4 +22,10 @@
         <setting id="enablewallbackgrounds" type="bool" label="32115" default="true" visible="Skin.HasSetting(SkinHelper.EnablePVRThumbs)"/>
         <setting id="preferBWwallbackgrounds" type="bool" label="32116" default="false" visible="eq(-1,true)"/>
     </category>
+    <category label="Music Artwork">
+        <setting id="enableMusicArtScraper" type="bool" label="enable online lookups for music artwork" default="true"/>
+        <setting id="enableLocalMusicArtLookup" type="bool" label="lookup artwork in music folders" default="true"/>
+        <setting id="downloadMusicArt" type="bool" label="download artwork to my music folders" default="false" visible="eq(-1,true)"/>
+        <setting label="32089" type="action" action="RunScript(script.skin.helper.service,action=RESETMUSICTHUMBS)" visible="eq(-2,true)"/>
+    </category>
 </settings>

@@ -164,18 +164,33 @@ Some additional window properties that can be used in the music library.
 
 | property 			| description |
 | :----------------------------	| :----------- |
-| Window(Home).Property(SkinHelper.ExtraFanArtPath) | will return the extrafanart path for the artist, empty if none is found. This window property is only available when the following Skin Bool is true: SkinHelper.EnableExtraFanart|
-| Window(Home).Property(SkinHelper.Music.BannerArt) | Will return the Artist's banner image for the current selected item in the list. |
-| Window(Home).Property(SkinHelper.Music.LogoArt) | Will return the Artist's logo image for the current selected item in the list. |
+| Window(Home).Property(SkinHelper.Music.Banner) | Will return the Artist's banner image for the current selected item in the list. |
+| Window(Home).Property(SkinHelper.Music.FanArt) | Will return the Artist's fanart image for the current selected item in the list. |
+| Window(Home).Property(SkinHelper.Music.ClearLogo) | Will return the Artist's logo image for the current selected item in the list. |
 | Window(Home).Property(SkinHelper.Music.DiscArt) | Will return the Album's cd art image for the current selected item in the list. |
+| Window(Home).Property(SkinHelper.Music.ExtraFanArt) | Will return the ExtraFanArt path (if exists) for the current selected item in the list, to be used in a multiimage control. |
 | Window(Home).Property(SkinHelper.Music.Info) | Returns the album's description or if empty the artist info. Can be used at both album- and songlevel.  |
-| Window(Home).Property(SkinHelper.Music.TrackList) | Returns all tracks for the selected album or artist, separated by [CR] in the format tracknumber - title  |
-| Window(Home).Property(SkinHelper.Music.AlbumList) | Returns all albums for the selected artist, separated by [CR] |
+| Window(Home).Property(SkinHelper.Music.TrackList) | Returns all tracks (in the library) for the selected album or artist, separated by [CR] in the format tracknumber - title  |
+| Window(Home).Property(SkinHelper.Music.AlbumList) | Returns all albums (in the library) for the selected artist, separated by [CR] |
 | Window(Home).Property(SkinHelper.Music.SongCount) | Returns the number of songs for the selected artist or album |
 | Window(Home).Property(SkinHelper.Music.AlbumCount) | Returns the number of albums for the selected artist |
 
 Note: If you also want to have the Music Properties for your homescreen widgets, you need to set a Window Property "SkinHelper.WidgetContainer" with the ID of your widget container:
 For example in home.xml: <onload>SetProperty(SkinHelper.WidgetContainer,301)</onload>
+
+##### Music artwork/properties for music player
+The music properties are also available for the player:
+
+| Window(Home).Property(SkinHelper.Player.Music.Banner) | Will return the Artist's banner image (if found). |
+| Window(Home).Property(SkinHelper.Player.Music.FanArt) | Will return the Artist's fanart image (if found). |
+| Window(Home).Property(SkinHelper.Player.Music.ClearLogo) | Will return the Artist's logo image (if found). |
+| Window(Home).Property(SkinHelper.Player.Music.DiscArt) | Will return the Album's cd art image (if found). |
+| Window(Home).Property(SkinHelper.Player.Music.ExtraFanArt) | Will return the ExtraFanArt path for the artist (if found). |
+| Window(Home).Property(SkinHelper.Player.Music.Info) | Returns the album's description or if empty the artist info. (if found).  |
+| Window(Home).Property(SkinHelper.Player.Music.TrackList) | Returns all tracks (in the library) for the selected album or artist  |
+| Window(Home).Property(SkinHelper.Player.Music.AlbumList) | Returns all albums (in the library) for the selected artist, separated by [CR] |
+| Window(Home).Property(SkinHelper.Player.Music.SongCount) | Returns the number of songs for the selected artist or album |
+| Window(Home).Property(SkinHelper.Player.Music.AlbumCount) | Returns the number of albums for the selected artist |
 
 ________________________________________________________________________________________________________
 
@@ -199,6 +214,7 @@ The properties will also be available for your homescreen widgets if you set the
 | Window(Home).Property(SkinHelper.PVR.CharacterArt) | Will return the CharacterArt for the currently selected show/movie (only if found) |
 | Window(Home).Property(SkinHelper.PVR.Banner) | Will return the Banner for the currently selected show/movie (only if found) |
 | Window(Home).Property(SkinHelper.PVR.ChannelLogo) | Will return the channel logo for the currently selected channel (only if found) |
+| Window(Home).Property(SkinHelper.PVR.ExtraFanArt) | Will return the ExtraFanArt path (if exists) for the current selected item in the list, to be used in a multiimage control. |
 
 NOTE: The images will only be scraped if you have set the following Skin Bool to true --> SkinHelper.EnablePVRThumbs
 

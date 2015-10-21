@@ -38,7 +38,7 @@ fields_files = fields_file + fields_movies + ", " + fields_tvshows + ", " + fiel
 fields_songs = '"artist", "title", "rating", "fanart", "thumbnail", "duration", "playcount", "comment", "file", "album", "lastplayed"'
 fields_albums = '"title", "fanart", "thumbnail", "genre", "displayartist", "artist", "genreid", "musicbrainzalbumartistid", "year", "rating", "artistid", "musicbrainzalbumid", "theme", "description", "type", "style", "playcount", "albumlabel", "mood"'
 fields_pvrrecordings = '"art", "channel", "directory", "endtime", "file", "genre", "icon", "playcount", "plot", "plotoutline", "resume", "runtime", "starttime", "streamurl", "title"'
-PVRartTypes = [ ("thumb","thumb.jpg"),("poster","poster.jpg"),("fanart","fanart.jpg"),("banner","banner.jpg"),("landscape","landscape.jpg"),("clearlogo","logo.png"),("clearart","clearart.png"),("channellogo","channellogo.png"),("discart","disc.png"),("characterart","characterart.png") ]
+KodiArtTypes = [ ("thumb","thumb.jpg"),("poster","poster.jpg"),("fanart","fanart.jpg"),("banner","banner.jpg"),("landscape","landscape.jpg"),("clearlogo","logo.png"),("clearart","clearart.png"),("channellogo","channellogo.png"),("discart","disc.png"),("discart","cdart.png"),("extrafanart","extrafanart/"),("characterart","characterart.png"),("folder","folder.jpg") ]
 
 def logMsg(msg, level = 1):
     doDebugLog = False
@@ -75,9 +75,11 @@ def getContentPath(libPath):
 def getJSON(method,params):
     json_response = xbmc.executeJSONRPC('{ "jsonrpc": "2.0", "method" : "%s", "params": %s, "id":1 }' %(method, try_encode(params)))
     jsonobject = json.loads(json_response.decode('utf-8','replace'))
-   
+
     if(jsonobject.has_key('result')):
         jsonobject = jsonobject['result']
+        if isinstance(jsonobject, list):
+            return jsonobject
         if jsonobject.has_key('files'):
             return jsonobject['files']
         elif jsonobject.has_key('movies'):
@@ -128,6 +130,8 @@ def getJSON(method,params):
                 return {}
         elif jsonobject.has_key('addons'):
             return jsonobject['addons']
+        elif jsonobject.has_key('item'):
+            return jsonobject['item']
         else:
             logMsg("getJson - invalid result for Method %s - params: %s - response: %s" %(method,params, str(jsonobject))) 
             return {}
@@ -138,6 +142,8 @@ def getJSON(method,params):
 def setAddonsettings():
     if not xbmcvfs.exists(SETTING("pvrthumbspath")):
         xbmcvfs.mkdirs(SETTING("pvrthumbspath"))
+    if not xbmcvfs.exists("special://profile/addon_data/script.skin.helper.service/musicart/"):
+        xbmcvfs.mkdirs("special://profile/addon_data/script.skin.helper.service/musicart/")
     #get the addonsettings and store them in memory
     WINDOW.setProperty("pvrthumbspath",SETTING("pvrthumbspath"))
     WINDOW.setProperty("cacheRecordings",SETTING("cacheRecordings"))
@@ -157,6 +163,10 @@ def setAddonsettings():
     WINDOW.setProperty("scraper_language",SETTING("scraper_language"))
     WINDOW.setProperty("enablewallbackgrounds",SETTING("enablewallbackgrounds"))
     WINDOW.setProperty("preferBWwallbackgrounds",SETTING("preferBWwallbackgrounds"))
+    WINDOW.setProperty("enableMusicArtScraper",SETTING("enableMusicArtScraper"))
+    WINDOW.setProperty("downloadMusicArt",SETTING("downloadMusicArt"))
+    WINDOW.setProperty("enableLocalMusicArtLookup",SETTING("enableLocalMusicArtLookup"))
+
 
 def try_encode(text, encoding="utf-8"):
     try:
@@ -597,92 +607,3 @@ def normalize_string(text):
     text = unicodedata.normalize('NFKD', try_decode(text))
     return text
     
-def getMusicDetailsByDbId(dbid,itemtype):
-    cdArt = ""
-    LogoArt = ""
-    BannerArt = ""
-    extraFanArt = ""
-    Info = ""
-    path = ""
-    songCount = 0
-    albumsCount = 0
-    albums = []
-    TrackList = ""
-    json_response = None
-    if itemtype == "songs":
-        json_response = getJSON('AudioLibrary.GetSongDetails', '{ "songid": %s, "properties": [ "file","artistid","albumid","comment"] }'%int(dbid))  
-    elif itemtype == "artists":
-        json_response = getJSON('AudioLibrary.GetSongs', '{ "filter":{"artistid": %s}, "properties": [ "file","artistid","track","title","albumid","album" ] }'%int(dbid))
-    elif itemtype == "albums":
-        json_response = getJSON('AudioLibrary.GetSongs', '{ "filter":{"albumid": %s}, "properties": [ "file","artistid","track","title","albumid" ] }'%int(dbid))
-    
-    if json_response:
-        song = {}
-        if type(json_response) is list:
-            #get track listing
-            for item in json_response:
-                if not song:
-                    song = item
-                    path = item["file"]
-                if item["track"]: TrackList += "%s - %s[CR]" %(str(item["track"]), item["title"])
-                else: TrackList += "%s[CR]" %(item["title"])
-                songCount += 1
-                if item.get("album") and item["album"] not in albums:
-                    albumsCount +=1
-                    albums.append(item["album"])            
-        else:
-            song = json_response
-        path = song["file"]
-        if not Info:
-            json_response2 = getJSON('AudioLibrary.GetAlbumDetails','{ "albumid": %s, "properties": [ "musicbrainzalbumid","description" ] }'%song["albumid"])
-            if json_response2.get("description",None):
-                Info = json_response2["description"]
-        if not Info and song:
-            if song.has_key("artistid"):
-                json_response2 = getJSON('AudioLibrary.GetArtistDetails', '{ "artistid": %s, "properties": [ "musicbrainzartistid","description" ] }'%song["artistid"][0])
-                if json_response2.get("description",None):
-                    Info = json_response2["description"]
-
-    if path:
-        if "\\" in path:
-            delim = "\\"
-        else:
-            delim = "/"
-                
-        path = path.replace(path.split(delim)[-1],"")
-                              
-        #extrafanart
-        imgPath = os.path.join(path,"extrafanart" + delim)
-        if xbmcvfs.exists(imgPath):
-            extraFanArt = imgPath
-        else:
-            imgPath = os.path.join(path.replace(path.split(delim)[-2]+delim,""),"extrafanart" + delim)
-            if xbmcvfs.exists(imgPath):
-                extraFanArt = imgPath
-        
-        #cdart
-        if xbmcvfs.exists(os.path.join(path,"cdart.png")):
-            cdArt = os.path.join(path,"cdart.png")
-        else:
-            imgPath = os.path.join(path.replace(path.split(delim)[-2]+delim,""),"cdart.png")
-            if xbmcvfs.exists(imgPath):
-                cdArt = imgPath
-        
-        #banner
-        if xbmcvfs.exists(os.path.join(path,"banner.jpg")):
-            BannerArt = os.path.join(path,"banner.jpg")
-        else:
-            imgPath = os.path.join(path.replace(path.split(delim)[-2]+delim,""),"banner.jpg")
-            if xbmcvfs.exists(imgPath):
-                BannerArt = imgPath
-                
-        #logo
-        imgPath = os.path.join(path,"logo.png")
-        if xbmcvfs.exists(imgPath):
-            LogoArt = imgPath
-        else:
-            imgPath = os.path.join(path.replace(path.split(delim)[-2]+delim,""),"logo.png")
-            if xbmcvfs.exists(imgPath):
-                LogoArt = imgPath
-                
-    return (cdArt, LogoArt, BannerArt, extraFanArt, Info, TrackList, str(songCount), str(albumsCount), "[CR]".join(albums))

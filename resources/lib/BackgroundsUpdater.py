@@ -333,7 +333,7 @@ class BackgroundsUpdater(threading.Thread):
                     return image 
             else:
                 images = []
-                import PvrThumbs as pvrthumbs
+                import ArtworkUtils as artutils
                 if not WINDOW.getProperty("pvrthumbspath"): setAddonsettings()
                 customlookuppath = WINDOW.getProperty("customlookuppath").decode("utf-8")
                 pvrthumbspath = WINDOW.getProperty("pvrthumbspath").decode("utf-8")
@@ -345,7 +345,7 @@ class BackgroundsUpdater(threading.Thread):
                         dirs2, files2 = xbmcvfs.listdir(thumbdir)
                         for file in files2:
                             if "pvrdetails.xml" in file:
-                                artwork = pvrthumbs.getPVRartworkFromCacheFile(os.path.join(thumbdir,"pvrdetails.xml"))
+                                artwork = artutils.getArtworkFromCacheFile(os.path.join(thumbdir,"pvrdetails.xml"))
                                 if artwork.get("fanart"): images.append(artwork.get("fanart"))
                                 del artwork
                         for dir2 in dirs2:
@@ -353,10 +353,10 @@ class BackgroundsUpdater(threading.Thread):
                             dirs3, files3 = xbmcvfs.listdir(thumbdir)
                             for file in files3:
                                if "pvrdetails.xml" in file:
-                                    artwork = pvrthumbs.getPVRartworkFromCacheFile(os.path.join(thumbdir,"pvrdetails.xml"))
+                                    artwork = artutils.getArtworkFromCacheFile(os.path.join(thumbdir,"pvrdetails.xml"))
                                     if artwork.get("fanart"): images.append(artwork.get("fanart"))
                                     del artwork
-                del pvrthumbs
+                del artutils
                     
                 #store images in the cache
                 self.allBackgrounds["pvrfanart"] = images

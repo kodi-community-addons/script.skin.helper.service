@@ -6,7 +6,7 @@ from xml.dom.minidom import parse
 from operator import itemgetter
 
 from Utils import *
-from PvrThumbs import *
+from ArtworkUtils import *
 
 def addDirectoryItem(label, path, folder=True):
     li = xbmcgui.ListItem(label, path=path)
@@ -508,13 +508,11 @@ def getRecentAlbums(limit):
     else:
         json_result = getJSON('AudioLibrary.GetRecentlyAddedAlbums', '{ "sort": { "order": "descending", "method": "dateadded" }, "properties": [ %s ], "limits":{"end":%d} }' %(fields_albums,limit))
         for item in json_result:
-            cdArt, LogoArt, BannerArt, extraFanArt, Info, TrackList, SongCount, albumCount, AlbumList = getMusicDetailsByDbId(item["albumid"], "albums")
-            art = { 'discart': cdArt, 'fanart' : item["fanart"], 'banner' : BannerArt, 'thumb' : item["thumbnail"], 'clearlogo' : LogoArt  }
-            item["art"] = art
+            item["art"] = getMusicArtworkByDbId(item["albumid"], "albums")
             item["type"] = "album"
-            item["extrafanart"] = extraFanArt
-            item['album_description'] = Info
-            item["tracklist"] = TrackList
+            item["extrafanart"] = item["art"].get("extrafanart","")
+            item['album_description'] = item["art"].get("info","")
+            item["tracklist"] = item["art"].get("tracklist","")
             item["file"] = "musicdb://albums/%s/" %str(item["albumid"])
             allItems.append(item)
         if allItems: WINDOW.setProperty("skinhelper-recentalbums", repr(allItems))
@@ -539,13 +537,11 @@ def getRecentPlayedAlbums(limit):
         #query json api
         json_result = getJSON('AudioLibrary.GetRecentlyPlayedAddedAlbums', '{ "sort": { "order": "descending", "method": "lastplayed" }, "properties": [ %s ], "limits":{"end":%d} }' %(fields_albums,limit))
         for item in json_result:
-            cdArt, LogoArt, BannerArt, extraFanArt, Info, TrackList, SongCount, albumCount, AlbumList = getMusicDetailsByDbId(item["albumid"], "albums")
-            art = { 'discart': cdArt, 'fanart' : item["fanart"], 'banner' : BannerArt, 'thumb' : item["thumbnail"], 'clearlogo' : LogoArt  }
-            item["art"] = art
+            item["art"] = getMusicArtworkByDbId(item["albumid"], "albums")
             item["type"] = "album"
-            item["extrafanart"] = extraFanArt
-            item['album_description'] = Info
-            item["tracklist"] = TrackList
+            item["extrafanart"] = item["art"].get("extrafanart","")
+            item['album_description'] = item["art"].get("info","")
+            item["tracklist"] = item["art"].get("tracklist","")
             item["file"] = "musicdb://albums/%s/" %str(item["albumid"])
             allItems.append(item)
         if allItems: WINDOW.setProperty("skinhelper-recentplayedalbums", repr(allItems))
@@ -570,13 +566,11 @@ def getRecentPlayedSongs(limit):
         #query json api
         json_result = getJSON('AudioLibrary.GetRecentlyPlayedSongs', '{ "sort": { "order": "descending", "method": "lastplayed" }, "properties": [ %s ], "limits":{"end":%d} }' %(fields_songs,limit))
         for item in json_result:
-            cdArt, LogoArt, BannerArt, extraFanArt, Info, TrackList, SongCount, albumCount, AlbumList = getMusicDetailsByDbId(item["songid"], "songs")
-            art = { 'discart': cdArt, 'fanart' : item["fanart"], 'banner' : BannerArt, 'thumb' : item["thumbnail"], 'clearlogo' : LogoArt  }
-            item["art"] = art
+            item["art"] = getMusicArtworkByDbId(item["songid"], "songs")
             item["type"] = "song"
-            item["extrafanart"] = extraFanArt
-            item['album_description'] = Info
-            item["tracklist"] = TrackList
+            item["extrafanart"] = item["art"].get("extrafanart","")
+            item['album_description'] = item["art"].get("info","")
+            item["tracklist"] = item["art"].get("tracklist","")
             allItems.append(item)
         if allItems: WINDOW.setProperty("skinhelper-recentplayedsongs", repr(allItems))
     for item in allItems:
@@ -599,13 +593,11 @@ def getRecentSongs(limit):
         #query json api
         json_result = getJSON('AudioLibrary.GetRecentlyAddedSongs', '{ "sort": { "order": "descending", "method": "dateadded" }, "properties": [ %s ], "limits":{"end":%d} }' %(fields_songs,limit))
         for item in json_result:
-            cdArt, LogoArt, BannerArt, extraFanArt, Info, TrackList, SongCount, albumCount, AlbumList = getMusicDetailsByDbId(item["songid"], "songs")
-            art = { 'discart': cdArt, 'fanart' : item["fanart"], 'banner' : BannerArt, 'thumb' : item["thumbnail"], 'clearlogo' : LogoArt  }
-            item["art"] = art
+            item["art"] = getMusicArtworkByDbId(item["songid"], "songs")
             item["type"] = "song"
-            item["extrafanart"] = extraFanArt
-            item['album_description'] = Info
-            item["tracklist"] = TrackList
+            item["extrafanart"] = item["art"].get("extrafanart","")
+            item['album_description'] = item["art"].get("info","")
+            item["tracklist"] = item["art"].get("tracklist","")
             allItems.append(item)
         if allItems: WINDOW.setProperty("skinhelper-recentsongs", repr(allItems))
     for item in allItems:
@@ -1119,7 +1111,17 @@ def getFavouriteMedia(limit):
         if count == limit:
             break
     xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
-       
+
+def getExtraFanArt(path):
+    #get extrafanarts by passing an artwork cache xml file
+    artwork = getArtworkFromCacheFile(path)
+    if artwork.get("extrafanarts"):
+        extrafanart = eval( artwork.get("extrafanarts") )
+        for item in extrafanart:
+            li = xbmcgui.ListItem(item, path=item)
+            xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=item, listitem=li)
+    xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
+    
 def getCast(movie=None,tvshow=None,movieset=None):
     
     itemId = None
