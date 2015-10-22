@@ -61,7 +61,7 @@ class BackgroundsUpdater(threading.Thread):
                 try:
                     backgroundDelay = int(xbmc.getInfoLabel("skin.string(SkinHelper.RandomFanartDelay)"))
                 except:
-                    backgroundDelay = 30
+                    backgroundDelay = 0
                 
                 # force refresh smart shortcuts when skin settings launched (so user sees any newly added smartshortcuts)
                 currentWindow = xbmc.getInfoLabel("$INFO[Window.Property(xmlfile)]")
@@ -140,20 +140,23 @@ class BackgroundsUpdater(threading.Thread):
         if WINDOW.getProperty("enablewallbackgrounds") != "true" or self.exit:
             return
         if WINDOW.getProperty("preferBWwallbackgrounds") == "true":
-            blackWhite = True
+            windowProp = "BW_" + windowProp
         
         #load from cache    
-        if self.allBackgrounds.get(windowProp+str(blackWhite)):
-            image = random.choice(self.allBackgrounds[windowProp+str(blackWhite)])
+        if self.allBackgrounds.get(windowProp):
+            image = random.choice(self.allBackgrounds[windowProp])
             if image:
-                image = getCleanImage(image)
-                WINDOW.setProperty(windowProp, image)
-                return True
+                if not xbmcvfs.exists(image): 
+                    logMsg("Wall images cleared - starting rebuild...",0)
+                else:
+                    image = getCleanImage(image)
+                    WINDOW.setProperty(windowProp, image)
+                    return True
                
         #load images for libPath and generate wall
         if self.allBackgrounds.get(libPath):
             images = createImageWall(self.allBackgrounds[libPath],windowProp,blackWhite,square)
-            self.allBackgrounds[windowProp+str(blackWhite)] = images
+            self.allBackgrounds[windowProp] = images
             if images:
                 image = random.choice(images)
                 if image:
@@ -404,7 +407,6 @@ class BackgroundsUpdater(threading.Thread):
             self.setImageFromPath("SkinHelper.InProgressMoviesBackground","SkinHelper.InProgressMoviesBackground","",['VideoLibrary.GetMovies','{ "properties": ["title","art"], "filter": {"and": [{"operator":"true", "field":"inprogress", "value":""}]}, "sort": { "order": "ascending", "method": "random", "ignorearticle": true } }'])
             self.setImageFromPath("SkinHelper.RecentMoviesBackground","SkinHelper.RecentMoviesBackground","",['VideoLibrary.GetRecentlyAddedMovies','{ "properties": ["title","art"], "limits": {"end":50}, "sort": { "order": "ascending", "method": "random", "ignorearticle": true } }'])
             self.setImageFromPath("SkinHelper.UnwatchedMoviesBackground","SkinHelper.UnwatchedMoviesBackground","",['VideoLibrary.GetMovies','{ "properties": ["title","art"], "filter": {"and": [{"operator":"is", "field":"playcount", "value":""}]}, "limits": {"end":50}, "sort": { "order": "ascending", "method": "random", "ignorearticle": true } }'])
-            self.setWallImageFromPath("SkinHelper.AllMoviesBackground.Wall","SkinHelper.AllMoviesBackground")
             
         #tvshows backgrounds
         if xbmc.getCondVisibility("Library.HasContent(tvshows)"):
@@ -419,9 +421,7 @@ class BackgroundsUpdater(threading.Thread):
         #all music
         if xbmc.getCondVisibility("Library.HasContent(music)"):
             self.setImageFromPath("SkinHelper.AllMusicBackground","musicdb://artists/","",None)
-            self.setWallImageFromPath("SkinHelper.AllMusicBackground.Wall","musicdb://artists/")
             self.setImageFromPath("SkinHelper.AllMusicSongsBackground","musicdb://songs/",None,None,True)
-            self.setWallImageFromPath("SkinHelper.AllMusicSongsBackground.Wall","musicdb://songs/",True)
         
         #tmdb backgrounds (extendedinfo)
         if xbmc.getCondVisibility("System.HasAddon(script.extendedinfo)"):
@@ -529,8 +529,7 @@ class BackgroundsUpdater(threading.Thread):
                                     playlistCount += 1
                         except: logMsg("Error while processing smart shortcuts for playlist %s  --> "%label, 0)
                 self.smartShortcuts["playlists"] = playlists
-            
-                    
+                        
         #smart shortcuts --> favorites
         if xbmc.getCondVisibility("Skin.HasSetting(SmartShortcuts.favorites)"):
             logMsg("Processing smart shortcuts for favourites.... ")
@@ -808,5 +807,10 @@ class BackgroundsUpdater(threading.Thread):
         
         self.refreshSmartshortcuts = False        
                 
+        #wall backgrounds
+        self.setWallImageFromPath("SkinHelper.AllMoviesBackground.Wall","SkinHelper.AllMoviesBackground")
+        self.setWallImageFromPath("SkinHelper.AllMusicBackground.Wall","musicdb://artists/")
+        self.setWallImageFromPath("SkinHelper.AllMusicSongsBackground.Wall","musicdb://songs/",True)
+        self.setWallImageFromPath("SkinHelper.AllTvShowsBackground.Wall","SkinHelper.AllTvShowsBackground")
                 
                 

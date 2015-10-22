@@ -230,7 +230,9 @@ ________________________________________________________________________________
 #### Backgrounds provided by the script
 The script has a background scanner to provide some rotating fanart backgrounds which can be used in your skin as backgrounds. The backgrounds are available in window properties.
 
-Note: the default interval for the backgrounds is set at 30 seconds. If you want to change this interval you can set a Skin String "SkinHelper.RandomFanartDelay" with the number of seconds as value.
+Note: You must set the skin string SkinHelper.RandomFanartDelay to enable the backgrounds. 
+If you want to change this interval you can set a Skin String "SkinHelper.RandomFanartDelay" with the number of seconds as value.
+Set it to 0 or clear the string to disable the backgrounds.
 
 | property 			| description |
 | :----------------------------	| :----------- |
@@ -246,7 +248,13 @@ Note: the default interval for the backgrounds is set at 30 seconds. If you want
 | Window(Home).Property(SkinHelper.RecentEpisodesBackground) | Random fanart of recently added episodes|
 | Window(Home).Property(SkinHelper.PvrBackground) | Random fanart collected by the PVR thumbs feature|
 | Window(Home).Property(SkinHelper.PicturesBackground) | Random pictures from all picture sources. By default this pulls images from all picture sources the user has configured. It is however possible to provide a custom source from which the images should be pulled from by setting Skin String: SkinHelper.CustomPicturesBackgroundPath|
-________________________________________________________________________________________________________
+| Window(Home).Property(SkinHelper.AllMoviesBackground.Wall) | Collection of Movie fanart images (from the library) as wall prebuilt by the script|
+| Window(Home).Property(SkinHelper.AllMusicBackground.Wall) | Collection of Artist fanart images (from the library) as wall prebuilt by the script|
+| Window(Home).Property(SkinHelper.AllMusicSongsBackground.Wall) | Collection of Song/Album cover images (from the library) as wall prebuilt by the script|
+| Window(Home).Property(SkinHelper.AllTvShowsBackground.Wall) | Collection of Tv show fanart images (from the library) as wall prebuilt by the script|
+
+NOTE: the generation of wall images is experimental and might have impact on the cpu while creating them (at startup only). The feature can be disabled in the addon settings.
+_______________________________________________________________________________________________________
 ________________________________________________________________________________________________________
 
 ### Tools and actions provided by the script

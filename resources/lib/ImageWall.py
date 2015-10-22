@@ -16,7 +16,6 @@ except:
     hasPilModule = False
 
 def createImageWall(images,windowProp,blackwhite=False,square=False):
-
     if not hasPilModule:
         return []
     
@@ -37,12 +36,24 @@ def createImageWall(images,windowProp,blackwhite=False,square=False):
         img_height = 135
     size = img_width, img_height
     
-    wallpath = xbmc.translatePath(os.path.join(ADDON_DATA_PATH,"wallbackgrounds/"))
+    wallpath = "special://profile/addon_data/script.skin.helper.service/wallbackgrounds/"
     if not xbmcvfs.exists(wallpath):
         xbmcvfs.mkdir(wallpath)
     
     wall_images = []
     return_images = []
+
+    if SETTING("reuseWallBackgrounds") == "true":
+        #reuse the existing images - do not rebuild
+        dirs, files = xbmcvfs.listdir(wallpath)
+        for file in files:
+            if file.startswith(windowProp):
+                return_images.append(os.path.join(wallpath.decode("utf-8"),file))
+    
+    if return_images: 
+        return return_images
+    
+    logMsg("Building Wall background for %s - this might take a while..." %windowProp,0)
     images_required = img_columns*img_rows
     for image in images:
         if not image.startswith("music@") and not ".mp3" in image:
@@ -63,7 +74,7 @@ def createImageWall(images,windowProp,blackwhite=False,square=False):
         for i in range(40):
             random.shuffle(wall_images)
             img_canvas = Image.new(img_type, (img_width * img_columns, img_height * img_rows))
-            out_file = xbmc.translatePath(os.path.join(wallpath,windowProp + "." + str(i) + ".jpg"))
+            out_file = xbmc.translatePath(os.path.join(wallpath.decode("utf-8"),windowProp + "." + str(i) + ".jpg"))
             if xbmcvfs.exists(out_file):
                 xbmcvfs.delete(out_file)
             
@@ -75,5 +86,5 @@ def createImageWall(images,windowProp,blackwhite=False,square=False):
 
             img_canvas.save(out_file, "JPEG")
             return_images.append(out_file)
-
+    logMsg("Building Wall background %s DONE" %windowProp,0)
     return return_images

@@ -108,24 +108,35 @@ class Main:
             elif action == "BUSYTEXTURE":    
                 selectBusyTexture()
 
-            elif action == "RESETPVRTHUMBS":
-                path = WINDOW.getProperty("pvrthumbspath").decode("utf-8")
-                WINDOW.setProperty("resetPvrArtCache","reset")
-                success = True
-                ret = xbmcgui.Dialog().yesno(heading=ADDON.getLocalizedString(32089), line1=ADDON.getLocalizedString(32090)+path)
-                if ret:
-                    dirs, files = xbmcvfs.listdir(path)
-                    for file in files:
-                        success = xbmcvfs.delete(os.path.join(path,file.decode("utf-8")))
-                    for dir in dirs:
-                        dirs2, files2 = xbmcvfs.listdir(os.path.join(path,dir.decode("utf-8")))
-                        for file in files2:
-                            success = xbmcvfs.delete(os.path.join(path,dir.decode("utf-8"),file.decode("utf-8")))
-                        success = xbmcvfs.rmdir(os.path.join(path,dir.decode("utf-8")))
-                    if success:
-                        xbmcgui.Dialog().ok(heading=ADDON.getLocalizedString(32089), line1=ADDON.getLocalizedString(32091))
-                    else:
-                        xbmcgui.Dialog().ok(heading=ADDON.getLocalizedString(32089), line1=ADDON.getLocalizedString(32092))
+            elif action == "RESETCACHE":
+                path = params.get("PATH")
+                if path == "pvr":
+                    path = WINDOW.getProperty("pvrthumbspath").decode("utf-8")
+                    WINDOW.setProperty("resetPvrArtCache","reset")
+                elif path == "music":
+                    path = "special://profile/addon_data/script.skin.helper.service/musicart/"
+                    WINDOW.setProperty("resetMusicArtCache","reset")
+                elif path == "wallbackgrounds":
+                    path = "special://profile/addon_data/script.skin.helper.service/wallbackgrounds/"
+                    WINDOW.setProperty("resetWallArtCache","reset")
+                else: path = None
+                
+                if path:
+                    success = True
+                    ret = xbmcgui.Dialog().yesno(heading=ADDON.getLocalizedString(32089), line1=ADDON.getLocalizedString(32090)+path)
+                    if ret:
+                        dirs, files = xbmcvfs.listdir(path)
+                        for file in files:
+                            success = xbmcvfs.delete(os.path.join(path,file.decode("utf-8")))
+                        for dir in dirs:
+                            dirs2, files2 = xbmcvfs.listdir(os.path.join(path,dir.decode("utf-8")))
+                            for file in files2:
+                                success = xbmcvfs.delete(os.path.join(path,dir.decode("utf-8"),file.decode("utf-8")))
+                            success = xbmcvfs.rmdir(os.path.join(path,dir.decode("utf-8")))
+                        if success:
+                            xbmcgui.Dialog().ok(heading=ADDON.getLocalizedString(32089), line1=ADDON.getLocalizedString(32091))
+                        else:
+                            xbmcgui.Dialog().ok(heading=ADDON.getLocalizedString(32089), line1=ADDON.getLocalizedString(32092))
                     
             
             elif action == "BACKUP":

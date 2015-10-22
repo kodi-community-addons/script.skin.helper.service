@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <settings>
-    <category label="PVR Artwork">
+    <category label="32120">
         <setting label="32093" type="lsep" visible="!Skin.HasSetting(SkinHelper.EnablePVRThumbs)"/>
         <setting id="useTMDBLookups" type="bool" label="32094" default="true" visible="Skin.HasSetting(SkinHelper.EnablePVRThumbs)"/>
         <setting label="32114" type="text" id="scraper_language" default="en"  visible="Skin.HasSetting(SkinHelper.EnablePVRThumbs)"/>
@@ -16,16 +16,18 @@
         <setting label="32107" type="text" id="ignoretitles"  visible="Skin.HasSetting(SkinHelper.EnablePVRThumbs)"/>
         <setting label="32112" type="text" id="stripwords"  visible="Skin.HasSetting(SkinHelper.EnablePVRThumbs)"/>
         <setting id="directory_structure" type="select" label="32108" lvalues="32109|32110|32111"  visible="Skin.HasSetting(SkinHelper.EnablePVRThumbs)"/>
-        <setting label="32089" type="action" action="RunScript(script.skin.helper.service,action=RESETPVRTHUMBS)" visible="Skin.HasSetting(SkinHelper.EnablePVRThumbs)"/>
+        <setting label="32089" type="action" action="RunScript(script.skin.helper.service,action=RESETCACHE,path=pvr)" visible="Skin.HasSetting(SkinHelper.EnablePVRThumbs)"/>
     </category>
-    <category label="Backgrounds">
-        <setting id="enablewallbackgrounds" type="bool" label="32115" default="true" visible="Skin.HasSetting(SkinHelper.EnablePVRThumbs)"/>
-        <setting id="preferBWwallbackgrounds" type="bool" label="32116" default="false" visible="eq(-1,true)"/>
+    <category label="32121">
+        <setting id="enablewallbackgrounds" type="bool" label="32115" default="true" visible="Skin.String(SkinHelper.RandomFanartDelay) + !Skin.String(SkinHelper.RandomFanartDelay,0)"/>
+        <setting id="preferBWwallbackgrounds" type="bool" label="32116" default="false" visible="eq(-1,true) + Skin.String(SkinHelper.RandomFanartDelay) + !Skin.String(SkinHelper.RandomFanartDelay,0)"/>
+        <setting id="reuseWallBackgrounds" type="bool" label="32128" default="true" visible="eq(-2,true) + Skin.String(SkinHelper.RandomFanartDelay) + !Skin.String(SkinHelper.RandomFanartDelay,0)"/>
+        <setting label="32129" type="action" action="RunScript(script.skin.helper.service,action=RESETCACHE,path=wallbackgrounds)"/>
     </category>
-    <category label="Music Artwork">
-        <setting id="enableMusicArtScraper" type="bool" label="enable online lookups for music artwork" default="true"/>
-        <setting id="enableLocalMusicArtLookup" type="bool" label="lookup artwork in music folders" default="true"/>
-        <setting id="downloadMusicArt" type="bool" label="download artwork to my music folders" default="false" visible="eq(-1,true)"/>
-        <setting label="32089" type="action" action="RunScript(script.skin.helper.service,action=RESETMUSICTHUMBS)" visible="eq(-2,true)"/>
+    <category label="32122">
+        <setting id="enableMusicArtScraper" type="bool" label="32123" default="true"/>
+        <setting id="enableLocalMusicArtLookup" type="bool" label="32124" default="true"/>
+        <setting id="downloadMusicArt" type="bool" label="32125" default="false" visible="eq(-1,true)"/>
+        <setting label="32126" type="action" action="RunScript(script.skin.helper.service,action=RESETCACHE,path=music)"/>
     </category>
 </settings>

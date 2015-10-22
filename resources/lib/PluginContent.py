@@ -343,6 +343,7 @@ def getBackgrounds():
     globalBackgrounds.append((ADDON.getLocalizedString(32117), "SkinHelper.AllMoviesBackground.Wall"))
     globalBackgrounds.append((ADDON.getLocalizedString(32118), "SkinHelper.AllMusicBackground.Wall"))
     globalBackgrounds.append((ADDON.getLocalizedString(32119), "SkinHelper.AllMusicSongsBackground.Wall"))
+    globalBackgrounds.append((ADDON.getLocalizedString(32127), "SkinHelper.AllTvShowsBackground.Wall"))
     
     if xbmc.getCondVisibility("System.HasAddon(script.extendedinfo)"):
         globalBackgrounds.append((xbmc.getInfoLabel("$ADDON[script.extendedinfo 32046]") + " (TheMovieDB)", "SkinHelper.TopRatedMovies"))

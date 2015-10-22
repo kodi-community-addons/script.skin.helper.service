@@ -373,7 +373,7 @@ msgid "Recently played songs"
 msgstr ""
 
 msgctxt "#32089"
-msgid "Reset persistant cache for PVR thumbs"
+msgid "Reset persistant cache"
 msgstr ""
 
 msgctxt "#32090"
@@ -494,4 +494,44 @@ msgstr ""
 
 msgctxt "#32119"
 msgid "Random Albums Wall/Grid"
+msgstr ""
+
+msgctxt "#32120"
+msgid "PVR Artwork"
+msgstr ""
+
+msgctxt "#32121"
+msgid "Backgrounds"
+msgstr ""
+
+msgctxt "#32122"
+msgid "Music Artwork"
+msgstr ""
+
+msgctxt "#32123"
+msgid "Enable online lookups for music artwork"
+msgstr ""
+
+msgctxt "#32124"
+msgid "Lookup artwork in local music folders"
+msgstr ""
+
+msgctxt "#32125"
+msgid "Download artwork to local music folders"
+msgstr ""
+
+msgctxt "#32126"
+msgid "Reset persistant cache"
+msgstr ""
+
+msgctxt "#32127"
+msgid "Random Tv Shows Wall/Grid"
+msgstr ""
+
+msgctxt "#32128"
+msgid "Only build the wall images once (reuse images)"
+msgstr ""
+
+msgctxt "#32129"
+msgid "Clear cache (rebuild all wall images)"
 msgstr ""
