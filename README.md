@@ -171,7 +171,7 @@ Some additional window properties that can be used in the music library.
 | Window(Home).Property(SkinHelper.Music.ExtraFanArt) | Will return the ExtraFanArt path (if exists) for the current selected item in the list, to be used in a multiimage control. |
 | Window(Home).Property(SkinHelper.Music.Info) | Returns the album's description or if empty the artist info. Can be used at both album- and songlevel.  |
 | Window(Home).Property(SkinHelper.Music.TrackList) | Returns all tracks (in the library) for the selected album or artist, separated by [CR] in the format tracknumber - title  |
-| Window(Home).Property(SkinHelper.Music.AlbumList) | Returns all albums (in the library) for the selected artist, separated by [CR] |
+| Window(Home).Property(SkinHelper.Music.Albums) | Returns all albums (in the library) for the selected artist, separated by [CR] |
 | Window(Home).Property(SkinHelper.Music.SongCount) | Returns the number of songs for the selected artist or album |
 | Window(Home).Property(SkinHelper.Music.AlbumCount) | Returns the number of albums for the selected artist |
 
@@ -188,7 +188,7 @@ The music properties are also available for the player:
 | Window(Home).Property(SkinHelper.Player.Music.ExtraFanArt) | Will return the ExtraFanArt path for the artist (if found). |
 | Window(Home).Property(SkinHelper.Player.Music.Info) | Returns the album's description or if empty the artist info. (if found).  |
 | Window(Home).Property(SkinHelper.Player.Music.TrackList) | Returns all tracks (in the library) for the selected album or artist  |
-| Window(Home).Property(SkinHelper.Player.Music.AlbumList) | Returns all albums (in the library) for the selected artist, separated by [CR] |
+| Window(Home).Property(SkinHelper.Player.Music.Albums) | Returns all albums (in the library) for the selected artist, separated by [CR] |
 | Window(Home).Property(SkinHelper.Player.Music.SongCount) | Returns the number of songs for the selected artist or album |
 | Window(Home).Property(SkinHelper.Player.Music.AlbumCount) | Returns the number of albums for the selected artist |
 
