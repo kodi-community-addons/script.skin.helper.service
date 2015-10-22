@@ -35,7 +35,9 @@ class Main:
                 elif action == "RECENTMEDIA":
                     getRecentMedia(limit)
                 elif action == "SIMILARMOVIES":
-                    getSimilarMovies(limit)
+                    imdbid=params.get("imdbid","")
+                    if imdbid: imdbid = imdbid[0]
+                    getSimilarMovies(limit,imdbid)
                 elif action == "INPROGRESSMEDIA":
                     getInProgressMedia(limit) 
                 elif action == "INPROGRESSANDRECOMMENDEDMEDIA":

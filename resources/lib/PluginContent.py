@@ -751,23 +751,24 @@ def getRecommendedMovies(limit):
             break
     xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
 
-def getSimilarMovies(limit):
+def getSimilarMovies(limit,imdbid=""):
     count = 0
     allItems = []
     xbmcplugin.setContent(int(sys.argv[1]), 'movies')
-    cache = WINDOW.getProperty("skinhelper-similarmovies")
+    cache = WINDOW.getProperty("skinhelper-similarmovies"+imdbid)
     if cache:
         allItems = eval(cache)
     else:
         allTitles = list()
-        #picks a random watched movie and finds similar movies in the library
-        json_result = getJSON('VideoLibrary.GetMovies', '{ "sort": { "order": "descending", "method": "random" }, "filter": {"operator":"isnot", "field":"playcount", "value":"0"}, "properties": [ "title", "rating", "genre"],"limits":{"end":1}}')
+        #lookup movie by imdbid or just pick a random watched movie
+        if imdbid: json_result = getJSON('VideoLibrary.GetMovies', '{ "sort": { "order": "descending", "method": "random" }, "filter": {"operator":"isnot", "field":"playcount", "value":"0"}, "properties": [ "title", "rating", "genre"],"limits":{"end":1}}')
+        else: json_result = getJSON('VideoLibrary.GetMovies', '{ "sort": { "order": "descending", "method": "random" }, "filter": {"operator":"isnot", "field":"playcount", "value":"0"}, "properties": [ "title", "rating", "genre"],"limits":{"end":1}}')
         for item in json_result:
             genres = item["genre"]
             similartitle = item["title"]
             #get all movies from the same genre
             for genre in genres:
-                json_result = getJSON('VideoLibrary.GetMovies', '{ "sort": { "order": "descending", "method": "random" }, "filter": {"and": [{"operator":"is", "field":"genre", "value":"%s"}, {"operator":"is", "field":"playcount", "value":"0"}]}, "properties": [ %s ],"limits":{"end":10} }' %(genre,fields_movies))
+                json_result = getJSON('VideoLibrary.GetMovies', '{ "sort": { "order": "descending", "method": "random" }, "filter": {"and": [{"operator":"is", "field":"genre", "value":"%s"}, {"operator":"is", "field":"playcount", "value":"0"}]}, "properties": [ %s ],"limits":{"end":%d} }' %(genre,fields_movies,limit))
                 for item in json_result:
                     if not item["title"] in allTitles and not item["title"] == similartitle:
                         item["similartitle"] = similartitle
@@ -777,7 +778,7 @@ def getSimilarMovies(limit):
         #sort the list by rating 
         allItems = sorted(allItems,key=itemgetter(0),reverse=True)
         
-        if allItems: WINDOW.setProperty("skinhelper-similarmovies", repr(allItems))
+        if allItems: WINDOW.setProperty("skinhelper-similarmovies"+imdbid, repr(allItems))
     for item in allItems:
         liz = createListItem(item[1])
         liz.setProperty("similartitle", item[1]["similartitle"])

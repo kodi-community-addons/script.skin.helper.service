@@ -759,6 +759,12 @@ This will provide a list with movies that are similar to a random watched movie 
 TIP: The listitem provided by this list will have a property "similartitle" which contains the movie from which this list is generated. That way you can create a "Because you watched $INFO[Container.ListItem.Property(originaltitle)]" label....
 Note: You can optionally provide the reload= parameter if you want to refresh the widget on library changes. If you want to refresh the widget on other circumstances just provide any changing info with the reload parameter, such as the window title or some window Property which you change on X interval.
 
+The above command will create a similar movies listing based on a random watched movie in the library.
+If you want to specify the movie to base the request on yourself you can optionally specify the imdb to the script:
+
+```
+plugin://script.skin.helper.service/?action=similarmovies&imdbid=[IMDBID]&limit=[LIMIT]
+```
 
 ________________________________________________________________________________________________________
 

@@ -71,7 +71,6 @@ class ListItemMonitor(threading.Thread):
                     playerItem = playerTitle + playerFile
                     #only perform actions when the listitem has actually changed
                     if playerItem and playerItem != lastPlayerItem:
-                        
                         #clear all window props first
                         self.resetPlayerWindowProps()
                         self.setMusicPlayerDetails()
@@ -468,7 +467,11 @@ class ListItemMonitor(threading.Thread):
         WINDOW.clearProperty('SkinHelper.ListItemLanguages')
         WINDOW.clearProperty('SkinHelper.ListItemGenres')
         WINDOW.clearProperty('SkinHelper.ListItemDirectors')
-        WINDOW.setProperty("SkinHelper.ExtraFanArtPath","") 
+        WINDOW.setProperty("SkinHelper.ExtraFanArtPath","")
+        if WINDOW.getProperty("SkinHelper.ExtraFanArtPath"):
+            WINDOW.setProperty("SkinHelper.ExtraFanArtPath","-")
+            xbmc.sleep(25)
+            WINDOW.clearProperty("SkinHelper.ExtraFanArtPath")
         WINDOW.clearProperty("SkinHelper.Music.Banner") 
         WINDOW.clearProperty("SkinHelper.Music.ClearLogo") 
         WINDOW.clearProperty("SkinHelper.Music.DiscArt")
@@ -493,7 +496,10 @@ class ListItemMonitor(threading.Thread):
         WINDOW.clearProperty("SkinHelper.PVR.Plot")
         WINDOW.clearProperty("SkinHelper.PVR.Channel")
         WINDOW.clearProperty("SkinHelper.PVR.Genre")
-        WINDOW.clearProperty("SkinHelper.PVR.ExtraFanArt")
+        if WINDOW.getProperty("SkinHelper.PVR.ExtraFanArt"):
+            WINDOW.setProperty("SkinHelper.PVR.ExtraFanArt","-")
+            xbmc.sleep(25)
+            WINDOW.clearProperty("SkinHelper.Player.Music.ExtraFanArt")
         WINDOW.clearProperty("SkinHelper.Player.AddonName")
         WINDOW.clearProperty("SkinHelper.ForcedView")
         WINDOW.clearProperty('SkinHelper.MovieSet.Title')
@@ -551,17 +557,20 @@ class ListItemMonitor(threading.Thread):
     
     def resetPlayerWindowProps(self):
         #reset all window props provided by the script...
-        WINDOW.clearProperty("SkinHelper.Player.Music.Banner") 
-        WINDOW.clearProperty("SkinHelper.Player.Music.ClearLogo") 
-        WINDOW.clearProperty("SkinHelper.Player.Music.DiscArt")
-        WINDOW.clearProperty("SkinHelper.Player.Music.FanArt")
-        WINDOW.clearProperty("SkinHelper.Player.Music.Thumb")
-        WINDOW.clearProperty("SkinHelper.Player.Music.Info")
-        WINDOW.clearProperty("SkinHelper.Player.Music.TrackList")
-        WINDOW.clearProperty("SkinHelper.Player.Music.SongCount")
-        WINDOW.clearProperty("SkinHelper.Player.Music.albumCount")
-        WINDOW.clearProperty("SkinHelper.Player.Music.AlbumList")
-        WINDOW.clearProperty("SkinHelper.Player.Music.ExtraFanArt")
+        WINDOW.setProperty("SkinHelper.Player.Music.Banner","") 
+        WINDOW.setProperty("SkinHelper.Player.Music.ClearLogo","") 
+        WINDOW.setProperty("SkinHelper.Player.Music.DiscArt","") 
+        WINDOW.setProperty("SkinHelper.Player.Music.FanArt","") 
+        WINDOW.setProperty("SkinHelper.Player.Music.Thumb","") 
+        WINDOW.setProperty("SkinHelper.Player.Music.Info","") 
+        WINDOW.setProperty("SkinHelper.Player.Music.TrackList","") 
+        WINDOW.setProperty("SkinHelper.Player.Music.SongCount","") 
+        WINDOW.setProperty("SkinHelper.Player.Music.albumCount","") 
+        WINDOW.setProperty("SkinHelper.Player.Music.AlbumList","")
+        if WINDOW.getProperty("SkinHelper.Player.Music.ExtraFanArt"):
+            WINDOW.setProperty("SkinHelper.Player.Music.ExtraFanArt","-")
+            xbmc.sleep(25)
+            WINDOW.clearProperty("SkinHelper.Player.Music.ExtraFanArt")
         
     def setMovieSetDetails(self):
         #get movie set details -- thanks to phil65 - used this idea from his skin info script     
@@ -931,13 +940,12 @@ class ListItemMonitor(threading.Thread):
               
     def setMusicPlayerDetails(self):
         artwork = {}     
-        
         #get the playing item from the player...
         json_result = getJSON('Player.GetActivePlayers', '{}')
         for item in json_result:
             if item.get("type","") == "audio":
                 json_result = getJSON('Player.GetItem', '{ "playerid": %d, "properties": [ "title","albumid","artist" ] }' %item.get("playerid"))
-                if json_result.get("albumid") and json_result.get("albumid") != -1:
+                if json_result.get("albumid") and json_result["albumid"] > 0:
                     #player is playing a song from the database
                     artwork = getMusicArtworkByDbId(str(json_result["albumid"]),"albums")
                 elif json_result.get("title"):
@@ -948,11 +956,13 @@ class ListItemMonitor(threading.Thread):
                     else:
                         splitchar = None
                         if " - " in json_result.get("title"): splitchar = " - "
+                        elif "- " in json_result.get("title"): splitchar = "- "
+                        elif " -" in json_result.get("title"): splitchar = " -"
                         elif "-" in json_result.get("title"): splitchar = "-"
                         if splitchar:
-                            artist = json_result.get("title").split("-")[0]
-                            title = json_result.get("title").split("-")[1]
-                    artwork = getMusicArtworkByName(artist,title)
+                            artist = json_result.get("title").split(splitchar)[0]
+                            title = json_result.get("title").split(splitchar)[1]
+                    if artist and title: artwork = getMusicArtworkByName(artist,title)
             break
 
         #set properties
