@@ -761,7 +761,7 @@ def getSimilarMovies(limit,imdbid=""):
     else:
         allTitles = list()
         #lookup movie by imdbid or just pick a random watched movie
-        if imdbid: json_result = getJSON('VideoLibrary.GetMovies', '{ "sort": { "order": "descending", "method": "random" }, "filter": {"operator":"isnot", "field":"playcount", "value":"0"}, "properties": [ "title", "rating", "genre"],"limits":{"end":1}}')
+        if imdbid: json_result = getJSON('VideoLibrary.GetMovies', '{ "sort": { "order": "descending", "method": "random" }, "filter": {"operator":"is", "field":"imdbnumber", "value":"%s"}, "properties": [ "title", "rating", "genre"],"limits":{"end":1}}' %imdbid)
         else: json_result = getJSON('VideoLibrary.GetMovies', '{ "sort": { "order": "descending", "method": "random" }, "filter": {"operator":"isnot", "field":"playcount", "value":"0"}, "properties": [ "title", "rating", "genre"],"limits":{"end":1}}')
         for item in json_result:
             genres = item["genre"]
