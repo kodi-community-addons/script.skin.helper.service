@@ -155,7 +155,11 @@ class BackgroundsUpdater(threading.Thread):
                
         #load images for libPath and generate wall
         if self.allBackgrounds.get(libPath):
-            images = createImageWall(self.allBackgrounds[libPath],windowProp,blackWhite,square)
+            images = []
+            try:
+                images = createImageWall(self.allBackgrounds[libPath],windowProp,blackWhite,square)
+            except Exception as e:
+                logMsg("ERROR in createImageWall ! --> " + str(e), 0)
             self.allBackgrounds[windowProp] = images
             if images:
                 image = random.choice(images)
