@@ -133,7 +133,7 @@ class StoppableHttpRequestHandler (SimpleHTTPServer.SimpleHTTPRequestHandler):
             preferred_type = params.get("type","")
             if preferred_type: preferred_type = preferred_type[0]
             contenttype = params.get("contenttype","")[0]
-            artwork = getMusicDetailsByDbId(dbid, contenttype)
+            artwork = getMusicArtworkByDbId(dbid, contenttype)
             if preferred_type:
                 preferred_types = preferred_type.split(",")
                 for preftype in preferred_types:

@@ -383,7 +383,7 @@ def createNFO(cachefile, artwork):
         
         indentXML( tree.getroot() )
         f = xbmcvfs.File(cachefile, 'w')
-        f.write(ET.tostring(tree.getroot(), encoding="us-ascii", method="xml"))
+        f.write(ET.tostring(tree.getroot(), encoding="utf-8"))
         #f.write(tree.toxml(encoding='utf-8'))
         f.close()
     except Exception as e:
