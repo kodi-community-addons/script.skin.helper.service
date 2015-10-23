@@ -469,10 +469,7 @@ class ListItemMonitor(threading.Thread):
         WINDOW.clearProperty('SkinHelper.ListItemGenres')
         WINDOW.clearProperty('SkinHelper.ListItemDirectors')
         WINDOW.setProperty("SkinHelper.ExtraFanArtPath","")
-        if WINDOW.getProperty("SkinHelper.ExtraFanArtPath"):
-            WINDOW.setProperty("SkinHelper.ExtraFanArtPath","-")
-            xbmc.sleep(25)
-            WINDOW.clearProperty("SkinHelper.ExtraFanArtPath")
+        WINDOW.setProperty("SkinHelper.ExtraFanArtPath","")
         WINDOW.clearProperty("SkinHelper.Music.Banner") 
         WINDOW.clearProperty("SkinHelper.Music.ClearLogo") 
         WINDOW.clearProperty("SkinHelper.Music.DiscArt")
@@ -497,10 +494,7 @@ class ListItemMonitor(threading.Thread):
         WINDOW.clearProperty("SkinHelper.PVR.Plot")
         WINDOW.clearProperty("SkinHelper.PVR.Channel")
         WINDOW.clearProperty("SkinHelper.PVR.Genre")
-        if WINDOW.getProperty("SkinHelper.PVR.ExtraFanArt"):
-            WINDOW.setProperty("SkinHelper.PVR.ExtraFanArt","-")
-            xbmc.sleep(25)
-            WINDOW.clearProperty("SkinHelper.Player.Music.ExtraFanArt")
+        WINDOW.setProperty("SkinHelper.PVR.ExtraFanArt","")
         WINDOW.clearProperty("SkinHelper.Player.AddonName")
         WINDOW.clearProperty("SkinHelper.ForcedView")
         WINDOW.clearProperty('SkinHelper.MovieSet.Title')
@@ -558,17 +552,17 @@ class ListItemMonitor(threading.Thread):
     
     def resetPlayerWindowProps(self):
         #reset all window props provided by the script...
-        WINDOW.setProperty("SkinHelper.Player.Music.Banner","-") 
-        WINDOW.setProperty("SkinHelper.Player.Music.ClearLogo","-") 
-        WINDOW.setProperty("SkinHelper.Player.Music.DiscArt","-") 
-        WINDOW.setProperty("SkinHelper.Player.Music.FanArt","-") 
-        WINDOW.setProperty("SkinHelper.Player.Music.Thumb","-") 
-        WINDOW.setProperty("SkinHelper.Player.Music.Info","-") 
-        WINDOW.setProperty("SkinHelper.Player.Music.TrackList","-") 
-        WINDOW.setProperty("SkinHelper.Player.Music.SongCount","-") 
-        WINDOW.setProperty("SkinHelper.Player.Music.albumCount","-") 
-        WINDOW.setProperty("SkinHelper.Player.Music.AlbumList","-")
-        WINDOW.setProperty("SkinHelper.Player.Music.ExtraFanArt","-")
+        WINDOW.setProperty("SkinHelper.Player.Music.Banner","") 
+        WINDOW.setProperty("SkinHelper.Player.Music.ClearLogo","") 
+        WINDOW.setProperty("SkinHelper.Player.Music.DiscArt","") 
+        WINDOW.setProperty("SkinHelper.Player.Music.FanArt","") 
+        WINDOW.setProperty("SkinHelper.Player.Music.Thumb","") 
+        WINDOW.setProperty("SkinHelper.Player.Music.Info","") 
+        WINDOW.setProperty("SkinHelper.Player.Music.TrackList","") 
+        WINDOW.setProperty("SkinHelper.Player.Music.SongCount","") 
+        WINDOW.setProperty("SkinHelper.Player.Music.albumCount","") 
+        WINDOW.setProperty("SkinHelper.Player.Music.AlbumList","")
+        WINDOW.setProperty("SkinHelper.Player.Music.ExtraFanArt","")
         
     def setMovieSetDetails(self):
         #get movie set details -- thanks to phil65 - used this idea from his skin info script     
@@ -965,7 +959,7 @@ class ListItemMonitor(threading.Thread):
 
         #set properties
         for key, value in artwork.iteritems():
-            WINDOW.setProperty("SkinHelper.Player.Music." + key,value)
+            WINDOW.setProperty("SkinHelper.Player.Music." + key,value.encode("utf-8"))
     
     def setMusicDetails(self,widget=None):
         cacheFound = False

@@ -647,12 +647,27 @@ def getAlbumArtwork(musicbrainzalbumid, artwork=None):
             if not artwork.get("cdart") and adbdetails.get("strAlbumCDart"): artwork["cdart"] = adbdetails.get("strAlbumCDart")
             if not artwork.get("info") and adbdetails.get("strDescriptionEN"): artwork["info"] = adbdetails.get("strDescriptionEN")
     
-    # if not artwork.get("thumb") and not WINDOW.getProperty("SkinHelper.TempDisableMusicBrainz"): 
-        # try: 
-            # new_file = "special://profile/addon_data/script.skin.helper.service/musicart/%s.jpg" %musicbrainzalbumid
-            # if xbmcvfs.copy(m.get_image_front(musicbrainzalbumid),newFile): artwork["thumb"] = new_file
-            # elif xbmcvfs.copy(m.get_release_group_image_front(musicbrainzalbumid),newFile): artwork["thumb"] = new_file
-        # except: pass
+    if not artwork.get("thumb") and not artwork.get("folder") and not WINDOW.getProperty("SkinHelper.TempDisableMusicBrainz"): 
+        try: 
+            new_file = "special://profile/addon_data/script.skin.helper.service/musicart/%s.jpg" %musicbrainzalbumid
+            thumbfile = m.get_release_group_image_front(musicbrainzalbumid)
+            if thumbfile: 
+                f = xbmcvfs.File(new_file, 'w')
+                f.write(thumbfile)
+                f.close()
+            artwork["thumb"] = new_file
+        except: pass
+    
+    if not artwork.get("thumb") and not artwork.get("folder") and not WINDOW.getProperty("SkinHelper.TempDisableMusicBrainz"): 
+        try: 
+            new_file = "special://profile/addon_data/script.skin.helper.service/musicart/%s.jpg" %musicbrainzalbumid
+            thumbfile = m.get_image_front(musicbrainzalbumid)
+            if thumbfile: 
+                f = xbmcvfs.File(new_file, 'w')
+                f.write(thumbfile)
+                f.close()
+            artwork["thumb"] = new_file
+        except: pass
     
     return artwork
             
