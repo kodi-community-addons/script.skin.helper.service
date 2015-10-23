@@ -388,8 +388,7 @@ def createNFO(cachefile, artwork):
         f.close()
     except Exception as e:
         logMsg("ERROR in createNFO --> " + str(e), 0)
-
-        
+      
 def getArtworkFromCacheFile(cachefile,artwork=None):
     if not artwork: artwork={}
     if xbmcvfs.exists(cachefile):
@@ -780,8 +779,8 @@ def getMusicArtworkByDbId(dbid,itemtype):
                 for artType in KodiArtTypes:
                     artpath = os.path.join(albumpath,artType[1])
                     if xbmcvfs.exists(artpath) and not albumartwork.get(artType[0]):
-                        artistartwork[artType[0]] = artpath
-                        logMsg("%s found on disk for %s - itemtype: %s" %(artType[0],artistartwork.get("artistname",""), itemtype))
+                        albumartwork[artType[0]] = artpath
+                        logMsg("%s found on disk for %s - itemtype: %s" %(artType[0],albumartwork.get("artistname",""), itemtype))
         
         if enableMusicArtScraper:
             #lookup artist in musicbrainz
