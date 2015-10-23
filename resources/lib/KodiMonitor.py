@@ -50,6 +50,7 @@ class Kodi_Monitor(xbmc.Monitor):
         WINDOW.clearProperty("skinhelper-favouritemedia")
     
     def onDatabaseUpdated(self,database):
+        print "ondatabaseupdated " + database
         if database == "video":
             self.resetVideoWidgets()
             WINDOW.setProperty("widgetreload", datetime.now().strftime('%Y-%m-%d %H:%M:%S') + str(randint(0,9)))

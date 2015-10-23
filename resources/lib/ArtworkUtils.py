@@ -240,8 +240,8 @@ def getfanartTVimages(type,id,artwork=None):
         cover = None
         if type == "album" and data.has_key("albums"):
             for key, value in data["albums"].iteritems():
-                if value.has_key("cdart") and not artwork.get("cdart"):
-                    artwork["cdart"] = value["cdart"][0].get("url")
+                if value.has_key("cdart") and not artwork.get("discart"):
+                    artwork["discart"] = value["cdart"][0].get("url")
                 elif value.has_key("albumcover") and not artwork.get("folder"):
                     artwork["folder"] = value["albumcover"][0].get("url")
         
@@ -648,9 +648,20 @@ def getAlbumArtwork(musicbrainzalbumid, artwork=None):
         if data and data.get("album") and len(data.get("album")) > 0:
             adbdetails = data["album"][0]
             if not artwork.get("thumb") and adbdetails.get("strAlbumThumb"): artwork["thumb"] = adbdetails.get("strAlbumThumb")
-            if not artwork.get("cdart") and adbdetails.get("strAlbumCDart"): artwork["cdart"] = adbdetails.get("strAlbumCDart")
+            if not artwork.get("discart") and adbdetails.get("strAlbumCDart"): artwork["discart"] = adbdetails.get("strAlbumCDart")
             if not artwork.get("info") and adbdetails.get("strDescription" + KODILANGUAGE.upper()): artwork["info"] = adbdetails.get("strDescription" + KODILANGUAGE.upper())
             if not artwork.get("info") and adbdetails.get("strDescriptionEN"): artwork["info"] = adbdetails.get("strDescriptionEN")
+    
+    if not artwork.get("thumb") and not artwork.get("folder") and not WINDOW.getProperty("SkinHelper.TempDisableMusicBrainz"): 
+        try: 
+            new_file = "special://profile/addon_data/script.skin.helper.service/musicart/%s.jpg" %musicbrainzalbumid
+            thumbfile = m.get_image_front(musicbrainzalbumid)
+            if thumbfile: 
+                f = xbmcvfs.File(new_file, 'w')
+                f.write(thumbfile)
+                f.close()
+            artwork["folder"] = new_file
+        except: pass
     
     if not artwork.get("thumb") and not artwork.get("folder") and not WINDOW.getProperty("SkinHelper.TempDisableMusicBrainz"): 
         try: 
@@ -663,16 +674,7 @@ def getAlbumArtwork(musicbrainzalbumid, artwork=None):
             artwork["folder"] = new_file
         except: pass
     
-    if not artwork.get("thumb") and not artwork.get("folder") and not WINDOW.getProperty("SkinHelper.TempDisableMusicBrainz"): 
-        try: 
-            new_file = "special://profile/addon_data/script.skin.helper.service/musicart/%s.jpg" %musicbrainzalbumid
-            thumbfile = m.get_image_front(musicbrainzalbumid)
-            if thumbfile: 
-                f = xbmcvfs.File(new_file, 'w')
-                f.write(thumbfile)
-                f.close()
-            artwork["folder"] = new_file
-        except: pass
+    
     
     return artwork
             
@@ -780,7 +782,7 @@ def getMusicArtworkByDbId(dbid,itemtype):
                     artpath = os.path.join(albumpath,artType[1])
                     if xbmcvfs.exists(artpath) and not albumartwork.get(artType[0]):
                         albumartwork[artType[0]] = artpath
-                        logMsg("%s found on disk for %s - itemtype: %s" %(artType[0],albumartwork.get("artistname",""), itemtype))
+                        logMsg("%s found on disk for %s - itemtype: %s" %(artType[0],albumName, itemtype))
         
         if enableMusicArtScraper:
             #lookup artist in musicbrainz
