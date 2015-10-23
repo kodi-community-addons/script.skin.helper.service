@@ -535,3 +535,7 @@ msgstr ""
 msgctxt "#32129"
 msgid "Clear cache (rebuild all wall images)"
 msgstr ""
+
+msgctxt "#32130"
+msgid "Similar TV Shows"
+msgstr ""

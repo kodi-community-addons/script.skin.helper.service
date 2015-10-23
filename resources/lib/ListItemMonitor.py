@@ -215,6 +215,7 @@ class ListItemMonitor(threading.Thread):
         WINDOW.clearProperty("skinhelper-pvrchannels")
         WINDOW.clearProperty("skinhelper-nextairedtvshows")
         WINDOW.clearProperty("skinhelper-similarmovies")
+        WINDOW.clearProperty("skinhelper-similarshows")
         WINDOW.clearProperty("skinhelper-favouritemedia")
         WINDOW.setProperty("widgetreload2", datetime.now().strftime('%Y-%m-%d %H:%M:%S') + str(random.randint(0,9)))
                     
@@ -456,8 +457,8 @@ class ListItemMonitor(threading.Thread):
                
     def resetWindowProps(self):
         #reset all window props provided by the script...
-        WINDOW.clearProperty("SkinHelper.ListItemStudioLogo")
-        WINDOW.clearProperty("SkinHelper.ListItemStudioLogoColor")
+        WINDOW.setProperty("SkinHelper.ListItemStudioLogo","")
+        WINDOW.setProperty("SkinHelper.ListItemStudioLogoColor","")
         WINDOW.clearProperty("SkinHelper.ListItemStudios")
         WINDOW.clearProperty('SkinHelper.ListItemDuration')
         WINDOW.clearProperty('SkinHelper.ListItemDuration.Hours')

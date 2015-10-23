@@ -13,6 +13,23 @@ class Kodi_Monitor(xbmc.Monitor):
         logMsg("onNotification - Addon settings changed!")
         WINDOW.setProperty("resetPvrArtCache","reset")
 
+    def resetPlayerWindowProps(self):
+        #reset all window props provided by the script...
+        WINDOW.setProperty("SkinHelper.Player.Music.Banner","") 
+        WINDOW.setProperty("SkinHelper.Player.Music.ClearLogo","") 
+        WINDOW.setProperty("SkinHelper.Player.Music.DiscArt","") 
+        WINDOW.setProperty("SkinHelper.Player.Music.FanArt","") 
+        WINDOW.setProperty("SkinHelper.Player.Music.Thumb","") 
+        WINDOW.setProperty("SkinHelper.Player.Music.Info","") 
+        WINDOW.setProperty("SkinHelper.Player.Music.TrackList","") 
+        WINDOW.setProperty("SkinHelper.Player.Music.SongCount","") 
+        WINDOW.setProperty("SkinHelper.Player.Music.albumCount","") 
+        WINDOW.setProperty("SkinHelper.Player.Music.AlbumList","")
+        if WINDOW.getProperty("SkinHelper.Player.Music.ExtraFanArt"):
+            WINDOW.setProperty("SkinHelper.Player.Music.ExtraFanArt","-")
+            xbmc.sleep(25)
+            WINDOW.clearProperty("SkinHelper.Player.Music.ExtraFanArt")
+    
     def resetMusicWidgets(self):
         #clear the cache for the music widgets
         WINDOW.clearProperty("skinhelper-recentalbums")
@@ -28,6 +45,7 @@ class Kodi_Monitor(xbmc.Monitor):
         WINDOW.clearProperty("skinhelper-RecommendedMedia")
         WINDOW.clearProperty("skinhelper-nextepisodes")
         WINDOW.clearProperty("skinhelper-similarmovies")
+        WINDOW.clearProperty("skinhelper-similarshows")
         WINDOW.clearProperty("skinhelper-recentmedia")
         WINDOW.clearProperty("skinhelper-favouritemedia")
     
@@ -60,6 +78,7 @@ class Kodi_Monitor(xbmc.Monitor):
         
         elif method == "Player.OnStop":
             WINDOW.clearProperty("Skinhelper.PlayerPlaying")
+            self.resetPlayerWindowProps()
         
         elif method == "Player.OnPlay":
             

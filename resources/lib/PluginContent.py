@@ -25,6 +25,7 @@ def doMainListing():
     addDirectoryItem(ADDON.getLocalizedString(32004), "plugin://script.skin.helper.service/?action=RecommendedMedia&limit=100")
     addDirectoryItem(ADDON.getLocalizedString(32005), "plugin://script.skin.helper.service/?action=recentmedia&limit=100")
     addDirectoryItem(ADDON.getLocalizedString(32006), "plugin://script.skin.helper.service/?action=similarmovies&limit=100")
+    addDirectoryItem(ADDON.getLocalizedString(32130), "plugin://script.skin.helper.service/?action=similarshows&limit=100")
     addDirectoryItem(ADDON.getLocalizedString(32086), "plugin://script.skin.helper.service/?action=inprogressmedia&limit=100")
     addDirectoryItem(ADDON.getLocalizedString(32007), "plugin://script.skin.helper.service/?action=inprogressandrecommendedmedia&limit=100")
     addDirectoryItem(xbmc.getLocalizedString(359), "plugin://script.skin.helper.service/?action=recentalbums&limit=100")
@@ -761,7 +762,14 @@ def getSimilarMovies(limit,imdbid=""):
     else:
         allTitles = list()
         #lookup movie by imdbid or just pick a random watched movie
-        if imdbid: json_result = getJSON('VideoLibrary.GetMovies', '{ "sort": { "order": "descending", "method": "random" }, "filter": {"operator":"is", "field":"imdbnumber", "value":"%s"}, "properties": [ "title", "rating", "genre"],"limits":{"end":1}}' %imdbid)
+        if imdbid:
+            match = []
+            json_result = getJSON('VideoLibrary.GetMovies', '{ "properties": [ "title", "rating", "genre", "imdbnumber"]}')
+            for item in json_result:
+                if item.get("imdbnumber") == imdbid:
+                    match = [item]
+                    break
+            json_result = match
         else: json_result = getJSON('VideoLibrary.GetMovies', '{ "sort": { "order": "descending", "method": "random" }, "filter": {"operator":"isnot", "field":"playcount", "value":"0"}, "properties": [ "title", "rating", "genre"],"limits":{"end":1}}')
         for item in json_result:
             genres = item["genre"]
@@ -778,7 +786,7 @@ def getSimilarMovies(limit,imdbid=""):
         #sort the list by rating 
         allItems = sorted(allItems,key=itemgetter(0),reverse=True)
         
-        if allItems: WINDOW.setProperty("skinhelper-similarmovies"+imdbid, repr(allItems))
+        if allItems: WINDOW.setProperty("skinhelper-similarmovies+"+imdbid, repr(allItems))
     for item in allItems:
         liz = createListItem(item[1])
         liz.setProperty("similartitle", item[1]["similartitle"])
@@ -787,7 +795,51 @@ def getSimilarMovies(limit,imdbid=""):
         if count == limit:
             break
     xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
-   
+
+def getSimilarTvShows(limit,imdbid=""):
+    count = 0
+    allItems = []
+    xbmcplugin.setContent(int(sys.argv[1]), 'movies')
+    cache = WINDOW.getProperty("skinhelper-similarshows"+imdbid)
+    if cache:
+        allItems = eval(cache)
+    else:
+        allTitles = list()
+        #lookup show by imdbid or just pick a random in progress show
+        if imdbid: 
+            match = []
+            json_result = getJSON('VideoLibrary.GetTVShows', '{ "properties": [ "title", "rating", "genre", "imdbnumber"]}')
+            for item in json_result:
+                if item.get("imdbnumber") == imdbid:
+                    match = [item]
+                    break
+            json_result = match
+        else: json_result = getJSON('VideoLibrary.GetTVShows', '{ "sort": { "order": "descending", "method": "random" }, "filter": {"and": [{"operator":"true", "field":"inprogress", "value":""}]}, "properties": [ "title", "rating", "genre"],"limits":{"end":1}}')
+        for item in json_result:
+            genres = item["genre"]
+            similartitle = item["title"]
+            #get all movies from the same genre
+            for genre in genres:
+                json_result = getJSON('VideoLibrary.GetTVShows', '{ "sort": { "order": "descending", "method": "random" }, "filter": {"and": [{"operator":"is", "field":"genre", "value":"%s"}, {"operator":"is", "field":"playcount", "value":"0"}]}, "properties": [ %s ],"limits":{"end":%d} }' %(genre,fields_tvshows,limit))
+                for item in json_result:
+                    if not item["title"] in allTitles and not item["title"] == similartitle:
+                        item["similartitle"] = similartitle
+                        allItems.append((item["rating"],item))
+                        allTitles.append(item["title"])
+        
+        #sort the list by rating 
+        allItems = sorted(allItems,key=itemgetter(0),reverse=True)
+        
+        if allItems: WINDOW.setProperty("skinhelper-similarshows"+imdbid, repr(allItems))
+    for item in allItems:
+        liz = createListItem(item[1])
+        liz.setProperty("similartitle", item[1]["similartitle"])
+        xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=item[1]['file'], listitem=liz)
+        count +=1
+        if count == limit:
+            break
+    xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
+    
 def buildRecommendedMediaListing(limit,ondeckContent=False,recommendedContent=True):
     count = 0
     allTitles = list()
