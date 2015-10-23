@@ -373,22 +373,16 @@ def downloadImage(imageUrl,thumbsPath, filename):
 
 def createNFO(cachefile, artwork):
     try:
-        doc = Document()
-        root = doc.createElement("artdetails")
-        doc.appendChild(root)
-
+        xmlstring = '<?xml version="1.0" encoding="utf-8"?>\n'
+        xmlstring += "<artdetails>\n"
         for key, value in artwork.iteritems():
-            child = doc.createElement(key)
-            if value:
-                nodeText = doc.createTextNode(try_decode(value))
-                child.appendChild(nodeText)
-            root.appendChild(child)
-
+            if value: xmlstring += "   <%s>%s</%s>\n" %(key,value,key)
+        xmlstring += "</artdetails>\n"
         f = xbmcvfs.File(cachefile, 'w')
-        f.write(doc.toprettyxml(encoding='utf-8'))
+        f.write(xmlstring.encode("utf-8"))
         f.close()
     except Exception as e:
-        logMsg("ERROR in getArtworkFromCacheFile --> " + str(e), 0)
+        logMsg("ERROR in createNFO --> " + str(e), 0)
         
 def getArtworkFromCacheFile(cachefile,artwork=None):
     if not artwork: artwork={}
@@ -792,8 +786,8 @@ def getMusicArtworkByDbId(dbid,itemtype):
                 if musicbrainzartistid: artistartwork["musicbrainzartistid"] = musicbrainzartistid
             
             ########################################################## ARTIST LEVEL #########################################################
-            if musicbrainzartistid and not artistCacheFound:
-                artistartwork = getArtistArtwork(musicbrainzartistid, artistartwork)
+            if artistartwork.get("musicbrainzartistid") and not artistCacheFound:
+                artistartwork = getArtistArtwork(artistartwork.get("musicbrainzartistid"), artistartwork)
 
                 #download images if we want them local
                 if downloadMusicArt:
@@ -815,8 +809,8 @@ def getMusicArtworkByDbId(dbid,itemtype):
                     artistartwork["extrafanarts"] = ""
                 
             ######################################################### ALBUM LEVEL #########################################################    
-            if itemtype == "albums" and musicbrainzalbumid and not albumCacheFound:
-                albumartwork = getAlbumArtwork(musicbrainzalbumid, albumartwork)
+            if itemtype == "albums" and albumartwork.get("musicbrainzalbumid") and not albumCacheFound:
+                albumartwork = getAlbumArtwork(albumartwork.get("musicbrainzalbumid"), albumartwork)
                 
                 #download images if we want them local
                 if downloadMusicArt:
