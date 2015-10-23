@@ -44,10 +44,9 @@ KodiArtTypes = [ ("thumb","thumb.jpg"),("poster","poster.jpg"),("fanart","fanart
 def logMsg(msg, level = 1):
     if isinstance(msg, unicode):
         msg = msg.encode('utf-8')
-    if "exception" in msg.lower() or "error" in msg.lower():
+    if "exception" in msg.lower() or "error in" in msg.lower():
         xbmc.log("Skin Helper Service --> " + msg, level=xbmc.LOGERROR)
-        exceptmsg = print_exc()
-        if exceptmsg: xbmc.log("Stack Trace: " + exceptmsg,level=xbmc.LOGDEBUG)
+        print_exc()
     elif level == 0: 
         xbmc.log("Skin Helper Service --> " + msg, level=xbmc.LOGNOTICE)
     else: 
@@ -171,6 +170,20 @@ def setAddonsettings():
     WINDOW.setProperty("downloadMusicArt",SETTING("downloadMusicArt"))
     WINDOW.setProperty("enableLocalMusicArtLookup",SETTING("enableLocalMusicArtLookup"))
 
+def indentXML( elem, level=0 ):
+    i = "\n" + level*"\t"
+    if len(elem):
+        if not elem.text or not elem.text.strip():
+            elem.text = i + "\t"
+        if not elem.tail or not elem.tail.strip():
+            elem.tail = i
+        for elem in elem:
+            indentXML(elem, level+1)
+        if not elem.tail or not elem.tail.strip():
+            elem.tail = i
+    else:
+        if level and (not elem.tail or not elem.tail.strip()):
+            elem.tail = i
 
 def try_encode(text, encoding="utf-8"):
     try:

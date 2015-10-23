@@ -373,16 +373,22 @@ def downloadImage(imageUrl,thumbsPath, filename):
 
 def createNFO(cachefile, artwork):
     try:
-        xmlstring = '<?xml version="1.0" encoding="utf-8"?>\n'
-        xmlstring += "<artdetails>\n"
+        tree = ET.ElementTree( ET.Element( "artdetails" ) )
+        root = tree.getroot()
         for key, value in artwork.iteritems():
-            if value: xmlstring += "   <%s>%s</%s>\n" %(key,value,key)
-        xmlstring += "</artdetails>\n"
+            if value:
+                child = ET.SubElement( root, key )
+                child.text = try_decode(value)
+            #root.appendChild(child)
+        
+        indentXML( tree.getroot() )
         f = xbmcvfs.File(cachefile, 'w')
-        f.write(xmlstring.encode("utf-8"))
+        f.write(ET.tostring(tree.getroot(), encoding="us-ascii", method="xml"))
+        #f.write(tree.toxml(encoding='utf-8'))
         f.close()
     except Exception as e:
         logMsg("ERROR in createNFO --> " + str(e), 0)
+
         
 def getArtworkFromCacheFile(cachefile,artwork=None):
     if not artwork: artwork={}
