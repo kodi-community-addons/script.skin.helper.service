@@ -370,20 +370,23 @@ def downloadImage(imageUrl,thumbsPath, filename):
     except: return imageUrl
 
 def createNFO(cachefile, artwork):
-    doc = Document()
-    root = doc.createElement("artdetails")
-    doc.appendChild(root)
+    try:
+        doc = Document()
+        root = doc.createElement("artdetails")
+        doc.appendChild(root)
 
-    for key, value in artwork.iteritems():
-        child = doc.createElement(key)
-        if value:
-            nodeText = doc.createTextNode(value) 
-            child.appendChild(nodeText)
-        root.appendChild(child)
+        for key, value in artwork.iteritems():
+            child = doc.createElement(key)
+            if value:
+                nodeText = doc.createTextNode(try_decode(value))
+                child.appendChild(nodeText)
+            root.appendChild(child)
 
-    f = xbmcvfs.File(cachefile, 'w')
-    f.write(doc.toprettyxml(encoding='utf-8'))
-    f.close()
+        f = xbmcvfs.File(cachefile, 'w')
+        f.write(doc.toprettyxml(encoding='utf-8'))
+        f.close()
+    except Exception as e:
+        logMsg("ERROR in getArtworkFromCacheFile --> " + str(e), 0)
         
 def getArtworkFromCacheFile(cachefile,artwork=None):
     if not artwork: artwork={}
@@ -644,12 +647,12 @@ def getAlbumArtwork(musicbrainzalbumid, artwork=None):
             if not artwork.get("cdart") and adbdetails.get("strAlbumCDart"): artwork["cdart"] = adbdetails.get("strAlbumCDart")
             if not artwork.get("info") and adbdetails.get("strDescriptionEN"): artwork["info"] = adbdetails.get("strDescriptionEN")
     
-    if not artwork.get("thumb") and not WINDOW.getProperty("SkinHelper.TempDisableMusicBrainz"): 
-        try: artwork["thumb"] = m.get_image_front(musicbrainzalbumid) 
-        except: pass
-    if not artwork.get("thumb") and not WINDOW.getProperty("SkinHelper.TempDisableMusicBrainz"): 
-        try: artwork["thumb"] = m.get_release_group_image_front(musicbrainzalbumid) 
-        except: pass
+    # if not artwork.get("thumb") and not WINDOW.getProperty("SkinHelper.TempDisableMusicBrainz"): 
+        # try: 
+            # new_file = "special://profile/addon_data/script.skin.helper.service/musicart/%s.jpg" %musicbrainzalbumid
+            # if xbmcvfs.copy(m.get_image_front(musicbrainzalbumid),newFile): artwork["thumb"] = new_file
+            # elif xbmcvfs.copy(m.get_release_group_image_front(musicbrainzalbumid),newFile): artwork["thumb"] = new_file
+        # except: pass
     
     return artwork
             
