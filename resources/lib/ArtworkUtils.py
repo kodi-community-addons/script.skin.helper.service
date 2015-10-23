@@ -379,12 +379,11 @@ def createNFO(cachefile, artwork):
             if value:
                 child = ET.SubElement( root, key )
                 child.text = try_decode(value)
-            #root.appendChild(child)
         
         indentXML( tree.getroot() )
+        xmlstring = ET.tostring(tree.getroot(), encoding="utf-8")
         f = xbmcvfs.File(cachefile, 'w')
-        f.write(ET.tostring(tree.getroot(), encoding="utf-8"))
-        #f.write(tree.toxml(encoding='utf-8'))
+        f.write(xmlstring)
         f.close()
     except Exception as e:
         logMsg("ERROR in createNFO --> " + str(e), 0)
@@ -683,6 +682,7 @@ def getMusicArtworkByDbId(dbid,itemtype):
     albumartwork = {}
     path = None
     albumName = ""
+    trackName = None
     artistid = 0
     artistCacheFound = False
     albumCacheFound = False
@@ -697,9 +697,13 @@ def getMusicArtworkByDbId(dbid,itemtype):
     if itemtype == "songs":
         json_response = getJSON('AudioLibrary.GetSongDetails', '{ "songid": %s, "properties": [ "file","artistid","albumid","album","comment","fanart","thumbnail","displayartist"] }'%int(dbid))
         if json_response:
-            #album level is lowest level we get info from so change context to album once we have the song details...
-            itemtype = "albums"
-            dbid = str(json_response["albumid"])
+            if json_response.get("album") and json_response.get("albumid") and json_response.get("album","").lower() != "singles":
+                #album level is lowest level we get info from so change context to album once we have the song details...
+                itemtype = "albums"
+                dbid = str(json_response["albumid"])
+            else:
+                #search by trackname as fallback for songs without albums (singles)
+                return getMusicArtworkByName(json_response.get("displayartist"),json_response.get("label"))
 
     #ALBUM DETAILS
     if itemtype == "albums":
@@ -797,7 +801,7 @@ def getMusicArtworkByDbId(dbid,itemtype):
                 artistartwork = getArtistArtwork(artistartwork.get("musicbrainzartistid"), artistartwork)
 
                 #download images if we want them local
-                if downloadMusicArt:
+                if downloadMusicArt and not "various artists" in artistpath.lower():
                     for artType in KodiArtTypes:
                         if artistartwork.has_key(artType[0]): artistartwork[artType[0]] = downloadImage(artistartwork[artType[0]],artistpath,artType[1])
                 
@@ -820,7 +824,7 @@ def getMusicArtworkByDbId(dbid,itemtype):
                 albumartwork = getAlbumArtwork(albumartwork.get("musicbrainzalbumid"), albumartwork)
                 
                 #download images if we want them local
-                if downloadMusicArt:
+                if downloadMusicArt and not "various artists" in albumpath.lower():
                     for artType in KodiArtTypes:
                         if albumartwork.has_key(artType[0]): albumartwork[artType[0]] = downloadImage(albumartwork[artType[0]],albumpath,artType[1])
         if artistartwork:

@@ -575,11 +575,11 @@ def getCurrentContentType():
         contenttype = "seasons"
     elif xbmc.getCondVisibility("Container.Content(musicvideos)"):
         contenttype = "musicvideos"
-    elif xbmc.getCondVisibility("Container.Content(songs) | Container.Content(singles) | SubString(Container.ListItem(1).FolderPath,.mp3,right) | SubString(Container.ListItem(1).FolderPath,.flac,right)"):
+    elif xbmc.getCondVisibility("Container.Content(songs)"):
         contenttype = "songs"
-    elif xbmc.getCondVisibility("[Container.Content(artists) | SubString(Container.FolderPath,musicdb://artists)] + !SubString(Container.FolderPath,?)"):
+    elif xbmc.getCondVisibility("[Container.Content(artists)"):
         contenttype = "artists"
-    elif xbmc.getCondVisibility("Container.Content(albums) | SubString(Container.FolderPath,musicdb://albums) | SubString(Container.FolderPath,artistid=)"):
+    elif xbmc.getCondVisibility("Container.Content(albums)"):
         contenttype = "albums"
     elif xbmc.getCondVisibility("Window.IsActive(tvchannels) | Window.IsActive(radiochannels)"):
         contenttype = "tvchannels"

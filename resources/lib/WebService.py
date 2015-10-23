@@ -28,13 +28,13 @@ class WebService(threading.Thread):
             conn.getresponse()
             self.exit = True
             self.event.set()
-        except Exception as e: logMsg("WebServer error occurred " + str(e),0)
+        except Exception as e: logMsg("WebServer exception occurred " + str(e))
 
     def run(self):
         try:
             server = StoppableHttpServer(('127.0.0.1', port), StoppableHttpRequestHandler)
             server.serve_forever()
-        except Exception as e: logMsg("WebServer error occurred " + str(e),0)
+        except Exception as e: logMsg("WebServer exception occurred " + str(e),0)
             
 
 
@@ -59,15 +59,15 @@ class Request(object):
 
         
 class StoppableHttpRequestHandler (SimpleHTTPServer.SimpleHTTPRequestHandler):
-    """http request handler with QUIT stopping the server"""
+    #http request handler with QUIT stopping the server
     
     def __init__(self, request, client_address, server):
         try:
             SimpleHTTPServer.SimpleHTTPRequestHandler.__init__(self, request, client_address, server)
-        except Exception as e: logMsg("WebServer error occurred " + str(e))
+        except Exception as e: logMsg("WebServer error in request --> " + str(e),0)
     
     def do_QUIT (self):
-        """send 200 OK response, and set server.stop to True"""
+        #send 200 OK response, and set server.stop to True
         self.send_response(200)
         self.end_headers()
         self.server.stop = True

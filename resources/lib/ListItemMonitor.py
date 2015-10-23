@@ -970,13 +970,8 @@ class ListItemMonitor(threading.Thread):
         else:
             dbID = xbmc.getInfoLabel("ListItem.Artist").decode('utf-8') + xbmc.getInfoLabel("ListItem.Album").decode('utf-8')
         
-        if dbID and self.lastMusicDbId == dbID:
-            return
-        
         logMsg("setMusicDetails dbID--> " + dbID)
 
-        self.lastMusicDbId = dbID
-        
         if not widget and (self.liLabel == ".." or not xbmc.getInfoLabel("ListItem.FolderPath").decode('utf-8').startswith("musicdb") or not dbID):
             return
         
