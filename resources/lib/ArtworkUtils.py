@@ -149,6 +149,7 @@ def getPVRThumbs(title,channel,type="channels",path="",genre=""):
                         item = json_result[0]
                 if item and item.has_key("art"): 
                     artwork = item["art"]
+                    if item.get("plot"): artwork["plot"] = item["plot"]
                     logMsg("getPVRThumb artwork found in local library for dbID--> " + dbID)
                     
             #get logo if none found
@@ -253,13 +254,16 @@ def getfanartTVimages(type,id,artwork=None):
                     fanarttvimage = prefix+fanarttype[0]
                     if data.has_key(fanarttvimage):
                         for item in data[fanarttvimage]:
-                            if item.get("lang","") == language:
+                            if item.get("lang","") == KODILANGUAGE:
                                 #select image in preferred language
                                 artwork[fanarttype[1]] = item.get("url")
                                 break
                         if not artwork.has_key(fanarttype[1]) and len(data.get(fanarttvimage)) > 0:
-                            #just grab the first one as fallback
-                            artwork[fanarttype[1]] = data.get(fanarttvimage)[0].get("url")
+                            #just grab the first english one as fallback
+                            for item in data[fanarttvimage]:
+                                if item.get("lang","") == "en":
+                                    artwork[fanarttype[1]] = item.get("url")
+                                    break
                         #grab extrafanarts in list
                         if "background" in fanarttvimage:
                             if not artwork.get("extrafanarts"): 
@@ -278,13 +282,11 @@ def getOfficialArtWork(title,artwork=None,type=None):
     matchFound = None
     media_id = None
     media_type = None
-    language = WINDOW.getProperty("scraper_language")
     if not type: type="multi"
     try: 
-        url = 'http://api.themoviedb.org/3/search/%s?api_key=%s&language=%s&query=%s' %(type,apiKey,language,try_encode(title))
+        url = 'http://api.themoviedb.org/3/search/%s?api_key=%s&language=%s&query=%s' %(type,apiKey,KODILANGUAGE,try_encode(title))
         response = requests.get(url)
         data = json.loads(response.content.decode('utf-8','replace'))
-        
         #find exact match first
         if data and data.get("results",None):
             for item in data["results"]:
@@ -316,27 +318,27 @@ def getOfficialArtWork(title,artwork=None,type=None):
             if not name: name = item.get("title")
             artwork["tmdb_title"] = name
             artwork["tmdb_type"] = media_type
-            artwork["plot"] = matchFound.get("overview")
             logMsg("getTMDBimage - TMDB match found for %s !" %title)
             #lookup external tmdb_id and perform artwork lookup on fanart.tv
-            if WINDOW.getProperty("useFanArtTv") == "true" and id:
-                if media_type == "movie":
-                    url = 'http://api.themoviedb.org/3/movie/%s?api_key=%s' %(id,apiKey)
-                    idparam = "imdb_id"
-                elif not media_type:
-                    #assume movie is media type empty
-                    media_type = "movie"
-                    artwork["tmdb_type"] = media_type
-                    url = 'http://api.themoviedb.org/3/movie/%s?api_key=%s' %(id,apiKey)
-                    idparam = "imdb_id"
-                else:
-                    url = 'http://api.themoviedb.org/3/tv/%s/external_ids?api_key=%s' %(id,apiKey)
-                    idparam = "tvdb_id"
-                response = requests.get(url)
-                data = json.loads(response.content.decode('utf-8','replace'))
-                if data: 
-                    media_id = data.get(idparam)
-                    artwork[idparam] = str(media_id)
+            languages = [KODILANGUAGE,"en"]
+            for language in languages:
+                if WINDOW.getProperty("useFanArtTv") == "true" and id:
+                    if media_type == "movie" or not media_type:
+                        url = 'http://api.themoviedb.org/3/movie/%s?api_key=%s&language=%s' %(id,apiKey,language)
+                    else:
+                        url = 'http://api.themoviedb.org/3/tv/%s?api_key=%s&append_to_response=external_ids&language=%s' %(id,apiKey,language)
+                    response = requests.get(url)
+                    data = json.loads(response.content.decode('utf-8','replace'))
+                    if data:
+                        if not media_id and data.get("imdb_id"):
+                            media_id = str(data.get("imdb_id"))
+                            artwork["imdb_id"] = media_id
+                        if not media_id and data.get("external_ids"): 
+                            media_id = str(data["external_ids"].get("tvdb_id"))
+                            artwork["tvdb_id"] = media_id
+                        if data.get("overview"):
+                            artwork["plot"] = data.get("overview")
+                            break
         
         #lookup artwork on fanart.tv
         if media_id and media_type:
@@ -625,7 +627,10 @@ def getArtistArtwork(musicbrainzartistid, artwork=None):
             if not artwork.get("clearlogo") and adbdetails.get("strArtistLogo"): artwork["clearlogo"] = adbdetails.get("strArtistLogo")
             if not artwork.get("artistthumb") and adbdetails.get("strArtistThumb"): artwork["artistthumb"] = adbdetails.get("strArtistThumb")
             if not artwork.get("thumb") and adbdetails.get("strArtistThumb"): artwork["thumb"] = adbdetails.get("strArtistThumb")
+            if not artwork.get("info") and adbdetails.get("strBiography" + KODILANGUAGE.upper()): artwork["info"] = adbdetails.get("strBiography" + KODILANGUAGE.upper())
             if not artwork.get("info") and adbdetails.get("strBiographyEN"): artwork["info"] = adbdetails.get("strBiographyEN")
+            
+            
     return artwork
 
 def getAlbumArtwork(musicbrainzalbumid, artwork=None):
@@ -645,6 +650,7 @@ def getAlbumArtwork(musicbrainzalbumid, artwork=None):
             adbdetails = data["album"][0]
             if not artwork.get("thumb") and adbdetails.get("strAlbumThumb"): artwork["thumb"] = adbdetails.get("strAlbumThumb")
             if not artwork.get("cdart") and adbdetails.get("strAlbumCDart"): artwork["cdart"] = adbdetails.get("strAlbumCDart")
+            if not artwork.get("info") and adbdetails.get("strDescription" + KODILANGUAGE.upper()): artwork["info"] = adbdetails.get("strDescription" + KODILANGUAGE.upper())
             if not artwork.get("info") and adbdetails.get("strDescriptionEN"): artwork["info"] = adbdetails.get("strDescriptionEN")
     
     if not artwork.get("thumb") and not artwork.get("folder") and not WINDOW.getProperty("SkinHelper.TempDisableMusicBrainz"): 
@@ -655,7 +661,7 @@ def getAlbumArtwork(musicbrainzalbumid, artwork=None):
                 f = xbmcvfs.File(new_file, 'w')
                 f.write(thumbfile)
                 f.close()
-            artwork["thumb"] = new_file
+            artwork["folder"] = new_file
         except: pass
     
     if not artwork.get("thumb") and not artwork.get("folder") and not WINDOW.getProperty("SkinHelper.TempDisableMusicBrainz"): 
@@ -666,7 +672,7 @@ def getAlbumArtwork(musicbrainzalbumid, artwork=None):
                 f = xbmcvfs.File(new_file, 'w')
                 f.write(thumbfile)
                 f.close()
-            artwork["thumb"] = new_file
+            artwork["folder"] = new_file
         except: pass
     
     return artwork

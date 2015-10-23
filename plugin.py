@@ -95,5 +95,8 @@ class Main:
             doMainListing()
 
 if (__name__ == "__main__"):
-    Main()
+    try:
+        Main()
+    except Exception as e:
+        logMsg("Error in plugin.py --> " + str(e),0)
 logMsg('finished loading pluginentry')

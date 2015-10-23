@@ -56,7 +56,7 @@ class BackgroundsUpdater(threading.Thread):
          
         while (self.exit != True):
             
-            if (not xbmc.getCondVisibility("Window.IsActive(fullscreenvideo)")):
+            if not xbmc.getCondVisibility("Window.IsActive(fullscreenvideo)") and xbmc.getInfoLabel("skin.string(SkinHelper.RandomFanartDelay)"):
 
                 try:
                     backgroundDelay = int(xbmc.getInfoLabel("skin.string(SkinHelper.RandomFanartDelay)"))

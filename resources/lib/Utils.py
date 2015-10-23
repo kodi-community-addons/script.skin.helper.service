@@ -27,6 +27,7 @@ ADDON_DATA_PATH = xbmc.translatePath("special://profile/addon_data/%s" % ADDON_I
 KODI_VERSION  = int(xbmc.getInfoLabel( "System.BuildVersion" ).split(".")[0])
 WINDOW = xbmcgui.Window(10000)
 SETTING = ADDON.getSetting
+KODILANGUAGE = xbmc.getLanguage(xbmc.ISO_639_1)
 
 fields_base = '"dateadded", "file", "lastplayed","plot", "title", "art", "playcount",'
 fields_file = fields_base + '"streamdetails", "director", "resume", "runtime",'
@@ -41,13 +42,17 @@ fields_pvrrecordings = '"art", "channel", "directory", "endtime", "file", "genre
 KodiArtTypes = [ ("thumb","thumb.jpg"),("poster","poster.jpg"),("fanart","fanart.jpg"),("banner","banner.jpg"),("landscape","landscape.jpg"),("clearlogo","logo.png"),("clearart","clearart.png"),("channellogo","channellogo.png"),("discart","disc.png"),("discart","cdart.png"),("extrafanart","extrafanart/"),("characterart","characterart.png"),("folder","folder.jpg") ]
 
 def logMsg(msg, level = 1):
-    doDebugLog = False
-    if doDebugLog or level == 0:
-        if isinstance(msg, unicode):
-            msg = msg.encode('utf-8')
-        xbmc.log("Skin Helper Service --> " + msg)
-        if "exception" in msg.lower() or "error" in msg.lower():
-            print_exc()
+    if isinstance(msg, unicode):
+        msg = msg.encode('utf-8')
+    if "exception" in msg.lower() or "error" in msg.lower():
+        xbmc.log("Skin Helper Service --> " + msg, level=xbmc.LOGERROR)
+        exceptmsg = print_exc()
+        if exceptmsg: xbmc.log("Stack Trace: " + exceptmsg,level=xbmc.LOGDEBUG)
+    elif level == 0: 
+        xbmc.log("Skin Helper Service --> " + msg, level=xbmc.LOGNOTICE)
+    else: 
+        xbmc.log("Skin Helper Service --> " + msg, level=xbmc.LOGDEBUG)
+        
             
 def getContentPath(libPath):
     if "$INFO" in libPath and not "reload=" in libPath:
@@ -160,7 +165,6 @@ def setAddonsettings():
     WINDOW.setProperty("stripwords",SETTING("stripwords"))
     WINDOW.setProperty("directory_structure",SETTING("directory_structure"))
     WINDOW.setProperty("SkinHelper.lastUpdate","%s" %datetime.now())    
-    WINDOW.setProperty("scraper_language",SETTING("scraper_language"))
     WINDOW.setProperty("enablewallbackgrounds",SETTING("enablewallbackgrounds"))
     WINDOW.setProperty("preferBWwallbackgrounds",SETTING("preferBWwallbackgrounds"))
     WINDOW.setProperty("enableMusicArtScraper",SETTING("enableMusicArtScraper"))
