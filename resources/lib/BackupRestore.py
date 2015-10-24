@@ -1,11 +1,7 @@
-import shutil
 import zipfile
 from Utils import *
 import random
 from xml.dom.minidom import parse
-
-enc = sys.getfilesystemencoding()
-if not enc: enc = "utf-8"
 
 def getSkinSettings(filter=None):
     newlist = []
@@ -68,9 +64,11 @@ def backup(filterString="",silent=None,promptfilename="false"):
         backup_path = silent
         if not backup_path:
             backup_path = get_browse_dialog(dlg_type=3,heading=ADDON.getLocalizedString(32018)).decode("utf-8")
+            if not backup_path or backup_path=="protocol://": return
         if promptfilename == "true":
             dialog = xbmcgui.Dialog()
             backup_name = dialog.input(ADDON.getLocalizedString(32068), type=xbmcgui.INPUT_ALPHANUM)
+            if not backup_name: return
         else:
             from datetime import datetime
             i = datetime.now()
@@ -87,7 +85,7 @@ def backup(filterString="",silent=None,promptfilename="false"):
                 #create temp path
                 temp_path = xbmc.translatePath('special://temp/skinbackup/').decode("utf-8")
                 if xbmcvfs.exists(temp_path):
-                    shutil.rmtree(temp_path.encode(enc))
+                    recursiveDelete(temp_path)
                 xbmcvfs.mkdir(temp_path)
                     
                 #get skinshortcuts preferences
@@ -196,7 +194,7 @@ def backup(filterString="",silent=None,promptfilename="false"):
                     e = "Problem creating file in destination folder"
                 
                 #cleanup temp
-                shutil.rmtree(temp_path.encode(enc))
+                recursiveDelete(temp_path)
                 xbmcvfs.delete(zip_temp + ".zip")
 
     except Exception as e:
@@ -231,7 +229,7 @@ def restore(silent=None):
             #create temp path
             temp_path = xbmc.translatePath('special://temp/skinbackup/').decode("utf-8")
             if xbmcvfs.exists(temp_path):
-                shutil.rmtree(temp_path.encode(enc))
+                recursiveDelete(temp_path)
             xbmcvfs.mkdir(temp_path)
             
             #unzip to temp
@@ -255,7 +253,7 @@ def restore(silent=None):
                 skinshortcuts_path_dest = xbmc.translatePath('special://profile/addon_data/script.skinshortcuts/').decode("utf-8")
                 
                 if xbmcvfs.exists(skinshortcuts_path_dest):
-                    shutil.rmtree(skinshortcuts_path_dest.encode(enc))
+                   recursiveDelete(skinshortcuts_path_dest)
                 xbmcvfs.mkdir(skinshortcuts_path_dest)
             
                 dirs, files = xbmcvfs.listdir(skinshortcuts_path_source)
@@ -309,7 +307,7 @@ def restore(silent=None):
             
             #cleanup temp
             xbmc.sleep(500)
-            shutil.rmtree(temp_path.encode(enc))
+            recursiveDelete(temp_path)
             if not silent:
                 xbmcgui.Dialog().ok(ADDON.getLocalizedString(32032), ADDON.getLocalizedString(32034))
     
@@ -317,18 +315,6 @@ def restore(silent=None):
         if not silent:
             xbmcgui.Dialog().ok(ADDON.getLocalizedString(32032), ADDON.getLocalizedString(32035), str(e))
         logMsg("ERROR while restoring backup ! --> " + str(e), 0)
-        
-def zip(src, dst):
-    zf = zipfile.ZipFile("%s.zip" % (dst), "w", zipfile.ZIP_DEFLATED)
-    abs_src = os.path.abspath(src)
-    for dirname, subdirs, files in os.walk(src.encode(enc)):
-        for filename in files:
-            absname = os.path.abspath(os.path.join(dirname, filename))
-            arcname = absname[len(abs_src) + 1:]
-            logMsg('zipping %s as %s' % (os.path.join(dirname, filename),
-                                        arcname))
-            zf.write(absname, arcname)
-    zf.close()
        
 def reset():
     yeslabel=xbmc.getLocalizedString(107)

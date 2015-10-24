@@ -624,3 +624,32 @@ def normalize_string(text):
     text = unicodedata.normalize('NFKD', try_decode(text))
     return text
     
+def recursiveDelete(path):
+    success = True
+    path = try_encode(path)
+    dirs, files = xbmcvfs.listdir(path)
+    for file in files:
+        success = xbmcvfs.delete(os.path.join(path,file))
+    for dir in dirs:
+        success = recursiveDelete(os.path.join(path,dir))
+    success = xbmcvfs.rmdir(path)
+    return success 
+
+def addToZip(src, zf, abs_src):
+    src = try_encode(src)
+    dirs, files = xbmcvfs.listdir(src)
+    for file in files:
+        filename = try_decode(xbmc.translatePath( os.path.join(src, file) ))
+        absname = os.path.abspath(filename)
+        arcname = absname[len(abs_src) + 1:]
+        zf.write(absname, arcname)
+    for dir in dirs:
+        addToZip(os.path.join(src,dir),zf,abs_src)
+    return zf
+        
+def zip(src, dst):
+    import zipfile
+    zf = zipfile.ZipFile("%s.zip" % (dst), "w", zipfile.ZIP_DEFLATED)
+    abs_src = os.path.abspath(xbmc.translatePath(src))
+    zf = addToZip(src,zf,abs_src)
+    zf.close()

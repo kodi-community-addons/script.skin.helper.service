@@ -320,7 +320,6 @@ def get_browse_dialog(default="protocol://", heading="Browse", dlg_type=3, share
     return value
 
 def restoreColorTheme():
-    import shutil
     import zipfile
     zip_path = None
     userThemesPath = os.path.join(userThemesDir,"themes") + os.sep
@@ -329,7 +328,7 @@ def restoreColorTheme():
         #create temp path
         temp_path = xbmc.translatePath('special://temp/skinbackup/').decode("utf-8")
         if xbmcvfs.exists(temp_path):
-            shutil.rmtree(temp_path.encode(sys.getfilesystemencoding()))
+            recursiveDelete(temp_path)
         xbmcvfs.mkdir(temp_path)
         
         #unzip to temp

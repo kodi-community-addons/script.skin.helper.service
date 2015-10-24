@@ -735,7 +735,6 @@ def getMusicArtworkByDbId(dbid,itemtype):
         
         albumName = albumartwork["albumname"]
         #make sure that our results are strings
-        albumartwork["albums"] = "[CR]".join(albumartwork.get("albums",""))
         albumartwork["tracklist"] = "[CR]".join(albumartwork.get("tracklist",""))
         albumartwork["albumcount"] = "%s"%albumartwork.get("albumcount","")
         albumartwork["songcount"] = "%s"%albumartwork.get("songcount","")
