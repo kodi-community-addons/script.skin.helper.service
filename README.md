@@ -330,7 +330,7 @@ If you want to use them inside a panel (so you can list all channels with correc
 </control>
 ```
 The above example will return the PVR artwork, you can specify the type that should be returned with type=[kodi artwork type]
-You can also supply multiple arttypes by using + as a seperator. In that case the script will supply the image for the first arttype found.
+You can also supply multiple arttypes by using , (comma) as a seperator. In that case the script will supply the image for the first arttype found.
 
 Optional parameter: fallback --> Allows you to set a fallback image if no image was found.
 For example &amp;fallback=$INFO[ListItem.Icon]
