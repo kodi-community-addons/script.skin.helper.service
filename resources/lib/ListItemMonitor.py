@@ -90,55 +90,56 @@ class ListItemMonitor(threading.Thread):
                 
                 #perform actions if the container path has changed
                 #always wait for the contenttype because plugins can be slow
-                if self.folderPath and self.folderPath != self.folderPathLast or not self.contentType:
+                if self.folderPath != self.folderPathLast:
                     self.contentType = getCurrentContentType()
                     self.setForcedView()
                     self.focusEpisode()
-                elif not self.folderPath and self.folderPathLast:
-                    self.folderPathLast = None
                     self.resetWindowProps()
+                    self.folderPathLast = self.folderPath
                 
                 #only perform actions when the listitem has actually changed
                 if curListItem and curListItem != self.lastListItem and self.contentType:
                     
+                    WINDOW.setProperty("curlistItem",curListItem)
+                    
                     #clear all window props first
                     self.resetWindowProps()
                     
-                    # monitor listitem props when musiclibrary is active
-                    if xbmc.getCondVisibility("Window.IsActive(musiclibrary) | Window.IsActive(MyMusicSongs.xml)"):
-                        try:
-                            self.setMusicDetails()
-                            self.setGenre()
-                        except Exception as e:
-                            logMsg("ERROR in setMusicDetails ! --> " + str(e), 0)
-                                
-                    # monitor listitem props when videolibrary is active
-                    elif xbmc.getCondVisibility("Window.IsActive(videos) | Window.IsActive(movieinformation)"):
-                        try:
-                            self.setDuration()
-                            self.setStudioLogo()
-                            self.setGenre()
-                            self.setDirector()
-                            self.checkExtraFanArt()
-                            self.setMovieSetDetails()
-                            self.setAddonName()
-                            self.setStreamDetails()
-                            self.setRottenRatings()
-                        except Exception as e:
-                            logMsg("ERROR in LibraryMonitor ! --> " + str(e), 0)
-                    
-                    # monitor listitem props when PVR is active
-                    elif xbmc.getCondVisibility("Window.IsActive(MyPVRChannels.xml) | Window.IsActive(MyPVRGuide.xml) | Window.IsActive(MyPVRTimers.xml) | Window.IsActive(MyPVRSearch.xml) | Window.IsActive(MyPVRRecordings.xml)"):
-                        try:
-                            self.setDuration()
-                            self.setPVRThumbs()
-                            self.setGenre()
-                        except Exception as e:
-                            logMsg("ERROR in LibraryMonitor ! --> " + str(e), 0)
+                    if not self.liLabel == "..":
+                        # monitor listitem props when musiclibrary is active
+                        if xbmc.getCondVisibility("Window.IsActive(musiclibrary) | Window.IsActive(MyMusicSongs.xml)"):
+                            try:
+                                self.setMusicDetails()
+                                self.setGenre()
+                            except Exception as e:
+                                logMsg("ERROR in setMusicDetails ! --> " + str(e), 0)
+                                    
+                        # monitor listitem props when videolibrary is active
+                        elif xbmc.getCondVisibility("Window.IsActive(videos) | Window.IsActive(movieinformation)"):
+                            try:
+                                self.setDuration()
+                                self.setStudioLogo()
+                                self.setGenre()
+                                self.setDirector()
+                                self.checkExtraFanArt()
+                                self.setMovieSetDetails()
+                                self.setAddonName()
+                                self.setStreamDetails()
+                                self.setRottenRatings()
+                            except Exception as e:
+                                logMsg("ERROR in LibraryMonitor ! --> " + str(e), 0)
+                        
+                        # monitor listitem props when PVR is active
+                        elif xbmc.getCondVisibility("Window.IsActive(MyPVRChannels.xml) | Window.IsActive(MyPVRGuide.xml) | Window.IsActive(MyPVRTimers.xml) | Window.IsActive(MyPVRSearch.xml) | Window.IsActive(MyPVRRecordings.xml)"):
+                            try:
+                                self.setDuration()
+                                self.setPVRThumbs()
+                                self.setGenre()
+                            except Exception as e:
+                                logMsg("ERROR in LibraryMonitor ! --> " + str(e), 0)
                             
                     #set some globals
                     self.liPathLast = self.liPath
-                    self.folderPathLast = self.folderPath
                     self.liLabelLast = self.liLabel
                     self.lastListItem = curListItem
                 

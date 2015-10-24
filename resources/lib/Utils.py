@@ -577,7 +577,7 @@ def getCurrentContentType():
         contenttype = "musicvideos"
     elif xbmc.getCondVisibility("Container.Content(songs)"):
         contenttype = "songs"
-    elif xbmc.getCondVisibility("[Container.Content(artists)"):
+    elif xbmc.getCondVisibility("Container.Content(artists)"):
         contenttype = "artists"
     elif xbmc.getCondVisibility("Container.Content(albums)"):
         contenttype = "albums"
