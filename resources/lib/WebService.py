@@ -109,6 +109,11 @@ class StoppableHttpRequestHandler (SimpleHTTPServer.SimpleHTTPRequestHandler):
 
         if action == "getthumb":
             image = searchGoogleImage(title)
+        
+        elif action == "getvarimage":
+            title = title.replace("{","[").replace("}","]")
+            image = xbmc.getInfoLabel(title)
+            
         elif action == "getpvrthumb":
             channel = params.get("channel","")
             preferred_type = params.get("type","")

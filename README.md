@@ -368,6 +368,26 @@ You also need to specify the contenttype for the container: artists, albums or s
 Optional parameter: fallback --> Allows you to set a fallback image if no image was found.
 For example &amp;fallback=$INFO[ListItem.Thumb]
 
+##### Image from skin string or window property inside a panel
+Normally $INFO window properties or skin string can't be used inside a container.
+With this little workaround you can also use them inside containers...
+
+```xml
+<control type="image">
+    <!--music artwork-->
+    <texture background="true">http://localhost:52307/getvarimage&amp;title=$INFO{Window(Home).Property(MyCustomWindowProp)}</texture>
+</control>
+```
+
+You provide the window property (or any other $INFO label as the title param. Note that you must replace the normal [] brackets with {}
+You can also use this approach for paths or resource images:
+
+http://localhost:52307/getvarimage&amp;title=$INFO{Skin.String(MyCustomPath)}/logo.png
+
+
+Optional parameter: fallback --> Allows you to set a fallback image if no image was found.
+For example &amp;fallback=$INFO[ListItem.Thumb]
+
 ________________________________________________________________________________________________________
 
 
