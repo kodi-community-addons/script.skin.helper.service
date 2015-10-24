@@ -100,8 +100,6 @@ class ListItemMonitor(threading.Thread):
                 #only perform actions when the listitem has actually changed
                 if curListItem and curListItem != self.lastListItem and self.contentType:
                     
-                    WINDOW.setProperty("curlistItem",curListItem)
-                    
                     #clear all window props first
                     self.resetWindowProps()
                     

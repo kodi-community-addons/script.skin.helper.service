@@ -552,13 +552,16 @@ def searchThumb(searchphrase, searchphrase2=""):
 def getMusicBrainzId(artist, album="", track=""):
     albumid = ""
     artistid = ""
+    album = album.replace(" (single)","")
+    track = track.replace(" (edit)","").replace(" (radio edit)","")
+    logMsg("getMusicBrainzId -- artist:  -  %s  - album:  %s  - track:  %s" %(artist,album,track))
     try:
         if not WINDOW.getProperty("SkinHelper.TempDisableMusicBrainz"):
             MBalbum = None
             if artist and album:
                 MBalbums = m.search_release_groups(query=single_urlencode(try_encode(album)),limit=1,offset=None, strict=False, artist=single_urlencode(try_encode(artist)))
                 if MBalbums and MBalbums.get("release-group-list"): MBalbum = MBalbums.get("release-group-list")[0]
-            elif artist and track:
+            if not MBalbum and artist and track:
                 MBalbums = m.search_recordings(query=single_urlencode(try_encode(track)),limit=1,offset=None, strict=False, artist=single_urlencode(try_encode(artist)))
                 if MBalbums and MBalbums.get("recording-list"): MBalbum = MBalbums.get("recording-list")[0]
             if MBalbum:
@@ -595,7 +598,7 @@ def getMusicBrainzId(artist, album="", track=""):
     except Exception as e:
         logMsg("getMusicArtworkByDbId AudioDb lookup failed --> " + str(e), 0)
         return {}
-
+    logMsg("getMusicBrainzId results for artist %s  - artistid:  %s  - albumid:  %s" %(artist,artistid,albumid))
     return (artistid, albumid)
 
 def getArtistArtwork(musicbrainzartistid, artwork=None):
@@ -710,7 +713,7 @@ def getMusicArtworkByDbId(dbid,itemtype):
         else:
             json_response = None
             json_response = getJSON('AudioLibrary.GetAlbumDetails','{ "albumid": %s, "properties": [ "description","fanart","thumbnail","artistid" ] }'%int(dbid))
-            if json_response.get("description"): albumartwork["info"] = json_response["description"]
+            if json_response.get("description") and not albumartwork.get("info"): albumartwork["info"] = json_response["description"]
             if json_response["fanart"] and not albumartwork.get("fanart"): albumartwork["fanart"] = getCleanImage(json_response["fanart"])
             if json_response["thumbnail"] and not albumartwork.get("folder"): albumartwork["folder"] = getCleanImage(json_response["thumbnail"])
             if json_response.get("label") and not albumartwork.get("albumname"): albumartwork["albumname"] = json_response["label"]
@@ -743,7 +746,7 @@ def getMusicArtworkByDbId(dbid,itemtype):
     else:
         json_response = None
         json_response = getJSON('AudioLibrary.GetArtistDetails', '{ "artistid": %s, "properties": [ "description","fanart","thumbnail" ] }'%artistid)
-        if json_response.get("description"): artistartwork["info"] = json_response["description"]
+        if json_response.get("description") and not artistartwork.get("info"): artistartwork["info"] = json_response["description"]
         if json_response.get("fanart") and not artistartwork.get("fanart"): artistartwork["fanart"] = getCleanImage(json_response["fanart"])
         if json_response.get("thumbnail") and not artistartwork.get("folder"): artistartwork["folder"] = getCleanImage(json_response["thumbnail"])
         if json_response.get("label") and not artistartwork.get("artistname",""): artistartwork["artistname"] = json_response["label"]
@@ -755,11 +758,12 @@ def getMusicArtworkByDbId(dbid,itemtype):
         artistartwork["albums"] = []
         artistartwork["tracklist"] = []
         for song in json_response:
+            if not trackName: trackName = song.get("label")
             if song.get("album") and not "unknown title" in song.get("album").lower() and not "various artists" in song.get("file","").lower():
                 if not path: path = song["file"]
+                if not albumName: albumName = song.get("album")
                 if song.get("track"): artistartwork["tracklist"].append("%s - %s" %(song["track"], song["title"]))
                 else: artistartwork["tracklist"].append(song["title"])
-                if song.get("album") and not albumName: albumName = song["album"]
                 artistartwork["songcount"] += 1
                 if song.get("album") and song["album"] not in artistartwork["albums"]:
                     artistartwork["albumcount"] +=1
@@ -808,7 +812,7 @@ def getMusicArtworkByDbId(dbid,itemtype):
     if enableMusicArtScraper and not artistCacheFound or (itemtype=="albums" and not albumCacheFound):
         #lookup details in musicbrainz
         #retrieve album id and artist id with a combined query of album name and artist name to get an accurate result
-        musicbrainzartistid, musicbrainzalbumid = getMusicBrainzId(artistartwork.get("artistname"),albumName)
+        musicbrainzartistid, musicbrainzalbumid = getMusicBrainzId(artistartwork.get("artistname"),albumName,trackName)
         if itemtype=="albums" and musicbrainzalbumid: 
             albumartwork["musicbrainzalbumid"] = musicbrainzalbumid
         if musicbrainzartistid: 
