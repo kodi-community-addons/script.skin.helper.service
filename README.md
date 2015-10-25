@@ -758,7 +758,38 @@ plugin://script.skin.helper.service/?action=recommendedmedia&limit=[LIMIT]&reloa
 Provides a list of recommended media (movies, tv shows, music)
 Note: You can optionally provide the reload= parameter if you want to refresh the widget on library changes.
 
+________________________________________________________________________________________________________
 
+#####Recent albums
+```
+plugin://script.skin.helper.service/?action=recentalbums&limit=[LIMIT]&reload=$INFO[Window(Home).Property(widgetreloadmusic)]
+```
+Provides a list of recently added albums, including the artwork provided by this script as ListItem.Art(xxxx)
+Note: You can optionally provide the reload= parameter if you want to refresh the widget on library changes.
+________________________________________________________________________________________________________
+
+#####Recently played albums
+```
+plugin://script.skin.helper.service/?action=recentplayedalbums&limit=[LIMIT]&reload=$INFO[Window(Home).Property(widgetreloadmusic)]
+```
+Provides a list of recently played albums, including the artwork provided by this script as ListItem.Art(xxxx)
+Note: You can optionally provide the reload= parameter if you want to refresh the widget on library changes.
+________________________________________________________________________________________________________
+
+#####Recent songs
+```
+plugin://script.skin.helper.service/?action=recentsongs&limit=[LIMIT]&reload=$INFO[Window(Home).Property(widgetreloadmusic)]
+```
+Provides a list of recently added songs, including the artwork provided by this script as ListItem.Art(xxxx)
+Note: You can optionally provide the reload= parameter if you want to refresh the widget on library changes.
+________________________________________________________________________________________________________
+
+#####Recently played songs
+```
+plugin://script.skin.helper.service/?action=recentplayedsongs&limit=[LIMIT]&reload=$INFO[Window(Home).Property(widgetreloadmusic)]
+```
+Provides a list of recently played songs, including the artwork provided by this script as ListItem.Art(xxxx)
+Note: You can optionally provide the reload= parameter if you want to refresh the widget on library changes.
 ________________________________________________________________________________________________________
 
 #####Recent Media
@@ -796,8 +827,8 @@ This will provide a list with TV shows that are similar to a random in progress 
 TIP: The listitem provided by this list will have a property "similartitle" which contains the movie from which this list is generated. That way you can create a "Because you watched $INFO[Container.ListItem.Property(originaltitle)]" label....
 Note: You can optionally provide the widgetreload2 parameter if you want to refresh the widget every 10 minutes. If you want to refresh the widget on other circumstances just provide any changing info with the reload parameter, such as the window title or some window Property which you change on X interval.
 
-The above command will create a similar movies listing based on a random watched movie in the library.
-If you want to specify the movie to base the request on yourself you can optionally specify the imdb/tvdb id to the script:
+The above command will create a similar shows listing based on a random in progress show in the library.
+If you want to specify the show to base the request on yourself you can optionally specify the imdb/tvdb id to the script:
 
 ```
 plugin://script.skin.helper.service/?action=similarshows&imdbid=[IMDBID]&limit=[LIMIT]
@@ -854,7 +885,7 @@ Note: By providing the reload-parameter set to the widgetreload2 property, the w
 
 ________________________________________________________________________________________________________
 
-#####PVR TV Recordings widget
+#####PVR Latest Recordings widget
 ```
 plugin://script.skin.helper.service/?action=pvrrecordings&limit=[LIMIT]&reload=$INFO[Window(Home).Property(widgetreload2)]
 ```
