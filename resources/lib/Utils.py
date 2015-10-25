@@ -12,9 +12,9 @@ import datetime as dt
 import unicodedata
 import urlparse
 
-if sys.version_info < (2, 7):
+try:
     import simplejson as json
-else:
+except:
     import json
 
 ADDON = xbmcaddon.Addon()

@@ -487,7 +487,7 @@ class ListItemMonitor(threading.Thread):
         WINDOW.clearProperty("SkinHelper.PVR.Landscape")
         WINDOW.clearProperty("SkinHelper.PVR.ClearArt")
         WINDOW.clearProperty("SkinHelper.PVR.CharacterArt") 
-        WINDOW.clearProperty("SkinHelper.PVR.Logo")
+        WINDOW.clearProperty("SkinHelper.PVR.ClearLogo")
         WINDOW.clearProperty("SkinHelper.PVR.Banner")
         WINDOW.clearProperty("SkinHelper.PVR.DiscArt")
         WINDOW.clearProperty("SkinHelper.PVR.Plot")

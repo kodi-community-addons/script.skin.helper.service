@@ -686,6 +686,8 @@ def getMusicArtworkByDbId(dbid,itemtype):
     artistCacheFound = False
     albumCacheFound = False
     
+    logMsg("getMusicArtworkByDbId dbid: %s  type: %s" %(dbid, itemtype))
+    
     enableMusicArtScraper = WINDOW.getProperty("enableMusicArtScraper") == "true"
     downloadMusicArt = WINDOW.getProperty("downloadMusicArt") == "true"
     enableLocalMusicArtLookup = WINDOW.getProperty("enableLocalMusicArtLookup") == "true"
@@ -719,7 +721,6 @@ def getMusicArtworkByDbId(dbid,itemtype):
             if json_response.get("label") and not albumartwork.get("albumname"): albumartwork["albumname"] = json_response["label"]
             if json_response.get("artistid") and not albumartwork.get("artistid"): 
                 albumartwork["artistid"] = str(json_response["artistid"][0])
-                artistid = json_response["artistid"][0]
             #get track listing for album
             json_response = None
             json_response = getJSON('AudioLibrary.GetSongs', '{ "filter":{"albumid": %s}, "properties": [ "file","artistid","track","title","albumid","album","displayartist","albumartistid" ] }'%int(dbid))
@@ -733,11 +734,16 @@ def getMusicArtworkByDbId(dbid,itemtype):
                     else: albumartwork["tracklist"].append(song["title"])
                     albumartwork["songcount"] += 1
         
+        
+            #make sure that our results are strings
+            albumartwork["tracklist"] = "[CR]".join(albumartwork.get("tracklist",""))
+            albumartwork["albumcount"] = "%s"%albumartwork.get("albumcount","")
+            albumartwork["songcount"] = "%s"%albumartwork.get("songcount","")
+        
+        #set our global params
         albumName = albumartwork["albumname"]
-        #make sure that our results are strings
-        albumartwork["tracklist"] = "[CR]".join(albumartwork.get("tracklist",""))
-        albumartwork["albumcount"] = "%s"%albumartwork.get("albumcount","")
-        albumartwork["songcount"] = "%s"%albumartwork.get("songcount","")
+        artistid = albumartwork["artistid"]
+        
         
     ############## ARTIST DETAILS #######################################
     artistartwork = getArtworkFromCacheFile("special://profile/addon_data/script.skin.helper.service/musicart/cache-artists-%s.xml" %artistid)

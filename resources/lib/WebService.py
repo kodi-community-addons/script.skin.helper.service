@@ -34,7 +34,7 @@ class WebService(threading.Thread):
         try:
             server = StoppableHttpServer(('127.0.0.1', port), StoppableHttpRequestHandler)
             server.serve_forever()
-        except Exception as e: logMsg("WebServer exception occurred " + str(e),0)
+        except Exception as e: logMsg("WebServer exception occurred " + str(e))
             
 
 

@@ -207,7 +207,7 @@ The properties will also be available for your homescreen widgets if you set the
 | Window(Home).Property(SkinHelper.PVR.FanArt) | Will return the IMDB fanart image for the currently selected show/movie (only if found) |
 | Window(Home).Property(SkinHelper.PVR.Thumb) | Will return the thumb for the currently selected show/movie (only if found) |
 | Window(Home).Property(SkinHelper.PVR.ActualThumb) | Will return the thumb returned by the PVR addon itself (if supported) |
-| Window(Home).Property(SkinHelper.PVR.Logo) | Will return the clearlogo for the currently selected show/movie (only if found) |
+| Window(Home).Property(SkinHelper.PVR.ClearLogo) | Will return the clearlogo for the currently selected show/movie (only if found) |
 | Window(Home).Property(SkinHelper.PVR.Landscape) | Will return the landscape art for the currently selected show/movie (only if found) |
 | Window(Home).Property(SkinHelper.PVR.ClearArt) | Will return the ClearArt for the currently selected show/movie (only if found) |
 | Window(Home).Property(SkinHelper.PVR.DiscArt) | Will return the DiscArt for the currently selected show/movie (only if found) |
