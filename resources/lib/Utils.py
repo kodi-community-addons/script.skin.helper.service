@@ -198,12 +198,15 @@ def try_decode(text, encoding="utf-8"):
         return text       
          
 def setSkinVersion():
-    skin = xbmc.getSkinDir()
-    skinLabel = xbmcaddon.Addon(id=skin).getAddonInfo('name')
-    skinVersion = xbmcaddon.Addon(id=skin).getAddonInfo('version')
-    WINDOW.setProperty("SkinHelper.skinTitle",skinLabel + " - " + xbmc.getLocalizedString(19114) + ": " + skinVersion)
-    WINDOW.setProperty("SkinHelper.skinVersion",xbmc.getLocalizedString(19114) + ": " + skinVersion)
-    WINDOW.setProperty("SkinHelper.Version",ADDON_VERSION.replace(".",""))
+    try:
+        skin = xbmc.getSkinDir()
+        skinLabel = xbmcaddon.Addon(id=skin).getAddonInfo('name')
+        skinVersion = xbmcaddon.Addon(id=skin).getAddonInfo('version')
+        WINDOW.setProperty("SkinHelper.skinTitle",skinLabel + " - " + xbmc.getLocalizedString(19114) + ": " + skinVersion)
+        WINDOW.setProperty("SkinHelper.skinVersion",xbmc.getLocalizedString(19114) + ": " + skinVersion)
+        WINDOW.setProperty("SkinHelper.Version",ADDON_VERSION.replace(".",""))
+    except Exception as e:
+        logMsg("Error in setSkinVersion --> " + str(e), 0)
     
 def createListItem(item):
 
@@ -396,8 +399,9 @@ def createListItem(item):
         liz.setProperty("EndDate", endtime[0])
         fulldate = starttime[0] + " " + starttime[1] + "-" + endtime[1]
         liz.setProperty("Date",fulldate )
-    if "channelicon" in item:
-        liz.setProperty("ChannelIcon", item['channelicon'])
+    if "channellogo" in item:
+        liz.setProperty("ChannelIcon", item['channellogo'])
+        liz.setProperty("ChannelLogo", item['channellogo'])
     if "episodename" in item:
         liz.setProperty("EpisodeName", item['episodename'])
         liz.setInfo( type=itemtype, infoLabels={ "EpisodeName": item['episodename'] })

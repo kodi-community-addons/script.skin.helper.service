@@ -750,14 +750,14 @@ def getMusicArtworkByDbId(dbid,itemtype):
     if artistartwork: artistCacheFound = True
     else:
         json_response = None
-        json_response = getJSON('AudioLibrary.GetArtistDetails', '{ "artistid": %s, "properties": [ "description","fanart","thumbnail" ] }'%artistid)
+        json_response = getJSON('AudioLibrary.GetArtistDetails', '{ "artistid": %s, "properties": [ "description","fanart","thumbnail" ] }'%int(artistid))
         if json_response.get("description") and not artistartwork.get("info"): artistartwork["info"] = json_response["description"]
         if json_response.get("fanart") and not artistartwork.get("fanart"): artistartwork["fanart"] = getCleanImage(json_response["fanart"])
         if json_response.get("thumbnail") and not artistartwork.get("folder"): artistartwork["folder"] = getCleanImage(json_response["thumbnail"])
         if json_response.get("label") and not artistartwork.get("artistname",""): artistartwork["artistname"] = json_response["label"]
         #get track/album listing for artist
         json_response = None
-        json_response = getJSON('AudioLibrary.GetSongs', '{ "filter":{"artistid": %d}, "properties": [ "file","artistid","track","title","albumid","album","albumartistid" ] }'%artistid)
+        json_response = getJSON('AudioLibrary.GetSongs', '{ "filter":{"artistid": %d}, "properties": [ "file","artistid","track","title","albumid","album","albumartistid" ] }'%int(artistid))
         artistartwork["songcount"] = 0
         artistartwork["albumcount"] = 0
         artistartwork["albums"] = []

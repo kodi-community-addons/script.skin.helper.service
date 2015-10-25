@@ -422,7 +422,7 @@ def getPVRRecordings(limit):
                 item["art"] = getPVRThumbs(item["title"], channelname, "recordings")
                 if item.get("art") and item["art"].get("thumb"):
                     item["art"]["thumb"] = item["art"].get("thumb")
-                item["channelicon"] = item["art"].get("channelicon","")
+                item["channellogo"] = item["art"].get("channellogo","")
                 item["cast"] = None
                 allUnSortedItems.append((item["endtime"],item))
                 
