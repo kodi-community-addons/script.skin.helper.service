@@ -139,10 +139,10 @@ def getJSON(method,params):
         elif jsonobject.has_key('item'):
             return jsonobject['item']
         else:
-            logMsg("getJson - invalid result for Method %s - params: %s - response: %s" %(method,params, str(jsonobject)),0) 
+            logMsg("getJson - invalid result for Method %s - params: %s - response: %s" %(method,params, str(jsonobject))) 
             return {}
     else:
-        logMsg("getJson - empty result for Method %s - params: %s - response: %s" %(method,params, str(jsonobject)),0) 
+        logMsg("getJson - empty result for Method %s - params: %s - response: %s" %(method,params, str(jsonobject))) 
         return {}
 
 def setAddonsettings():
@@ -641,38 +641,56 @@ def recursiveDelete(path):
     success = xbmcvfs.rmdir(path)
     return success 
 
+
 def addToZip(src, zf, abs_src):
-    src = try_encode(src)
     dirs, files = xbmcvfs.listdir(src)
     for file in files:
-        filename = try_decode(xbmc.translatePath( os.path.join(src, file) ))
-        absname = os.path.abspath(filename)
+        file = file.decode("utf-8")
+        logMsg("zipping " + file)
+        file = xbmc.translatePath( os.path.join(src, file) ).decode("utf-8")
+        absname = os.path.abspath(file)
         arcname = absname[len(abs_src) + 1:]
-        zf.write(absname, arcname)
+        try:
+            #newer python can use unicode for the files in the zip
+            zf.write(absname, arcname)
+        except:
+            #older python version uses utf-8 for filenames in the zip
+            zf.write(absname.encode("utf-8"), arcname.encode("utf-8"))
     for dir in dirs:
         addToZip(os.path.join(src,dir),zf,abs_src)
     return zf
         
 def zip(src, dst):
     import zipfile
+    src = try_decode(src)
+    dst = try_decode(dst)
     zf = zipfile.ZipFile("%s.zip" % (dst), "w", zipfile.ZIP_DEFLATED)
-    abs_src = os.path.abspath(xbmc.translatePath(src))
+    abs_src = os.path.abspath(xbmc.translatePath(src).decode("utf-8"))
     zf = addToZip(src,zf,abs_src)
     zf.close()
     
 def unzip(zip_file,path):
     import shutil
     import zipfile
-    path = try_encode(path)
+    zip_file = try_decode(zip_file)
+    path = try_decode(path)
     logMsg("START UNZIP of file %s  to path %s " %(zipfile,path))
     f = zipfile.ZipFile(zip_file, 'r')
     for fileinfo in f.infolist():
-        filename = unicode(fileinfo.filename, "cp437").encode("utf-8")
+        filename = fileinfo.filename
+        filename = try_decode(filename)
         logMsg("unzipping " + filename)
         if "\\" in filename: xbmcvfs.mkdirs(os.path.join(path,filename.rsplit("\\", 1)[0]))
         elif "/" in filename: xbmcvfs.mkdirs(os.path.join(path,filename.rsplit("/", 1)[0]))
-        outputfile = open(os.path.join(path,filename), "wb")
-        #use shutil to support unicode formatted files in the zip
+        filename = os.path.join(path,filename)
+        logMsg("unzipping " + filename)
+        try:
+            #newer python uses unicode
+            outputfile = open(filename, "wb")
+        except:
+            #older python uses utf-8
+            outputfile = open(filename.encode("utf-8"), "wb")
+        #use shutil to support non-ascii formatted files in the zip
         shutil.copyfileobj(f.open(fileinfo.filename), outputfile)
         outputfile.close()
     f.close()
