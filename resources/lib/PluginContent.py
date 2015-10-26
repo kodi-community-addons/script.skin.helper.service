@@ -221,7 +221,7 @@ def buildWidgetsListing():
                         if line.tag == "smartplaylist":
                             type = line.attrib['type']
                         if line.tag == "name":
-                            label = line.text      
+                            label = line.text
                     try:
                         languageid = int(label)
                         label = xbmc.getLocalizedString(languageid)

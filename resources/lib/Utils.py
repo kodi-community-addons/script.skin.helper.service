@@ -671,7 +671,7 @@ def unzip(zip_file,path):
         logMsg("unzipping " + filename)
         if "\\" in filename: xbmcvfs.mkdirs(os.path.join(path,filename.rsplit("\\", 1)[0]))
         elif "/" in filename: xbmcvfs.mkdirs(os.path.join(path,filename.rsplit("/", 1)[0]))
-        outputfile = open(os.path.join(path,filename), "w")
+        outputfile = open(os.path.join(path,filename), "wb")
         #use shutil to support unicode formatted files in the zip
         shutil.copyfileobj(f.open(fileinfo.filename), outputfile)
         outputfile.close()
