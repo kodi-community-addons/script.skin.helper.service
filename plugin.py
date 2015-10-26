@@ -50,6 +50,8 @@ class Main:
                     getFavouriteMedia(limit)
                 elif action == "PVRCHANNELS":
                     getPVRChannels(limit)
+                elif action == "PVRCHANNELGROUPS":
+                    getPVRChannelGroups(limit)
                 elif action == "RECENTALBUMS":
                     browse=params.get("browse","")
                     if browse: browse = browse[0]=="true"

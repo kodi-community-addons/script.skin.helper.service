@@ -547,3 +547,7 @@ msgstr ""
 msgctxt "#32132"
 msgid "Recommended songs"
 msgstr ""
+
+msgctxt "#32133"
+msgid "PVR Channel groups"
+msgstr ""

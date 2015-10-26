@@ -127,6 +127,8 @@ def getJSON(method,params):
             return jsonobject['video']
         elif jsonobject.has_key('artists'):
             return jsonobject['artists']
+        elif jsonobject.has_key('channelgroups'):
+            return jsonobject['channelgroups']
         elif jsonobject.has_key('sources'):
             if jsonobject['sources']:
                 return jsonobject['sources']
@@ -137,10 +139,10 @@ def getJSON(method,params):
         elif jsonobject.has_key('item'):
             return jsonobject['item']
         else:
-            logMsg("getJson - invalid result for Method %s - params: %s - response: %s" %(method,params, str(jsonobject))) 
+            logMsg("getJson - invalid result for Method %s - params: %s - response: %s" %(method,params, str(jsonobject)),0) 
             return {}
     else:
-        logMsg("getJson - empty result for Method %s - params: %s - response: %s" %(method,params, str(jsonobject))) 
+        logMsg("getJson - empty result for Method %s - params: %s - response: %s" %(method,params, str(jsonobject)),0) 
         return {}
 
 def setAddonsettings():

@@ -253,6 +253,7 @@ def buildWidgetsListing():
             if widget=="pvr" and xbmc.getCondVisibility("PVR.HasTVChannels"):
                 foundWidgets.append(["$LOCALIZE[19023]", ";reload=$INFO[Window(Home).Property(widgetreload2)]", "", "pvr"])
                 foundWidgets.append(["$LOCALIZE[19017]", "plugin://script.skin.helper.service/?action=pvrrecordings&limit=25&reload=$INFO[Window(home).Property(widgetreload2)]", "", "pvr"])   
+                #foundWidgets.append(["$ADDON[script.skin.helper.service 32133]", "plugin://script.skin.helper.service/?action=pvrchannelgroups&limit=25&reload=$INFO[Window(home).Property(widgetreload2)]", "", "pvr"])   
             if widget=="smartishwidgets" and xbmc.getCondVisibility("System.HasAddon(service.smartish.widgets) + Skin.HasSetting(enable.smartish.widgets)"):
                 foundWidgets.append(["Smart(ish) Movies widget", "plugin://service.smartish.widgets?type=movies&reload=$INFO[Window.Property(smartish.movies)]", "", "movies"])
                 foundWidgets.append(["Smart(ish) Episodes widget", "plugin://service.smartish.widgets?type=episodes&reload=$INFO[Window.Property(smartish.episodes)]", "", "episodes"])
@@ -299,6 +300,9 @@ def getWidgets(itemstoInclude = None):
                     if type == "songs" or type == "albums" or type == "artists":
                         mediaLibrary = "10502"
                         target = "music"
+                    elif type == "pvr":
+                        mediaLibrary = "TvChannels"
+                        target = "pvr"
                     else:
                         mediaLibrary = "VideoLibrary"
                         target = "video"
@@ -489,24 +493,21 @@ def getPVRChannels(limit):
 
 def getPVRChannelGroups(limit):
     count = 0
+    #Code is not yet working... not possible to navigate to a specific channel group in pvr windows
     xbmcplugin.setContent(int(sys.argv[1]), 'files')
     # Perform a JSON query to get all channels
-    json_query = getJSON('PVR.GetChannelGroups', '{"channelgroupid": "alltv", "properties": [ "channeltype", "channelgroupid" ], "limits": {"end": %d}}' %( limit ) )
+    json_query = getJSON('PVR.GetChannelGroups', '{"channeltype": "tv"}' )
     for item in json_query:
-        item["file"] = sys.argv[0] + "?action=launchpvr&path=" + str(channelid)
-        item["channelicon"] = channelicon
-        item["icon"] = channelicon
-        item["channel"] = channelname
-        item["cast"] = None
+        item["file"] = "pvr://channels/tv/%s/" %(item["label"])
+        item["title"] = item["label"]
         liz = createListItem(item)
         liz.setProperty('IsPlayable', 'false')
-        xbmcplugin.addDirectoryItem(int(sys.argv[1]), item['file'], liz, False)
+        xbmcplugin.addDirectoryItem(int(sys.argv[1]), item['file'], liz, True)
         count += 1
         if count == limit:
             break
     xbmcplugin.endOfDirectory(handle=int(sys.argv[1])) 
-    
-    
+       
 def getThumb(searchphrase):
     WINDOW.clearProperty("SkinHelper.ListItemThumb")
     
