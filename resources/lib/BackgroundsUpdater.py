@@ -89,25 +89,30 @@ class BackgroundsUpdater(threading.Thread):
             self.normalTaskInterval += 0.15
                                
     def saveCacheToFile(self):
-        #safety check: does the config directory exist?
-        if not xbmcvfs.exists(ADDON_DATA_PATH + os.sep):
-            xbmcvfs.mkdir(ADDON_DATA_PATH)
-        
-        #cache file for all backgrounds
-        json.dump(self.allBackgrounds, open(self.cachePath,'w'))
-        
-        #cache file for smart shortcuts
-        json.dump(self.smartShortcuts, open(self.SmartShortcutsCachePath,'w'))
+        try:
+            #safety check: does the config directory exist?
+            if not xbmcvfs.exists(ADDON_DATA_PATH + os.sep):
+                xbmcvfs.mkdir(ADDON_DATA_PATH)
+            #cache file for all backgrounds
+            temp = self.allBackgrounds
+            json.dump(temp, open(self.cachePath,'w'))
+            #cache file for smart shortcuts
+            temp = self.smartShortcuts
+            json.dump(temp, open(self.SmartShortcutsCachePath,'w'))
+        except Exception as e:
+            logMsg("ERROR in Backgroundsupdater.saveCacheToFile ! --> " + str(e), 0)
                        
     def getCacheFromFile(self):
-        if xbmcvfs.exists(self.cachePath):
-            with open(self.cachePath) as data_file:    
-                data = json.load(data_file)
-                self.allBackgrounds = data
-        
-        if xbmcvfs.exists(self.SmartShortcutsCachePath):
-            with open(self.SmartShortcutsCachePath) as data_file:    
-                self.smartShortcuts = json.load(data_file) 
+        try:
+            if xbmcvfs.exists(self.cachePath):
+                with open(self.cachePath) as data_file:    
+                    data = json.load(data_file)
+                    self.allBackgrounds = data
+            if xbmcvfs.exists(self.SmartShortcutsCachePath):
+                with open(self.SmartShortcutsCachePath) as data_file:    
+                    self.smartShortcuts = json.load(data_file)
+        except Exception as e:
+            logMsg("ERROR in Backgroundsupdater.getCacheFromFile ! --> " + str(e), 0)
     
     def setDayNightColorTheme(self):
         #check if a colro theme should be conditionally set

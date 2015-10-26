@@ -233,56 +233,59 @@ class ListItemMonitor(threading.Thread):
             logMsg("ERROR in HomeMonitor doBackgroundWork ! --> " + str(e), 0)
     
     def saveCacheToFile(self):
-        #safety check: does the config directory exist?
-        if not xbmcvfs.exists(ADDON_DATA_PATH + os.sep):
-            xbmcvfs.mkdir(ADDON_DATA_PATH)
-        
-        libraryCache = {}
-        libraryCache["SetsCache"] = self.moviesetCache
-        libraryCache["streamdetailsCache"] = self.streamdetailsCache
-        libraryCache["rottenCache"] = self.rottenCache       
-        json.dump(libraryCache, open(self.cachePath,'w'))
-        
-        #safe widget cache
-        widgetCache = {}
-        widget = WINDOW.getProperty("skinhelper-recommendedmovies")
-        if widget: widgetCache["skinhelper-recommendedmovies"] = eval(widget)
-        widget = WINDOW.getProperty("skinhelper-widgetcontenttype-persistant")
-        if widget: widgetCache["skinhelper-widgetcontenttype"] = eval(widget)
-        widget = WINDOW.getProperty("skinhelper-InProgressAndRecommendedMedia")
-        if widget: widgetCache["skinhelper-InProgressAndRecommendedMedia"] = eval(widget)
-        widget = WINDOW.getProperty("skinhelper-InProgressMedia")
-        if widget: widgetCache["skinhelper-InProgressMedia"] = eval(widget)
-        widget = WINDOW.getProperty("skinhelper-RecommendedMedia")
-        if widget: widgetCache["skinhelper-RecommendedMedia"] = eval(widget)
-        widget = WINDOW.getProperty("skinhelper-pvrrecordings")
-        if widget: widgetCache["skinhelper-pvrrecordings"] = eval(widget)
-        widget = WINDOW.getProperty("skinhelper-pvrchannels")
-        if widget: widgetCache["skinhelper-pvrchannels"] = eval(widget)
-        widget = WINDOW.getProperty("skinhelper-recentalbums")
-        if widget: widgetCache["skinhelper-recentalbums"] = eval(widget)
-        widget = WINDOW.getProperty("skinhelper-recentplayedalbums")
-        if widget: widgetCache["skinhelper-recentplayedalbums"] = eval(widget)
-        widget = WINDOW.getProperty("skinhelper-recentplayedsongs")
-        if widget: widgetCache["skinhelper-recentplayedsongs"] = eval(widget)
-        widget = WINDOW.getProperty("skinhelper-recentsongs")
-        if widget: widgetCache["skinhelper-recentsongs"] = eval(widget)
-        widget = WINDOW.getProperty("skinhelper-nextepisodes")
-        if widget: widgetCache["skinhelper-nextepisodes"] = eval(widget)
-        widget = WINDOW.getProperty("skinhelper-nextairedtvshows")
-        if widget: widgetCache["skinhelper-nextairedtvshows"] = eval(widget)
-        widget = WINDOW.getProperty("skinhelper-similarmovies")
-        if widget: widgetCache["skinhelper-similarmovies"] = eval(widget)
-        widget = WINDOW.getProperty("skinhelper-recentmedia")
-        if widget: widgetCache["skinhelper-recentmedia"] = eval(widget)
-        widget = WINDOW.getProperty("skinhelper-favouritemedia")
-        if widget: widgetCache["skinhelper-favouritemedia"] = eval(widget)
-        widget = WINDOW.getProperty("skinhelper-recommendedalbums")
-        if widget: widgetCache["skinhelper-recommendedalbums"] = eval(widget)
-        widget = WINDOW.getProperty("skinhelper-recommendedsongs")
-        if widget: widgetCache["skinhelper-recommendedsongs"] = eval(widget)
-        
-        json.dump(widgetCache, open(self.widgetCachePath,'w'))
+        try:
+            #safety check: does the config directory exist?
+            if not xbmcvfs.exists(ADDON_DATA_PATH + os.sep):
+                xbmcvfs.mkdir(ADDON_DATA_PATH)
+            
+            libraryCache = {}
+            libraryCache["SetsCache"] = self.moviesetCache
+            libraryCache["streamdetailsCache"] = self.streamdetailsCache
+            libraryCache["rottenCache"] = self.rottenCache
+            temp = libraryCache
+            json.dump(temp, open(self.cachePath,'w'))
+            
+            #safe widget cache
+            widgetCache = {}
+            widget = WINDOW.getProperty("skinhelper-recommendedmovies")
+            if widget: widgetCache["skinhelper-recommendedmovies"] = eval(widget)
+            widget = WINDOW.getProperty("skinhelper-widgetcontenttype-persistant")
+            if widget: widgetCache["skinhelper-widgetcontenttype"] = eval(widget)
+            widget = WINDOW.getProperty("skinhelper-InProgressAndRecommendedMedia")
+            if widget: widgetCache["skinhelper-InProgressAndRecommendedMedia"] = eval(widget)
+            widget = WINDOW.getProperty("skinhelper-InProgressMedia")
+            if widget: widgetCache["skinhelper-InProgressMedia"] = eval(widget)
+            widget = WINDOW.getProperty("skinhelper-RecommendedMedia")
+            if widget: widgetCache["skinhelper-RecommendedMedia"] = eval(widget)
+            widget = WINDOW.getProperty("skinhelper-pvrrecordings")
+            if widget: widgetCache["skinhelper-pvrrecordings"] = eval(widget)
+            widget = WINDOW.getProperty("skinhelper-pvrchannels")
+            if widget: widgetCache["skinhelper-pvrchannels"] = eval(widget)
+            widget = WINDOW.getProperty("skinhelper-recentalbums")
+            if widget: widgetCache["skinhelper-recentalbums"] = eval(widget)
+            widget = WINDOW.getProperty("skinhelper-recentplayedalbums")
+            if widget: widgetCache["skinhelper-recentplayedalbums"] = eval(widget)
+            widget = WINDOW.getProperty("skinhelper-recentplayedsongs")
+            if widget: widgetCache["skinhelper-recentplayedsongs"] = eval(widget)
+            widget = WINDOW.getProperty("skinhelper-recentsongs")
+            if widget: widgetCache["skinhelper-recentsongs"] = eval(widget)
+            widget = WINDOW.getProperty("skinhelper-nextepisodes")
+            if widget: widgetCache["skinhelper-nextepisodes"] = eval(widget)
+            widget = WINDOW.getProperty("skinhelper-nextairedtvshows")
+            if widget: widgetCache["skinhelper-nextairedtvshows"] = eval(widget)
+            widget = WINDOW.getProperty("skinhelper-similarmovies")
+            if widget: widgetCache["skinhelper-similarmovies"] = eval(widget)
+            widget = WINDOW.getProperty("skinhelper-recentmedia")
+            if widget: widgetCache["skinhelper-recentmedia"] = eval(widget)
+            widget = WINDOW.getProperty("skinhelper-favouritemedia")
+            if widget: widgetCache["skinhelper-favouritemedia"] = eval(widget)
+            widget = WINDOW.getProperty("skinhelper-recommendedalbums")
+            if widget: widgetCache["skinhelper-recommendedalbums"] = eval(widget)
+            widget = WINDOW.getProperty("skinhelper-recommendedsongs")
+            if widget: widgetCache["skinhelper-recommendedsongs"] = eval(widget)
+            json.dump(widgetCache, open(self.widgetCachePath,'w'))
+        except Exception as e:
+            logMsg("ERROR in ListItemMonitor.saveCacheToFile ! --> " + str(e), 0)
              
     def getCacheFromFile(self):
         try:
@@ -303,7 +306,7 @@ class ListItemMonitor(threading.Thread):
                         for key in data:
                             WINDOW.setProperty(key,repr(data[key]))
         except Exception as e:
-            logMsg("ERROR in getCacheFromFile ! --> " + str(e), 0)
+            logMsg("ERROR in ListItemMonitor.getCacheFromFile ! --> " + str(e), 0)
 
     def updatePlexlinks(self):
         

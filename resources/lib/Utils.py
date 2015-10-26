@@ -663,15 +663,18 @@ def zip(src, dst):
 def unzip(zip_file,path):
     import shutil
     import zipfile
+    path = try_encode(path)
     logMsg("START UNZIP of file %s  to path %s " %(zipfile,path))
     f = zipfile.ZipFile(zip_file, 'r')
     for fileinfo in f.infolist():
-        filename = unicode(fileinfo.filename, "cp437")
+        filename = unicode(fileinfo.filename, "cp437").encode("utf-8")
         logMsg("unzipping " + filename)
         if "\\" in filename: xbmcvfs.mkdirs(os.path.join(path,filename.rsplit("\\", 1)[0]))
         elif "/" in filename: xbmcvfs.mkdirs(os.path.join(path,filename.rsplit("/", 1)[0]))
         outputfile = open(os.path.join(path,filename), "w")
+        #use shutil to support unicode formatted files in the zip
         shutil.copyfileobj(f.open(fileinfo.filename), outputfile)
+        outputfile.close()
     f.close()
     logMsg("UNZIP DONE of file %s  to path %s " %(zipfile,path))
     
