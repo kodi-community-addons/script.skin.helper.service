@@ -717,7 +717,7 @@ def getMusicArtworkByDbId(dbid,itemtype):
             json_response = getJSON('AudioLibrary.GetAlbumDetails','{ "albumid": %s, "properties": [ "description","fanart","thumbnail","artistid" ] }'%int(dbid))
             if json_response.get("description") and not albumartwork.get("info"): albumartwork["info"] = json_response["description"]
             if json_response["fanart"] and not albumartwork.get("fanart"): albumartwork["fanart"] = getCleanImage(json_response["fanart"])
-            if json_response["thumbnail"] and not albumartwork.get("folder"): albumartwork["folder"] = getCleanImage(json_response["thumbnail"])
+            if json_response["thumbnail"] and not albumartwork.get("folder") and not json_response["thumbnail"].startswith("music@"): albumartwork["folder"] = getCleanImage(json_response["thumbnail"])
             if json_response.get("label") and not albumartwork.get("albumname"): albumartwork["albumname"] = json_response["label"]
             if json_response.get("artistid") and not albumartwork.get("artistid"): 
                 albumartwork["artistid"] = str(json_response["artistid"][0])
@@ -753,7 +753,7 @@ def getMusicArtworkByDbId(dbid,itemtype):
         json_response = getJSON('AudioLibrary.GetArtistDetails', '{ "artistid": %s, "properties": [ "description","fanart","thumbnail" ] }'%int(artistid))
         if json_response.get("description") and not artistartwork.get("info"): artistartwork["info"] = json_response["description"]
         if json_response.get("fanart") and not artistartwork.get("fanart"): artistartwork["fanart"] = getCleanImage(json_response["fanart"])
-        if json_response.get("thumbnail") and not artistartwork.get("folder"): artistartwork["folder"] = getCleanImage(json_response["thumbnail"])
+        if json_response.get("thumbnail") and not artistartwork.get("folder") and not json_response["thumbnail"].startswith("music@"): artistartwork["folder"] = getCleanImage(json_response["thumbnail"])
         if json_response.get("label") and not artistartwork.get("artistname",""): artistartwork["artistname"] = json_response["label"]
         #get track/album listing for artist
         json_response = None

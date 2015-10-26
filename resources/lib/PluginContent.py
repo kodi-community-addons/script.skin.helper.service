@@ -32,6 +32,8 @@ def doMainListing():
     addDirectoryItem(ADDON.getLocalizedString(32087), "plugin://script.skin.helper.service/?action=recentsongs&limit=100")
     addDirectoryItem(xbmc.getLocalizedString(517), "plugin://script.skin.helper.service/?action=recentplayedalbums&limit=100")
     addDirectoryItem(ADDON.getLocalizedString(32088), "plugin://script.skin.helper.service/?action=recentplayedsongs&limit=100")
+    addDirectoryItem(ADDON.getLocalizedString(32131), "plugin://script.skin.helper.service/?action=recommendedalbums&limit=100")
+    addDirectoryItem(ADDON.getLocalizedString(32132), "plugin://script.skin.helper.service/?action=recommendedsongs&limit=100")
     if xbmc.getCondVisibility("System.HasAddon(script.tv.show.next.aired)"):
         addDirectoryItem(ADDON.getLocalizedString(32055), "plugin://script.skin.helper.service/?action=nextairedtvshows&limit=100")
 
@@ -484,6 +486,26 @@ def getPVRChannels(limit):
         if count == limit:
             break
     xbmcplugin.endOfDirectory(handle=int(sys.argv[1])) 
+
+def getPVRChannelGroups(limit):
+    count = 0
+    xbmcplugin.setContent(int(sys.argv[1]), 'files')
+    # Perform a JSON query to get all channels
+    json_query = getJSON('PVR.GetChannelGroups', '{"channelgroupid": "alltv", "properties": [ "channeltype", "channelgroupid" ], "limits": {"end": %d}}' %( limit ) )
+    for item in json_query:
+        item["file"] = sys.argv[0] + "?action=launchpvr&path=" + str(channelid)
+        item["channelicon"] = channelicon
+        item["icon"] = channelicon
+        item["channel"] = channelname
+        item["cast"] = None
+        liz = createListItem(item)
+        liz.setProperty('IsPlayable', 'false')
+        xbmcplugin.addDirectoryItem(int(sys.argv[1]), item['file'], liz, False)
+        count += 1
+        if count == limit:
+            break
+    xbmcplugin.endOfDirectory(handle=int(sys.argv[1])) 
+    
     
 def getThumb(searchphrase):
     WINDOW.clearProperty("SkinHelper.ListItemThumb")
@@ -499,7 +521,7 @@ def getThumb(searchphrase):
     xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=image, listitem=li)
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
-def getRecentAlbums(limit):
+def getRecentAlbums(limit,browse=False):
     count = 0
     allItems = []
     xbmcplugin.setContent(int(sys.argv[1]), 'albums')
@@ -520,14 +542,15 @@ def getRecentAlbums(limit):
         if allItems: WINDOW.setProperty("skinhelper-recentalbums", repr(allItems))
     for item in allItems:
         liz = createListItem(item)
-        liz.setProperty('IsPlayable', 'true')
-        xbmcplugin.addDirectoryItem(int(sys.argv[1]), item['file'], liz, True)
+        if not browse: 
+            item['file'] = "plugin://script.skin.helper.service/?action=playalbum&path=%s" %item['albumid']
+        xbmcplugin.addDirectoryItem(int(sys.argv[1]), item['file'], liz, browse)
         count += 1
         if count == limit:
             break
     xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
 
-def getRecentPlayedAlbums(limit):
+def getRecentPlayedAlbums(limit,browse=False):
     count = 0
     allItems = []
     xbmcplugin.setContent(int(sys.argv[1]), 'albums')
@@ -537,7 +560,7 @@ def getRecentPlayedAlbums(limit):
         allItems = eval(cache)
     else:
         #query json api
-        json_result = getJSON('AudioLibrary.GetRecentlyPlayedAddedAlbums', '{ "sort": { "order": "descending", "method": "lastplayed" }, "properties": [ %s ], "limits":{"end":%d} }' %(fields_albums,limit))
+        json_result = getJSON('AudioLibrary.GetRecentlyPlayedAlbums', '{ "sort": { "order": "descending", "method": "lastplayed" }, "properties": [ %s ], "limits":{"end":%d} }' %(fields_albums,limit))
         for item in json_result:
             item["art"] = getMusicArtworkByDbId(item["albumid"], "albums")
             item["type"] = "album"
@@ -550,8 +573,9 @@ def getRecentPlayedAlbums(limit):
 
     for item in allItems:
         liz = createListItem(item)
-        liz.setProperty('IsPlayable', 'true')
-        xbmcplugin.addDirectoryItem(int(sys.argv[1]), item['file'], liz, True)
+        if not browse: 
+            item['file'] = "plugin://script.skin.helper.service/?action=playalbum&path=%s" %item['albumid']
+        xbmcplugin.addDirectoryItem(int(sys.argv[1]), item['file'], liz, browse)
         count += 1
         if count == limit:
             break
@@ -728,7 +752,6 @@ def getRecommendedMovies(limit):
         # First we get a list of all the in-progress Movies
         numitems = 0
         json_result = getJSON('VideoLibrary.GetMovies','{ "sort": { "order": "descending", "method": "lastplayed" }, "filter": {"and": [{"operator":"true", "field":"inprogress", "value":""}]}, "properties": [ %s ] }' %fields_movies)
-        # If we found any, find the oldest unwatched show for each one.
         for item in json_result:
             if numitems >= limit:
                 break
@@ -752,6 +775,103 @@ def getRecommendedMovies(limit):
             break
     xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
 
+def getRecommendedAlbums(limit,browse=False):
+    count = 0
+    allItems = []
+    xbmcplugin.setContent(int(sys.argv[1]), 'albums')
+    cache = WINDOW.getProperty("skinhelper-recommendedalbums")
+    if cache:
+        #load from cache
+        allItems = eval(cache)
+    else:
+        allTitles = list()
+        #query last played albums and find albums of same genre and sort by rating
+        json_result = getJSON('AudioLibrary.GetRecentlyPlayedAlbums', '{ "sort": { "order": "descending", "method": "lastplayed" }, "properties": [ %s ], "limits":{"end":%d} }' %(fields_albums,limit))
+        if not json_result:
+            #if no recent played albums just grab a list of random albums...
+            json_result = getJSON('AudioLibrary.GetAlbums', '{ "sort": { "order": "descending", "method": "random" }, "properties": [ %s ], "limits":{"end":%d} }' %(fields_albums,limit))
+
+        for item in json_result:
+            genres = item["genre"]
+            similartitle = item["title"]
+            #get all movies from the same genre
+            for genre in genres:
+                print genre
+                json_result = getJSON('AudioLibrary.GetAlbums', '{ "sort": { "order": "descending", "method": "rating" }, "filter": {"operator":"is", "field":"genre", "value":"%s"}, "properties": [ %s ],"limits":{"end":%d} }' %(genre,fields_albums,limit))
+                for item in json_result:
+                    if not item["title"] in allTitles and not item["title"] == similartitle:
+                        item["similartitle"] = similartitle
+                        item["art"] = getMusicArtworkByDbId(item["albumid"], "albums")
+                        item["type"] = "album"
+                        item["extrafanart"] = item["art"].get("extrafanart","")
+                        item['album_description'] = item["art"].get("info","")
+                        item["tracklist"] = item["art"].get("tracklist","")
+                        item["file"] = "musicdb://albums/%s/" %str(item["albumid"])
+                        allItems.append((item["rating"],item))
+                        allTitles.append(item["title"])
+            
+            
+        #sort the list by rating 
+        allItems = sorted(allItems,key=itemgetter(0),reverse=True)
+        if allItems: WINDOW.setProperty("skinhelper-recommendedalbums", repr(allItems))
+
+    for item in allItems:
+        item = item[1]
+        liz = createListItem(item)
+        if not browse: 
+            item['file'] = "plugin://script.skin.helper.service/?action=playalbum&path=%s" %item['albumid']
+        xbmcplugin.addDirectoryItem(int(sys.argv[1]), item['file'], liz, browse)
+        count += 1
+        if count == limit:
+            break
+    xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
+
+def getRecommendedSongs(limit):
+    count = 0
+    allItems = []
+    xbmcplugin.setContent(int(sys.argv[1]), 'albums')
+    cache = WINDOW.getProperty("skinhelper-recommendedsongs")
+    if cache:
+        #load from cache
+        allItems = eval(cache)
+    else:
+        allTitles = list()
+        #query last played songs and find songs of same genre and sort by rating
+        json_result = getJSON('AudioLibrary.GetRecentlyPlayedSongs', '{ "sort": { "order": "descending", "method": "lastplayed" }, "properties": [ %s ], "limits":{"end":%d} }' %(fields_songs,limit))
+        if not json_result:
+            json_result = getJSON('AudioLibrary.GetSongs', '{ "sort": { "order": "descending", "method": "random" }, "properties": [ %s ], "limits":{"end":%d} }' %(fields_songs,limit))
+        for item in json_result:
+            genres = item["genre"]
+            similartitle = item["title"]
+            #get all movies from the same genre
+            for genre in genres:
+                print genre
+                json_result = getJSON('AudioLibrary.GetSongs', '{ "sort": { "order": "descending", "method": "rating" }, "filter": {"operator":"is", "field":"genre", "value":"%s"}, "properties": [ %s ],"limits":{"end":%d} }' %(genre,fields_songs,limit))
+                for item in json_result:
+                    if not item["title"] in allTitles and not item["title"] == similartitle:
+                        item["similartitle"] = similartitle
+                        item["art"] = getMusicArtworkByDbId(item["songid"], "songs")
+                        item["type"] = "song"
+                        item["extrafanart"] = item["art"].get("extrafanart","")
+                        item['album_description'] = item["art"].get("info","")
+                        item["tracklist"] = item["art"].get("tracklist","")
+                        allItems.append((item["rating"],item))
+                        allTitles.append(item["title"])
+            
+            
+        #sort the list by rating 
+        allItems = sorted(allItems,key=itemgetter(0),reverse=True)
+        if allItems: WINDOW.setProperty("skinhelper-recommendedsongs", repr(allItems))
+
+    for item in allItems:
+        item = item[1]
+        liz = createListItem(item)
+        xbmcplugin.addDirectoryItem(int(sys.argv[1]), item['file'], liz, False)
+        count += 1
+        if count == limit:
+            break
+    xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
+    
 def getSimilarMovies(limit,imdbid=""):
     count = 0
     allItems = []

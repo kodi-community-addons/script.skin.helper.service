@@ -51,11 +51,24 @@ class Main:
                 elif action == "PVRCHANNELS":
                     getPVRChannels(limit)
                 elif action == "RECENTALBUMS":
-                    getRecentAlbums(limit)
+                    browse=params.get("browse","")
+                    if browse: browse = browse[0]=="true"
+                    else: browse = False
+                    getRecentAlbums(limit,browse)
+                elif action == "RECOMMENDEDALBUMS":
+                    browse=params.get("browse","")
+                    if browse: browse = browse[0]=="true"
+                    else: browse = False
+                    getRecommendedAlbums(limit,browse)
+                elif action == "RECOMMENDEDSONGS":
+                    getRecommendedSongs(limit)
                 elif action == "RECENTSONGS":
                     getRecentSongs(limit)
                 elif action == "RECENTPLAYEDALBUMS":
-                    getRecentPlayedAlbums(limit)
+                    browse=params.get("browse","")
+                    if browse: browse = browse[0]=="true"
+                    else: browse = False
+                    getRecentPlayedAlbums(limit,browse)
                 elif action == "RECENTPLAYEDSONGS":
                     getRecentPlayedSongs(limit)
                 elif action == "PVRRECORDINGS":
@@ -83,12 +96,15 @@ class Main:
                     if movieset: movieset = movieset[0]
                     getCast(movie,tvshow,movieset)
                 elif action == "LAUNCHPVR":
-                    if path:
-                        xbmc.executeJSONRPC('{ "jsonrpc": "2.0", "id": 0, "method": "Player.Open", "params": { "item": {"channelid": ' + path + '} } }')
+                    xbmc.executeJSONRPC('{ "jsonrpc": "2.0", "id": 0, "method": "Player.Open", "params": { "item": {"channelid": %d} } }' %int(path))
+                    xbmcplugin.setResolvedUrl(handle=int(sys.argv[1]), succeeded=False, listitem=xbmcgui.ListItem())
                 elif action == "LAUNCH":
                     path = sys.argv[2].split("&path=")[1]
-                    if path:
-                        xbmc.executebuiltin(path)
+                    xbmc.executebuiltin(path)
+                    xbmcplugin.setResolvedUrl(handle=int(sys.argv[1]), succeeded=False, listitem=xbmcgui.ListItem())
+                elif action == "PLAYALBUM":
+                    xbmc.executeJSONRPC('{ "jsonrpc": "2.0", "method": "Player.Open", "params": { "item": { "albumid": %d } }, "id": 1 }' % int(path))
+                    xbmcplugin.setResolvedUrl(handle=int(sys.argv[1]), succeeded=False, listitem=xbmcgui.ListItem())
     
         else:
             #do plugin main listing...

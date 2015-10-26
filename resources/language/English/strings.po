@@ -539,3 +539,11 @@ msgstr ""
 msgctxt "#32130"
 msgid "Similar TV Shows"
 msgstr ""
+
+msgctxt "#32131"
+msgid "Recommended albums"
+msgstr ""
+
+msgctxt "#32132"
+msgid "Recommended songs"
+msgstr ""

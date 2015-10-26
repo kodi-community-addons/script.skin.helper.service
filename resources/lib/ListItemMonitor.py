@@ -277,6 +277,10 @@ class ListItemMonitor(threading.Thread):
         if widget: widgetCache["skinhelper-recentmedia"] = eval(widget)
         widget = WINDOW.getProperty("skinhelper-favouritemedia")
         if widget: widgetCache["skinhelper-favouritemedia"] = eval(widget)
+        widget = WINDOW.getProperty("skinhelper-recommendedalbums")
+        if widget: widgetCache["skinhelper-recommendedalbums"] = eval(widget)
+        widget = WINDOW.getProperty("skinhelper-recommendedsongs")
+        if widget: widgetCache["skinhelper-recommendedsongs"] = eval(widget)
         
         json.dump(widgetCache, open(self.widgetCachePath,'w'))
              

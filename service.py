@@ -27,8 +27,10 @@ class Main:
         while not KodiMonitor.abortRequested():
             
             #set skin info
-            if lastSkin != xbmc.getSkinDir():
+            currentSkin = xbmc.getSkinDir()
+            if lastSkin != currentSkin:
                 setSkinVersion()
+                lastSkin = currentSkin
             
             KodiMonitor.waitForAbort(5000)
         else:

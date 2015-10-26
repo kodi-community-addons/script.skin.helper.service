@@ -766,6 +766,8 @@ plugin://script.skin.helper.service/?action=recentalbums&limit=[LIMIT]&reload=$I
 ```
 Provides a list of recently added albums, including the artwork provided by this script as ListItem.Art(xxxx)
 Note: You can optionally provide the reload= parameter if you want to refresh the widget on library changes.
+
+Optional argument: browse=true --> will open/browse the album instead of playing it
 ________________________________________________________________________________________________________
 
 #####Recently played albums
@@ -774,6 +776,18 @@ plugin://script.skin.helper.service/?action=recentplayedalbums&limit=[LIMIT]&rel
 ```
 Provides a list of recently played albums, including the artwork provided by this script as ListItem.Art(xxxx)
 Note: You can optionally provide the reload= parameter if you want to refresh the widget on library changes.
+
+Optional argument: browse=true --> will open/browse the album instead of playing it
+________________________________________________________________________________________________________
+
+#####Recommended albums
+```
+plugin://script.skin.helper.service/?action=recommendedalbums&limit=[LIMIT]&reload=$INFO[Window(Home).Property(widgetreloadmusic)]
+```
+Provides a list of recommended albums, including the artwork provided by this script as ListItem.Art(xxxx)
+Note: You can optionally provide the reload= parameter if you want to refresh the widget on library changes.
+
+Optional argument: browse=true --> will open/browse the album instead of playing it
 ________________________________________________________________________________________________________
 
 #####Recent songs
@@ -789,6 +803,14 @@ ________________________________________________________________________________
 plugin://script.skin.helper.service/?action=recentplayedsongs&limit=[LIMIT]&reload=$INFO[Window(Home).Property(widgetreloadmusic)]
 ```
 Provides a list of recently played songs, including the artwork provided by this script as ListItem.Art(xxxx)
+Note: You can optionally provide the reload= parameter if you want to refresh the widget on library changes.
+________________________________________________________________________________________________________
+
+#####Recommended songs
+```
+plugin://script.skin.helper.service/?action=recommendedsongs&limit=[LIMIT]&reload=$INFO[Window(Home).Property(widgetreloadmusic)]
+```
+Provides a list of recommended songs, including the artwork provided by this script as ListItem.Art(xxxx)
 Note: You can optionally provide the reload= parameter if you want to refresh the widget on library changes.
 ________________________________________________________________________________________________________
 
@@ -880,7 +902,7 @@ ________________________________________________________________________________
 ```
 plugin://script.skin.helper.service/?action=pvrchannels&limit=[LIMIT]&reload=$INFO[Window(Home).Property(widgetreload2)]
 ```
-Provides the Kodi TV channels as list content, enriched with thumbs, poster, channelicon and fanart (where possible).
+Provides the Kodi TV channels as list content, enriched with the artwork provided by this script (where possible).
 Note: By providing the reload-parameter set to the widgetreload2 property, the widget will be updated every 10 minutes.
 
 ________________________________________________________________________________________________________
@@ -889,7 +911,7 @@ ________________________________________________________________________________
 ```
 plugin://script.skin.helper.service/?action=pvrrecordings&limit=[LIMIT]&reload=$INFO[Window(Home).Property(widgetreload2)]
 ```
-Provides the Kodi TV Recordings as list content, enriched with thumbs, poster, channelicon and fanart (where possible).
+Provides the Kodi TV Recordings (sorted by date) as list content, enriched with the artwork provided by this script (where possible).
 Note: By providing the reload-parameter set to the widgetreload2 property, the widget will be updated every 10 minutes.
 
 
