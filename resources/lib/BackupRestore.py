@@ -1,7 +1,7 @@
-import zipfile
 from Utils import *
 import random
 from xml.dom.minidom import parse
+
 
 def getSkinSettings(filter=None):
     newlist = []
@@ -240,9 +240,7 @@ def restore(silent=None):
             
             zip_temp = xbmc.translatePath('special://temp/' + zip_path.split(delim)[-1]).decode("utf-8")
             xbmcvfs.copy(zip_path,zip_temp)
-            zfile = zipfile.ZipFile(zip_temp)
-            zfile.extractall(temp_path)
-            zfile.close()
+            unzip(zip_temp,temp_path)
             xbmcvfs.delete(zip_temp)
             
             #copy skinshortcuts preferences
@@ -256,10 +254,10 @@ def restore(silent=None):
                    recursiveDelete(skinshortcuts_path_dest)
                 xbmcvfs.mkdir(skinshortcuts_path_dest)
             
-                dirs, files = xbmcvfs.listdir(skinshortcuts_path_source)
+                dirs, files = xbmcvfs.listdir(skinshortcuts_path_source.encode("utf-8"))
                 for file in files:
-                    sourcefile = skinshortcuts_path_source + file
-                    destfile = skinshortcuts_path_dest + file  
+                    sourcefile = skinshortcuts_path_source.encode("utf-8") + file
+                    destfile = skinshortcuts_path_dest.encode("utf-8") + file  
                     if file == "SKINPROPERTIES.properties":
                         destfile = skinshortcuts_path_dest + file.replace("SKINPROPERTIES",xbmc.getSkinDir())
                     logMsg("source --> " + sourcefile)

@@ -44,7 +44,7 @@ KodiArtTypes = [ ("thumb","thumb.jpg"),("poster","poster.jpg"),("fanart","fanart
 def logMsg(msg, level = 1):
     if isinstance(msg, unicode):
         msg = msg.encode('utf-8')
-    if "exception" in msg.lower() or "error in" in msg.lower():
+    if "exception" in msg.lower() or "error" in msg.lower():
         xbmc.log("Skin Helper Service --> " + msg, level=xbmc.LOGERROR)
         print_exc()
     elif level == 0: 
@@ -659,3 +659,19 @@ def zip(src, dst):
     abs_src = os.path.abspath(xbmc.translatePath(src))
     zf = addToZip(src,zf,abs_src)
     zf.close()
+    
+def unzip(zip_file,path):
+    import shutil
+    import zipfile
+    logMsg("START UNZIP of file %s  to path %s " %(zipfile,path))
+    f = zipfile.ZipFile(zip_file, 'r')
+    for fileinfo in f.infolist():
+        filename = unicode(fileinfo.filename, "cp437")
+        logMsg("unzipping " + filename)
+        if "\\" in filename: xbmcvfs.mkdirs(os.path.join(path,filename.rsplit("\\", 1)[0]))
+        elif "/" in filename: xbmcvfs.mkdirs(os.path.join(path,filename.rsplit("/", 1)[0]))
+        outputfile = open(os.path.join(path,filename), "w")
+        shutil.copyfileobj(f.open(fileinfo.filename), outputfile)
+    f.close()
+    logMsg("UNZIP DONE of file %s  to path %s " %(zipfile,path))
+    
