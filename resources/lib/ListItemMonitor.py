@@ -340,6 +340,7 @@ class ListItemMonitor(threading.Thread):
             while linkCount !=50:
                 plexstring = "plexbmc." + str(linkCount)
                 link = WINDOW.getProperty(plexstring + ".title")
+                link = link.replace("VideoLibrary","10025")
                 if not link:
                     break
                 logMsg(plexstring + ".title --> " + link)
