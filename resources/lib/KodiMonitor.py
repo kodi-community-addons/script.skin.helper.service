@@ -25,10 +25,7 @@ class Kodi_Monitor(xbmc.Monitor):
         WINDOW.setProperty("SkinHelper.Player.Music.SongCount","") 
         WINDOW.setProperty("SkinHelper.Player.Music.albumCount","") 
         WINDOW.setProperty("SkinHelper.Player.Music.AlbumList","")
-        if WINDOW.getProperty("SkinHelper.Player.Music.ExtraFanArt"):
-            WINDOW.setProperty("SkinHelper.Player.Music.ExtraFanArt","-")
-            xbmc.sleep(25)
-            WINDOW.clearProperty("SkinHelper.Player.Music.ExtraFanArt")
+        WINDOW.setProperty("SkinHelper.Player.Music.ExtraFanArt","")
     
     def resetMusicWidgets(self):
         #clear the cache for the music widgets

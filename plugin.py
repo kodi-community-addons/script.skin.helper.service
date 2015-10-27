@@ -96,7 +96,11 @@ class Main:
                     if tvshow: tvshow = tvshow[0]
                     movieset=params.get("movieset",None)
                     if movieset: movieset = movieset[0]
-                    getCast(movie,tvshow,movieset)
+                    skipthumbs=params.get("skipthumbs",False)
+                    if skipthumbs: skipthumbs = skipthumbs[0]=="true"
+                    title=params.get("title",None)
+                    if title: title = title[0]
+                    getCast(movie,tvshow,movieset,skipthumbs,title)
                 elif action == "LAUNCHPVR":
                     xbmc.executeJSONRPC('{ "jsonrpc": "2.0", "id": 0, "method": "Player.Open", "params": { "item": {"channelid": %d} } }' %int(path))
                     xbmcplugin.setResolvedUrl(handle=int(sys.argv[1]), succeeded=False, listitem=xbmcgui.ListItem())

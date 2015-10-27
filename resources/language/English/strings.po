@@ -551,3 +551,11 @@ msgstr ""
 msgctxt "#32133"
 msgid "PVR Channel groups"
 msgstr ""
+
+msgctxt "#32134"
+msgid "Other"
+msgstr ""
+
+msgctxt "#32135"
+msgid "Enable verbose debug logging"
+msgstr ""

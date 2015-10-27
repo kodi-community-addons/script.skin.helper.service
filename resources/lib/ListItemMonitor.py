@@ -78,7 +78,7 @@ class ListItemMonitor(threading.Thread):
                 except Exception as e:
                     logMsg("ERROR in setMusicPlayerDetails ! --> " + str(e), 0)
                             
-            if not xbmc.getCondVisibility("Window.IsActive(fullscreenvideo)"):
+            if not xbmc.getCondVisibility("Window.IsActive(fullscreenvideo) | Window.IsActive(script.pseudotv.TVOverlay.xml) | Window.IsActive(script.pseudotv.live.TVOverlay.xml)"):
         
                 #set some globals
                 try:

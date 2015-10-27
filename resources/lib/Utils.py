@@ -42,15 +42,14 @@ fields_pvrrecordings = '"art", "channel", "directory", "endtime", "file", "genre
 KodiArtTypes = [ ("thumb","thumb.jpg"),("poster","poster.jpg"),("fanart","fanart.jpg"),("banner","banner.jpg"),("landscape","landscape.jpg"),("clearlogo","logo.png"),("clearart","clearart.png"),("channellogo","channellogo.png"),("discart","disc.png"),("discart","cdart.png"),("extrafanart","extrafanart/"),("characterart","characterart.png"),("folder","folder.jpg") ]
 
 def logMsg(msg, level = 1):
-    if isinstance(msg, unicode):
-        msg = msg.encode('utf-8')
-    if "exception" in msg.lower() or "error" in msg.lower():
-        xbmc.log("Skin Helper Service --> " + msg, level=xbmc.LOGERROR)
-        print_exc()
-    elif level == 0: 
-        xbmc.log("Skin Helper Service --> " + msg, level=xbmc.LOGNOTICE)
-    else: 
-        xbmc.log("Skin Helper Service --> " + msg, level=xbmc.LOGDEBUG)
+    if WINDOW.getProperty("enableDebugLog") == "true" or level == 0:
+        if isinstance(msg, unicode):
+            msg = msg.encode('utf-8')
+        if "exception" in msg.lower() or "error" in msg.lower():
+            xbmc.log("Skin Helper Service --> " + msg, level=xbmc.LOGERROR)
+            print_exc()
+        else: 
+            xbmc.log("Skin Helper Service --> " + msg, level=xbmc.LOGNOTICE)
         
             
 def getContentPath(libPath):
@@ -171,6 +170,8 @@ def setAddonsettings():
     WINDOW.setProperty("enableMusicArtScraper",SETTING("enableMusicArtScraper"))
     WINDOW.setProperty("downloadMusicArt",SETTING("downloadMusicArt"))
     WINDOW.setProperty("enableLocalMusicArtLookup",SETTING("enableLocalMusicArtLookup"))
+    WINDOW.setProperty("enableDebugLog",SETTING("enableDebugLog"))
+    
 
 def indentXML( elem, level=0 ):
     i = "\n" + level*"\t"

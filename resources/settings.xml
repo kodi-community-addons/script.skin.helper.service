@@ -29,4 +29,7 @@
         <setting id="downloadMusicArt" type="bool" label="32125" default="false" visible="eq(-1,true)"/>
         <setting label="32126" type="action" action="RunScript(script.skin.helper.service,action=RESETCACHE,path=music)"/>
     </category>
+    <category label="32134">
+        <setting id="enableDebugLog" type="bool" label="32135" default="false"/>
+    </category>
 </settings>
