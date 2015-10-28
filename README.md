@@ -24,7 +24,7 @@ Important settings:
 |SkinHelper.EnableExtraFanart	| Skin.ToggleSetting(SkinHelper.EnableExtraFanart)	| enables the extrafanart background scanner |
 |SkinHelper.CustomStudioImagesPath | Skin.SetString(SkinHelper.CustomStudioImagesPath,[PATH])| if you want the user (or yourself as skinner) be able to set the path to the studio logos. If empty it will try to locate the images (later to be replaced with the new image resource packs in Kodi 16)|
 |SkinHelper.ShowInfoAtPlaybackStart	| Skin.SetNumeric(SkinHelper.ShowInfoAtPlaybackStart)	| Show OSD info panel at playback start for number of seconds (0 or empty disables this) |
-|SkinHelper.AutoCloseOSD	| Skin.SetNumeric(SkinHelper.AutoCloseOSD)	| Auto close the OSD panel when activated by the user (0 or empty disables this) |
+|SkinHelper.AutoCloseOSD	| Skin.SetNumeric(SkinHelper.AutoCloseOSD)	| Auto close the OSD panel when activated by the user after number of seconds (0 or empty disables this) |
 |SkinHelper.RandomFanartDelay	| Skin.SetNumeric(SkinHelper.RandomFanartDelay)	| Sets the time in seconds for the interval of the rotating backgrounds provided by the script (0 or empty disable the backgrounds by this script completely) |
 |CustomPicturesBackgroundPath	| Skin.SetPath(CustomPicturesBackgroundPath)	| Sets a custom path from which the global pictures background should be pulled from. (when empty uses all picture sources) |
 |SmartShortcuts.playlists | Skin.SetBool(SmartShortcuts.playlists) | Enable smart shortcuts for Kodi playlists |

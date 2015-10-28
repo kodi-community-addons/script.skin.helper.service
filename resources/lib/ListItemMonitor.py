@@ -94,7 +94,7 @@ class ListItemMonitor(threading.Thread):
                         else: currentcount = 0
                         xbmc.sleep(250)
                         liControlLast = liControl
-                    xbmc.executebuiltin("Dialog.Close(all,true)")
+                    xbmc.executebuiltin("Dialog.Close()")
                 
             if not xbmc.getCondVisibility("Window.IsActive(fullscreenvideo) | Window.IsActive(script.pseudotv.TVOverlay.xml) | Window.IsActive(script.pseudotv.live.TVOverlay.xml)"):
         
