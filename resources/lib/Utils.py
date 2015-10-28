@@ -172,7 +172,6 @@ def setAddonsettings():
     WINDOW.setProperty("enableLocalMusicArtLookup",SETTING("enableLocalMusicArtLookup"))
     WINDOW.setProperty("enableDebugLog",SETTING("enableDebugLog"))
     
-
 def indentXML( elem, level=0 ):
     i = "\n" + level*"\t"
     if len(elem):
@@ -588,16 +587,10 @@ def getCurrentContentType():
         contenttype = "artists"
     elif xbmc.getCondVisibility("Container.Content(albums)"):
         contenttype = "albums"
-    elif xbmc.getCondVisibility("Window.IsActive(tvchannels) | Window.IsActive(radiochannels)"):
+    elif xbmc.getCondVisibility("Window.IsActive(MyPVRChannels.xml) | Window.IsActive(MyPVRGuide.xml) | Window.IsActive(MyPVRTimers.xml) | Window.IsActive(MyPVRSearch.xml)"):
         contenttype = "tvchannels"
-    elif xbmc.getCondVisibility("Window.IsActive(tvrecordings) | Window.IsActive(radiorecordings)"):
+    elif xbmc.getCondVisibility("Window.IsActive(MyPVRRecordings.xml)"):
         contenttype = "tvrecordings"
-    elif xbmc.getCondVisibility("Window.IsActive(tvguide) | Window.IsActive(radioguide)"):
-        contenttype = "tvguide"
-    elif xbmc.getCondVisibility("Window.IsActive(tvtimers) | Window.IsActive(radiotimers)"):
-        contenttype = "tvtimers"
-    elif xbmc.getCondVisibility("Window.IsActive(tvsearch) | Window.IsActive(radiosearch)"):
-        contenttype = "tvsearch"
     elif xbmc.getCondVisibility("Window.IsActive(programs) | Window.IsActive(addonbrowser)"):
         contenttype = "programs"
     elif xbmc.getCondVisibility("Window.IsActive(pictures)"):

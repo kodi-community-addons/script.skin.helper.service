@@ -8,6 +8,7 @@ import xml.etree.ElementTree as ET
 from Utils import *
 import musicbrainzngs as m
 
+tmdb_apiKey = base64.b64decode("NDc2N2I0YjJiYjk0YjEwNGZhNTUxNWM1ZmY0ZTFmZWM=")
 m.set_useragent("script.skin.helper.service", "0.01", "https://github.com/marcelveldt/script.skin.helper.service")
 
 def getPVRThumbs(title,channel,type="channels",path="",genre=""):
@@ -275,7 +276,6 @@ def getfanartTVimages(type,id,artwork=None):
 def getOfficialArtWork(title,artwork=None,type=None):
     #perform search on TMDB and return artwork
     if not artwork: artwork={}
-    apiKey = base64.b64decode("NDc2N2I0YjJiYjk0YjEwNGZhNTUxNWM1ZmY0ZTFmZWM=")
     coverUrl = ""
     fanartUrl = ""
     matchFound = None
@@ -283,7 +283,7 @@ def getOfficialArtWork(title,artwork=None,type=None):
     media_type = None
     if not type: type="multi"
     try: 
-        url = 'http://api.themoviedb.org/3/search/%s?api_key=%s&language=%s&query=%s' %(type,apiKey,KODILANGUAGE,try_encode(title))
+        url = 'http://api.themoviedb.org/3/search/%s?api_key=%s&language=%s&query=%s' %(type,tmdb_apiKey,KODILANGUAGE,try_encode(title))
         response = requests.get(url)
         data = json.loads(response.content.decode('utf-8','replace'))
         #find exact match first
@@ -323,9 +323,9 @@ def getOfficialArtWork(title,artwork=None,type=None):
             for language in languages:
                 if WINDOW.getProperty("useFanArtTv") == "true" and id:
                     if media_type == "movie" or not media_type:
-                        url = 'http://api.themoviedb.org/3/movie/%s?api_key=%s&language=%s' %(id,apiKey,language)
+                        url = 'http://api.themoviedb.org/3/movie/%s?api_key=%s&language=%s' %(id,tmdb_apiKey,language)
                     else:
-                        url = 'http://api.themoviedb.org/3/tv/%s?api_key=%s&append_to_response=external_ids&language=%s' %(id,apiKey,language)
+                        url = 'http://api.themoviedb.org/3/tv/%s?api_key=%s&append_to_response=external_ids&language=%s' %(id,tmdb_apiKey,language)
                     response = requests.get(url)
                     data = json.loads(response.content.decode('utf-8','replace'))
                     if data:

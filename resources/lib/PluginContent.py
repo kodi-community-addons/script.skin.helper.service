@@ -1297,7 +1297,7 @@ def getExtraFanArt(path):
             xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=item, listitem=li)
     xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
     
-def getCast(movie=None,tvshow=None,movieset=None,skipthumbs=False,title=None):
+def getCast(movie=None,tvshow=None,movieset=None,downloadThumbs=False):
     
     itemId = None
     item = {}
@@ -1307,22 +1307,20 @@ def getCast(movie=None,tvshow=None,movieset=None,skipthumbs=False,title=None):
     cachedataStr = ""
     try:
         if movieset:
-            cachedataStr = "movieset.castcache-" + str(movieset)+str(skipthumbs)
+            cachedataStr = "movieset.castcache-" + str(movieset)+str(downloadThumbs)
             itemId = int(movieset)
         elif tvshow:
-            cachedataStr = "tvshow.castcache-" + str(tvshow)+str(skipthumbs)
+            cachedataStr = "tvshow.castcache-" + str(tvshow)+str(downloadThumbs)
             itemId = int(tvshow)
         elif movie:
-            cachedataStr = "movie.castcache-" + str(movie)+str(skipthumbs)
+            cachedataStr = "movie.castcache-" + str(movie)+str(downloadThumbs)
             itemId = int(movie)
         else:
-            cachedataStr = title
-    except Exception as e:
-        print e
+            cachedataStr = xbmc.getInfoLabel("ListItem.Title")+xbmc.getInfoLabel("ListItem.FileNameAndPath")+str(downloadThumbs)
+    except: pass
     
     cachedata = WINDOW.getProperty(cachedataStr)
     if cachedata:
-        print "cast details from cache..." + title
         #get data from cache
         cachedata = eval(cachedata)
         for cast in cachedata:
@@ -1334,7 +1332,6 @@ def getCast(movie=None,tvshow=None,movieset=None,skipthumbs=False,title=None):
             liz.setThumbnailImage(cast[2])
             xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=path, listitem=liz, isFolder=True)
     else:
-        print "cast details from listing..." + title
         #retrieve data from json api...
         if movie and itemId:
             json_result = getJSON('VideoLibrary.GetMovieDetails', '{ "movieid": %d, "properties": [ "title", "cast" ] }' %itemId)
@@ -1364,7 +1361,7 @@ def getCast(movie=None,tvshow=None,movieset=None,skipthumbs=False,title=None):
                 if not label: break
                 label2 = xbmc.getInfoLabel("Container(50).ListItemNoWrap(%s).Label2" %i)
                 thumb = xbmc.getInfoLabel("Container(50).ListItemNoWrap(%s).Thumb" %i)
-                if not thumb or not xbmcvfs.exists(thumb) and not skipthumbs: thumb = searchGoogleImage(label)
+                if not thumb or not xbmcvfs.exists(thumb) and downloadThumbs: thumb = "http://localhost:52307/getthumb&amp;title=%s Actor IMDB"%label
                 url = "RunScript(script.extendedinfo,info=extendedactorinfo,name=%s)"%label
                 path="plugin://script.skin.helper.service/?action=launch&path=" + url
                 liz = xbmcgui.ListItem(label=label,label2=label2,iconImage=thumb)
@@ -1377,7 +1374,7 @@ def getCast(movie=None,tvshow=None,movieset=None,skipthumbs=False,title=None):
         #process cast for regular movie or show
         if item and item.has_key("cast"):
             for cast in item["cast"]:
-                if not cast.get("thumbnail") or not xbmcvfs.exists(cast.get("thumbnail")) and not skipthumbs: cast["thumbnail"] = searchGoogleImage(cast["name"] + " IMDB Actor")
+                if not cast.get("thumbnail") or not xbmcvfs.exists(cast.get("thumbnail")) and downloadThumbs: cast["thumbnail"] = "http://localhost:52307/getthumb&amp;title=%s Actor IMDB"%cast["name"]
                 liz = xbmcgui.ListItem(label=cast["name"],label2=cast["role"],iconImage=cast.get("thumbnail"))
                 allCast.append([cast["name"],cast["role"],cast.get("thumbnail","")])
                 castNames.append(cast["name"])
@@ -1395,7 +1392,7 @@ def getCast(movie=None,tvshow=None,movieset=None,skipthumbs=False,title=None):
                 if json_result:
                     for cast in json_result["cast"]:
                         if not cast["name"] in moviesetCastList:
-                            if not cast.get("thumbnail") or not xbmcvfs.exists(cast.get("thumbnail")) and not skipthumbs: cast["thumbnail"] = searchGoogleImage(cast["name"] + " IMDB Actor")
+                            if not cast.get("thumbnail") or not xbmcvfs.exists(cast.get("thumbnail")) and downloadThumbs: cast["thumbnail"] = "http://localhost:52307/getthumb&amp;title=%s Actor IMDB"%cast["name"]
                             liz = xbmcgui.ListItem(label=cast["name"],label2=cast["role"],iconImage=cast.get("thumbnail",""))
                             allCast.append([cast["name"],cast["role"],cast["thumbnail"]])
                             castNames.append(cast["name"])
@@ -1407,7 +1404,6 @@ def getCast(movie=None,tvshow=None,movieset=None,skipthumbs=False,title=None):
                             moviesetCastList.append(cast["name"])
             
         WINDOW.setProperty(cachedataStr,repr(allCast))
-    if title: WINDOW.setProperty("castlist",title)
     
     WINDOW.setProperty('SkinHelper.ListItemCast', "[CR]".join(castNames))
     

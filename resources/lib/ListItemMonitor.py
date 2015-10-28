@@ -85,7 +85,8 @@ class ListItemMonitor(threading.Thread):
                     self.liPath = xbmc.getInfoLabel("ListItem.Path").decode('utf-8')
                     self.liLabel = xbmc.getInfoLabel("ListItem.Label").decode('utf-8')
                     self.folderPath = xbmc.getInfoLabel("Container.FolderPath").decode('utf-8')
-                except: pass
+                    if not self.folderPath and self.liPath.startswith("pvr://guide"): self.folderPath = "pvr://guide"
+                except Exception as e: print e
                 curListItem = self.liPath + self.liLabel
                 
                 #perform actions if the container path has changed
@@ -105,7 +106,7 @@ class ListItemMonitor(threading.Thread):
                     
                     if not self.liLabel == "..":
                         # monitor listitem props when musiclibrary is active
-                        if xbmc.getCondVisibility("Window.IsActive(musiclibrary) | Window.IsActive(MyMusicSongs.xml)"):
+                        if self.contentType == "albums" or self.contentType == "artists" or self.contentType == "songs":
                             try:
                                 self.setMusicDetails()
                                 self.setGenre()
@@ -128,8 +129,9 @@ class ListItemMonitor(threading.Thread):
                                 logMsg("ERROR in LibraryMonitor ! --> " + str(e), 0)
                         
                         # monitor listitem props when PVR is active
-                        elif xbmc.getCondVisibility("Window.IsActive(MyPVRChannels.xml) | Window.IsActive(MyPVRGuide.xml) | Window.IsActive(MyPVRTimers.xml) | Window.IsActive(MyPVRSearch.xml) | Window.IsActive(MyPVRRecordings.xml)"):
+                        elif self.contentType == "tvchannels" or self.contentType == "tvrecordings":
                             try:
+                                print "komt de code hier wel ?"
                                 self.setDuration()
                                 self.setPVRThumbs()
                                 self.setGenre()
@@ -311,7 +313,7 @@ class ListItemMonitor(threading.Thread):
     def updatePlexlinks(self):
         
         if xbmc.getCondVisibility("System.HasAddon(plugin.video.plexbmc) + Skin.HasSetting(SmartShortcuts.plex)"): 
-            logMsg("update plexlinks started...",0)
+            logMsg("update plexlinks started...")
             
             #initialize plex window props by using the amberskin entrypoint for now
             if not WINDOW.getProperty("plexbmc.0.title"):
@@ -398,7 +400,7 @@ class ListItemMonitor(threading.Thread):
                 WINDOW.setProperty(plexstring + ".path", link)
                 WINDOW.setProperty(plexstring + ".content", getContentPath(link))
                 
-            logMsg("update plexlinks ended...",0)
+            logMsg("update plexlinks ended...")
 
     def checkNotifications(self):
         
