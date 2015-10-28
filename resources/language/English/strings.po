@@ -559,3 +559,7 @@ msgstr ""
 msgctxt "#32135"
 msgid "Enable verbose debug logging"
 msgstr ""
+
+msgctxt "#32136"
+msgid "Max number of extrafanarts to grab for music/pvr fanart"
+msgstr ""

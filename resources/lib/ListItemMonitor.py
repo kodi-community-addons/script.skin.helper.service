@@ -78,7 +78,7 @@ class ListItemMonitor(threading.Thread):
                 except Exception as e:
                     logMsg("ERROR in setMusicPlayerDetails ! --> " + str(e), 0)
             
-            if xbmc.getCondVisibility("Window.IsActive(VideoOSD.xml) | Window.IsActive(MusicOSD.xml)"):
+            if xbmc.getCondVisibility("Window.IsActive(videoosd) | Window.IsActive(musicosd)"):
                 #auto close OSD after X seconds of inactivity
                 secondsToDisplay = 0
                 window = "videoosd"
@@ -101,7 +101,10 @@ class ListItemMonitor(threading.Thread):
                         else: currentcount = 0
                         xbmc.sleep(250)
                         liControlLast = liControl
-                    xbmc.executebuiltin("Dialog.Close(%s)"%window)
+                    
+                    #only auto close osd if no osd related dialogs are opened
+                    if not xbmc.getCondVisibility("Window.IsActive(visualisationpresetlist) | Window.IsActive(osdvideosettings) | Window.IsActive(osdaudiosettings) | Window.IsActive(videobookmarks) | Window.IsActive(videobookmarks)]"):
+                        xbmc.executebuiltin("Dialog.Close(%s)"%window)
                 
             if not xbmc.getCondVisibility("Window.IsActive(fullscreenvideo) | Window.IsActive(script.pseudotv.TVOverlay.xml) | Window.IsActive(script.pseudotv.live.TVOverlay.xml)"):
         
@@ -156,7 +159,6 @@ class ListItemMonitor(threading.Thread):
                         # monitor listitem props when PVR is active
                         elif self.contentType == "tvchannels" or self.contentType == "tvrecordings":
                             try:
-                                print "komt de code hier wel ?"
                                 self.setDuration()
                                 self.setPVRThumbs()
                                 self.setGenre()

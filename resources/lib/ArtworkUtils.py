@@ -18,9 +18,9 @@ def getPVRThumbs(title,channel,type="channels",path="",genre=""):
     pvrThumbPath = None
         
     #should we ignore this path ?
-    ignoretitles = WINDOW.getProperty("ignoretitles")
-    ignorechannels = WINDOW.getProperty("ignorechannels")
-    stripwords = WINDOW.getProperty("stripwords")
+    ignoretitles = WINDOW.getProperty("SkinHelper.ignoretitles")
+    ignorechannels = WINDOW.getProperty("SkinHelper.ignorechannels")
+    stripwords = WINDOW.getProperty("SkinHelper.stripwords")
     if ignorechannels:
         for item in ignorechannels.split(";"):
             if item.lower() == channel.lower(): ignore = True
@@ -44,12 +44,12 @@ def getPVRThumbs(title,channel,type="channels",path="",genre=""):
     logMsg("getPVRThumb for %s %s--> "%(title,channel))
     
     #make sure we have our settings cached in memory...
-    if not WINDOW.getProperty("pvrthumbspath"):
+    if not WINDOW.getProperty("SkinHelper.pvrthumbspath"):
         setAddonsettings()
     
-    if type=="channels" and WINDOW.getProperty("cacheGuideEntries")=="true":
+    if type=="channels" and WINDOW.getProperty("SkinHelper.cacheGuideEntries")=="true":
         downloadLocal = True
-    elif type=="recordings" and WINDOW.getProperty("cacheRecordings")=="true":
+    elif type=="recordings" and WINDOW.getProperty("SkinHelper.cacheRecordings")=="true":
         downloadLocal = True
     else:
         downloadLocal = False
@@ -69,7 +69,7 @@ def getPVRThumbs(title,channel,type="channels",path="",genre=""):
         
         #lookup existing pvrthumbs paths - try to find a match in custom path
         #images will be looked up or stored to that path
-        customlookuppath = WINDOW.getProperty("customlookuppath").decode("utf-8")
+        customlookuppath = WINDOW.getProperty("SkinHelper.customlookuppath").decode("utf-8")
         if customlookuppath: 
             dirs, files = xbmcvfs.listdir(customlookuppath)
             for dir in dirs:
@@ -91,8 +91,8 @@ def getPVRThumbs(title,channel,type="channels",path="",genre=""):
         
         if not pvrThumbPath:
             #nothing found in user custom path so use the global one...
-            directory_structure = WINDOW.getProperty("directory_structure")
-            pvrthumbspath = WINDOW.getProperty("pvrthumbspath").decode("utf-8")
+            directory_structure = WINDOW.getProperty("SkinHelper.directory_structure")
+            pvrthumbspath = WINDOW.getProperty("SkinHelper.pvrthumbspath").decode("utf-8")
             if directory_structure == "1": pvrThumbPath = os.path.join(pvrthumbspath,normalize_string(channel),normalize_string(title))
             elif directory_structure == "2": os.path.join(pvrthumbspath,normalize_string(channel + " - " + title))
             else: pvrThumbPath = pvrThumbPath = os.path.join(pvrthumbspath,normalize_string(title))
@@ -144,7 +144,7 @@ def getPVRThumbs(title,channel,type="channels",path="",genre=""):
                         logMsg("%s found on disk for %s" %(artType[0],title))
                         
             #lookup local library
-            if WINDOW.getProperty("useLocalLibraryLookups") == "true":
+            if WINDOW.getProperty("SkinHelper.useLocalLibraryLookups") == "true":
                 item = None
                 json_result = getJSON('VideoLibrary.GetTvShows','{ "filter": {"operator":"is", "field":"title", "value":"%s"}, "properties": [ %s ] }' %(title,fields_tvshows))
                 if len(json_result) > 0:
@@ -166,18 +166,18 @@ def getPVRThumbs(title,channel,type="channels",path="",genre=""):
             if not cacheFound and not WINDOW.getProperty("SkinHelper.DisableInternetLookups"):
                                 
                 #grab artwork from tmdb/fanart.tv
-                if WINDOW.getProperty("useTMDBLookups") == "true":
+                if WINDOW.getProperty("SkinHelper.useTMDBLookups") == "true":
                     if "movie" in genre.lower():
                         artwork = getOfficialArtWork(title,artwork,"movie")
                     else:
                         artwork = getOfficialArtWork(title,artwork)
                     
                 #lookup thumb on google as fallback
-                if not artwork.get("thumb") and channel and WINDOW.getProperty("useGoogleLookups") == "true":
+                if not artwork.get("thumb") and channel and WINDOW.getProperty("SkinHelper.useGoogleLookups") == "true":
                     artwork["thumb"] = searchGoogleImage("'%s' '%s'" %(title, channel) )
                 
                 #lookup thumb on youtube as fallback
-                if not artwork.get("thumb") and channel and WINDOW.getProperty("useYoutubeLookups") == "true":
+                if not artwork.get("thumb") and channel and WINDOW.getProperty("SkinHelper.useYoutubeLookups") == "true":
                     artwork["thumb"] = searchYoutubeImage("'%s' '%s'" %(title, channel) )
                 
                 if downloadLocal == True:
@@ -273,8 +273,15 @@ def getfanartTVimages(type,id,artwork=None):
                         if "background" in fanarttvimage:
                             if not artwork.get("extrafanarts"): 
                                 artwork["extrafanarts"] = []
+                            try:
+                                maxfanarts = WINDOW.setProperty("SkinHelper.maxNumFanArts")
+                                if maxfanarts: maxfanarts = int(maxfanarts)
+                            except: maxfanarts = 0
+                            fanartcount = 0
                             for item in data[fanarttvimage]:
+                                if fanartcount >= maxfanarts: break
                                 artwork["extrafanarts"].append(item.get("url"))
+                                fanartcount += 1
                     
     return artwork
 
@@ -326,7 +333,7 @@ def getOfficialArtWork(title,artwork=None,type=None):
             #lookup external tmdb_id and perform artwork lookup on fanart.tv
             languages = [KODILANGUAGE,"en"]
             for language in languages:
-                if WINDOW.getProperty("useFanArtTv") == "true" and id:
+                if WINDOW.getProperty("SkinHelper.useFanArtTv") == "true" and id:
                     if media_type == "movie" or not media_type:
                         url = 'http://api.themoviedb.org/3/movie/%s?api_key=%s&language=%s' %(id,tmdb_apiKey,language)
                     else:
@@ -334,6 +341,7 @@ def getOfficialArtWork(title,artwork=None,type=None):
                     response = requests.get(url)
                     data = json.loads(response.content.decode('utf-8','replace'))
                     if data:
+                        print data
                         if not media_id and data.get("imdb_id"):
                             media_id = str(data.get("imdb_id"))
                             artwork["imdb_id"] = media_id
@@ -342,6 +350,8 @@ def getOfficialArtWork(title,artwork=None,type=None):
                             artwork["tvdb_id"] = media_id
                         if data.get("overview"):
                             artwork["plot"] = data.get("overview")
+                        if data.get("vote_average"):
+                            artwork["rating"] = str(data.get("vote_average"))
                             break
         
         #lookup artwork on fanart.tv
@@ -693,9 +703,9 @@ def getMusicArtworkByDbId(dbid,itemtype):
     
     logMsg("getMusicArtworkByDbId dbid: %s  type: %s" %(dbid, itemtype))
     
-    enableMusicArtScraper = WINDOW.getProperty("enableMusicArtScraper") == "true"
-    downloadMusicArt = WINDOW.getProperty("downloadMusicArt") == "true"
-    enableLocalMusicArtLookup = WINDOW.getProperty("enableLocalMusicArtLookup") == "true"
+    enableMusicArtScraper = WINDOW.getProperty("SkinHelper.enableMusicArtScraper") == "true"
+    downloadMusicArt = WINDOW.getProperty("SkinHelper.downloadMusicArt") == "true"
+    enableLocalMusicArtLookup = WINDOW.getProperty("SkinHelper.enableLocalMusicArtLookup") == "true"
 
     if itemtype == "artists":
         artistid = int(dbid)

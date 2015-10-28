@@ -142,9 +142,9 @@ class BackgroundsUpdater(threading.Thread):
     def setWallImageFromPath(self, windowProp, libPath, square=False):
         image = None
         blackWhite = False
-        if WINDOW.getProperty("enablewallbackgrounds") != "true" or self.exit:
+        if WINDOW.getProperty("SkinHelper.enablewallbackgrounds") != "true" or self.exit:
             return
-        if WINDOW.getProperty("preferBWwallbackgrounds") == "true":
+        if WINDOW.getProperty("SkinHelper.preferBWwallbackgrounds") == "true":
             windowProp = "BW_" + windowProp
         
         #load from cache    
@@ -346,9 +346,9 @@ class BackgroundsUpdater(threading.Thread):
             else:
                 images = []
                 import ArtworkUtils as artutils
-                if not WINDOW.getProperty("pvrthumbspath"): setAddonsettings()
-                customlookuppath = WINDOW.getProperty("customlookuppath").decode("utf-8")
-                pvrthumbspath = WINDOW.getProperty("pvrthumbspath").decode("utf-8")
+                if not WINDOW.getProperty("SkinHelper.pvrthumbspath"): setAddonsettings()
+                customlookuppath = WINDOW.getProperty("SkinHelper.customlookuppath").decode("utf-8")
+                pvrthumbspath = WINDOW.getProperty("SkinHelper.pvrthumbspath").decode("utf-8")
                 paths = [customlookuppath, pvrthumbspath]
                 for path in paths:
                     dirs, files = xbmcvfs.listdir(path)

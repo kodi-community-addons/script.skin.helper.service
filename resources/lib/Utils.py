@@ -42,7 +42,7 @@ fields_pvrrecordings = '"art", "channel", "directory", "endtime", "file", "genre
 KodiArtTypes = [ ("thumb","thumb.jpg"),("poster","poster.jpg"),("fanart","fanart.jpg"),("banner","banner.jpg"),("landscape","landscape.jpg"),("clearlogo","logo.png"),("clearart","clearart.png"),("channellogo","channellogo.png"),("discart","disc.png"),("discart","cdart.png"),("extrafanart","extrafanart/"),("characterart","characterart.png"),("folder","folder.jpg") ]
 
 def logMsg(msg, level = 1):
-    if WINDOW.getProperty("enableDebugLog") == "true" or level == 0:
+    if WINDOW.getProperty("SkinHelper.enableDebugLog") == "true" or level == 0:
         if isinstance(msg, unicode):
             msg = msg.encode('utf-8')
         if "exception" in msg.lower() or "error" in msg.lower():
@@ -150,27 +150,28 @@ def setAddonsettings():
     if not xbmcvfs.exists("special://profile/addon_data/script.skin.helper.service/musicart/"):
         xbmcvfs.mkdirs("special://profile/addon_data/script.skin.helper.service/musicart/")
     #get the addonsettings and store them in memory
-    WINDOW.setProperty("pvrthumbspath",SETTING("pvrthumbspath"))
-    WINDOW.setProperty("cacheRecordings",SETTING("cacheRecordings"))
-    WINDOW.setProperty("cacheGuideEntries",SETTING("cacheGuideEntries"))
-    WINDOW.setProperty("customRecordingsPath",SETTING("customRecordingsPath"))
-    WINDOW.setProperty("useTMDBLookups",SETTING("useTMDBLookups"))
-    WINDOW.setProperty("useGoogleLookups",SETTING("useGoogleLookups"))
-    WINDOW.setProperty("useYoutubeLookups",SETTING("useYoutubeLookups"))
-    WINDOW.setProperty("useLocalLibraryLookups",SETTING("useLocalLibraryLookups"))
-    WINDOW.setProperty("customlookuppath",SETTING("customlookuppath"))
-    WINDOW.setProperty("useFanArtTv",SETTING("useFanArtTv"))
-    WINDOW.setProperty("ignorechannels",SETTING("ignorechannels"))
-    WINDOW.setProperty("ignoretitles",SETTING("ignoretitles"))
-    WINDOW.setProperty("stripwords",SETTING("stripwords"))
-    WINDOW.setProperty("directory_structure",SETTING("directory_structure"))
+    WINDOW.setProperty("SkinHelper.pvrthumbspath",SETTING("pvrthumbspath"))
+    WINDOW.setProperty("SkinHelper.cacheRecordings",SETTING("cacheRecordings"))
+    WINDOW.setProperty("SkinHelper.cacheGuideEntries",SETTING("cacheGuideEntries"))
+    WINDOW.setProperty("SkinHelper.customRecordingsPath",SETTING("customRecordingsPath"))
+    WINDOW.setProperty("SkinHelper.useTMDBLookups",SETTING("useTMDBLookups"))
+    WINDOW.setProperty("SkinHelper.useGoogleLookups",SETTING("useGoogleLookups"))
+    WINDOW.setProperty("SkinHelper.useYoutubeLookups",SETTING("useYoutubeLookups"))
+    WINDOW.setProperty("SkinHelper.useLocalLibraryLookups",SETTING("useLocalLibraryLookups"))
+    WINDOW.setProperty("SkinHelper.customlookuppath",SETTING("customlookuppath"))
+    WINDOW.setProperty("SkinHelper.useFanArtTv",SETTING("useFanArtTv"))
+    WINDOW.setProperty("SkinHelper.ignorechannels",SETTING("ignorechannels"))
+    WINDOW.setProperty("SkinHelper.ignoretitles",SETTING("ignoretitles"))
+    WINDOW.setProperty("SkinHelper.stripwords",SETTING("stripwords"))
+    WINDOW.setProperty("SkinHelper.directory_structure",SETTING("directory_structure"))
     WINDOW.setProperty("SkinHelper.lastUpdate","%s" %datetime.now())    
-    WINDOW.setProperty("enablewallbackgrounds",SETTING("enablewallbackgrounds"))
-    WINDOW.setProperty("preferBWwallbackgrounds",SETTING("preferBWwallbackgrounds"))
-    WINDOW.setProperty("enableMusicArtScraper",SETTING("enableMusicArtScraper"))
-    WINDOW.setProperty("downloadMusicArt",SETTING("downloadMusicArt"))
-    WINDOW.setProperty("enableLocalMusicArtLookup",SETTING("enableLocalMusicArtLookup"))
-    WINDOW.setProperty("enableDebugLog",SETTING("enableDebugLog"))
+    WINDOW.setProperty("SkinHelper.enablewallbackgrounds",SETTING("enablewallbackgrounds"))
+    WINDOW.setProperty("SkinHelper.preferBWwallbackgrounds",SETTING("preferBWwallbackgrounds"))
+    WINDOW.setProperty("SkinHelper.enableMusicArtScraper",SETTING("enableMusicArtScraper"))
+    WINDOW.setProperty("SkinHelper.downloadMusicArt",SETTING("downloadMusicArt"))
+    WINDOW.setProperty("SkinHelper.enableLocalMusicArtLookup",SETTING("enableLocalMusicArtLookup"))
+    WINDOW.setProperty("SkinHelper.enableDebugLog",SETTING("enableDebugLog"))
+    WINDOW.setProperty("SkinHelper.maxNumFanArts",SETTING("maxNumFanArts"))
     
 def indentXML( elem, level=0 ):
     i = "\n" + level*"\t"
