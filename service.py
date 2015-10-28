@@ -32,7 +32,7 @@ class Main:
                 setSkinVersion()
                 lastSkin = currentSkin
             
-            KodiMonitor.waitForAbort(5000)
+            KodiMonitor.waitForAbort(10)
         else:
             # Abort was requested while waiting. We should exit
             xbmc.log('SKIN HELPER SERVICE --> shutdown requested !')

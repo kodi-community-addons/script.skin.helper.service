@@ -77,7 +77,25 @@ class ListItemMonitor(threading.Thread):
                         lastPlayerItem = playerItem       
                 except Exception as e:
                     logMsg("ERROR in setMusicPlayerDetails ! --> " + str(e), 0)
-                            
+            
+            if xbmc.getCondVisibility("Window.IsActive(VideoOSD.xml) | Window.IsActive(MusicOSD.xml)"):
+                #auto close OSD after X seconds of inactivity
+                secondsToDisplay = 0
+                try: secondsToDisplay = int(xbmc.getInfoLabel("Skin.String(SkinHelper.AutoCloseOSD)"))
+                except: pass
+                if secondsToDisplay != 0:
+                    currentcount = 0
+                    secondsToDisplay = secondsToDisplay*4
+                    liControlLast = ""
+                    while secondsToDisplay >= currentcount:
+                        #reset the count if user changed focused control, close osd when control didn't change in the given amount of seconds
+                        liControl = xbmc.getInfoLabel("System.CurrentControl").decode('utf-8')
+                        if liControl == liControlLast: currentcount += 1
+                        else: currentcount = 0
+                        xbmc.sleep(250)
+                        liControlLast = liControl
+                    xbmc.executebuiltin("Dialog.Close(all,true)")
+                
             if not xbmc.getCondVisibility("Window.IsActive(fullscreenvideo) | Window.IsActive(script.pseudotv.TVOverlay.xml) | Window.IsActive(script.pseudotv.live.TVOverlay.xml)"):
         
                 #set some globals
