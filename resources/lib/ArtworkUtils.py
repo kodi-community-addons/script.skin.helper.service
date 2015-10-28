@@ -34,7 +34,12 @@ def getPVRThumbs(title,channel,type="channels",path="",genre=""):
         logMsg("getPVRThumb ignore filter active for %s %s--> "%(title,channel))
         return {}
         
-    comparetitle = normalize_string(title.lower().replace("_new","").replace("new_","").replace(channel,"").replace(" ","").replace("_","").replace("_",""))
+    # Strip channel from title
+    title = title.replace(channel,"")
+    if title.endswith("-"): title = title[:-1]
+    if title.endswith(" - "): title = title[:-3]
+
+    comparetitle = normalize_string(title.lower().replace("_new","").replace("new_","").replace(" ","").replace("_","").replace("-",""))
     dbID = comparetitle + channel
     logMsg("getPVRThumb for %s %s--> "%(title,channel))
     
@@ -169,11 +174,11 @@ def getPVRThumbs(title,channel,type="channels",path="",genre=""):
                     
                 #lookup thumb on google as fallback
                 if not artwork.get("thumb") and channel and WINDOW.getProperty("useGoogleLookups") == "true":
-                    artwork["thumb"] = searchGoogleImage(title + " " + channel)
+                    artwork["thumb"] = searchGoogleImage("'%s' '%s'" %(title, channel) )
                 
                 #lookup thumb on youtube as fallback
                 if not artwork.get("thumb") and channel and WINDOW.getProperty("useYoutubeLookups") == "true":
-                    artwork["thumb"] = searchYoutubeImage(title + " " + channel)
+                    artwork["thumb"] = searchYoutubeImage("'%s' '%s'" %(title, channel) )
                 
                 if downloadLocal == True:
                     #download images if we want them local
