@@ -24,7 +24,8 @@ Important settings:
 |SkinHelper.EnableExtraFanart	| Skin.ToggleSetting(SkinHelper.EnableExtraFanart)	| enables the extrafanart background scanner |
 |SkinHelper.CustomStudioImagesPath | Skin.SetString(SkinHelper.CustomStudioImagesPath,[PATH])| if you want the user (or yourself as skinner) be able to set the path to the studio logos. If empty it will try to locate the images (later to be replaced with the new image resource packs in Kodi 16)|
 |SkinHelper.ShowInfoAtPlaybackStart	| Skin.SetNumeric(SkinHelper.ShowInfoAtPlaybackStart)	| Show OSD info panel at playback start for number of seconds (0 or empty disables this) |
-|SkinHelper.AutoCloseOSD	| Skin.SetNumeric(SkinHelper.AutoCloseOSD)	| Auto close the OSD panel when activated by the user after number of seconds (0 or empty disables this) |
+|SkinHelper.AutoCloseVideoOSD	| Skin.SetNumeric(SkinHelper.AutoCloseVideoOSD)	| Auto close the Video OSD panel when activated by the user after number of seconds (0 or empty disables this) |
+|SkinHelper.AutoCloseMusicOSD	| Skin.SetNumeric(SkinHelper.AutoCloseMusicOSD)	| Auto close the Music OSD panel when activated by the user after number of seconds (0 or empty disables this) |
 |SkinHelper.RandomFanartDelay	| Skin.SetNumeric(SkinHelper.RandomFanartDelay)	| Sets the time in seconds for the interval of the rotating backgrounds provided by the script (0 or empty disable the backgrounds by this script completely) |
 |CustomPicturesBackgroundPath	| Skin.SetPath(CustomPicturesBackgroundPath)	| Sets a custom path from which the global pictures background should be pulled from. (when empty uses all picture sources) |
 |SmartShortcuts.playlists | Skin.SetBool(SmartShortcuts.playlists) | Enable smart shortcuts for Kodi playlists |
@@ -32,6 +33,9 @@ Important settings:
 |SmartShortcuts.plex | Skin.SetBool(SmartShortcuts.plex) | Enable smart shortcuts for plexbmc addon |
 |SmartShortcuts.emby | Skin.SetBool(SmartShortcuts.emby) | Enable smart shortcuts for emby addon |
 |SmartShortcuts.netflix | Skin.SetBool(SmartShortcuts.netflix) | Enable smart shortcuts for netflixbmc addon |
+
+Note about the AutoCloseVideo/MusicOSD: you need to make sure that you've set labels to the controls of your OSD (even if you don't use them). 
+The script tries to determine that the user is actually using the OSD and will than not close the OSD.
 ________________________________________________________________________________________________________
 ________________________________________________________________________________________________________
 

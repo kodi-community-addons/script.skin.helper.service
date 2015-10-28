@@ -81,7 +81,14 @@ class ListItemMonitor(threading.Thread):
             if xbmc.getCondVisibility("Window.IsActive(VideoOSD.xml) | Window.IsActive(MusicOSD.xml)"):
                 #auto close OSD after X seconds of inactivity
                 secondsToDisplay = 0
-                try: secondsToDisplay = int(xbmc.getInfoLabel("Skin.String(SkinHelper.AutoCloseOSD)"))
+                window = "videoosd"
+                try:
+                    if xbmc.getCondVisibility("Window.IsActive(VideoOSD.xml)"):
+                        secondsToDisplay = int(xbmc.getInfoLabel("Skin.String(SkinHelper.AutoCloseVideoOSD)"))
+                        window = "videoosd"
+                    if xbmc.getCondVisibility("Window.IsActive(MusicOSD.xml)"):
+                        secondsToDisplay = int(xbmc.getInfoLabel("Skin.String(SkinHelper.AutoCloseMusicOSD)"))
+                        window = "musicosd"
                 except: pass
                 if secondsToDisplay != 0:
                     currentcount = 0
@@ -94,7 +101,7 @@ class ListItemMonitor(threading.Thread):
                         else: currentcount = 0
                         xbmc.sleep(250)
                         liControlLast = liControl
-                    xbmc.executebuiltin("Dialog.Close()")
+                    xbmc.executebuiltin("Dialog.Close(%s)"%window)
                 
             if not xbmc.getCondVisibility("Window.IsActive(fullscreenvideo) | Window.IsActive(script.pseudotv.TVOverlay.xml) | Window.IsActive(script.pseudotv.live.TVOverlay.xml)"):
         
