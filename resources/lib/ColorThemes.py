@@ -28,7 +28,7 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
             
             try:
                 #check if the time is valid
-                dt = datetime.datetime(*(time.strptime(timevalue, "%H:%M")[0:6]))
+                dt = datetime(*(time.strptime(timevalue, "%H:%M")[0:6]))
                 xbmc.executebuiltin("Skin.SetString(SkinHelper.ColorTheme.%s.theme,%s)" % (self.daynight,selectedTheme))
                 xbmc.executebuiltin("Skin.SetString(SkinHelper.ColorTheme.%s.time,%s)" % (self.daynight,timevalue))
                 xbmc.executebuiltin("Skin.SetString(SkinHelper.ColorTheme.%s,%s  (%s %s))" % (self.daynight,selectedTheme,ADDON.getLocalizedString(32071),timevalue))

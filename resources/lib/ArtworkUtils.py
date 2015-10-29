@@ -39,7 +39,7 @@ def getPVRThumbs(title,channel,type="channels",path="",genre=""):
     if title.endswith("-"): title = title[:-1]
     if title.endswith(" - "): title = title[:-3]
 
-    comparetitle = normalize_string(title.lower().replace("_new","").replace("new_","").replace(" ","").replace("_","").replace("-",""))
+    comparetitle = normalize_string(title.lower().replace("_new","").replace("new_","").replace(" ","").replace("_","").replace("-","").replace('"',''))
     dbID = comparetitle + channel
     logMsg("getPVRThumb for %s %s--> "%(title,channel))
     
@@ -416,7 +416,7 @@ def getArtworkFromCacheFile(cachefile,artwork=None):
                     artwork[child.tag] = try_decode(child.text)
             del root
         except Exception as e:
-            logMsg("ERROR in getArtworkFromCacheFile --> " + str(e), 0)
+            logMsg("ERROR in getArtworkFromCacheFile %s  --> %s" %(cachefile,str(e)), 0)
     return artwork
          
 def searchChannelLogo(searchphrase):

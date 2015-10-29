@@ -119,10 +119,10 @@ class BackgroundsUpdater(threading.Thread):
         if xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnableDayNightThemes)"):
             try:
                 daytime = xbmc.getInfoLabel("Skin.String(SkinHelper.ColorTheme.Day.time)")
-                daytime = datetime.datetime(*(time.strptime(daytime, "%H:%M")[0:6])).time()
+                daytime = datetime(*(time.strptime(daytime, "%H:%M")[0:6])).time()
                 nighttime = xbmc.getInfoLabel("Skin.String(SkinHelper.ColorTheme.Night.time)")
-                nighttime = datetime.datetime(*(time.strptime(nighttime, "%H:%M")[0:6])).time()
-                timestamp = datetime.datetime.now().time()
+                nighttime = datetime(*(time.strptime(nighttime, "%H:%M")[0:6])).time()
+                timestamp = datetime.now().time()
                 if (daytime <= timestamp <= nighttime):
                     #it's daytime - set daytime theme
                     timestr = "Day"
