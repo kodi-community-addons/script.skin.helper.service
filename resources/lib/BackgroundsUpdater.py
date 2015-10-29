@@ -395,7 +395,7 @@ class BackgroundsUpdater(threading.Thread):
             #get random image from our global cache
             images = []
             for key in self.allBackgrounds:
-                if self.allBackgrounds.has_key(key):
+                if self.allBackgrounds.has_key(key) and not "wall" in key.lower():
                     for background in self.allBackgrounds[key]:
                         if background:
                             images.append(background)
