@@ -45,6 +45,8 @@ class Kodi_Monitor(xbmc.Monitor):
         WINDOW.clearProperty("skinhelper-nextepisodes")
         WINDOW.clearProperty("skinhelper-similarmovies")
         WINDOW.clearProperty("skinhelper-similarshows")
+        WINDOW.clearProperty("skinhelper-moviesforgenre")
+        WINDOW.clearProperty("skinhelper-showsforgenre")
         WINDOW.clearProperty("skinhelper-recentmedia")
         WINDOW.clearProperty("skinhelper-favouritemedia")
         xbmc.sleep(500)
