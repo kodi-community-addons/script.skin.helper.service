@@ -863,6 +863,27 @@ plugin://script.skin.helper.service/?action=similarshows&imdbid=[IMDBID]&limit=[
 
 ________________________________________________________________________________________________________
 
+#####Top rated Movies in genre
+```
+plugin://script.skin.helper.service/?action=moviesforgenre&limit=[LIMIT]&reload=$INFO[Window(Home).Property(widgetreload2)]
+```
+This will provide a list with movies that for a random genre from the library.
+TIP: The listitem provided by this list will have a property "genretitle" which contains the movie from which this list is generated.
+Note: You can optionally provide the widgetreload2 parameter if you want to refresh the widget every 10 minutes. If you want to refresh the widget on other circumstances just provide any changing info with the reload parameter, such as the window title or some window Property which you change on X interval.
+
+________________________________________________________________________________________________________
+
+#####Top rated tvshows in genre
+```
+plugin://script.skin.helper.service/?action=showsforgenre&limit=[LIMIT]&reload=$INFO[Window(Home).Property(widgetreload2)]
+```
+This will provide a list with tvshows for a random genre from the library.
+TIP: The listitem provided by this list will have a property "genretitle" which contains the movie from which this list is generated.
+Note: You can optionally provide the widgetreload2 parameter if you want to refresh the widget every 10 minutes. If you want to refresh the widget on other circumstances just provide any changing info with the reload parameter, such as the window title or some window Property which you change on X interval.
+
+________________________________________________________________________________________________________
+
+
 #####In progress Media
 ```
 plugin://script.skin.helper.service/?action=inprogressmedia&limit=[LIMIT]&reload=$INFO[Window(Home).Property(widgetreload)]

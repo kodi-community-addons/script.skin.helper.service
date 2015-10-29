@@ -42,6 +42,10 @@ class Main:
                     imdbid=params.get("imdbid","")
                     if imdbid: imdbid = imdbid[0]
                     getSimilarTvShows(limit,imdbid)
+                elif action == "MOVIESFORGENRE":
+                    getMoviesForGenre(limit)
+                elif action == "SHOWSFORGENRE":
+                    getShowsForGenre(limit)
                 elif action == "INPROGRESSMEDIA":
                     getInProgressMedia(limit) 
                 elif action == "INPROGRESSANDRECOMMENDEDMEDIA":
