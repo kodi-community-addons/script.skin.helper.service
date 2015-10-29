@@ -147,6 +147,7 @@ class ColorPicker(xbmcgui.WindowXMLDialog):
         colorstring = self.currentWindow.getProperty("colorstring")
         if controlID == 3110:       
             self.currentWindow.setFocusId(3012)
+            self.currentWindow.setProperty("color_chosen","true")
         elif controlID == 3010:  
             #manual input
             dialog = xbmcgui.Dialog()
