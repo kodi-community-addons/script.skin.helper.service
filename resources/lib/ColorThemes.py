@@ -309,7 +309,7 @@ def loadColorTheme(file):
         xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"Settings.SetSettingValue","params":{"setting":"lookandfeel.skintheme","value":"%s"}}' %skintheme)
     if skincolor and currentSkinColors != skincolor:
         xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"Settings.SetSettingValue","params":{"setting":"lookandfeel.skincolors","value":"%s"}}' %skincolor)
-    if skinfont and currentSkinFont != skinfont:
+    if skinfont and currentSkinFont != skinfont and currentSkinFont.lower() != "arial":
         xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"Settings.SetSettingValue","params":{"setting":"lookandfeel.font","value":"%s"}}' %skinfont)
 
     xbmc.executebuiltin( "Dialog.Close(busydialog)" )

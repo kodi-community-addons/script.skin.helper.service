@@ -967,7 +967,9 @@ class ListItemMonitor(threading.Thread):
         return ( hours, minutes, durationString )
               
     def setMusicPlayerDetails(self):
-        artwork = {}     
+        artwork = {}
+        artist = ""
+        title = ""
         #get the playing item from the player...
         json_result = getJSON('Player.GetActivePlayers', '{}')
         for item in json_result:

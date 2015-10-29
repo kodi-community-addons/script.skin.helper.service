@@ -39,6 +39,7 @@ class SearchDialog(xbmcgui.WindowXMLDialog):
         elif action.getId() in ACTION_SHOW_INFO:
             self.showInfo()
 
+        print action.getId()
 
     def closeDialog(self):
         self.searchThread.stopRunning()

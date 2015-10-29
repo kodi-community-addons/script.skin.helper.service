@@ -341,18 +341,19 @@ def getOfficialArtWork(title,artwork=None,type=None):
                     response = requests.get(url)
                     data = json.loads(response.content.decode('utf-8','replace'))
                     if data:
-                        print data
                         if not media_id and data.get("imdb_id"):
                             media_id = str(data.get("imdb_id"))
                             artwork["imdb_id"] = media_id
                         if not media_id and data.get("external_ids"): 
                             media_id = str(data["external_ids"].get("tvdb_id"))
                             artwork["tvdb_id"] = media_id
-                        if data.get("overview"):
-                            artwork["plot"] = data.get("overview")
                         if data.get("vote_average"):
                             artwork["rating"] = str(data.get("vote_average"))
+                        if data.get("overview"):
+                            artwork["plot"] = data.get("overview")
+                            #break if we've found the plot
                             break
+                            
         
         #lookup artwork on fanart.tv
         if media_id and media_type:

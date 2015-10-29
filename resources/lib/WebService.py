@@ -34,7 +34,7 @@ class WebService(threading.Thread):
         try:
             server = StoppableHttpServer(('127.0.0.1', port), StoppableHttpRequestHandler)
             server.serve_forever()
-        except Exception as e: logMsg("WebServer exception occurred " + str(e),0)
+        except Exception as e: logMsg("WebServer exception occurred " + str(e))
             
 
 
@@ -64,7 +64,7 @@ class StoppableHttpRequestHandler (SimpleHTTPServer.SimpleHTTPRequestHandler):
     def __init__(self, request, client_address, server):
         try:
             SimpleHTTPServer.SimpleHTTPRequestHandler.__init__(self, request, client_address, server)
-        except Exception as e: logMsg("WebServer error in request --> " + str(e))
+        except Exception as e: logMsg("WebServer error in request --> " + str(e),0)
     
     def do_QUIT (self):
         #send 200 OK response, and set server.stop to True
@@ -78,7 +78,7 @@ class StoppableHttpRequestHandler (SimpleHTTPServer.SimpleHTTPRequestHandler):
     def parse_request(self):
         #hack to accept non url encoded strings to pass listitem details from Kodi to webservice
         #strip the passed arguments apart, urlencode them and pass them back as new requestline properly formatted
-        if ("GET /" in self.raw_requestline or "HEAD /" in self.raw_requestline) and not "%20" in self.raw_requestline:
+        if "GET /" in self.raw_requestline or "HEAD /" in self.raw_requestline:
             if self.raw_requestline.startswith("HEAD"): command = "HEAD /"
             else: command = "GET /"
             action = self.raw_requestline.split("&")[0].replace(command,"")

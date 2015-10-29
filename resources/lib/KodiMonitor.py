@@ -33,6 +33,8 @@ class Kodi_Monitor(xbmc.Monitor):
         WINDOW.clearProperty("skinhelper-recentplayedalbums")
         WINDOW.clearProperty("skinhelper-recentplayedsongs")
         WINDOW.clearProperty("skinhelper-recentsongs")
+        WINDOW.setProperty("widgetreloadmusic", datetime.now().strftime('%Y-%m-%d %H:%M:%S') + str(randint(0,9)))
+        WINDOW.setProperty("resetMusicArtCache","reset")
     
     def resetVideoWidgets(self):
         #clear the cache for the video widgets
@@ -45,40 +47,31 @@ class Kodi_Monitor(xbmc.Monitor):
         WINDOW.clearProperty("skinhelper-similarshows")
         WINDOW.clearProperty("skinhelper-recentmedia")
         WINDOW.clearProperty("skinhelper-favouritemedia")
+        xbmc.sleep(500)
+        WINDOW.setProperty("widgetreload", datetime.now().strftime('%Y-%m-%d %H:%M:%S') + str(randint(0,9)))
+        WINDOW.setProperty("resetVideoDbCache","reset")
     
     def onDatabaseUpdated(self,database):
-        print "ondatabaseupdated " + database
         if database == "video":
             self.resetVideoWidgets()
-            WINDOW.setProperty("widgetreload", datetime.now().strftime('%Y-%m-%d %H:%M:%S') + str(randint(0,9)))
-            WINDOW.setProperty("resetVideoDbCache","reset")
         if database == "music" :
             self.resetMusicWidgets()
-            WINDOW.setProperty("widgetreloadmusic", datetime.now().strftime('%Y-%m-%d %H:%M:%S') + str(randint(0,9)))
-            WINDOW.setProperty("resetMusicArtCache","reset")
            
     def onNotification(self,sender,method,data):
         
         logMsg("Kodi_Monitor: sender %s - method: %s  - data: %s"%(sender,method,data))
                
         if method == "VideoLibrary.OnUpdate":
-            #update nextup list when library has changed
             self.resetVideoWidgets()
-            WINDOW.setProperty("widgetreload", datetime.now().strftime('%Y-%m-%d %H:%M:%S') + str(randint(0,9)))
-            #refresh some widgets when library has changed
-            WINDOW.setProperty("resetVideoDbCache","reset")
         
-        elif method == "AudioLibrary.OnUpdate":
+        if method == "AudioLibrary.OnUpdate":
             self.resetMusicWidgets()
-            WINDOW.setProperty("widgetreloadmusic", datetime.now().strftime('%Y-%m-%d %H:%M:%S') + str(randint(0,9)))
-            #refresh some widgets when library has changed
-            WINDOW.setProperty("resetMusicArtCache","reset")
         
-        elif method == "Player.OnStop":
+        if method == "Player.OnStop":
             WINDOW.clearProperty("Skinhelper.PlayerPlaying")
             self.resetPlayerWindowProps()
         
-        elif method == "Player.OnPlay":
+        if method == "Player.OnPlay":
             
             #skip if the player is already playing
             if WINDOW.getProperty("Skinhelper.PlayerPlaying") == "playing": return

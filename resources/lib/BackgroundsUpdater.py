@@ -353,7 +353,8 @@ class BackgroundsUpdater(threading.Thread):
                 for path in paths:
                     dirs, files = xbmcvfs.listdir(path)
                     for dir in dirs:
-                        thumbdir = os.path.join(path,dir.decode("utf-8"))
+                        dir = dir.decode("utf-8")
+                        thumbdir = os.path.join(path,dir)
                         dirs2, files2 = xbmcvfs.listdir(thumbdir)
                         for file in files2:
                             if "pvrdetails.xml" in file:

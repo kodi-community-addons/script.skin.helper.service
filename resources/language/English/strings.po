@@ -169,7 +169,7 @@ msgid "Are you sure you want to reset the skin to default settings ?"
 msgstr ""
 
 msgctxt "#32038"
-msgid "Global random fanart background"
+msgid "Global media fanart background"
 msgstr ""
 
 msgctxt "#32039"

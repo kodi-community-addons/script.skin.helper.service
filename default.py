@@ -110,7 +110,7 @@ class Main:
             elif action == "RESETCACHE":
                 path = params.get("PATH")
                 if path == "pvr":
-                    path = WINDOW.getProperty("pvrthumbspath").decode("utf-8")
+                    path = WINDOW.getProperty("SkinHelper.pvrthumbspath").decode("utf-8")
                     WINDOW.setProperty("resetPvrArtCache","reset")
                 elif path == "music":
                     path = "special://profile/addon_data/script.skin.helper.service/musicart/"
