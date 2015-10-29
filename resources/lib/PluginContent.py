@@ -917,6 +917,41 @@ def getSimilarMovies(limit,imdbid=""):
             break
     xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
 
+def getMoviesForGenre(limit):
+    count = 0
+    allItems = []
+    xbmcplugin.setContent(int(sys.argv[1]), 'movies')
+    cache = WINDOW.getProperty("skinhelper-moviesforgenre")
+    if cache:
+        allItems = eval(cache)
+    else:
+        allTitles = list()
+        #get a random genre
+        json_result = getJSON('VideoLibrary.GetGenres', '{ "sort": { "order": "descending", "method": "random" }, "type": "movie","limits":{"end":1}}')
+        if json_result:
+            genre = json_result[0]
+            genretitle = genre["label"]
+            #get all movies from the same genre
+            json_result = getJSON('VideoLibrary.GetMovies', '{ "sort": { "order": "descending", "method": "random" }, "filter": {"and": [{"operator":"is", "field":"genre", "value":"%s"}, {"operator":"is", "field":"playcount", "value":"0"}]}, "properties": [ %s ],"limits":{"end":%d} }' %(genretitle,fields_movies,limit))
+            for item in json_result:
+                if not item["title"] in allTitles:
+                    item["genretitle"] = genretitle
+                    allItems.append((item["rating"],item))
+                    allTitles.append(item["title"])
+
+        #sort the list by rating
+        allItems = sorted(allItems,key=itemgetter(0),reverse=True)
+
+        if allItems: WINDOW.setProperty("skinhelper-moviesforgenre", repr(allItems))
+    for item in allItems:
+        liz = createListItem(item[1])
+        liz.setProperty("genretitle", item[1]["genretitle"])
+        xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=item[1]['file'], listitem=liz)
+        count +=1
+        if count == limit:
+            break
+    xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
+
 def getSimilarTvShows(limit,imdbid=""):
     count = 0
     allItems = []
@@ -955,6 +990,41 @@ def getSimilarTvShows(limit,imdbid=""):
     for item in allItems:
         liz = createListItem(item[1])
         liz.setProperty("similartitle", item[1]["similartitle"])
+        xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=item[1]['file'], listitem=liz)
+        count +=1
+        if count == limit:
+            break
+    xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
+
+def getShowsForGenre(limit):
+    count = 0
+    allItems = []
+    xbmcplugin.setContent(int(sys.argv[1]), 'movies')
+    cache = WINDOW.getProperty("skinhelper-showsforgenre")
+    if cache:
+        allItems = eval(cache)
+    else:
+        allTitles = list()
+        #get a random genre
+        json_result = getJSON('VideoLibrary.GetGenres', '{ "sort": { "order": "descending", "method": "random" }, "type": "tvshow","limits":{"end":1}}')
+        if json_result:
+            genre = json_result[0]
+            genretitle = genre["label"]
+            #get all shows from the same genre
+            json_result = getJSON('VideoLibrary.GetTVShows', '{ "sort": { "order": "descending", "method": "random" }, "filter": {"and": [{"operator":"is", "field":"genre", "value":"%s"}, {"operator":"is", "field":"playcount", "value":"0"}]}, "properties": [ %s ],"limits":{"end":%d} }' %(genretitle,fields_tvshows,limit))
+            for item in json_result:
+                if not item["title"] in allTitles:
+                    item["genretitle"] = genretitle
+                    allItems.append((item["rating"],item))
+                    allTitles.append(item["title"])
+
+        #sort the list by rating
+        allItems = sorted(allItems,key=itemgetter(0),reverse=True)
+
+        if allItems: WINDOW.setProperty("skinhelper-showsforgenre", repr(allItems))
+    for item in allItems:
+        liz = createListItem(item[1])
+        liz.setProperty("genretitle", item[1]["genretitle"])
         xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=item[1]['file'], listitem=liz)
         count +=1
         if count == limit:

@@ -78,7 +78,6 @@ def getContentPath(libPath):
 def getJSON(method,params):
     json_response = xbmc.executeJSONRPC('{ "jsonrpc": "2.0", "method" : "%s", "params": %s, "id":1 }' %(method, try_encode(params)))
     jsonobject = json.loads(json_response.decode('utf-8','replace'))
-
     if(jsonobject.has_key('result')):
         jsonobject = jsonobject['result']
         if isinstance(jsonobject, list):
@@ -137,6 +136,8 @@ def getJSON(method,params):
             return jsonobject['addons']
         elif jsonobject.has_key('item'):
             return jsonobject['item']
+        elif jsonobject.has_key('genres'):
+            return jsonobject['genres']
         else:
             logMsg("getJson - invalid result for Method %s - params: %s - response: %s" %(method,params, str(jsonobject))) 
             return {}
