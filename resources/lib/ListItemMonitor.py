@@ -791,7 +791,7 @@ class ListItemMonitor(threading.Thread):
         WINDOW.setProperty('SkinHelper.ListItemDirectors', "[CR]".join(directors))
        
     def setPVRThumbs(self,title="",channel="",path="",genre=""):
-        
+                
         if not title: title = xbmc.getInfoLabel("ListItem.Title").decode('utf-8')
         if not channel: channel = xbmc.getInfoLabel("ListItem.ChannelName").decode('utf-8')
         if not path: path = xbmc.getInfoLabel("ListItem.FileNameAndPath").decode('utf-8')
