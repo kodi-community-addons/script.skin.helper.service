@@ -138,6 +138,7 @@ class BackgroundsUpdater(threading.Thread):
                         colorThemes.loadColorTheme(themefile)
             except Exception as e:
                 logMsg("ERROR in setDayNightColorTheme ! --> " + str(e), 0)
+                xbmc.executebuiltin( "Dialog.Close(busydialog)" )
     
     def setWallImageFromPath(self, windowProp, libPath, square=False):
         image = None

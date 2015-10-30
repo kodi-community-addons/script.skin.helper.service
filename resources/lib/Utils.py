@@ -568,7 +568,7 @@ def createSmartShortcutSubmenu(windowProp,iconimage):
         logMsg("ERROR in createSmartShortcutSubmenu ! --> " + str(e), 0)
 
 def getCurrentContentType():
-    contenttype="files"
+    contenttype=""
     if xbmc.getCondVisibility("Container.Content(episodes)"):
         contenttype = "episodes"
     elif xbmc.getCondVisibility("Container.Content(movies) + !substring(Container.FolderPath,setid=)"):
@@ -599,6 +599,8 @@ def getCurrentContentType():
         contenttype = "pictures"
     elif xbmc.getCondVisibility("Container.Content(genres)"):
         contenttype = "genres"
+    elif xbmc.getCondVisibility("Container.Content(files)"):
+        contenttype = "files"
     WINDOW.setProperty("contenttype",contenttype)
     return contenttype
          
@@ -636,7 +638,6 @@ def recursiveDelete(path):
         success = recursiveDelete(os.path.join(path,dir))
     success = xbmcvfs.rmdir(path)
     return success 
-
 
 def addToZip(src, zf, abs_src):
     dirs, files = xbmcvfs.listdir(src)

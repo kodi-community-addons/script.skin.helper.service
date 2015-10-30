@@ -284,6 +284,7 @@ def loadColorTheme(file):
             xbmc.executebuiltin("Skin.SetString(SkinHelper.LastColorTheme,%s)" % skinsetting[1])
         elif skinsetting[0] == "DESCRIPTION":
             xbmc.executebuiltin("Skin.SetString(SkinHelper.LastColorTheme.Description,%s)" % skinsetting[1].decode('utf-8'))
+        elif skinsetting[1].startswith("SkinHelper.ColorTheme"): continue
         else:    
             #some legacy..
             setting = skinsetting[1]

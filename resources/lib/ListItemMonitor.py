@@ -136,7 +136,7 @@ class ListItemMonitor(threading.Thread):
                         # monitor listitem props when musiclibrary is active
                         if self.contentType == "albums" or self.contentType == "artists" or self.contentType == "songs":
                             try:
-                                self.setMusicDetails()
+                                self.setMusicDetails(xbmc.getInfoLabel("ListItem.Artist").decode('utf-8'),xbmc.getInfoLabel("ListItem.Album").decode('utf-8'),xbmc.getInfoLabel("ListItem.DBID"),self.contentType)
                                 self.setGenre()
                             except Exception as e:
                                 logMsg("ERROR in setMusicDetails ! --> " + str(e), 0)
@@ -182,7 +182,21 @@ class ListItemMonitor(threading.Thread):
                             self.setStudioLogo(xbmc.getInfoLabel("Container(%s).ListItem.Studio" %widgetContainer).decode('utf-8'))
                             self.setDirector(xbmc.getInfoLabel("Container(%s).ListItem.Director" %widgetContainer).decode('utf-8'))
                             self.setGenre(xbmc.getInfoLabel("Container(%s).ListItem.Genre" %widgetContainer).decode('utf-8'))
-                            self.setMusicDetails(xbmc.getInfoLabel("Container(%s).ListItem.Artist" %widgetContainer).decode('utf-8')+xbmc.getInfoLabel("Container(%s).ListItem.Album" %widgetContainer).decode('utf-8'))
+                            #music artwork for music widgets...
+                            if xbmc.getInfoLabel("Container(%s).ListItem.Artist" %widgetContainer):
+                                contenttype = xbmc.getInfoLabel("Container(%s).ListItem.Property(type)")
+                                artist = xbmc.getInfoLabel("Container(%s).ListItem.Artist" %widgetContainer).decode('utf-8')
+                                album = xbmc.getInfoLabel("Container(%s).ListItem.Album" %widgetContainer).decode('utf-8')
+                                title = xbmc.getInfoLabel("Container(%s).ListItem.Title" %widgetContainer).decode('utf-8')
+                                dbid = xbmc.getInfoLabel("Container(%s).ListItem.DBID" %widgetContainer).decode('utf-8')
+                                if contenttype and contenttype == "song": contenttype = "songs"
+                                elif contenttype and contenttype == "album": contenttype = "albums"
+                                elif contenttype and contenttype == "artist": contenttype = "artists"
+                                elif artist and artist == label: contenttype = "artists"
+                                elif album and album == label: contenttype = "albums"
+                                elif dbid: contenttype = "songs"
+                                self.setMusicDetails(artist,album,dbid,contenttype)
+                            #pvr artwork if pvr widget...
                             if "pvr://" in xbmc.getInfoLabel("Container(%s).ListItem.FolderPath" %widgetContainer).decode('utf-8'):
                                 self.setPVRThumbs(xbmc.getInfoLabel("Container(%s).ListItem.Title" %widgetContainer).decode('utf-8'),xbmc.getInfoLabel("Container(%s).ListItem.ChannelName" %widgetContainer).decode('utf-8'),xbmc.getInfoLabel("Container(%s).ListItem.Genre" %widgetContainer).decode('utf-8'))
                             self.lastListItem = curListItem
@@ -999,32 +1013,23 @@ class ListItemMonitor(threading.Thread):
         for key, value in artwork.iteritems():
             WINDOW.setProperty("SkinHelper.Player.Music." + key,value.encode("utf-8"))
     
-    def setMusicDetails(self,widget=None):
-        cacheFound = False
+    def setMusicDetails(self,artist,album,dbid,contenttype):
         artwork = {}
-
-        if widget:
-            dbID = widget
-        else:
-            dbID = xbmc.getInfoLabel("ListItem.Artist").decode('utf-8') + xbmc.getInfoLabel("ListItem.Album").decode('utf-8')
-        
-        logMsg("setMusicDetails dbID--> " + dbID)
-
-        if not widget and (self.liLabel == ".." or not xbmc.getInfoLabel("ListItem.FolderPath").decode('utf-8').startswith("musicdb") or not dbID):
-            return
+        cacheId = artist+album
+        logMsg("setMusicDetails artist: %s - album: %s - dbid: %s - contenttype: %s"%(artist,album,dbid,contenttype))
         
         #get the items from cache first
-        if self.musicArtCache.has_key(dbID + "SkinHelper.Music.Art"):
-            cacheFound = True
-            artwork = self.musicArtCache[dbID + "SkinHelper.Music.Art"]
+        if self.musicArtCache.has_key(cacheId + "SkinHelper.Music.Art"):
+            artwork = self.musicArtCache[cacheId + "SkinHelper.Music.Art"]
             
-        if not cacheFound and not widget:
-            logMsg("setMusicDetails no cache found for dbID--> " + dbID)
-            path = None
-            folderPath = xbmc.getInfoLabel("ListItem.FolderPath").decode('utf-8')
-            dbid = xbmc.getInfoLabel("ListItem.DBID")
-            artwork = getMusicArtworkByDbId(dbid, self.contentType)
-            self.musicArtCache[dbID + "SkinHelper.Music.Art"] = artwork
+        elif dbid and contenttype:
+            logMsg("setMusicDetails no cache found for artist: %s - album: %s - dbid: %s - contenttype: %s  -- perform lookup by dbid"%(artist,album,dbid,contenttype))
+            artwork = getMusicArtworkByDbId(dbid, contenttype)
+            self.musicArtCache[cacheId + "SkinHelper.Music.Art"] = artwork
+        elif artist and album:
+            logMsg("setMusicDetails no cache found for artist: %s - album: %s - dbid: %s - contenttype: %s  -- perform lookup by artist/album name"%(artist,album,dbid,contenttype))
+            artwork = getMusicArtworkByName(artist, "", album)
+            self.musicArtCache[cacheId + "SkinHelper.Music.Art"] = artwork
 
         #set properties
         for key, value in artwork.iteritems():

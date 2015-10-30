@@ -891,7 +891,7 @@ def getMusicArtworkByDbId(dbid,itemtype):
             if value: artwork[key] = value
     return artwork
 
-def getMusicArtworkByName(artist, title):
+def getMusicArtworkByName(artist, title="", album=""):
 
     logMsg("getMusicArtworkByName artist: %s  - track: %s" %(artist,title))
     #query database for this track
@@ -916,7 +916,7 @@ def getMusicArtworkByName(artist, title):
         else: artists = [artist]
         for artist in artists:
             #retrieve musicbrainz id with a combined query of track name and artist name to get an accurate result
-            artistid, albumid = getMusicBrainzId(artist,"",title)
+            artistid, albumid = getMusicBrainzId(artist,album,title)
             #get artwork for artist
             artistartwork = getArtistArtwork(artistid, artistartwork)
             if albumid:
