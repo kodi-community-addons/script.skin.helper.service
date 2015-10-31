@@ -43,6 +43,11 @@ class Main:
                 windowHeader = params.get("HEADER","")
                 searchYouTube(title,windowHeader)
             
+            elif action == "SETFOCUS":
+                control = params.get("CONTROL",None)
+                xbmc.sleep(50)
+                xbmc.executebuiltin("Control.SetFocus(%s)"%control)
+            
             elif action == "SETFORCEDVIEW":
                 contenttype = params.get("CONTENTTYPE",None)
                 setForcedView(contenttype)

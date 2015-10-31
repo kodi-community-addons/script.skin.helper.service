@@ -1,2 +1,2 @@
-v.0.0.1
-- Initial version 
+v.1.0.0
+- Initial repo version 

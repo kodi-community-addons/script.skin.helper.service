@@ -1400,7 +1400,7 @@ def getCast(movie=None,tvshow=None,movieset=None,downloadThumbs=False):
             path="plugin://script.skin.helper.service/?action=launch&path=" + url
             castNames.append(cast[0])
             liz.setThumbnailImage(cast[2])
-            xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=path, listitem=liz, isFolder=True)
+            xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=path, listitem=liz, isFolder=False)
     else:
         #retrieve data from json api...
         if movie and itemId:
