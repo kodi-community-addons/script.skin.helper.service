@@ -173,6 +173,7 @@ def setAddonsettings():
     WINDOW.setProperty("SkinHelper.enableLocalMusicArtLookup",SETTING("enableLocalMusicArtLookup"))
     WINDOW.setProperty("SkinHelper.enableDebugLog",SETTING("enableDebugLog"))
     WINDOW.setProperty("SkinHelper.maxNumFanArts",SETTING("maxNumFanArts"))
+    WINDOW.setProperty("SkinHelper.splittitlechar",SETTING("splittitlechar"))
     
 def indentXML( elem, level=0 ):
     i = "\n" + level*"\t"

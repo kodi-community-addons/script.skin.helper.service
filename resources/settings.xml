@@ -14,6 +14,7 @@
         <setting label="32106" type="text" id="ignorechannels"  visible="Skin.HasSetting(SkinHelper.EnablePVRThumbs)"/>
         <setting label="32107" type="text" id="ignoretitles"  visible="Skin.HasSetting(SkinHelper.EnablePVRThumbs)"/>
         <setting label="32112" type="text" id="stripwords"  visible="Skin.HasSetting(SkinHelper.EnablePVRThumbs)"/>
+        <setting label="32137" type="text" id="splittitlechar"  visible="Skin.HasSetting(SkinHelper.EnablePVRThumbs)"/>
         <setting id="directory_structure" type="select" label="32108" lvalues="32109|32110|32111"  visible="Skin.HasSetting(SkinHelper.EnablePVRThumbs)"/>
         <setting label="32089" type="action" action="RunScript(script.skin.helper.service,action=RESETCACHE,path=pvr)" visible="Skin.HasSetting(SkinHelper.EnablePVRThumbs)"/>
     </category>

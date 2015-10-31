@@ -21,6 +21,10 @@ def getPVRThumbs(title,channel,type="channels",path="",genre=""):
     ignoretitles = WINDOW.getProperty("SkinHelper.ignoretitles")
     ignorechannels = WINDOW.getProperty("SkinHelper.ignorechannels")
     stripwords = WINDOW.getProperty("SkinHelper.stripwords")
+    splittitlechar = WINDOW.getProperty("SkinHelper.splittitlechar")
+    if splittitlechar:
+        if splittitlechar in title:
+            title = title.split(splittitlechar)[0]
     if ignorechannels:
         for item in ignorechannels.split(";"):
             if item.lower() == channel.lower(): ignore = True

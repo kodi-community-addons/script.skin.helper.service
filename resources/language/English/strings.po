@@ -563,3 +563,7 @@ msgstr ""
 msgctxt "#32136"
 msgid "Max number of extrafanarts to grab for music/pvr fanart"
 msgstr ""
+
+msgctxt "#32137"
+msgid "Title's character splitter"
+msgstr ""
