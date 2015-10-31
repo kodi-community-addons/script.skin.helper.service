@@ -273,11 +273,8 @@ def createListItem(item):
     
     if "artist" in item:
         if itemtype == "Music":
-            print "artist"
             liz.setInfo( type=itemtype, infoLabels={ "Artist": " / ".join(item['artist']) })
-            liz.setInfo( type=itemtype, infoLabels={ "Album":item['label'] })
         else:
-            print "artist2"
             liz.setInfo( type=itemtype, infoLabels={ "Artist": item['artist'] })
         
     if "votes" in item:

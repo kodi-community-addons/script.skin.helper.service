@@ -817,7 +817,6 @@ def getRecommendedAlbums(limit,browse=False):
         if allItems: WINDOW.setProperty("skinhelper-recommendedalbums", repr(allItems))
 
     for item in allItems:
-        print item
         item = item[1]
         liz = createListItem(item)
         if not browse: 
