@@ -134,11 +134,22 @@ class StoppableHttpRequestHandler (SimpleHTTPServer.SimpleHTTPRequestHandler):
                 if artwork.get("landscape"): image = artwork.get("landscape")
         
         elif action == "getmusicart":
-            dbid = params.get("dbid","")[0]
+            dbid = params.get("dbid","")
+            if dbid: dbid = dbid[0]
             preferred_type = params.get("type","")
             if preferred_type: preferred_type = preferred_type[0]
-            contenttype = params.get("contenttype","")[0]
-            artwork = getMusicArtworkByDbId(dbid, contenttype)
+            artist = params.get("artist","")
+            if artist: artist = artist[0]
+            album = params.get("album","")
+            if album: album = album[0]
+            track = params.get("track","")
+            if track: track = track[0]
+            contenttype = params.get("contenttype","")
+            if contenttype: contenttype = contenttype[0]
+            if dbid and contenttype:
+                artwork = getMusicArtworkByDbId(dbid, contenttype)
+            else:
+                artwork = getMusicArtworkByName(artist, track, album)
             if preferred_type:
                 preferred_types = preferred_type.split(",")
                 for preftype in preferred_types:

@@ -192,8 +192,8 @@ class ListItemMonitor(threading.Thread):
                                 if contenttype and contenttype == "song": contenttype = "songs"
                                 elif contenttype and contenttype == "album": contenttype = "albums"
                                 elif contenttype and contenttype == "artist": contenttype = "artists"
-                                elif artist and artist == label: contenttype = "artists"
-                                elif album and album == label: contenttype = "albums"
+                                elif artist and artist == curListItem: contenttype = "artists"
+                                elif album and album == curListItem: contenttype = "albums"
                                 elif dbid: contenttype = "songs"
                                 self.setMusicDetails(artist,album,dbid,contenttype)
                             #pvr artwork if pvr widget...
