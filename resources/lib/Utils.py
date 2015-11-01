@@ -250,6 +250,12 @@ def createListItem(item):
         liz.setInfo( type=itemtype, infoLabels={ "DBID": str(item['episodeid']) })
         liz.setIconImage('DefaultTVShows.png')
         
+    if "tvshowid" in item:
+        liz.setProperty("DBID", str(item['tvshowid']))
+        liz.setInfo( type=itemtype, infoLabels={ "DBID": str(item['tvshowid']) })
+        liz.setInfo( type=itemtype, infoLabels={ "TvShowTitle": item['label'] })
+        liz.setIconImage('DefaultTVShows.png')
+        
     if "songid" in item:
         liz.setProperty("DBID", str(item['songid']))
         liz.setIconImage('DefaultAudio.png')

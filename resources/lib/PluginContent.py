@@ -1078,6 +1078,7 @@ def buildRecommendedMediaListing(limit,ondeckContent=False,recommendedContent=Tr
             lastplayed = None
             if not item["title"] in allTitles and item["playcount"] == 0:
                 item["art"] = getPVRThumbs(item["title"], item["channel"],"recordings")
+                item["tvshowtitle"] = item["title"]
                 allOndeckItems.append((lastplayed,item))
                 allTitles.append(item["title"])
           
@@ -1112,11 +1113,11 @@ def buildRecommendedMediaListing(limit,ondeckContent=False,recommendedContent=Tr
         for item in json_result:
             rating = item["rating"]
             if not item["title"] in set(allTitles):
-                
                 #get the first unwatched episode for this show
                 json_query2 = getJSON('VideoLibrary.GetEpisodes', '{ "tvshowid": %d, "sort": {"method":"episode"}, "filter": {"and": [ {"field": "playcount", "operator": "lessthan", "value":"1"}, {"field": "season", "operator": "greaterthan", "value": "0"} ]}, "properties": [ "title", "file" ], "limits":{"end":1}}' %item['tvshowid'])
                 if json_query2:
                     item["file"] = json_query2[0]["file"]
+                    item["tvshowtitle"] = item["title"]
                     allRecommendedItems.append((rating,item))
                     allTitles.append(item["title"])
                     
@@ -1247,6 +1248,7 @@ def getRecentMedia(limit):
             if not item["title"] in allTitles and item["playcount"] == 0:
                 channelname = item["channel"]
                 item["channel"] = channelname
+                item["tvshowtitle"] = item["title"]
                 item["art"] = getPVRThumbs(item["title"], channelname, "recordings")
                 if item.get("art") and item["art"].get("thumb"):
                     item["art"]["thumb"] = item["art"].get("thumb")
