@@ -129,6 +129,8 @@ class ListItemMonitor(threading.Thread):
                 #only perform actions when the listitem has actually changed
                 if curListItem and curListItem != self.lastListItem and self.contentType:
                     
+                    WINDOW.setProperty("curListItem",curListItem)
+                    
                     #clear all window props first
                     self.resetWindowProps()
                     
@@ -264,11 +266,11 @@ class ListItemMonitor(threading.Thread):
     def doBackgroundWork(self):
         try:
             logMsg("Started Background worker...")
+            self.getStudioLogos()
             self.genericWindowProps()
             self.checkNetflixReady()
             self.updatePlexlinks()
             self.checkNotifications()
-            self.getStudioLogos()
             #precache widgets listing
             getJSON('Files.GetDirectory','{ "directory": "plugin://script.skin.helper.service/?action=widgets", "media": "files" }')
             logMsg("Ended Background worker...")
