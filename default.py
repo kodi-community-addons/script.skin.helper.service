@@ -151,6 +151,12 @@ class Main:
             elif action == "RESET":
                 import resources.lib.BackupRestore as backup
                 backup.reset()
+            
+            elif action == "DIALOGOK":
+                headerMsg = params.get("HEADER")
+                bodyMsg = params.get("MESSAGE")
+                xbmcgui.Dialog().ok(heading=headerMsg, line1=bodyMsg)
+            
 
 
 if (__name__ == "__main__"):

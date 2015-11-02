@@ -1,16 +1,6 @@
 # script.skin.helper.service
 a helper service for Kodi skins
 
-This is the first version of this script, currently only available as beta on Git. Once tested by a few skinners I will submit it to the official Kodi repo.
-
-If you run into any issues , have some feedback or feature requests, feel free to ask and please report bugs !
-
-Thanks all for testing!
-
-Regards,
-
-Marcel
-
 ________________________________________________________________________________________________________
 
 ### Settings for the script
@@ -283,6 +273,13 @@ RunScript(script.skin.helper.service,action=videosearch)
 ```
 This command will open the special search window in the script. It has a onscreen keyboard to quickly search for movies, tvshows and episodes. You can customize the look and feel of this search dialog. To do that include the files script-skin_helper_service-CustomSearch.xml and script-skin_helper_service-CustomInfo.xml in your skin and skin it to your needs.
 
+________________________________________________________________________________________________________
+
+#### Message Dialog (dialogOK)
+```
+RunScript(script.skin.helper.service,action=dialogok,header[yourheadertext],message=[your message body])
+```
+This command will open Kodi's dialog OK window with the text you supplied
 ________________________________________________________________________________________________________
 
 
