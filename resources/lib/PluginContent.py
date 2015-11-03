@@ -994,7 +994,9 @@ def getSimilarTvShows(limit,imdbid=""):
     for item in allItems:
         liz = createListItem(item[1])
         liz.setProperty("similartitle", item[1]["similartitle"])
-        xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=item[1]['file'], listitem=liz)
+        tvshowpath = "ActivateWindow(Videos,videodb://tvshows/titles/%s/,return)" %str(item[1]["tvshowid"])
+        path="plugin://script.skin.helper.service?action=LAUNCH&path=" + tvshowpath
+        xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=path, listitem=liz)
         count +=1
         if count == limit:
             break
@@ -1029,7 +1031,9 @@ def getShowsForGenre(limit):
     for item in allItems:
         liz = createListItem(item[1])
         liz.setProperty("genretitle", item[1]["genretitle"])
-        xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=item[1]['file'], listitem=liz)
+        tvshowpath = "ActivateWindow(Videos,videodb://tvshows/titles/%s/,return)" %str(item[1]["tvshowid"])
+        path="plugin://script.skin.helper.service?action=LAUNCH&path=" + tvshowpath
+        xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=path, listitem=liz)
         count +=1
         if count == limit:
             break
@@ -1296,7 +1300,7 @@ def getFavouriteMedia(limit):
             json_result = getJSON('VideoLibrary.GetTvShows', '{ "filter": {"operator":"contains", "field":"tag", "value":"Favorite tvshows"}, "properties": [ %s ] }' %fields_tvshows)
             for item in json_result:
                 tvshowpath = "ActivateWindow(Videos,videodb://tvshows/titles/%s/,return)" %str(item["tvshowid"])
-                tvshowpath="plugin://script.skin.helper.service?LAUNCHAPP&&&" + tvshowpath
+                tvshowpath="plugin://script.skin.helper.service?action=launch&path=" + tvshowpath
                 item["file"] == tvshowpath
                 allItems.append(item)
         
@@ -1314,7 +1318,7 @@ def getFavouriteMedia(limit):
                     if json_result:
                         matchFound = True
                         tvshowpath = "ActivateWindow(Videos,%s,return)" %fav["windowparameter"]
-                        tvshowpath="plugin://script.skin.helper.service?LAUNCHAPP&&&" + tvshowpath
+                        tvshowpath="plugin://script.skin.helper.service?action=launch&path=" + tvshowpath
                         json_result["file"] == tvshowpath
                         allItems.append(json_result)            
             if fav["type"] == "media":
