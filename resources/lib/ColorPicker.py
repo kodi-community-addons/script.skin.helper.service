@@ -69,10 +69,12 @@ class ColorPicker(xbmcgui.WindowXMLDialog):
         #get all colors from the colors xml file and fill a list with tuples to sort later on
         allColors = []
         colors_file = os.path.join(ADDON_PATH, 'resources', 'colors','colors.xml' ).decode("utf-8")
+        skinCustomColors = False
         #prefer skin colors file
         if xbmcvfs.exists( "special://skin/extras/colors/colors.xml" ):
             colors_file = xbmc.translatePath("special://skin/extras/colors/colors.xml").decode("utf-8")
             self.colorsPath = xbmc.translatePath("special://skin/extras/colors/").decode("utf-8")
+            skinCustomColors = True
         
         if xbmcvfs.exists( colors_file ):
             doc = parse( colors_file )
@@ -85,7 +87,9 @@ class ColorPicker(xbmcgui.WindowXMLDialog):
         #sort list and fill the panel
         count = 0
         selectItem = 0
-        allColors = sorted(allColors,key=itemgetter(1))
+        if not skinCustomColors:
+            #do not sort a skin provided colors list
+            allColors = sorted(allColors,key=itemgetter(1))
         colorstring = self.currentWindow.getProperty("colorstring")
         colorname = self.currentWindow.getProperty("colorname")
         for color in allColors:
