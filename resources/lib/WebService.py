@@ -113,7 +113,23 @@ class StoppableHttpRequestHandler (SimpleHTTPServer.SimpleHTTPRequestHandler):
         elif action == "getvarimage":
             title = title.replace("{","[").replace("}","]")
             image = xbmc.getInfoLabel(title)
-            
+        
+        elif action == "getstudiologo":
+            studio = params.get("studio","")
+            if studio: studio = studio[0].decode("utf-8")
+            studiologos = WINDOW.getProperty("SkinHelper.allStudioLogos").decode("utf-8")
+            if studiologos: studiologos = eval(studiologos)
+            if studio and studiologos:
+                image = matchStudioLogo(studio, studiologos)
+        
+        elif action == "getstudiologocolor":
+            studio = params.get("studio","")
+            if studio: studio = studio[0].decode("utf-8")
+            studiologos = WINDOW.getProperty("SkinHelper.allStudioLogosColor").decode("utf-8")
+            if studiologos: studiologos = eval(studiologos)
+            if studio and studiologos:
+                image = matchStudioLogo(studio, studiologos)
+        
         elif action == "getpvrthumb":
             channel = params.get("channel","")
             preferred_type = params.get("type","")

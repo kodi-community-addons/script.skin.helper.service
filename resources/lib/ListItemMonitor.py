@@ -829,51 +829,22 @@ class ListItemMonitor(threading.Thread):
         
         if not studio:
             studio = xbmc.getInfoLabel('ListItem.Studio').decode('utf-8')
-        studiologo = None
-        studiologoColor = None
         
         studios = []
         if "/" in studio:
             studios = studio.split(" / ")
             WINDOW.setProperty("SkinHelper.ListItemStudio", studios[0])
+            WINDOW.setProperty('SkinHelper.ListItemStudios', "[CR]".join(studios))    
         else:
             studios.append(studio)
             WINDOW.setProperty("SkinHelper.ListItemStudio", studio)
+            WINDOW.setProperty("SkinHelper.ListItemStudios", studio)
+
+        studiologo = matchStudioLogo(studio, self.allStudioLogos)
+        studiologoColor = matchStudioLogo(studio, self.allStudioLogosColor)
+        WINDOW.setProperty("SkinHelper.ListItemStudioLogo", studiologo)        
+        WINDOW.setProperty("SkinHelper.ListItemStudioLogoColor", studiologo)        
         
-        for studio in studios:
-            studio = studio.lower()
-            #find logo normal
-            if self.allStudioLogos.has_key(studio):
-                studiologo = self.allStudioLogos[studio]
-            if self.allStudioLogosColor.has_key(studio):
-                studiologoColor = self.allStudioLogosColor[studio]    
-            
-            if not studiologo and not studiologoColor:
-                #find logo by substituting characters
-                if " (" in studio:
-                    studio = studio.split(" (")[0]
-                    if self.allStudioLogos.has_key(studio):
-                        studiologo = self.allStudioLogos[studio]
-                    if self.allStudioLogosColor.has_key(studio):
-                        studiologoColor = self.allStudioLogosColor[studio]
-            
-            if not studiologo and not studiologoColor:
-                #find logo by substituting characters for pvr channels
-                if " HD" in studio:
-                    studio = studio.replace(" HD","")
-                elif " " in studio:
-                    studio = studio.replace(" ","")
-                if self.allStudioLogos.has_key(studio):
-                    studiologo = self.allStudioLogos[studio]
-                if self.allStudioLogosColor.has_key(studio):
-                    studiologoColor = self.allStudioLogosColor[studio]  
-        
-        if studiologo:
-            WINDOW.setProperty("SkinHelper.ListItemStudioLogo", studiologo)        
-        if studiologoColor:
-            WINDOW.setProperty("SkinHelper.ListItemStudioLogoColor", studiologo)        
-        #set formatted studio logo
-        WINDOW.setProperty('SkinHelper.ListItemStudios', "[CR]".join(studios))
         return studiologo
                 
     def getStudioLogos(self):
@@ -930,22 +901,25 @@ class ListItemMonitor(threading.Thread):
                 dirs, files = xbmcvfs.listdir(path)
                 for file in files:
                     name = file.split(".png")[0].lower()
-                    if not allLogos.has_key(name):
-                        allLogos[name] = path + file
+                    if not allLogosColor.has_key(name):
+                        allLogosColor[name] = path + file
                 for dir in dirs:
-                    dirs2, files2 = xbmcvfs.listdir(os.path.join(path,dir))+os.sep)
+                    dirs2, files2 = xbmcvfs.listdir(os.path.join(path,dir)+os.sep)
                     for file in files2:
                         name = dir + "/" + file.split(".png")[0].lower()
-                        if not allLogos.has_key(name):
+                        if not allLogosColor.has_key(name):
                             if "/" in path:
                                 sep = "/"
                             else:
                                 sep = "\\"
-                            allLogos[name] = path + dir + sep + file
+                            allLogosColor[name] = path + dir + sep + file
             
             #assign all found logos in the list
             self.allStudioLogos = allLogos
             self.allStudioLogosColor = allLogosColor
+            #also store the logos in window property for access by webservice
+            WINDOW.setProperty("SkinHelper.allStudioLogos",repr(self.allStudioLogos))
+            WINDOW.setProperty("SkinHelper.allStudioLogosColor",repr(self.allStudioLogosColor))
     
     def setDuration(self,currentDuration=None):
         if not currentDuration:

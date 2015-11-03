@@ -700,3 +700,36 @@ def unzip(zip_file,path):
     f.close()
     logMsg("UNZIP DONE of file %s  to path %s " %(zipfile,path))
     
+
+def matchStudioLogo(studiostr,studiologos):
+    #try to find a matching studio logo
+    studiologo = ""
+    studios = []
+    if "/" in studiostr:
+        studios = studiostr.split(" / ")
+    else:
+        studios.append(studiostr)
+    
+    for studio in studios:
+        studio = studio.lower()
+        #find logo normal
+        if studiologos.has_key(studio):
+            studiologo = studiologos[studio]
+        
+        if not studiologo:
+            #find logo by substituting characters
+            if " (" in studio:
+                studio = studio.split(" (")[0]
+                if studiologos.has_key(studio):
+                    studiologo = studiologos[studio]
+        
+        if not studiologo:
+            #find logo by substituting characters for pvr channels
+            if " HD" in studio:
+                studio = studio.replace(" HD","")
+            elif " " in studio:
+                studio = studio.replace(" ","")
+            if studiologos.has_key(studio):
+                studiologo = studiologos[studio]
+                
+    return studiologo
