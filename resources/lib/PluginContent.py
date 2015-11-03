@@ -423,7 +423,7 @@ def getPVRRecordings(limit):
         #load from cache
         allItems = eval(cache)
     else:
-        # Get a list of all the unwatched recent tv recordings   
+        # Get a list of all the unwatched tv recordings   
         json_result = getJSON('PVR.GetRecordings', '{"properties": [ %s ]}' %fields_pvrrecordings)
         for item in json_result:
             if item["playcount"] == 0:

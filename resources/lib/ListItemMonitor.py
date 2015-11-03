@@ -896,52 +896,52 @@ class ListItemMonitor(threading.Thread):
                     allPaths.append(CustomStudioImagesPath)
             
             #add skin provided paths
-            allPaths.append("special://skin/extras/flags/studios/")
-            allPathsColor.append("special://skin/extras/flags/studioscolor/")
+            if xbmcvfs.exists("special://skin/extras/flags/studios/"):
+                allPaths.append("special://skin/extras/flags/studios/")
+            if xbmcvfs.exists("special://skin/extras/flags/studioscolor/"):
+                allPathsColor.append("special://skin/extras/flags/studioscolor/")
             
             #add images provided by the image resource addons
-            allPaths.append("resource://resource.images.studios.white/")
-            allPathsColor.append("resource://resource.images.studios.coloured/")
-            allPaths.append("special://home/addons/resource.images.studios.white/")
-            allPathsColor.append("special://home/addons/resource.images.studios.coloured/")
+            if xbmc.getCondVisibility("System.HasAddon(resource.images.studios.white)"):
+                allPaths.append("resource://resource.images.studios.white/")
+            if xbmc.getCondVisibility("System.HasAddon(resource.images.studios.coloured)"):
+                allPathsColor.append("resource://resource.images.studios.coloured/")
             
             #check all white logos
-            for path in allPaths:               
-                if xbmcvfs.exists(path):
-                    dirs, files = xbmcvfs.listdir(path)
-                    for file in files:
-                        name = file.split(".png")[0].lower()
+            for path in allPaths:
+                dirs, files = xbmcvfs.listdir(path)
+                for file in files:
+                    name = file.split(".png")[0].lower()
+                    if not allLogos.has_key(name):
+                        allLogos[name] = path + file
+                for dir in dirs:
+                    dirs2, files2 = xbmcvfs.listdir(os.path.join(path,dir)+os.sep)
+                    for file in files2:
+                        name = dir + "/" + file.split(".png")[0].lower()
                         if not allLogos.has_key(name):
-                            allLogos[name] = path + file
-                    for dir in dirs:
-                        dirs2, files2 = xbmcvfs.listdir(os.path.join(path,dir))
-                        for file in files2:
-                            name = dir + "/" + file.split(".png")[0].lower()
-                            if not allLogos.has_key(name):
-                                if "/" in path:
-                                    sep = "/"
-                                else:
-                                    sep = "\\"
-                                allLogos[name] = path + dir + sep + file
+                            if "/" in path:
+                                sep = "/"
+                            else:
+                                sep = "\\"
+                            allLogos[name] = path + dir + sep + file
                     
             #check all color logos
             for path in allPathsColor:
-                if xbmcvfs.exists(path):
-                    dirs, files = xbmcvfs.listdir(path)
-                    for file in files:
-                        name = file.split(".png")[0].lower()
+                dirs, files = xbmcvfs.listdir(path)
+                for file in files:
+                    name = file.split(".png")[0].lower()
+                    if not allLogos.has_key(name):
+                        allLogos[name] = path + file
+                for dir in dirs:
+                    dirs2, files2 = xbmcvfs.listdir(os.path.join(path,dir))+os.sep)
+                    for file in files2:
+                        name = dir + "/" + file.split(".png")[0].lower()
                         if not allLogos.has_key(name):
-                            allLogos[name] = path + file
-                    for dir in dirs:
-                        dirs2, files2 = xbmcvfs.listdir(os.path.join(path,dir))
-                        for file in files2:
-                            name = dir + "/" + file.split(".png")[0].lower()
-                            if not allLogos.has_key(name):
-                                if "/" in path:
-                                    sep = "/"
-                                else:
-                                    sep = "\\"
-                                allLogos[name] = path + dir + sep + file
+                            if "/" in path:
+                                sep = "/"
+                            else:
+                                sep = "\\"
+                            allLogos[name] = path + dir + sep + file
             
             #assign all found logos in the list
             self.allStudioLogos = allLogos
