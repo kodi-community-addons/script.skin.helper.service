@@ -388,23 +388,20 @@ class BackgroundsUpdater(threading.Thread):
         except:
             logMsg("exception occured in getPvrBackground.... ",0)
             return None            
-    
-    def getGlobalBackground(self, fallbackImage=None):
-        #just get a random image from all the images in the cache
+            
+    def setGlobalBackground(self, windowProp, keys=[], fallbackImage=""):
+        #gets a random background from multiple other collections
         image = fallbackImage
-        randomimage = None
+        images = []
         if self.allBackgrounds:
-            #get random image from our global cache
-            images = []
-            for key in self.allBackgrounds:
-                if self.allBackgrounds.has_key(key) and not "wall" in key.lower():
-                    for background in self.allBackgrounds[key]:
-                        if background:
-                            images.append(background)
-            if images:
-                image = random.choice(images)
-            if image: WINDOW.setProperty("SkinHelper.GlobalFanartBackground", image)
-                  
+            #get images from the global cache...
+            for key, value in self.allBackgrounds.iteritems():
+                if (key in keys or windowProp == "SkinHelper.GlobalFanartBackground") and not "wall" in key.lower():
+                    images += value
+            #pick a random image from the collection of images
+            if images:  image = random.choice(images)
+            WINDOW.setProperty(windowProp, image)
+    
     def UpdateBackgrounds(self):
         
         allSmartShortcuts = []
@@ -439,8 +436,11 @@ class BackgroundsUpdater(threading.Thread):
             self.setImageFromPath("SkinHelper.TopRatedMovies","plugin://script.extendedinfo/?info=topratedmovies")
             self.setImageFromPath("SkinHelper.TopRatedShows","plugin://script.extendedinfo/?info=topratedtvshows")
         
-        #global fanart background 
-        self.getGlobalBackground()
+        #global backgrounds
+        self.setGlobalBackground("SkinHelper.GlobalFanartBackground")
+        self.setGlobalBackground("SkinHelper.AllVideosBackground", [ "SkinHelper.AllMoviesBackground", "SkinHelper.AllTvShowsBackground", "SkinHelper.AllMusicVideosBackground" ])
+        self.setGlobalBackground("SkinHelper.RecentVideosBackground", [ "SkinHelper.RecentMoviesBackground", "SkinHelper.RecentEpisodesBackground" ])
+        self.setGlobalBackground("SkinHelper.InProgressVideosBackground", [ "SkinHelper.InProgressMoviesBackground", "SkinHelper.InProgressShowsBackground" ])
 
         #pictures background
         picturesbg = self.getPicturesBackground()

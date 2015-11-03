@@ -333,7 +333,6 @@ def getBackgrounds():
     xbmcplugin.setContent(int(sys.argv[1]), 'files')
     
     globalBackgrounds = []
-    globalBackgrounds.append((ADDON.getLocalizedString(32038), "SkinHelper.GlobalFanartBackground"))
     globalBackgrounds.append((ADDON.getLocalizedString(32039), "SkinHelper.AllMoviesBackground"))
     globalBackgrounds.append((ADDON.getLocalizedString(32040), "SkinHelper.RecentMoviesBackground"))
     globalBackgrounds.append((ADDON.getLocalizedString(32041), "SkinHelper.InProgressMoviesBackground"))
@@ -345,6 +344,11 @@ def getBackgrounds():
     globalBackgrounds.append((ADDON.getLocalizedString(32047), "SkinHelper.AllMusicVideosBackground"))
     globalBackgrounds.append((ADDON.getLocalizedString(32048), "SkinHelper.AllMusicBackground"))
     globalBackgrounds.append((ADDON.getLocalizedString(32113), "SkinHelper.PvrBackground"))
+    
+    globalBackgrounds.append((ADDON.getLocalizedString(32038), "SkinHelper.GlobalFanartBackground"))
+    globalBackgrounds.append((ADDON.getLocalizedString(32138), "SkinHelper.AllVideosBackground"))
+    globalBackgrounds.append((ADDON.getLocalizedString(32139), "SkinHelper.RecentVideosBackground"))
+    globalBackgrounds.append((ADDON.getLocalizedString(32140), "SkinHelper.InProgressVideosBackground"))
     
     #wall backgrounds
     globalBackgrounds.append((ADDON.getLocalizedString(32117), "SkinHelper.AllMoviesBackground.Wall"))

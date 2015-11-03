@@ -241,6 +241,10 @@ Set it to 0 or clear the string to disable the backgrounds.
 | Window(Home).Property(SkinHelper.UnwatchedMoviesBackground) | Random fanart of unwatched movies|
 | Window(Home).Property(SkinHelper.InProgressShowsBackground) | Random fanart of in progress tv shows|
 | Window(Home).Property(SkinHelper.RecentEpisodesBackground) | Random fanart of recently added episodes|
+| Window(Home).Property(SkinHelper.GlobalFanartBackground) | Random fanart of all media types|
+| Window(Home).Property(SkinHelper.AllVideosBackground) | Random videos background (movie/show/musicvideo)|
+| Window(Home).Property(SkinHelper.RecentVideosBackground) | Recent videos background (movie or tvshow)|
+| Window(Home).Property(SkinHelper.InProgressVideosBackground) | In progress videos background (movie or tvshow)|
 | Window(Home).Property(SkinHelper.PvrBackground) | Random fanart collected by the PVR thumbs feature|
 | Window(Home).Property(SkinHelper.PicturesBackground) | Random pictures from all picture sources. By default this pulls images from all picture sources the user has configured. It is however possible to provide a custom source from which the images should be pulled from by setting Skin String: SkinHelper.CustomPicturesBackgroundPath|
 | Window(Home).Property(SkinHelper.AllMoviesBackground.Wall) | Collection of Movie fanart images (from the library) as wall prebuilt by the script|
