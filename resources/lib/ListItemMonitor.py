@@ -843,7 +843,7 @@ class ListItemMonitor(threading.Thread):
         studiologo = matchStudioLogo(studio, self.allStudioLogos)
         studiologoColor = matchStudioLogo(studio, self.allStudioLogosColor)
         WINDOW.setProperty("SkinHelper.ListItemStudioLogo", studiologo)        
-        WINDOW.setProperty("SkinHelper.ListItemStudioLogoColor", studiologo)        
+        WINDOW.setProperty("SkinHelper.ListItemStudioLogoColor", studiologoColor)        
         
         return studiologo
                 
