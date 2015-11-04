@@ -114,22 +114,6 @@ class StoppableHttpRequestHandler (SimpleHTTPServer.SimpleHTTPRequestHandler):
             title = title.replace("{","[").replace("}","]")
             image = xbmc.getInfoLabel(title)
         
-        elif action == "getstudiologo":
-            studio = params.get("studio","")
-            if studio: studio = studio[0].decode("utf-8")
-            studiologos = WINDOW.getProperty("SkinHelper.allStudioLogos").decode("utf-8")
-            if studiologos: studiologos = eval(studiologos)
-            if studio and studiologos:
-                image = matchStudioLogo(studio, studiologos)
-        
-        elif action == "getstudiologocolor":
-            studio = params.get("studio","")
-            if studio: studio = studio[0].decode("utf-8")
-            studiologos = WINDOW.getProperty("SkinHelper.allStudioLogosColor").decode("utf-8")
-            if studiologos: studiologos = eval(studiologos)
-            if studio and studiologos:
-                image = matchStudioLogo(studio, studiologos)
-        
         elif action == "getpvrthumb":
             channel = params.get("channel","")
             preferred_type = params.get("type","")
@@ -183,8 +167,10 @@ class StoppableHttpRequestHandler (SimpleHTTPServer.SimpleHTTPRequestHandler):
             self.send_response(200)
             if ".jpg" in image: self.send_header('Content-type','image/jpeg')
             else: self.send_header('Content-type','image/png')
-            self.send_header('Last-Modified',WINDOW.getProperty("SkinHelper.lastUpdate"))
             logMsg("found image for request %s  --> %s" %(try_encode(self.path),try_encode(image)))
+            st = xbmcvfs.Stat(image)
+            modified = st.st_mtime()
+            self.send_header('Last-Modified',"%s" %modified)
             image = xbmcvfs.File(image)
             size = image.size()
             self.send_header('Content-Length',str(size))

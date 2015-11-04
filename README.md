@@ -108,6 +108,7 @@ The script handles this logic to locate the fanart:
 Note: If you also want to have the Studio logo and Duration Properties for your homescreen widgets, you need to set a Window Property "SkinHelper.WidgetContainer" with the ID of your widget container:
 For example in home.xml: <onload>SetProperty(SkinHelper.WidgetContainer,301)</onload>
 
+
 #### Movie sets window properties
 If the selected listitem in the videolibrary is a movie set, some additional window properties are provided:
 
