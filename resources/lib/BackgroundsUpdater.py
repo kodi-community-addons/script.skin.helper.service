@@ -154,13 +154,14 @@ class BackgroundsUpdater(threading.Thread):
             if image:
                 if not xbmcvfs.exists(image): 
                     logMsg("Wall images cleared - starting rebuild...",0)
+                    del self.allBackgrounds[windowProp]
                 else:
                     image = getCleanImage(image)
                     WINDOW.setProperty(windowProp, image)
                     return True
                
         #load images for libPath and generate wall
-        if self.allBackgrounds.get(libPath):
+        if self.allBackgrounds.get(libPath) and not self.allBackgrounds.has_key(windowProp):
             images = []
             try:
                 images = createImageWall(self.allBackgrounds[libPath],windowProp,blackWhite,square)
