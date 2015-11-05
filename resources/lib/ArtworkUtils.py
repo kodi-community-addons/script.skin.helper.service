@@ -802,7 +802,6 @@ def getMusicArtworkByDbId(dbid,itemtype):
         
     #LOOKUP LOCAL ARTWORK PATH PASED ON SONG FILE PATH
     if path and enableLocalMusicArtLookup and not artistCacheFound or (itemtype=="albums" and not albumCacheFound):
-        path = song.get("file")
         if "\\" in path:
             delim = "\\"
         else:
