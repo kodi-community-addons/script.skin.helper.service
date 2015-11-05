@@ -23,7 +23,6 @@ class ListItemMonitor(threading.Thread):
     folderPath = ""
     folderPathLast = ""
     unwatched = 1
-    lastMusicDbId = ""
     lastpvrDbId = ""
     contentType = ""
     lastListItem = ""
@@ -72,7 +71,7 @@ class ListItemMonitor(threading.Thread):
                     #only perform actions when the listitem has actually changed
                     if playerItem and playerItem != lastPlayerItem:
                         #clear all window props first
-                        self.resetPlayerWindowProps()
+                        resetPlayerWindowProps()
                         self.setMusicPlayerDetails()
                         lastPlayerItem = playerItem       
                 except Exception as e:
@@ -212,7 +211,7 @@ class ListItemMonitor(threading.Thread):
                 
                 #reload some widgets every 10 minutes
                 if (self.widgetTaskInterval >= 600):
-                    self.resetGlobalWidgets()
+                    resetGlobalWidgetWindowProps()
                     self.widgetTaskInterval = 0
                 
                 #flush cache if videolibrary has changed
@@ -220,7 +219,6 @@ class ListItemMonitor(threading.Thread):
                     self.moviesetCache = {}
                     self.extraFanartCache = {}
                     self.streamdetailsCache = {}
-                    self.resetGlobalWidgets()
                     WINDOW.clearProperty("resetVideoDbCache")
 
                 #flush cache if pvr settings have changed
@@ -231,7 +229,6 @@ class ListItemMonitor(threading.Thread):
                 
                 #flush cache if musiclibrary has changed
                 if WINDOW.getProperty("resetMusicArtCache") == "reset":
-                    self.lastMusicDbId = ""
                     self.musicArtCache = {}
                     WINDOW.clearProperty("resetMusicArtCache")
                 
@@ -252,17 +249,7 @@ class ListItemMonitor(threading.Thread):
                 WINDOW.setProperty("netflixready","ready")
             else:
                 WINDOW.clearProperty("netflixready")
-    
-    def resetGlobalWidgets(self):
-        WINDOW.clearProperty("skinhelper-favourites")
-        WINDOW.clearProperty("skinhelper-pvrrecordings")
-        WINDOW.clearProperty("skinhelper-pvrchannels")
-        WINDOW.clearProperty("skinhelper-nextairedtvshows")
-        WINDOW.clearProperty("skinhelper-similarmovies")
-        WINDOW.clearProperty("skinhelper-similarshows")
-        WINDOW.clearProperty("skinhelper-favouritemedia")
-        WINDOW.setProperty("widgetreload2", datetime.now().strftime('%Y-%m-%d %H:%M:%S') + str(random.randint(0,9)))
-                    
+                        
     def doBackgroundWork(self):
         try:
             logMsg("Started Background worker...")
@@ -601,21 +588,7 @@ class ListItemMonitor(threading.Thread):
             if not WINDOW.getProperty('SkinHelper.ExtraFanArt.' + str(i)):
                 break
             WINDOW.clearProperty('SkinHelper.ExtraFanArt.' + str(i))
-    
-    def resetPlayerWindowProps(self):
-        #reset all window props provided by the script...
-        WINDOW.setProperty("SkinHelper.Player.Music.Banner","") 
-        WINDOW.setProperty("SkinHelper.Player.Music.ClearLogo","") 
-        WINDOW.setProperty("SkinHelper.Player.Music.DiscArt","") 
-        WINDOW.setProperty("SkinHelper.Player.Music.FanArt","") 
-        WINDOW.setProperty("SkinHelper.Player.Music.Thumb","") 
-        WINDOW.setProperty("SkinHelper.Player.Music.Info","") 
-        WINDOW.setProperty("SkinHelper.Player.Music.TrackList","") 
-        WINDOW.setProperty("SkinHelper.Player.Music.SongCount","") 
-        WINDOW.setProperty("SkinHelper.Player.Music.albumCount","") 
-        WINDOW.setProperty("SkinHelper.Player.Music.AlbumList","")
-        WINDOW.setProperty("SkinHelper.Player.Music.ExtraFanArt","")
-        
+            
     def setMovieSetDetails(self):
         #get movie set details -- thanks to phil65 - used this idea from his skin info script     
         if xbmc.getCondVisibility("SubString(ListItem.Path,videodb://movies/sets/,left)"):

@@ -733,3 +733,55 @@ def matchStudioLogo(studiostr,studiologos):
                 studiologo = studiologos[studio]
                 
     return studiologo
+
+def resetGlobalWidgetWindowProps():
+    WINDOW.clearProperty("skinhelper-favourites")
+    WINDOW.clearProperty("skinhelper-pvrrecordings")
+    WINDOW.clearProperty("skinhelper-pvrchannels")
+    WINDOW.clearProperty("skinhelper-nextairedtvshows")
+    WINDOW.clearProperty("skinhelper-similarmovies")
+    WINDOW.clearProperty("skinhelper-similarshows")
+    WINDOW.clearProperty("skinhelper-favouritemedia")
+    WINDOW.setProperty("widgetreload2", time.strftime("%Y%m%d%H%M%S", time.gmtime()))
+    
+def resetPlayerWindowProps():
+    #reset all window props provided by the script...
+    WINDOW.setProperty("SkinHelper.Player.Music.Banner","") 
+    WINDOW.setProperty("SkinHelper.Player.Music.ClearLogo","") 
+    WINDOW.setProperty("SkinHelper.Player.Music.DiscArt","") 
+    WINDOW.setProperty("SkinHelper.Player.Music.FanArt","") 
+    WINDOW.setProperty("SkinHelper.Player.Music.Thumb","") 
+    WINDOW.setProperty("SkinHelper.Player.Music.Info","") 
+    WINDOW.setProperty("SkinHelper.Player.Music.TrackList","") 
+    WINDOW.setProperty("SkinHelper.Player.Music.SongCount","") 
+    WINDOW.setProperty("SkinHelper.Player.Music.albumCount","") 
+    WINDOW.setProperty("SkinHelper.Player.Music.AlbumList","")
+    WINDOW.setProperty("SkinHelper.Player.Music.ExtraFanArt","")
+    
+def resetMusicWidgetWindowProps():
+    WINDOW.setProperty("resetMusicArtCache","reset")
+    xbmc.sleep(1000)
+    #clear the cache for the music widgets
+    WINDOW.clearProperty("skinhelper-recentalbums")
+    WINDOW.clearProperty("skinhelper-recentplayedalbums")
+    WINDOW.clearProperty("skinhelper-recentplayedsongs")
+    WINDOW.clearProperty("skinhelper-recentsongs")
+    WINDOW.setProperty("widgetreloadmusic", time.strftime("%Y%m%d%H%M%S", time.gmtime()))
+
+def resetVideoWidgetWindowProps():
+    WINDOW.setProperty("resetVideoDbCache","reset")
+    xbmc.sleep(1000)
+    #clear the cache for the video widgets
+    WINDOW.clearProperty("skinhelper-recommendedmovies")
+    WINDOW.clearProperty("skinhelper-InProgressAndRecommendedMedia")
+    WINDOW.clearProperty("skinhelper-InProgressMedia")
+    WINDOW.clearProperty("skinhelper-RecommendedMedia")
+    WINDOW.clearProperty("skinhelper-nextepisodes")
+    WINDOW.clearProperty("skinhelper-similarmovies")
+    WINDOW.clearProperty("skinhelper-similarshows")
+    WINDOW.clearProperty("skinhelper-moviesforgenre")
+    WINDOW.clearProperty("skinhelper-showsforgenre")
+    WINDOW.clearProperty("skinhelper-recentmedia")
+    WINDOW.clearProperty("skinhelper-favouritemedia")
+    WINDOW.setProperty("widgetreload", time.strftime("%Y%m%d%H%M%S", time.gmtime()))
+   

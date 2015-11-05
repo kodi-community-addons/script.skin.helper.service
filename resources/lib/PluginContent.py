@@ -422,11 +422,13 @@ def getPVRRecordings(limit):
     if cache:
         #load from cache
         allItems = eval(cache)
-    else:
+    elif xbmc.getCondVisibility("PVR.HasTVChannels"):
         # Get a list of all the unwatched tv recordings   
         json_result = getJSON('PVR.GetRecordings', '{"properties": [ %s ]}' %fields_pvrrecordings)
+        pvr_backend = xbmc.getInfoLabel("Pvr.BackendName").decode("utf-8")
         for item in json_result:
-            if item["playcount"] == 0:
+            #exclude live tv items from recordings list (mythtv hack)
+            if item["playcount"] == 0 and not ("mythtv" in pvr_backend.lower() and "livetv" in item["file"]):
                 channelname = item["channel"]
                 item["channel"] = channelname
                 item["art"] = getPVRThumbs(item["title"], channelname, "recordings")
@@ -440,8 +442,8 @@ def getPVRRecordings(limit):
         allUnSortedItems = sorted(allUnSortedItems,key=itemgetter(0),reverse=True)
         for item in allUnSortedItems:
             allItems.append(item[1])
-        
         if allItems: WINDOW.setProperty("skinhelper-pvrrecordings", repr(allItems))
+        
     for item in allItems:
         liz = createListItem(item)
         liz.setProperty('IsPlayable', 'true')
@@ -459,7 +461,7 @@ def getPVRChannels(limit):
     if cache:
         #load from cache
         allItems = eval(cache)
-    else:
+    elif xbmc.getCondVisibility("PVR.HasTVChannels"):
         # Perform a JSON query to get all channels
         json_query = getJSON('PVR.GetChannels', '{"channelgroupid": "alltv", "properties": [ "thumbnail", "channeltype", "hidden", "locked", "channel", "lastplayed", "broadcastnow" ], "limits": {"end": %d}}' %( limit ) )
         for channel in json_query:
