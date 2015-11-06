@@ -298,16 +298,20 @@ This command will open the color picker of the script. After the user selected a
 
 In your skin you can just use the skin string to color a control, example: <textcolor>$INFO[Skin.String(defaultLabelColor)]</textcolor>
 
-Note: If you want to display the name of the selected color, add a prefix .name to your skin string.
+Notes: 
+1) If you want to display the name of the selected color, add a prefix .name to your skin string.
 For example: <label>Default color for labels: $INFO[Skin.String(defaultLabelColor.name)]</label>
 
-If you want to customize the look and feel of the color picker window, make sure to include script-skin_helper_service-ColorPicker.xml in your skin and skin it to your needs.
+2) If you want to customize the look and feel of the color picker window, make sure to include script-skin_helper_service-ColorPicker.xml in your skin and skin it to your needs.
 
-TIP: By default the colorpicker will provide a list of available colors.
+3) If you want to specify the header title of the color picker, make sure to include a label with ID 1 in the XML and add the header= parameter when you launch the script.
+For example: RunScript(script.skin.helper.service,action=colorpicker,skinstring=MySkinString,header=Set the OSD Foreground Color)
+
+4) By default the colorpicker will provide a list of available colors.
 If you want to provide that list yourself, create a file "colors.xml" in skin\extras\colors\colors.xml
 See the default colors file in the script's location, subfolder resources\colors
 
-Additional use cases of the color picker:
+##### Set a skinshortcuts property with the color
 If you want to set a Window(home) Property instead of a skin settings:
 RunScript(script.skin.helper.service,action=colorpicker,winproperty=XXX)
 
@@ -316,10 +320,27 @@ include a button in your script-skinshortcuts.xml with this onclick-action:
 
 RunScript(script.skin.helper.service,action=colorpicker,shortcutproperty=XXX)
 
+
+##### Multiple color palettes
+The color picker supports having multiple color palettes in your colors.xml.
+The structure of your colors.xml file will then be layered, like this:
+
+<colors>
+    <palette name="mypalette1">
+        <color name="color1">ffffffff</color>
+    </palette>
+</colors>
+
+If you do not create the palette sublevel in your colors.xml, the script will just display all <color> tags.
+If you have specified multiple palettes you can use a button with ID 3030 to switch between color palettes.
+Also it is possible to launch the color picker with a specific palette, in that case supply the palette= parameter when you open the picker, for example:
+
+RunScript(script.skin.helper.service,action=colorpicker,skinstring=MySkinString,palette=mypalette1)
+
 ________________________________________________________________________________________________________
 
 
-##### Webservice --> $INFO images inside list/panel containers and image lookups
+#### Webservice --> $INFO images inside list/panel containers and image lookups
 This script comes with a little web-helper service to retrieve images that are normally only available as window property and/or only available for the current focused listitem, such as the pvr artwork or music artwork.
 NOTE: The scripts webservice runs on tcp port 52307. This is currently hardcoded because there is no way to pass the port as an variable to the skin inside a list (which was the whole purpose of the webservice in the first place)
 

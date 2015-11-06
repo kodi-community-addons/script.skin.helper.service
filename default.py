@@ -77,11 +77,13 @@ class Main:
             elif action == "COLORPICKER":
                 from resources.lib.ColorPicker import ColorPicker
                 colorPicker = ColorPicker("script-skin_helper_service-ColorPicker.xml", ADDON_PATH, "Default", "1080i")
-                colorPicker.skinString = params.get("SKINSTRING",None)
-                colorPicker.winProperty = params.get("WINPROPERTY",None)
-                colorPicker.shortcutProperty = params.get("SHORTCUTPROPERTY",None)
+                colorPicker.skinString = params.get("SKINSTRING","")
+                colorPicker.winProperty = params.get("WINPROPERTY","")
+                colorPicker.activePalette = params.get("PALETTE","")
+                colorPicker.headerLabel = params.get("HEADER","")
+                propname = params.get("SHORTCUTPROPERTY","")
+                colorPicker.shortcutProperty = propname
                 colorPicker.doModal()
-                propname = params.get("SHORTCUTPROPERTY",None)
                 if propname:
                     wid = xbmcgui.getCurrentWindowDialogId()
                     currentWindow = xbmcgui.Window( xbmcgui.getCurrentWindowDialogId() )
