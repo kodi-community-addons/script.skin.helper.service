@@ -784,4 +784,62 @@ def resetVideoWidgetWindowProps():
     WINDOW.clearProperty("skinhelper-recentmedia")
     WINDOW.clearProperty("skinhelper-favouritemedia")
     WINDOW.setProperty("widgetreload", time.strftime("%Y%m%d%H%M%S", time.gmtime()))
+
+def getResourceAddonFiles(addonName,allFilesList=None):
+    # get listing of all files (eg studio logos) inside a resource image addonName
+    # listing is delivered by the addon and not read live because of some issues with listdir and resourceaddons.
+    # http://forum.kodi.tv/showthread.php?tid=246245
+    if not allFilesList: 
+        allFilesList = {}
+    cachefile = os.path.join(ADDON_PATH, 'resources', addonName + '.json' ).decode("utf-8")
+    data = {}
+    if xbmcvfs.exists(cachefile):
+        # read data from our permanent cache file to prevent that we have to query the resource addon
+        f = xbmcvfs.File(cachefile, 'r')
+        data = eval(f.read().decode("utf-8"))
+        f.close()
+    else:
+        # safe data to our permanent cache file, only to be written if the resource addon changes.
+        data = listFilesInPath("resource://%s/"%addonName)
+        print "resource://%s/"%addonName
+        print data
+        f = xbmcvfs.File(cachefile, 'w')
+        f.write( repr(data).encode("utf-8") )
+        f.close()
+    
+    #return the data
+    if data:
+        for key, value in data.iteritems():
+            if not allFilesList.get(key):
+                allFilesList[key] = value
+    return allFilesList
+    
    
+    
+def listFilesInPath(path, allFilesList=None):
+    #used for easy matching of studio logos
+    if not allFilesList: 
+        allFilesList = {}
+    print "list files in path " + path
+    dirs, files = xbmcvfs.listdir(path)
+    for file in files:
+        file = file.decode("utf-8")
+        name = file.split(".png")[0].lower()
+        if not allFilesList.has_key(name):
+            allFilesList[name] = path + file
+    for dir in dirs:
+        dirs2, files2 = xbmcvfs.listdir(os.path.join(path,dir)+os.sep)
+        for file in files2:
+            file = file.decode("utf-8")
+            dir = dir.decode("utf-8")
+            name = dir + "/" + file.split(".png")[0].lower()
+            if not allFilesList.has_key(name):
+                if "/" in path:
+                    sep = "/"
+                else:
+                    sep = "\\"
+                allFilesList[name] = path + dir + sep + file
+    
+    #return the list
+    return allFilesList
+    

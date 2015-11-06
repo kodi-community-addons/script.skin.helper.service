@@ -824,8 +824,6 @@ class ListItemMonitor(threading.Thread):
         #fill list with all studio logos
         allLogos = {}
         allLogosColor = {}
-        allPaths = []
-        allPathsColor = []
 
         CustomStudioImagesPath = xbmc.getInfoLabel("Skin.String(SkinHelper.CustomStudioImagesPath)").decode('utf-8')
         if CustomStudioImagesPath + xbmc.getSkinDir() != self.LastCustomStudioImagesPath:
@@ -837,55 +835,19 @@ class ListItemMonitor(threading.Thread):
                 path = CustomStudioImagesPath
                 if not (CustomStudioImagesPath.endswith("/") or CustomStudioImagesPath.endswith("\\")):
                     CustomStudioImagesPath = CustomStudioImagesPath + os.sep()
-                    allPaths.append(CustomStudioImagesPath)
+                    allLogos = listFilesInPath(CustomStudioImagesPath, allLogos)
             
             #add skin provided paths
             if xbmcvfs.exists("special://skin/extras/flags/studios/"):
-                allPaths.append("special://skin/extras/flags/studios/")
+                allLogos = listFilesInPath("special://skin/extras/flags/studios/", allLogos)
             if xbmcvfs.exists("special://skin/extras/flags/studioscolor/"):
-                allPathsColor.append("special://skin/extras/flags/studioscolor/")
+                allLogosColor = listFilesInPath("special://skin/extras/flags/studioscolor/",allLogosColor)
             
             #add images provided by the image resource addons
             if xbmc.getCondVisibility("System.HasAddon(resource.images.studios.white)"):
-                allPaths.append("resource://resource.images.studios.white/")
+                allLogos = getResourceAddonFiles("resource.images.studios.white", allLogos)
             if xbmc.getCondVisibility("System.HasAddon(resource.images.studios.coloured)"):
-                allPathsColor.append("resource://resource.images.studios.coloured/")
-            
-            #check all white logos
-            for path in allPaths:
-                dirs, files = xbmcvfs.listdir(path)
-                for file in files:
-                    name = file.split(".png")[0].lower()
-                    if not allLogos.has_key(name):
-                        allLogos[name] = path + file
-                for dir in dirs:
-                    dirs2, files2 = xbmcvfs.listdir(os.path.join(path,dir)+os.sep)
-                    for file in files2:
-                        name = dir + "/" + file.split(".png")[0].lower()
-                        if not allLogos.has_key(name):
-                            if "/" in path:
-                                sep = "/"
-                            else:
-                                sep = "\\"
-                            allLogos[name] = path + dir + sep + file
-                    
-            #check all color logos
-            for path in allPathsColor:
-                dirs, files = xbmcvfs.listdir(path)
-                for file in files:
-                    name = file.split(".png")[0].lower()
-                    if not allLogosColor.has_key(name):
-                        allLogosColor[name] = path + file
-                for dir in dirs:
-                    dirs2, files2 = xbmcvfs.listdir(os.path.join(path,dir)+os.sep)
-                    for file in files2:
-                        name = dir + "/" + file.split(".png")[0].lower()
-                        if not allLogosColor.has_key(name):
-                            if "/" in path:
-                                sep = "/"
-                            else:
-                                sep = "\\"
-                            allLogosColor[name] = path + dir + sep + file
+                allLogosColor = getResourceAddonFiles("resource.images.studios.coloured",allLogosColor)
             
             #assign all found logos in the list
             self.allStudioLogos = allLogos

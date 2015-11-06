@@ -803,7 +803,6 @@ def getRecommendedAlbums(limit,browse=False):
             similartitle = item["title"]
             #get all movies from the same genre
             for genre in genres:
-                print genre
                 json_result = getJSON('AudioLibrary.GetAlbums', '{ "sort": { "order": "descending", "method": "rating" }, "filter": {"operator":"is", "field":"genre", "value":"%s"}, "properties": [ %s ],"limits":{"end":%d} }' %(genre,fields_albums,limit))
                 for item in json_result:
                     if not item["title"] in allTitles and not item["title"] == similartitle:
@@ -852,7 +851,6 @@ def getRecommendedSongs(limit):
             similartitle = item["title"]
             #get all movies from the same genre
             for genre in genres:
-                print genre
                 json_result = getJSON('AudioLibrary.GetSongs', '{ "sort": { "order": "descending", "method": "rating" }, "filter": {"operator":"is", "field":"genre", "value":"%s"}, "properties": [ %s ],"limits":{"end":%d} }' %(genre,fields_songs,limit))
                 for item in json_result:
                     if not item["title"] in allTitles and not item["title"] == similartitle:
