@@ -58,6 +58,15 @@ class Main:
             
             elif action == "ENABLEVIEWS":
                 enableViews()
+                
+            elif action == "SPLASHSCREEN":
+                import resources.lib.SplashScreen as splashScreen
+                file = params.get("FILE","")
+                duration = params.get("DURATION","")
+                if duration:
+                    splashScreen.show_splash(file,int(duration))
+                else:
+                    splashScreen.show_splash(file)
             
             elif action == "VIDEOSEARCH":
                 from resources.lib.SearchDialog import SearchDialog

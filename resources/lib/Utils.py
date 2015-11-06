@@ -801,8 +801,6 @@ def getResourceAddonFiles(addonName,allFilesList=None):
     else:
         # safe data to our permanent cache file, only to be written if the resource addon changes.
         data = listFilesInPath("resource://%s/"%addonName)
-        print "resource://%s/"%addonName
-        print data
         f = xbmcvfs.File(cachefile, 'w')
         f.write( repr(data).encode("utf-8") )
         f.close()
@@ -820,7 +818,6 @@ def listFilesInPath(path, allFilesList=None):
     #used for easy matching of studio logos
     if not allFilesList: 
         allFilesList = {}
-    print "list files in path " + path
     dirs, files = xbmcvfs.listdir(path)
     for file in files:
         file = file.decode("utf-8")

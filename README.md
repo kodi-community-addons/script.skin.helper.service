@@ -511,6 +511,33 @@ You must supply the name of the setting as can be found in guisettings.xml or th
 ________________________________________________________________________________________________________
 
 
+#### Splash screen / skin intro 
+Can be used to easily provide a splash/intro option to your skin.
+Supports all media files: music, video or photo.
+
+First, set the setting somewhere in your skin settings, for example with this code:
+
+```
+control type="radiobutton">
+    <label>Enable splash screen (photo, video or music)</label>
+    <onclick condition="!Skin.String(SplashScreen)">Skin.SetFile(SplashScreen)</onclick>
+    <onclick condition="Skin.String(SplashScreen)">Skin.Reset(SplashScreen)</onclick>
+    <selected>Skin.String(SplashScreen)</selected>
+</control>
+```
+
+Secondly you have to adjust your Startup.xml from your skin to support the splash intro:
+
+```
+<onload condition="Skin.String(SplashScreen)">RunScript(script.skin.helper.service,action=splashscreen,file=$INFO[Skin.String(SplashScreen)],duration=5)</onload>
+<onload condition="!Skin.String(SplashScreen)">ReplaceWindow($INFO[System.StartupWindow])</onload>         
+```
+Offcourse make sure to remove any other references which replaces the window...
+The duration parameter is optional, this will set the amount of seconds that an image will be shown as splash, defaults to 5 seconds if ommitted.
+Music and video files always default to play to the end before closing the splash screen.
+
+
+________________________________________________________________________________________________________
 
 #### Views selector
 ```

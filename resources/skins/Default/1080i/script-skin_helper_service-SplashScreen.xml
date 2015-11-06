@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<window>
+	<controls>
+    
+		<!-- image control for splash -->
+		<control type="image" id="2030">
+			<width>100%</width>
+			<height>100%</height>
+			<aspectratio>keep</aspectratio>
+		</control>
+        
+        <!-- video control for splash -->
+        <control type="videowindow" id="2040">
+            <width>100%</width>
+			<height>100%</height>
+        </control>
+
+	</controls>
+</window>

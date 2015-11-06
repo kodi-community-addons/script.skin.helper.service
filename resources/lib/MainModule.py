@@ -261,4 +261,4 @@ def toggleKodiSetting(settingname):
     else:
         newValue = "true"
     xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"Settings.SetSettingValue","params":{"setting":"%s","value":%s}}' %(settingname,newValue))
-   
+     
