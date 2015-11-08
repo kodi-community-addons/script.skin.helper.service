@@ -278,7 +278,7 @@ def getfanartTVimages(type,id,artwork=None):
                             if not artwork.get("extrafanarts"): 
                                 artwork["extrafanarts"] = []
                             try:
-                                maxfanarts = WINDOW.setProperty("SkinHelper.maxNumFanArts")
+                                maxfanarts = WINDOW.getProperty("SkinHelper.maxNumFanArts")
                                 if maxfanarts: maxfanarts = int(maxfanarts)
                             except: maxfanarts = 0
                             fanartcount = 0
