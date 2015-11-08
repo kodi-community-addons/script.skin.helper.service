@@ -323,8 +323,8 @@ def getOfficialArtWork(title,artwork=None,type=None):
             #if a match was not found, we accept the closest match from TMDB
             if not matchFound and len(data.get("results")) > 0 and not len(data.get("results")) > 5:
                 matchFound = item = data.get("results")[0]
-            
-        if matchFound:
+   
+        if matchFound and not type=="person":
             coverUrl = matchFound.get("poster_path","")
             fanartUrl = matchFound.get("backdrop_path","")
             id = str(matchFound.get("id",""))
@@ -368,6 +368,8 @@ def getOfficialArtWork(title,artwork=None,type=None):
             artwork["poster"] = "http://image.tmdb.org/t/p/original"+coverUrl  
         if fanartUrl and not artwork.get("fanart"):
             artwork["fanart"] = "http://image.tmdb.org/t/p/original"+fanartUrl
+        if type=="person" and matchFound.get("profile_path"):
+            artwork["thumb"] = "http://image.tmdb.org/t/p/original"+matchFound.get("profile_path")
 
         return artwork
     
@@ -378,7 +380,24 @@ def getOfficialArtWork(title,artwork=None,type=None):
             logMsg("getOfficialArtWork - no internet access, disabling internet lookups for now")
         else:
             logMsg("getOfficialArtWork - Error in getOfficialArtWork --> " + str(e),0)
+
+def getActorImage(actorname):
+    thumb = ""
+    #get the item from cache first
+    cache = WINDOW.getProperty("SkinHelper.ActorImages").decode('utf-8')
+    if cache:
+        cache = eval(cache)
+        if cache.has_key(actorname): 
+            return cache[actorname]
+    else: cache = {}
     
+    #lookup image online
+    thumb = getOfficialArtWork(actorname,None,"person")
+    #save in cache
+    cache[actorname] = thumb
+    WINDOW.setProperty("SkinHelper.ActorImages",repr(cache))
+    return thumb
+            
 def downloadImage(imageUrl,thumbsPath, filename):
     try:
         if not xbmcvfs.exists(thumbsPath):

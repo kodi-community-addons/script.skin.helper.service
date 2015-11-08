@@ -30,9 +30,11 @@ def show_splash(file,duration=5):
             xbmc.sleep(1000)
             while xbmc.getCondVisibility("Player.HasMedia"):
                 xbmc.sleep(150)
+        
+        startupwindow = xbmc.getInfoLabel("$INFO[System.StartupWindow]")
+        xbmc.executebuiltin("ReplaceWindow(%s)" %startupwindow)
         viewer.close()
         del viewer
         WINDOW.setProperty("skinhelper.splashshown","true")
     
-    startupwindow = xbmc.getInfoLabel("$INFO[System.StartupWindow]")
-    xbmc.executebuiltin("ReplaceWindow(%s)" %startupwindow)
+    

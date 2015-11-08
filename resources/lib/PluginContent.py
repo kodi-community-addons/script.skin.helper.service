@@ -1313,11 +1313,13 @@ def getCast(movie=None,tvshow=None,movieset=None,downloadThumbs=False):
         else:
             #no item provided, try to grab the cast list from container 50 (dialogvideoinfo)
             for i in range(250):
-                label = xbmc.getInfoLabel("Container(50).ListItemNoWrap(%s).Label" %i)
+                label = xbmc.getInfoLabel("Container(50).ListItemNoWrap(%s).Label" %i).decode("utf-8")
                 if not label: break
-                label2 = xbmc.getInfoLabel("Container(50).ListItemNoWrap(%s).Label2" %i)
-                thumb = xbmc.getInfoLabel("Container(50).ListItemNoWrap(%s).Thumb" %i)
-                if not thumb or not xbmcvfs.exists(thumb) and downloadThumbs: thumb = "http://localhost:52307/getthumb&amp;title=%s Actor IMDB"%label
+                label2 = xbmc.getInfoLabel("Container(50).ListItemNoWrap(%s).Label2" %i).decode("utf-8")
+                thumb = xbmc.getInfoLabel("Container(50).ListItemNoWrap(%s).Thumb" %i).decode("utf-8")
+                if not thumb or not xbmcvfs.exists(thumb) and downloadThumbs: 
+                    artwork = getOfficialArtWork(label,None,"person")
+                    thumb = artwork.get("thumb","")
                 url = "RunScript(script.extendedinfo,info=extendedactorinfo,name=%s)"%label
                 path="plugin://script.skin.helper.service/?action=launch&path=" + url
                 liz = xbmcgui.ListItem(label=label,label2=label2,iconImage=thumb)
@@ -1330,7 +1332,9 @@ def getCast(movie=None,tvshow=None,movieset=None,downloadThumbs=False):
         #process cast for regular movie or show
         if item and item.has_key("cast"):
             for cast in item["cast"]:
-                if not cast.get("thumbnail") or not xbmcvfs.exists(cast.get("thumbnail")) and downloadThumbs: cast["thumbnail"] = "http://localhost:52307/getthumb&amp;title=%s Actor IMDB"%cast["name"]
+                if not cast.get("thumbnail") or not xbmcvfs.exists(cast.get("thumbnail")) and downloadThumbs: 
+                    artwork = getOfficialArtWork(cast["name"],None,"person")
+                    cast["thumbnail"] = artwork.get("thumb","")
                 liz = xbmcgui.ListItem(label=cast["name"],label2=cast["role"],iconImage=cast.get("thumbnail"))
                 allCast.append([cast["name"],cast["role"],cast.get("thumbnail","")])
                 castNames.append(cast["name"])
@@ -1348,7 +1352,9 @@ def getCast(movie=None,tvshow=None,movieset=None,downloadThumbs=False):
                 if json_result:
                     for cast in json_result["cast"]:
                         if not cast["name"] in moviesetCastList:
-                            if not cast.get("thumbnail") or not xbmcvfs.exists(cast.get("thumbnail")) and downloadThumbs: cast["thumbnail"] = "http://localhost:52307/getthumb&amp;title=%s Actor IMDB"%cast["name"]
+                            if not cast.get("thumbnail") or not xbmcvfs.exists(cast.get("thumbnail")) and downloadThumbs:
+                                artwork = getOfficialArtWork(cast["name"],None,"person")
+                                cast["thumbnail"] = artwork.get("thumb","")
                             liz = xbmcgui.ListItem(label=cast["name"],label2=cast["role"],iconImage=cast.get("thumbnail",""))
                             allCast.append([cast["name"],cast["role"],cast["thumbnail"]])
                             castNames.append(cast["name"])

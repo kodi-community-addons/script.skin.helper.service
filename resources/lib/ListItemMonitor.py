@@ -38,6 +38,7 @@ class ListItemMonitor(threading.Thread):
     pvrArtCache = {}
     rottenCache = {}
     cachePath = os.path.join(ADDON_DATA_PATH,"librarycache.json")
+    ActorImagesCachePath = os.path.join(ADDON_DATA_PATH,"actorimages.json")
     widgetCachePath = os.path.join(ADDON_DATA_PATH,"widgetscache.json")
     
     def __init__(self, *args):
@@ -313,6 +314,9 @@ class ListItemMonitor(threading.Thread):
         widget = WINDOW.getProperty("skinhelper-recommendedsongs")
         if widget: widgetCache["skinhelper-recommendedsongs"] = eval(widget)
         saveDataToCacheFile(self.widgetCachePath,widgetCache)
+        
+        actorcache = WINDOW.getProperty("SkinHelper.ActorImages")
+        saveDataToCacheFile(self.ActorImagesCachePath,eval(actorcache))
              
     def getCacheFromFile(self):
         #library items cache
@@ -324,9 +328,13 @@ class ListItemMonitor(threading.Thread):
         if data.has_key("rottenCache"):
             self.rottenCache = data["rottenCache"]
         #widgets cache
-        data =  getDataFromCacheFile(self.widgetCachePath)
+        data = getDataFromCacheFile(self.widgetCachePath)
         for key,value in data.iteritems():
             WINDOW.setProperty(key,repr(value))
+            
+        #actorimagescache
+        data = getDataFromCacheFile(self.ActorImagesCachePath)
+        if data: WINDOW.setProperty("SkinHelper.ActorImages", repr(data))
 
     def updatePlexlinks(self):
         
