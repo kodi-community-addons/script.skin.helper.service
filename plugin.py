@@ -120,7 +120,8 @@ class Main:
 
 if (__name__ == "__main__"):
     try:
-        Main()
+        if not WINDOW.getProperty("SkinHelper.KodiExit"):
+            Main()
     except Exception as e:
         logMsg("Error in plugin.py --> " + str(e),0)
 logMsg('finished loading pluginentry')

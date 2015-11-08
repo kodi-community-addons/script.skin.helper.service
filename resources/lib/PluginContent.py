@@ -1,12 +1,12 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import xml.etree.ElementTree as xmltree
 from xml.dom.minidom import parse
 from operator import itemgetter
 
 from Utils import *
 from ArtworkUtils import *
+
 
 def addDirectoryItem(label, path, folder=True):
     li = xbmcgui.ListItem(label, path=path)
@@ -145,142 +145,17 @@ def getSmartShortcuts(sublevel=None):
                         #create final listitem entry (playlist, favorites)
                         addSmartShortcutDirectoryItem(node,False, node)
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
-
-def buildWidgetsListing():
-    allWidgets = {}
-    
-    #addons that provide dynamic content for widgets
-    #will only be loaded once so no cache refreshes
-    addonList = []
-    addonList.append(["script.skin.helper.service", "scriptwidgets"])
-    addonList.append(["service.library.data.provider", "librarydataprovider"])
-    addonList.append(["script.extendedinfo", "extendedinfo"])
-    
-    for addon in addonList:
-        if not allWidgets.has_key(addon[1]):
-            foundWidgets = []
-            if xbmc.getCondVisibility("System.HasAddon(%s)" %addon[0]):
-                hasTMDBCredentials = False
-                #extendedinfo has some login-required widgets, skip those
-                if addon[0] == "script.extendedinfo":
-                    exinfoaddon = xbmcaddon.Addon(id=addon[0])
-                    if exinfoaddon.getSetting("tmdb_username") != "" and exinfoaddon.getSetting("tmdb_password") != "":
-                        hasTMDBCredentials = True
-                    del exinfoaddon
-                media_array = getJSON('Files.GetDirectory','{ "directory": "plugin://%s", "media": "files" }' %addon[0])
-                for item in media_array:
-                    #safety check: check if no library windows are active to prevent any addons setting the view
-                    curWindow = xbmc.getInfoLabel("$INFO[Window.Property(xmlfile)]")
-                    if curWindow.endswith("Nav.xml") or curWindow == "AddonBrowser.xml" or curWindow.startswith("MyPVR"):
-                        return
-                    content = item["file"]
-                    #extendedinfo has some login-required widgets, skip those
-                    if (addon[0] == "script.extendedinfo" and hasTMDBCredentials==False and ("info=starred" in content or "info=rated" in content or "info=account" in content)):
-                        continue
-                    #add reload param for skinhelper and libraryprovider widgets
-                    if not "reload=" in content and (addon == "script.skin.helper.service" or addon == "service.library.data.provider"):
-                        if "albums" in content or "songs" in content:
-                            reloadstr = "&reload=$INFO[Window(Home).Property(widgetreloadmusic)]"
-                        else:
-                            reloadstr = "&reload=$INFO[Window(Home).Property(widgetreload)]"
-                        content = content + reloadstr
-                    content = content.replace("&limit=100","&limit=25")
-                    label = item["label"]
-                    type, image = detectPluginContent(item["file"], False)
-                    if type == "empty": continue
-                    foundWidgets.append([label, content, image, type])
-                if addon[1] == "extendedinfo":
-                    #some additional entrypoints for extendedinfo...
-                    entrypoints = ["plugin://script.extendedinfo?info=youtubeusersearch&&id=Eurogamer","plugin://script.extendedinfo?info=youtubeusersearch&&id=Engadget","plugin://script.extendedinfo?info=youtubeusersearch&&id=MobileTechReview"]
-                    for entry in entrypoints:
-                        content = entry
-                        label = entry.split("id=")[1]
-                        type, image = detectPluginContent(content, False)
-                        foundWidgets.append([label, content, image, type])
-
-            allWidgets[addon[1]] = foundWidgets
-    
-    #skin provided playlists
-    paths = ["special://skin/playlists/","special://skin/extras/widgetplaylists/","special://skin/extras/playlists/"]
-    playlistsFound = []
-    for path in paths:
-        if xbmcvfs.exists(path):
-            media_array = getJSON('Files.GetDirectory','{ "directory": "%s", "media": "files" }' %path)
-            for item in media_array:
-                if item["file"].endswith(".xsp"):
-                    playlist = item["file"]
-                    contents = xbmcvfs.File(item["file"], 'r')
-                    contents_data = contents.read().decode('utf-8')
-                    contents.close()
-                    xmldata = xmltree.fromstring(contents_data.encode('utf-8'))
-                    type = "unknown"
-                    label = item["label"]
-                    type2, image = detectPluginContent(item["file"])
-                    if type2 == "empty": continue
-                    for line in xmldata.getiterator():
-                        if line.tag == "smartplaylist":
-                            type = line.attrib['type']
-                        if line.tag == "name":
-                            label = line.text
-                    try:
-                        languageid = int(label)
-                        label = xbmc.getLocalizedString(languageid)
-                    except: pass
-                    playlistsFound.append([label, playlist, image, type])
-    allWidgets["skinplaylists"] = playlistsFound
         
-    #widgets from favourites
-    json_result = getJSON('Favourites.GetFavourites', '{"type": null, "properties": ["path", "thumbnail", "window", "windowparameter"]}')
-    foundWidgets = []
-    for fav in json_result:
-        matchFound = False
-        if "windowparameter" in fav:
-            content = fav["windowparameter"]
-            #check if this is a valid path with content
-            if not "script://" in content.lower() and not "mode=9" in content.lower() and not "search" in content.lower() and not "play" in content.lower():
-                window = fav["window"]
-                label = fav["title"]
-                type, image = detectPluginContent(content)
-                if type:
-                    foundWidgets.append([label, content, image, type])
-    allWidgets["favourites"] = foundWidgets
-                        
-    #some other widgets (by their direct endpoint) such as smartish widgets and PVR
-    otherWidgets = ["pvr","smartishwidgets","static"]
-    for widget in otherWidgets:
-        if not allWidgets.has_key(widget):
-            foundWidgets = []
-            if widget=="pvr" and xbmc.getCondVisibility("PVR.HasTVChannels"):
-                foundWidgets.append(["$LOCALIZE[19023]", ";reload=$INFO[Window(Home).Property(widgetreload2)]", "", "pvr"])
-                foundWidgets.append(["$LOCALIZE[19017]", "plugin://script.skin.helper.service/?action=pvrrecordings&limit=25&reload=$INFO[Window(home).Property(widgetreload2)]", "", "pvr"])   
-                #foundWidgets.append(["$ADDON[script.skin.helper.service 32133]", "plugin://script.skin.helper.service/?action=pvrchannelgroups&limit=25&reload=$INFO[Window(home).Property(widgetreload2)]", "", "pvr"])   
-            if widget=="smartishwidgets" and xbmc.getCondVisibility("System.HasAddon(service.smartish.widgets) + Skin.HasSetting(enable.smartish.widgets)"):
-                foundWidgets.append(["Smart(ish) Movies widget", "plugin://service.smartish.widgets?type=movies&reload=$INFO[Window.Property(smartish.movies)]", "", "movies"])
-                foundWidgets.append(["Smart(ish) Episodes widget", "plugin://service.smartish.widgets?type=episodes&reload=$INFO[Window.Property(smartish.episodes)]", "", "episodes"])
-                foundWidgets.append(["Smart(ish) PVR widget", "plugin://service.smartish.widgets?type=pvr&reload=$INFO[Window.Property(smartish.pvr)]", "", "pvr"])
-                foundWidgets.append(["Smart(ish) Albums widget", "plugin://service.smartish.widgets?type=albums&reload=$INFO[Window.Property(smartish.albums)]", "", "albums"])
-            
-            if widget=="static":
-                foundWidgets.append(["$LOCALIZE[8]", "$INCLUDE[WeatherWidget]", "", "static"])
-                foundWidgets.append(["$LOCALIZE[130]", "$INCLUDE[SystemInfoWidget]", "", "static"])
-                foundWidgets.append(["$LOCALIZE[31196]", "$INCLUDE[skinshortcuts-submenu]", "", "static"])
-                if xbmc.getCondVisibility("System.HasAddon(script.games.rom.collection.browser)"):
-                    foundWidgets.append(["RCB Most played games", "$INCLUDE[RCBWidget]", "", "static"])
-            
-            allWidgets[widget] = foundWidgets
-            
-    return allWidgets
-          
 def getWidgets(itemstoInclude = None):
     xbmcplugin.setContent(int(sys.argv[1]), 'files')
-    
     if itemstoInclude:
         itemstoInclude = itemstoInclude.split(",")
     else:
         itemstoInclude = ["skinplaylists", "librarydataprovider", "scriptwidgets", "extendedinfo", "smartshortcuts","pvr", "smartishwidgets", "favourites" ]
     
-    allWidgets = buildWidgetsListing()   
-    if allWidgets:
+    allWidgets = WINDOW.getProperty("SkinHelper.WidgetsListing").decode("utf-8")
+    if allWidgets: 
+        allWidgets = eval(allWidgets)
         for widgetType in itemstoInclude:
             if widgetType == "smartshortcuts":
                 allSmartShortcuts = WINDOW.getProperty("allSmartShortcuts")
@@ -343,6 +218,7 @@ def getBackgrounds():
     globalBackgrounds.append((ADDON.getLocalizedString(32046), "SkinHelper.PicturesBackground"))
     globalBackgrounds.append((ADDON.getLocalizedString(32047), "SkinHelper.AllMusicVideosBackground"))
     globalBackgrounds.append((ADDON.getLocalizedString(32048), "SkinHelper.AllMusicBackground"))
+    globalBackgrounds.append((ADDON.getLocalizedString(32142), "SkinHelper.RecentMusicBackground"))
     globalBackgrounds.append((ADDON.getLocalizedString(32113), "SkinHelper.PvrBackground"))
     
     globalBackgrounds.append((ADDON.getLocalizedString(32038), "SkinHelper.GlobalFanartBackground"))

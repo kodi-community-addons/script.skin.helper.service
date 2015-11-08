@@ -22,7 +22,7 @@ class WebService(threading.Thread):
     
     def stop(self):
         try:
-            logMsg("WebService - stop called")
+            logMsg("WebService - stop called",0)
             conn = httplib.HTTPConnection("127.0.0.1:%d" % port)
             conn.request("QUIT", "/")
             conn.getresponse()

@@ -89,30 +89,12 @@ class BackgroundsUpdater(threading.Thread):
             self.normalTaskInterval += 0.15
                                
     def saveCacheToFile(self):
-        try:
-            #safety check: does the config directory exist?
-            if not xbmcvfs.exists(ADDON_DATA_PATH + os.sep):
-                xbmcvfs.mkdir(ADDON_DATA_PATH)
-            #cache file for all backgrounds
-            temp = self.allBackgrounds
-            json.dump(temp, open(self.cachePath,'w'))
-            #cache file for smart shortcuts
-            temp = self.smartShortcuts
-            json.dump(temp, open(self.SmartShortcutsCachePath,'w'))
-        except Exception as e:
-            logMsg("ERROR in Backgroundsupdater.saveCacheToFile ! --> " + str(e), 0)
+        saveDataToCacheFile(self.cachePath,self.allBackgrounds)
+        saveDataToCacheFile(self.SmartShortcutsCachePath,self.smartShortcuts)
                        
     def getCacheFromFile(self):
-        try:
-            if xbmcvfs.exists(self.cachePath):
-                with open(self.cachePath) as data_file:    
-                    data = json.load(data_file)
-                    self.allBackgrounds = data
-            if xbmcvfs.exists(self.SmartShortcutsCachePath):
-                with open(self.SmartShortcutsCachePath) as data_file:    
-                    self.smartShortcuts = json.load(data_file)
-        except Exception as e:
-            logMsg("ERROR in Backgroundsupdater.getCacheFromFile ! --> " + str(e), 0)
+        self.allBackgrounds = getDataFromCacheFile(self.cachePath)
+        self.smartShortcuts = getDataFromCacheFile(self.SmartShortcutsCachePath)
     
     def setDayNightColorTheme(self):
         #check if a colro theme should be conditionally set
@@ -431,6 +413,7 @@ class BackgroundsUpdater(threading.Thread):
         if xbmc.getCondVisibility("Library.HasContent(music)"):
             self.setImageFromPath("SkinHelper.AllMusicBackground","musicdb://artists/","",None)
             self.setImageFromPath("SkinHelper.AllMusicSongsBackground","musicdb://songs/",None,None,True)
+            self.setImageFromPath("SkinHelper.RecentMusicBackground","SkinHelper.RecentMusicBackground","",['AudioLibrary.GetRecentlyAddedAlbums','{ "properties": ["title"], "limits": {"end":50} }'])
         
         #tmdb backgrounds (extendedinfo)
         if xbmc.getCondVisibility("System.HasAddon(script.extendedinfo)"):

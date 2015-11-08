@@ -67,8 +67,11 @@ Some additional window properties that can be used in the video library.
 |Window(Home).Property(SkinHelper.ListItemGenre.X) | Will return all genres of the current listitem. Start counting from 0|
 |Window(Home).Property(SkinHelper.ListItemDirectors) | Will return all directors of the current listitem seperated by [CR] |
 |Window(Home).Property(SkinHelper.ListItemSubtitles) | Will return all subtitles of the current listitem seperated by / |
+|Window(Home).Property(SkinHelper.ListItemSubtitles.Count) | Will return the number of Subtitles |
 |Window(Home).Property(SkinHelper.ListItemLanguages) | Will return all audio languages of the current listitem seperated by / |
+|Window(Home).Property(SkinHelper.ListItemLanguages.Count) | Will return the number of Languages |
 |Window(Home).Property(SkinHelper.ListItemSubtitles.X) | Will return subtitle X of the current listitem. Start counting from 0 |
+|Window(Home).Property(SkinHelper.ListItemAudioStreams.Count) | Will return the number of Audio streams |
 |Window(Home).Property(SkinHelper.ListItemAudioStreams.X) | Will return the language-codec-channels of audiostream X for the current listitem. Start counting from 0 |
 |Window(Home).Property(SkinHelper.ListItemAudioStreams.X.Language) | Will return the language of audiostream X for the current listitem. Start counting from 0 |
 |Window(Home).Property(SkinHelper.ListItemAudioStreams.X.AudioCodec) | Will return the AudioCodec of audiostream X for the current listitem. Start counting from 0 |
@@ -235,6 +238,7 @@ Set it to 0 or clear the string to disable the backgrounds.
 | Window(Home).Property(SkinHelper.AllMoviesBackground) | Random fanart of movies in video database|
 | Window(Home).Property(SkinHelper.AllTvShowsBackground) | Random fanart of TV shows in video database|
 | Window(Home).Property(SkinHelper.AllMusicVideosBackground) | Random fanart of music videos in video database|
+| Window(Home).Property(SkinHelper.RecentMusicBackground) | Random fanart of recently added music|
 | Window(Home).Property(SkinHelper.AllMusicBackground) | Random fanart of music artists in database|
 | Window(Home).Property(SkinHelper.GlobalFanartBackground) | Random fanart of all media types|
 | Window(Home).Property(SkinHelper.InProgressMoviesBackground) | Random fanart of in progress movies|

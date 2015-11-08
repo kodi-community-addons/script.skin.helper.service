@@ -59,6 +59,9 @@ class ListItemMonitor(threading.Thread):
         playerFile = ""
         lastPlayerItem = ""
         playerItem = ""
+        
+        #pre build widgets listing...
+        thread.start_new_thread(buildWidgetsListing, ())
 
         while (self.exit != True):
         
@@ -259,86 +262,71 @@ class ListItemMonitor(threading.Thread):
             self.updatePlexlinks()
             self.checkNotifications()
             #precache widgets listing
-            getJSON('Files.GetDirectory','{ "directory": "plugin://script.skin.helper.service/?action=widgets", "media": "files" }')
+            buildWidgetsListing()
             logMsg("Ended Background worker...")
         except Exception as e:
             logMsg("ERROR in HomeMonitor doBackgroundWork ! --> " + str(e), 0)
     
     def saveCacheToFile(self):
-        try:
-            #safety check: does the config directory exist?
-            if not xbmcvfs.exists(ADDON_DATA_PATH + os.sep):
-                xbmcvfs.mkdir(ADDON_DATA_PATH)
-            
-            libraryCache = {}
-            libraryCache["SetsCache"] = self.moviesetCache
-            libraryCache["streamdetailsCache"] = self.streamdetailsCache
-            libraryCache["rottenCache"] = self.rottenCache
-            temp = libraryCache
-            json.dump(temp, open(self.cachePath,'w'))
-            
-            #safe widget cache
-            widgetCache = {}
-            widget = WINDOW.getProperty("skinhelper-recommendedmovies")
-            if widget: widgetCache["skinhelper-recommendedmovies"] = eval(widget)
-            widget = WINDOW.getProperty("skinhelper-widgetcontenttype-persistant")
-            if widget: widgetCache["skinhelper-widgetcontenttype"] = eval(widget)
-            widget = WINDOW.getProperty("skinhelper-InProgressAndRecommendedMedia")
-            if widget: widgetCache["skinhelper-InProgressAndRecommendedMedia"] = eval(widget)
-            widget = WINDOW.getProperty("skinhelper-InProgressMedia")
-            if widget: widgetCache["skinhelper-InProgressMedia"] = eval(widget)
-            widget = WINDOW.getProperty("skinhelper-RecommendedMedia")
-            if widget: widgetCache["skinhelper-RecommendedMedia"] = eval(widget)
-            widget = WINDOW.getProperty("skinhelper-pvrrecordings")
-            if widget: widgetCache["skinhelper-pvrrecordings"] = eval(widget)
-            widget = WINDOW.getProperty("skinhelper-pvrchannels")
-            if widget: widgetCache["skinhelper-pvrchannels"] = eval(widget)
-            widget = WINDOW.getProperty("skinhelper-recentalbums")
-            if widget: widgetCache["skinhelper-recentalbums"] = eval(widget)
-            widget = WINDOW.getProperty("skinhelper-recentplayedalbums")
-            if widget: widgetCache["skinhelper-recentplayedalbums"] = eval(widget)
-            widget = WINDOW.getProperty("skinhelper-recentplayedsongs")
-            if widget: widgetCache["skinhelper-recentplayedsongs"] = eval(widget)
-            widget = WINDOW.getProperty("skinhelper-recentsongs")
-            if widget: widgetCache["skinhelper-recentsongs"] = eval(widget)
-            widget = WINDOW.getProperty("skinhelper-nextepisodes")
-            if widget: widgetCache["skinhelper-nextepisodes"] = eval(widget)
-            widget = WINDOW.getProperty("skinhelper-nextairedtvshows")
-            if widget: widgetCache["skinhelper-nextairedtvshows"] = eval(widget)
-            widget = WINDOW.getProperty("skinhelper-similarmovies")
-            if widget: widgetCache["skinhelper-similarmovies"] = eval(widget)
-            widget = WINDOW.getProperty("skinhelper-recentmedia")
-            if widget: widgetCache["skinhelper-recentmedia"] = eval(widget)
-            widget = WINDOW.getProperty("skinhelper-favouritemedia")
-            if widget: widgetCache["skinhelper-favouritemedia"] = eval(widget)
-            widget = WINDOW.getProperty("skinhelper-recommendedalbums")
-            if widget: widgetCache["skinhelper-recommendedalbums"] = eval(widget)
-            widget = WINDOW.getProperty("skinhelper-recommendedsongs")
-            if widget: widgetCache["skinhelper-recommendedsongs"] = eval(widget)
-            json.dump(widgetCache, open(self.widgetCachePath,'w'))
-        except Exception as e:
-            logMsg("ERROR in ListItemMonitor.saveCacheToFile ! --> " + str(e), 0)
+        libraryCache = {}
+        libraryCache["SetsCache"] = self.moviesetCache
+        libraryCache["streamdetailsCache"] = self.streamdetailsCache
+        libraryCache["rottenCache"] = self.rottenCache
+        saveDataToCacheFile(self.cachePath,libraryCache)
+        
+        #safe widget cache
+        widgetCache = {}
+        widget = WINDOW.getProperty("skinhelper-recommendedmovies")
+        if widget: widgetCache["skinhelper-recommendedmovies"] = eval(widget)
+        widget = WINDOW.getProperty("skinhelper-widgetcontenttype-persistant")
+        if widget: widgetCache["skinhelper-widgetcontenttype"] = eval(widget)
+        widget = WINDOW.getProperty("skinhelper-InProgressAndRecommendedMedia")
+        if widget: widgetCache["skinhelper-InProgressAndRecommendedMedia"] = eval(widget)
+        widget = WINDOW.getProperty("skinhelper-InProgressMedia")
+        if widget: widgetCache["skinhelper-InProgressMedia"] = eval(widget)
+        widget = WINDOW.getProperty("skinhelper-RecommendedMedia")
+        if widget: widgetCache["skinhelper-RecommendedMedia"] = eval(widget)
+        widget = WINDOW.getProperty("skinhelper-pvrrecordings")
+        if widget: widgetCache["skinhelper-pvrrecordings"] = eval(widget)
+        widget = WINDOW.getProperty("skinhelper-pvrchannels")
+        if widget: widgetCache["skinhelper-pvrchannels"] = eval(widget)
+        widget = WINDOW.getProperty("skinhelper-recentalbums")
+        if widget: widgetCache["skinhelper-recentalbums"] = eval(widget)
+        widget = WINDOW.getProperty("skinhelper-recentplayedalbums")
+        if widget: widgetCache["skinhelper-recentplayedalbums"] = eval(widget)
+        widget = WINDOW.getProperty("skinhelper-recentplayedsongs")
+        if widget: widgetCache["skinhelper-recentplayedsongs"] = eval(widget)
+        widget = WINDOW.getProperty("skinhelper-recentsongs")
+        if widget: widgetCache["skinhelper-recentsongs"] = eval(widget)
+        widget = WINDOW.getProperty("skinhelper-nextepisodes")
+        if widget: widgetCache["skinhelper-nextepisodes"] = eval(widget)
+        widget = WINDOW.getProperty("skinhelper-nextairedtvshows")
+        if widget: widgetCache["skinhelper-nextairedtvshows"] = eval(widget)
+        widget = WINDOW.getProperty("skinhelper-similarmovies")
+        if widget: widgetCache["skinhelper-similarmovies"] = eval(widget)
+        widget = WINDOW.getProperty("skinhelper-recentmedia")
+        if widget: widgetCache["skinhelper-recentmedia"] = eval(widget)
+        widget = WINDOW.getProperty("skinhelper-favouritemedia")
+        if widget: widgetCache["skinhelper-favouritemedia"] = eval(widget)
+        widget = WINDOW.getProperty("skinhelper-recommendedalbums")
+        if widget: widgetCache["skinhelper-recommendedalbums"] = eval(widget)
+        widget = WINDOW.getProperty("skinhelper-recommendedsongs")
+        if widget: widgetCache["skinhelper-recommendedsongs"] = eval(widget)
+        saveDataToCacheFile(self.widgetCachePath,widgetCache)
              
     def getCacheFromFile(self):
-        try:
-            if xbmcvfs.exists(self.cachePath):
-                with open(self.cachePath) as data_file:    
-                    data = json.load(data_file)
-                    if data.has_key("SetsCache"):
-                        self.moviesetCache = data["SetsCache"]
-                    if data.has_key("streamdetailsCache"):
-                        self.streamdetailsCache = data["streamdetailsCache"]
-                    if data.has_key("rottenCache"):
-                        self.rottenCache = data["rottenCache"]
-            #widgets cache
-            if xbmcvfs.exists(self.widgetCachePath):
-                with open(self.widgetCachePath) as data_file:    
-                    data = json.load(data_file)
-                    if data:
-                        for key in data:
-                            WINDOW.setProperty(key,repr(data[key]))
-        except Exception as e:
-            logMsg("ERROR in ListItemMonitor.getCacheFromFile ! --> " + str(e), 0)
+        #library items cache
+        data = getDataFromCacheFile(self.cachePath)
+        if data.has_key("SetsCache"):
+            self.moviesetCache = data["SetsCache"]
+        if data.has_key("streamdetailsCache"):
+            self.streamdetailsCache = data["streamdetailsCache"]
+        if data.has_key("rottenCache"):
+            self.rottenCache = data["rottenCache"]
+        #widgets cache
+        data =  getDataFromCacheFile(self.widgetCachePath)
+        for key,value in data.iteritems():
+            WINDOW.setProperty(key,repr(value))
 
     def updatePlexlinks(self):
         
@@ -503,8 +491,12 @@ class ListItemMonitor(threading.Thread):
         WINDOW.clearProperty('SkinHelper.ListItemDuration.Hours')
         WINDOW.clearProperty('SkinHelper.ListItemDuration.Minutes')
         WINDOW.clearProperty('SkinHelper.ListItemSubtitles')
+        WINDOW.clearProperty('SkinHelper.ListItemSubtitles.Count')
         WINDOW.clearProperty('SkinHelper.ListItemAllAudioStreams')
+        WINDOW.clearProperty('SkinHelper.ListItemAllAudioStreams.Count')
         WINDOW.clearProperty('SkinHelper.ListItemLanguages')
+        WINDOW.clearProperty('SkinHelper.ListItemLanguages.Count')
+        WINDOW.clearProperty('SkinHelper.ListItemAudioStreams.Count')
         WINDOW.clearProperty('SkinHelper.ListItemGenres')
         WINDOW.clearProperty('SkinHelper.ListItemDirectors')
         WINDOW.setProperty("SkinHelper.ExtraFanArtPath","")
@@ -947,15 +939,14 @@ class ListItemMonitor(threading.Thread):
             WINDOW.setProperty("SkinHelper.Music." + key,value)
               
     def setStreamDetails(self):
-        streamdetails = None
+        streamdetails = {}
         dbId = xbmc.getInfoLabel("ListItem.DBID")
         if not dbId or dbId == "-1": return
         
-        if self.streamdetailsCache.has_key(self.contentType+dbId):
+        if self.streamdetailsCache.has_key(dbId+self.contentType):
             #get data from cache
-            streamdetails = self.streamdetailsCache[self.contentType+dbId]
+            streamdetails = self.streamdetailsCache[dbId+self.contentType]
         else:
-            streamdetails = None
             json_result = {}
             # get data from json
             if self.contentType == "movies" and dbId:
@@ -964,27 +955,20 @@ class ListItemMonitor(threading.Thread):
                 json_result = getJSON('VideoLibrary.GetEpisodeDetails', '{ "episodeid": %d, "properties": [ "title", "streamdetails" ] }' %int(dbId))
             elif self.contentType == "musicvideos" and dbId:
                 json_result = getJSON('VideoLibrary.GetMusicVideoDetails', '{ "musicvideoid": %d, "properties": [ "title", "streamdetails" ] }' %int(dbId))       
-            if json_result.has_key("streamdetails"): 
-                streamdetails = json_result["streamdetails"]
-            self.streamdetailsCache[self.contentType+dbId] = streamdetails
-        
-        if streamdetails:
-            audio = streamdetails['audio']
-            subtitles = streamdetails['subtitle']
-            allAudio = []
-            allAudioStr = []
-            allSubs = []
-            allLang = []
-            count = 0
-            for item in audio:
-                if str(item['language']) not in allAudio:
-                    allAudio.append(str(item['language']))
+            if json_result.has_key("streamdetails"):
+                audio = json_result["streamdetails"]['audio']
+                subtitles = json_result["streamdetails"]['subtitle']
+                allAudio = []
+                allAudioStr = []
+                allSubs = []
+                allLang = []
+                count = 0
+                for item in audio:
                     codec = item['codec']
                     channels = item['channels']
                     if "ac3" in codec: codec = "Dolby D"
                     elif "dca" in codec: codec = "DTS"
                     elif "dts-hd" in codec or "dtshd" in codec: codec = "DTS HD"
-                    
                     if channels == 1: channels = "1.0"
                     elif channels == 2: channels = "2.0"
                     elif channels == 3: channels = "2.1"
@@ -996,27 +980,37 @@ class ListItemMonitor(threading.Thread):
                     elif channels == 9: channels = "8.1"
                     elif channels == 10: channels = "9.1"
                     else: channels = str(channels)
-                    language = item['language']
-                    allLang.append(language)
-                    if not language: language = "?"
-                    WINDOW.setProperty('SkinHelper.ListItemAudioStreams.%d.Language' % count, item['language'])
-                    WINDOW.setProperty('SkinHelper.ListItemAudioStreams.%d.AudioCodec' % count, item['codec'])
-                    WINDOW.setProperty('SkinHelper.ListItemAudioStreams.%d.AudioChannels' % count, str(item['channels']))
+                    language = item.get('language','')
+                    if language and language not in allLang:
+                        allLang.append(language)
+                    streamdetails['SkinHelper.ListItemAudioStreams.%d.Language'% count] = item['language']
+                    streamdetails['SkinHelper.ListItemAudioStreams.%d.AudioCodec'%count] = item['codec']
+                    streamdetails['SkinHelper.ListItemAudioStreams.%d.AudioChannels'%count] = str(item['channels'])
                     sep = "•".decode('utf-8')
                     audioStr = '%s %s %s %s %s' %(language,sep,codec,sep,channels)
-                    WINDOW.setProperty('SkinHelper.ListItemAudioStreams.%d'%count, audioStr)
+                    streamdetails['SkinHelper.ListItemAudioStreams.%d'%count] = audioStr
                     allAudioStr.append(audioStr)
                     count += 1
-            count = 0
-            for item in subtitles:
-                if str(item['language']) not in allSubs:
-                    allSubs.append(str(item['language']))
-                    WINDOW.setProperty('SkinHelper.ListItemSubtitles.%d' % count, item['language'])
-                    count += 1
-            WINDOW.setProperty('SkinHelper.ListItemSubtitles', " / ".join(allSubs))
-            WINDOW.setProperty('SkinHelper.ListItemAllAudioStreams', " / ".join(allAudioStr))
-            WINDOW.setProperty('SkinHelper.ListItemLanguages', " / ".join(allLang))
-      
+                count = 0
+                for item in subtitles:
+                    if item['language'] not in allSubs:
+                        allSubs.append(item['language'])
+                        streamdetails['SkinHelper.ListItemSubtitles.%d'%count] = item['language']
+                        count += 1
+                streamdetails['SkinHelper.ListItemSubtitles'] = " / ".join(allSubs)
+                streamdetails['SkinHelper.ListItemSubtitles.Count'] = str(len(allSubs))
+                streamdetails['SkinHelper.ListItemAllAudioStreams'] = " / ".join(allAudioStr)
+                streamdetails['SkinHelper.ListItemAudioStreams.Count'] = str(len(allAudioStr))
+                streamdetails['SkinHelper.ListItemLanguages'] = " / ".join(allLang)
+                streamdetails['SkinHelper.ListItemLanguages'] = str(len(allLang))
+                
+                self.streamdetailsCache[dbId+self.contentType] = streamdetails
+                
+        if streamdetails:
+            #set the window properties
+            for key, value in streamdetails.iteritems():
+                WINDOW.setProperty(key,value)
+          
     def setForcedView(self):
         currentForcedView = xbmc.getInfoLabel("Skin.String(SkinHelper.ForcedViews.%s)" %self.contentType)
         if self.contentType and currentForcedView and currentForcedView != "None" and xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.ForcedViews.Enabled)"):

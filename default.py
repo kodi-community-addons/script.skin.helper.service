@@ -172,6 +172,7 @@ class Main:
 
 if (__name__ == "__main__"):
     xbmc.executebuiltin( "Dialog.Close(busydialog)" )
-    Main()
+    if not WINDOW.getProperty("SkinHelper.KodiExit"):
+        Main()
     
 logMsg('finished loading script entry')

@@ -761,8 +761,8 @@ def getMusicArtworkByDbId(dbid,itemtype):
             albumartwork["songcount"] = "%s"%albumartwork.get("songcount","")
         
         #set our global params
-        albumName = albumartwork["albumname"]
-        artistid = albumartwork["artistid"]
+        albumName = albumartwork.get("albumname","")
+        artistid = albumartwork.get("artistid","")
         
         
     ############## ARTIST DETAILS #######################################
