@@ -278,7 +278,7 @@ class ListItemMonitor(threading.Thread):
         widgetCache = {}
         widget = WINDOW.getProperty("skinhelper-recommendedmovies")
         if widget: widgetCache["skinhelper-recommendedmovies"] = eval(widget)
-        widget = WINDOW.getProperty("skinhelper-widgetcontenttype-persistant")
+        widget = WINDOW.getProperty("skinhelper-widgetcontenttype")
         if widget: widgetCache["skinhelper-widgetcontenttype"] = eval(widget)
         widget = WINDOW.getProperty("skinhelper-InProgressAndRecommendedMedia")
         if widget: widgetCache["skinhelper-InProgressAndRecommendedMedia"] = eval(widget)

@@ -444,7 +444,7 @@ def detectPluginContent(plugin,skipscan=False):
         #safety check: check if no library windows are active to prevent any addons setting the view
         curWindow = xbmc.getInfoLabel("$INFO[Window.Property(xmlfile)]")
         if curWindow.endswith("Nav.xml") or curWindow == "AddonBrowser.xml" or curWindow.startswith("MyPVR"):
-            return None, None
+            skipScan = True
         
         if not skipscan:
             media_array = getJSON('Files.GetDirectory','{ "directory": "%s", "media": "files", "properties": ["title", "file", "thumbnail", "episode", "showtitle", "season", "album", "artist", "imdbnumber", "firstaired", "mpaa", "trailer", "studio", "art"], "limits": {"end":1} }' %plugin)
@@ -519,8 +519,8 @@ def detectPluginContent(plugin,skipscan=False):
     #save to cache
     cache[plugin] = (contentType,image)
     cache = repr(cache)
-    if contentType != "empty": WINDOW.setProperty("skinhelper-widgetcontenttype-persistant",cache)
-    WINDOW.setProperty("skinhelper-widgetcontenttype",cache)
+    if contentType != "empty": 
+        WINDOW.setProperty("skinhelper-widgetcontenttype",cache)
     
     #return the values
     return (contentType, getCleanImage(image))
