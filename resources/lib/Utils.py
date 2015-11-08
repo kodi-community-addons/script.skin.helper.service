@@ -832,7 +832,7 @@ def listFilesInPath(path, allFilesList=None):
     #return the list
     return allFilesList
 
-def buildWidgetsListing():
+def buildWidgetsListing(skipscan=True):
     try:
         #do not continue if another instance is already running...
         if WINDOW.getProperty("SkinHelper.buildWidgetsListing"):
@@ -888,7 +888,7 @@ def buildWidgetsListing():
                                 content = content + reloadstr
                             content = content.replace("&limit=100","&limit=25")
                             label = item["label"]
-                            type, image = detectPluginContent(item["file"], False)
+                            type, image = detectPluginContent(item["file"], skipscan)
                             if type == "empty": continue
                             foundWidgets.append([label, content, image, type])
                         if addon[1] == "extendedinfo":
@@ -897,7 +897,7 @@ def buildWidgetsListing():
                             for entry in entrypoints:
                                 content = entry
                                 label = entry.split("id=")[1]
-                                type, image = detectPluginContent(content, False)
+                                type, image = detectPluginContent(content, skipscan)
                                 foundWidgets.append([label, content, image, type])
 
                     allWidgets[addon[1]] = foundWidgets
@@ -918,7 +918,7 @@ def buildWidgetsListing():
                             xmldata = xmltree.fromstring(contents_data.encode('utf-8'))
                             type = "unknown"
                             label = item["label"]
-                            type2, image = detectPluginContent(item["file"])
+                            type2, image = detectPluginContent(item["file"],skipscan)
                             if type2 == "empty": continue
                             for line in xmldata.getiterator():
                                 if line.tag == "smartplaylist":
@@ -944,7 +944,7 @@ def buildWidgetsListing():
                         window = fav["window"]
                         label = fav["title"]
                         logMsg("buildWidgetsListing processing favourite: " + label)
-                        type, image = detectPluginContent(content)
+                        type, image = detectPluginContent(content,skipscan)
                         if type:
                             foundWidgets.append([label, content, image, type])
             allWidgets["favourites"] = foundWidgets
