@@ -836,9 +836,9 @@ def buildWidgetsListing():
     try:
         #do not continue if another instance is already running...
         if WINDOW.getProperty("SkinHelper.buildWidgetsListing"):
-            logMsg("buildWidgetsListing already running - skipping...",0)
+            logMsg("buildWidgetsListing already running - skipping...")
         else:
-            logMsg("buildWidgetsListing started...",0)
+            logMsg("buildWidgetsListing started...")
             WINDOW.setProperty("SkinHelper.buildWidgetsListing","running")
             allWidgets = {}
             widgets_cachefile = os.path.join(ADDON_DATA_PATH, 'widgetslisting.json' ).decode("utf-8")
@@ -859,7 +859,7 @@ def buildWidgetsListing():
             for addon in addonList:
                 if not allWidgets.has_key(addon[1]):
                     foundWidgets = []
-                    logMsg("buildWidgetsListing processing: " + addon[0] ,0)
+                    logMsg("buildWidgetsListing processing: " + addon[0])
                     if xbmc.getCondVisibility("System.HasAddon(%s)" %addon[0]):
                         hasTMDBCredentials = False
                         #extendedinfo has some login-required widgets, skip those
@@ -870,7 +870,7 @@ def buildWidgetsListing():
                             del exinfoaddon
                         media_array = getJSON('Files.GetDirectory','{ "directory": "plugin://%s", "media": "files" }' %addon[0])
                         for item in media_array:
-                            logMsg("buildWidgetsListing processing: %s - %s" %(addon[0],item["label"]) ,0)
+                            logMsg("buildWidgetsListing processing: %s - %s" %(addon[0],item["label"]))
                             #safety check: check if no library windows are active to prevent any addons setting the view
                             curWindow = xbmc.getInfoLabel("$INFO[Window.Property(xmlfile)]")
                             if curWindow.endswith("Nav.xml") or curWindow == "AddonBrowser.xml" or curWindow.startswith("MyPVR"):
@@ -907,7 +907,7 @@ def buildWidgetsListing():
             playlistsFound = []
             for path in paths:
                 if xbmcvfs.exists(path):
-                    logMsg("buildWidgetsListing processing: " + path ,0)
+                    logMsg("buildWidgetsListing processing: " + path)
                     media_array = getJSON('Files.GetDirectory','{ "directory": "%s", "media": "files" }' %path)
                     for item in media_array:
                         if item["file"].endswith(".xsp"):
@@ -943,7 +943,7 @@ def buildWidgetsListing():
                     if not "script://" in content.lower() and not "mode=9" in content.lower() and not "search" in content.lower() and not "play" in content.lower():
                         window = fav["window"]
                         label = fav["title"]
-                        logMsg("buildWidgetsListing processing favourite: " + label ,0)
+                        logMsg("buildWidgetsListing processing favourite: " + label)
                         type, image = detectPluginContent(content)
                         if type:
                             foundWidgets.append([label, content, image, type])
@@ -952,7 +952,7 @@ def buildWidgetsListing():
             #some other widgets (by their direct endpoint) such as smartish widgets and PVR
             otherWidgets = ["pvr","smartishwidgets","static"]
             for widget in otherWidgets:
-                logMsg("buildWidgetsListing processing : " + widget ,0)
+                logMsg("buildWidgetsListing processing : " + widget)
                 if not allWidgets.has_key(widget):
                     foundWidgets = []
                     if widget=="pvr" and xbmc.getCondVisibility("PVR.HasTVChannels"):
@@ -980,7 +980,7 @@ def buildWidgetsListing():
             WINDOW.clearProperty("SkinHelper.buildWidgetsListing")
     except Exception as e:
         logMsg("ERROR in buildWidgetsListing " + str(e), 0)
-    logMsg("buildWidgetsListing completed...",0)
+    logMsg("buildWidgetsListing completed...")
     
 def getDataFromCacheFile(file):
     data = {}
