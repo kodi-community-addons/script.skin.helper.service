@@ -428,7 +428,7 @@ With this little workaround you can also use them inside containers...
 ```
 
 You provide the window property (or any other $INFO label as the title param. Note that you must replace the normal [] brackets with {}
-You can also use this approach for paths or resource images:
+At the moment it is not possible to use this approach for the new resource images addons due to a bug in Kodi: http://trac.kodi.tv/ticket/16366
 
 http://localhost:52307/getvarimage&amp;title=$INFO{Skin.String(MyCustomPath)}/logo.png
 
@@ -436,6 +436,8 @@ http://localhost:52307/getvarimage&amp;title=$INFO{Skin.String(MyCustomPath)}/lo
 Optional parameter: fallback --> Allows you to set a fallback image if no image was found.
 For example &amp;fallback=$INFO[ListItem.Thumb]
 
+Optional parameter: refresh --> By default the textures are cached by Kodi's texture cache which can be sticky when the underlying image was changed. Use an refresh param to force refresh.
+For example &amp;refresh=$INFO[System.Time(mm)]
 ________________________________________________________________________________________________________
 
 

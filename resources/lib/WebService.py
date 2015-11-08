@@ -105,14 +105,22 @@ class StoppableHttpRequestHandler (SimpleHTTPServer.SimpleHTTPRequestHandler):
         title = params.get("title","")
         if title: title = title[0].decode("utf-8")
         fallback = params.get("fallback","")
-        if fallback: fallback = fallback[0].decode("utf-8")
+        if fallback: 
+            fallback = fallback[0].decode("utf-8")
+            if fallback.startswith("Default"): fallback = "special://skin/media/" + fallback
 
         if action == "getthumb":
             image = searchGoogleImage(title)
         
         elif action == "getvarimage":
             title = title.replace("{","[").replace("}","]")
-            image = xbmc.getInfoLabel(title)
+            image_tmp = xbmc.getInfoLabel(title)
+            if xbmcvfs.exists(image_tmp):
+                if image_tmp.startswith("resource://"):
+                    #texture packed resource images are failing: http://trac.kodi.tv/ticket/16366
+                    logMsg("WebService ERROR --> resource images are currently not supported due to a bug in Kodi" ,0)
+                else:
+                    image = image_tmp
         
         elif action == "getpvrthumb":
             channel = params.get("channel","")
