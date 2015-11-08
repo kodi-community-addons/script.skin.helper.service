@@ -987,10 +987,9 @@ def getDataFromCacheFile(file):
     try:
         if xbmcvfs.exists(file):
             f = xbmcvfs.File(file, 'r')
-            data =  f.read().decode("utf-8")
+            text =  f.read().decode("utf-8")
             f.close()
-            if data: data = eval(data)
-            else: data = {}    
+            if text: data = eval(text)   
     except Exception as e:
         logMsg("ERROR in getDataFromCacheFile for file %s --> %s" %(file,str(e)), 0)
     return data
