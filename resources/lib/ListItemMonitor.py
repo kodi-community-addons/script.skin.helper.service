@@ -316,7 +316,8 @@ class ListItemMonitor(threading.Thread):
         saveDataToCacheFile(self.widgetCachePath,widgetCache)
         
         actorcache = WINDOW.getProperty("SkinHelper.ActorImages")
-        saveDataToCacheFile(self.ActorImagesCachePath,eval(actorcache))
+        if actorcache:
+            saveDataToCacheFile(self.ActorImagesCachePath,eval(actorcache))
              
     def getCacheFromFile(self):
         #library items cache
@@ -899,8 +900,8 @@ class ListItemMonitor(threading.Thread):
         json_result = getJSON('Player.GetActivePlayers', '{}')
         for item in json_result:
             if item.get("type","") == "audio":
-                json_result = getJSON('Player.GetItem', '{ "playerid": %d, "properties": [ "title","albumid","artist" ] }' %item.get("playerid"))
-                if json_result.get("albumid") and json_result["albumid"] > 0:
+                json_result = getJSON('Player.GetItem', '{ "playerid": %d, "properties": [ "title","albumid","artist","album" ] }' %item.get("playerid"))
+                if json_result.get("albumid") and json_result["albumid"] > 0 and json_result.get("album","") != "Singles" :
                     #player is playing a song from the database
                     artwork = getMusicArtworkByDbId(str(json_result["albumid"]),"albums")
                 elif json_result.get("title"):

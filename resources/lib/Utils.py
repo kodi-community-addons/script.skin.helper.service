@@ -590,7 +590,7 @@ def getCurrentContentType():
         contenttype = "seasons"
     elif xbmc.getCondVisibility("Container.Content(musicvideos)"):
         contenttype = "musicvideos"
-    elif xbmc.getCondVisibility("Container.Content(songs)"):
+    elif xbmc.getCondVisibility("Container.Content(songs) | StringCompare(Container.FolderPath,musicdb://singles/)"):
         contenttype = "songs"
     elif xbmc.getCondVisibility("Container.Content(artists)"):
         contenttype = "artists"
@@ -1007,3 +1007,9 @@ def saveDataToCacheFile(file,data):
     except Exception as e:
         logMsg("ERROR in saveDataToCacheFile for file %s --> %s" %(file,str(e)), 0)
 
+def getCompareString(string):
+    #strip all kinds of chars from a string to be used in compare actions
+    string = try_encode(string)
+    string = string.lower().replace(".","").replace(" ","").replace("-","").replace("_","").replace("'","").replace("`","").replace("’","")
+    string = try_decode(string)
+    return string
