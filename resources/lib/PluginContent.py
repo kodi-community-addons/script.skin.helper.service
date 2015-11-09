@@ -1316,7 +1316,7 @@ def getCast(movie=None,tvshow=None,movieset=None,downloadThumbs=False):
                 label = xbmc.getInfoLabel("Container(50).ListItemNoWrap(%s).Label" %i).decode("utf-8")
                 if not label: break
                 label2 = xbmc.getInfoLabel("Container(50).ListItemNoWrap(%s).Label2" %i).decode("utf-8")
-                thumb = xbmc.getInfoLabel("Container(50).ListItemNoWrap(%s).Thumb" %i).decode("utf-8")
+                thumb = getCleanImage( xbmc.getInfoLabel("Container(50).ListItemNoWrap(%s).Thumb" %i).decode("utf-8") )
                 if not thumb or not xbmcvfs.exists(thumb) and downloadThumbs: 
                     artwork = getOfficialArtWork(label,None,"person")
                     thumb = artwork.get("thumb","")

@@ -768,9 +768,9 @@ def resetMusicWidgetWindowProps():
     WINDOW.setProperty("widgetreloadmusic", time.strftime("%Y%m%d%H%M%S", time.gmtime()))
 
 def resetVideoWidgetWindowProps():
-    WINDOW.setProperty("resetVideoDbCache","reset")
-    xbmc.sleep(1000)
     #clear the cache for the video widgets
+    logMsg("Video database changed, refreshing widgets....",0)
+    WINDOW.setProperty("resetVideoDbCache","reset")
     WINDOW.clearProperty("skinhelper-recommendedmovies")
     WINDOW.clearProperty("skinhelper-InProgressAndRecommendedMedia")
     WINDOW.clearProperty("skinhelper-InProgressMedia")
@@ -782,6 +782,7 @@ def resetVideoWidgetWindowProps():
     WINDOW.clearProperty("skinhelper-showsforgenre")
     WINDOW.clearProperty("skinhelper-recentmedia")
     WINDOW.clearProperty("skinhelper-favouritemedia")
+    xbmc.sleep(1000)
     WINDOW.setProperty("widgetreload", time.strftime("%Y%m%d%H%M%S", time.gmtime()))
 
 def getResourceAddonFiles(addonName,allFilesList=None):
@@ -1013,3 +1014,4 @@ def getCompareString(string):
     string = string.lower().replace(".","").replace(" ","").replace("-","").replace("_","").replace("'","").replace("`","").replace("’","")
     string = try_decode(string)
     return string
+    

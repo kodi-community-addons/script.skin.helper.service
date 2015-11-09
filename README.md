@@ -559,6 +559,24 @@ Secondly you have to adjust your Startup.xml from your skin to support the splas
 <onload condition="Skin.String(SplashScreen)">RunScript(script.skin.helper.service,action=splashscreen,file=$INFO[Skin.String(SplashScreen)],duration=5)</onload>
 <onload condition="!Skin.String(SplashScreen)">ReplaceWindow($INFO[System.StartupWindow])</onload>         
 ```
+
+and you need to add both a videowindow and image control to your startup.xml:
+
+```
+<!-- video control for splash -->
+<control type="videowindow">
+    <width>100%</width>
+    <height>100%</height>
+</control>
+<!-- image control for splash -->
+<control type="image">
+    <width>100%</width>
+    <height>100%</height>
+    <aspectratio>keep</aspectratio>
+    <texture background="true">$INFO[Window(Home).Property(SkinHelper.SplashScreen)]</texture>
+</control>
+```
+
 Offcourse make sure to remove any other references which replaces the window...
 The duration parameter is optional, this will set the amount of seconds that an image will be shown as splash, defaults to 5 seconds if ommitted.
 Music and video files always default to play to the end before closing the splash screen.
