@@ -7,6 +7,7 @@ import random
 import xml.etree.ElementTree as etree
 from Utils import *
 from ArtworkUtils import *
+from SkinShortcutsIntegration import *
 
 
 class ListItemMonitor(threading.Thread):

@@ -1,8 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-#from resources.lib.Utils import *
 from resources.lib.PluginContent import *
+from resources.lib.SkinShortcutsIntegration import *
 
 class Main:
     
@@ -51,7 +51,7 @@ class Main:
                 elif action == "WIDGETS":
                     getWidgets(path)
                 elif action == "GETTHUMB":
-                    getThumb(try_decode(path))
+                    getThumb(path)
                 elif action == "EXTRAFANART":
                     getExtraFanArt(path)
                 elif action == "WIDGETS":

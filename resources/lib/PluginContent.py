@@ -6,6 +6,51 @@ from operator import itemgetter
 from Utils import *
 from ArtworkUtils import *
 
+def getPluginListing(action,limit,refresh=None,optionalParam=None):
+    #general method to get a widget/plugin listing and check cache etc.
+    count = 0
+    allItems = []
+    
+    #get params for each action
+    if "EPISODES" in action: type = "episodes"
+    elif "MOVIE" in action: type = "movies"
+    elif "SHOW" in action: type = "tvshows"
+    elif "MEDIA" in action: type = "movies"
+    elif "PVR" in action: type = "episodes"
+    elif "ALBUM" in action: type = "albums"
+    elif "SONG" in action: type = "songs"
+    else: type = "files"
+    #set widget content type
+    xbmcplugin.setContent(int(sys.argv[1]), type)
+    
+    #try to get from cache first...
+    cacheStr=""
+    if refresh: 
+        cacheStr = "skinhelper-%s-%s-%s-%s" %(action,limit,optionalParam,refresh)
+        cache = WINDOW.getProperty(cacheStr).decode("utf-8")
+        if cache: allItems = eval(cache)
+    
+    #Call the correct method to get the content from json when no cache
+    if not allItems:
+        if optionalParam:
+            allItems = eval(action)(limit,optionalParam)
+        else:
+            allItems = eval(action)(limit)
+    
+    #fill that listing...
+    for item in allItems:
+        liz = createListItem(item)
+        xbmcplugin.addDirectoryItem(int(sys.argv[1]), item['file'], liz, False)
+        count += 1
+        if count == limit:
+            break
+    
+    #end directory listing
+    xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
+    
+    #save the cache
+    WINDOW.setProperty(cacheStr, repr(allItems).encode("utf-8"))
+
 def addDirectoryItem(label, path, folder=True):
     li = xbmcgui.ListItem(label, path=path)
     li.setThumbnailImage("special://home/addons/script.skin.helper.service/icon.png")
@@ -36,225 +81,7 @@ def doMainListing():
         addDirectoryItem(ADDON.getLocalizedString(32055), "plugin://script.skin.helper.service/?action=nextairedtvshows&limit=100")
 
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
-    
-def addSmartShortcutDirectoryItem(entry, isFolder=True, widget=None, widget2=None):
-    
-    label = "$INFO[Window(Home).Property(%s.title)]" %entry
-    path = "$INFO[Window(Home).Property(%s.path)]" %entry
-    content = "$INFO[Window(Home).Property(%s.content)]" %entry
-    image = "$INFO[Window(Home).Property(%s.image)]" %entry
-    type = "$INFO[Window(Home).Property(%s.type)]" %entry
-
-    if isFolder:
-        path = sys.argv[0] + "?action=SMARTSHORTCUTS&path=" + entry
-        li = xbmcgui.ListItem(label, path=path)
-        icon = xbmc.getInfoLabel(image)
-        li.setThumbnailImage(icon)
-        li.setIconImage("special://home/addons/script.skin.helper.service/fanart.jpg")
-    else:
-        li = xbmcgui.ListItem(label, path=path)
-        props = {}
-        props["list"] = content
-        if not xbmc.getInfoLabel(type):
-            type = "media"
-        props["type"] = type
-        props["background"] = "$INFO[Window(Home).Property(%s.image)]" %entry
-        props["backgroundName"] = "$INFO[Window(Home).Property(%s.title)]" %entry
-        li.setInfo( type="Video", infoLabels={ "Title": "smartshortcut" })
-        li.setThumbnailImage(image)
-        li.setIconImage("special://home/addons/script.skin.helper.service/fanart.jpg")
-        
-        if widget:
-            widgettype = "$INFO[Window(Home).Property(%s.type)]" %widget
-            if not xbmc.getInfoLabel(type):
-                widgettype = type
-            if widgettype == "albums" or widgettype == "artists" or widgettype == "songs":
-                widgettarget = "music"
-            else:
-                widgettarget = "video"
-            props["widget"] = "addon"
-            props["widgetName"] = "$INFO[Window(Home).Property(%s.title)]" %widget
-            props["widgetType"] = widgettype
-            props["widgetTarget"] = widgettarget
-            props["widgetPath"] = "$INFO[Window(Home).Property(%s.content)]" %widget
-            
-        if widget2:
-            widgettype = "$INFO[Window(Home).Property(%s.type)]" %widget2
-            if not xbmc.getInfoLabel(type):
-                widgettype = type
-            if widgettype == "albums" or widgettype == "artists" or widgettype == "songs":
-                widgettarget = "music"
-            else:
-                widgettarget = "video"
-            props["widget.1"] = "addon"
-            props["widgetName.1"] = "$INFO[Window(Home).Property(%s.title)]" %widget2
-            props["widgetType.1"] = widgettype
-            props["widgetTarget.1"] = widgettarget
-            props["widgetPath.1"] = "$INFO[Window(Home).Property(%s.content)]" %widget2
-            
-        li.setInfo( type="Video", infoLabels={ "mpaa": repr(props) })
-    
-    li.setArt({"fanart":image})   
-    xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=path, listitem=li, isFolder=isFolder)
-
-def addSmartShortcutsSublevel(entry):
-    if "emby" in entry:
-        contentStrings = ["", ".recent", ".inprogress", ".unwatched", ".recentepisodes", ".inprogressepisodes", ".nextepisodes"]
-    elif "plex" in entry:
-        contentStrings = ["", ".ondeck", ".recent", ".unwatched"]
-    elif "netflix" in entry:
-        contentStrings = ["", ".mylist", ".recent", ".inprogress", ".suggestions"]
-        
-    for contentString in contentStrings:
-        key = entry + contentString
-        widget = None
-        widget2 = None
-        if contentString == "":
-            #this is the main item so define our widgets
-            type = xbmc.getInfoLabel("$INFO[Window(Home).Property(%s.type)]" %entry)
-            if "plex" in entry:
-                widget = entry + ".ondeck"
-                widget2 = entry + ".recent"
-            elif type == "movies" or type == "movie" or type == "artist" or "netflix" in entry:
-                widget = entry + ".recent"
-                widget2 = entry + ".inprogress"
-            elif type == "tvshows" and "emby" in entry:
-                widget = entry + ".nextepisodes"
-                widget2 = entry + ".recent"
-            else:
-                widget = entry
-        if xbmc.getInfoLabel("$INFO[Window(Home).Property(%s.path)]" %key):
-            addSmartShortcutDirectoryItem(key,False, widget,widget2)
-
-def getSmartShortcuts(sublevel=None):
-    if xbmc.getCondVisibility("Window.IsActive(script-skinshortcuts.xml)"):
-        xbmcplugin.setContent(int(sys.argv[1]), 'files')
-        if sublevel:
-            addSmartShortcutsSublevel(sublevel)
-        else:
-            allSmartShortcuts = WINDOW.getProperty("allSmartShortcuts")
-            if allSmartShortcuts:
-                for node in eval (allSmartShortcuts):
-                    if "emby" in node or "plex" in node or "netflix" in node:
-                        #create main folder entry
-                        addSmartShortcutDirectoryItem(node)
-                    else:
-                        label = "$INFO[Window(Home).Property(%s.title)]" %node
-                        #create final listitem entry (playlist, favorites)
-                        addSmartShortcutDirectoryItem(node,False, node)
-    xbmcplugin.endOfDirectory(int(sys.argv[1]))
-        
-def getWidgets(itemstoInclude = None):
-    xbmcplugin.setContent(int(sys.argv[1]), 'files')
-    if itemstoInclude:
-        itemstoInclude = itemstoInclude.split(",")
-    else:
-        itemstoInclude = ["skinplaylists", "librarydataprovider", "scriptwidgets", "extendedinfo", "smartshortcuts","pvr", "smartishwidgets", "favourites" ]
-    
-    allWidgets = buildWidgetsListing()
-    if allWidgets: 
-        for widgetType in itemstoInclude:
-            if widgetType == "smartshortcuts":
-                allSmartShortcuts = WINDOW.getProperty("allSmartShortcuts")
-                if allSmartShortcuts:
-                    for node in eval (allSmartShortcuts):
-                        if "emby" in node or "plex" in node or "netflix" in node:
-                            #create main folder entry
-                            addSmartShortcutDirectoryItem(node)
-                        else:
-                            label = "$INFO[Window(Home).Property(%s.title)]" %node
-                            #create final listitem entry (playlist, favorites)
-                            addSmartShortcutDirectoryItem(node,False, node)
-            elif allWidgets.has_key(widgetType):
-                widgets = allWidgets[widgetType]
-                for widget in widgets:
-                    type = widget[3]
-                    if type == "songs" or type == "albums" or type == "artists":
-                        mediaLibrary = "10502"
-                        target = "music"
-                    elif type == "pvr":
-                        mediaLibrary = "TvChannels"
-                        target = "pvr"
-                    else:
-                        mediaLibrary = "VideoLibrary"
-                        target = "video"
-                    widgetpath = "ActivateWindow(%s,%s,return)" %(mediaLibrary, widget[1].split("&")[0])
-                    li = xbmcgui.ListItem(widget[0], path=widgetpath)
-                    thumb = widget[2]
-                    if not thumb: thumb = "DefaultAddonContextItem.png"
-                    props = {}
-                    props["list"] = widget[1]
-                    props["type"] = widget[3]
-                    props["background"] = thumb
-                    props["backgroundName"] = widget[0]
-                    props["widgetPath"] = widget[1]
-                    props["widgetTarget"] = target
-                    props["widgetName"] = widget[0]
-                    props["widget"] = widgetType
-                    li.setInfo( type="Video", infoLabels={ "Title": "smartshortcut" })
-                    li.setThumbnailImage(thumb)
-                        
-                    li.setInfo( type="Video", infoLabels={ "mpaa": repr(props) })
-                    
-                    li.setArt({"fanart":thumb})   
-                    xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=widgetpath, listitem=li, isFolder=False)
-    
-    xbmcplugin.endOfDirectory(int(sys.argv[1]))
-    
-def getBackgrounds():
-    xbmcplugin.setContent(int(sys.argv[1]), 'files')
-    
-    globalBackgrounds = []
-    globalBackgrounds.append((ADDON.getLocalizedString(32039), "SkinHelper.AllMoviesBackground"))
-    globalBackgrounds.append((ADDON.getLocalizedString(32040), "SkinHelper.RecentMoviesBackground"))
-    globalBackgrounds.append((ADDON.getLocalizedString(32041), "SkinHelper.InProgressMoviesBackground"))
-    globalBackgrounds.append((ADDON.getLocalizedString(32042), "SkinHelper.UnwatchedMoviesBackground"))
-    globalBackgrounds.append((ADDON.getLocalizedString(32043), "SkinHelper.AllTvShowsBackground"))
-    globalBackgrounds.append((ADDON.getLocalizedString(32044), "SkinHelper.RecentEpisodesBackground"))
-    globalBackgrounds.append((ADDON.getLocalizedString(32045), "SkinHelper.InProgressShowsBackground"))
-    globalBackgrounds.append((ADDON.getLocalizedString(32046), "SkinHelper.PicturesBackground"))
-    globalBackgrounds.append((ADDON.getLocalizedString(32047), "SkinHelper.AllMusicVideosBackground"))
-    globalBackgrounds.append((ADDON.getLocalizedString(32048), "SkinHelper.AllMusicBackground"))
-    globalBackgrounds.append((ADDON.getLocalizedString(32142), "SkinHelper.RecentMusicBackground"))
-    globalBackgrounds.append((ADDON.getLocalizedString(32113), "SkinHelper.PvrBackground"))
-    
-    globalBackgrounds.append((ADDON.getLocalizedString(32038), "SkinHelper.GlobalFanartBackground"))
-    globalBackgrounds.append((ADDON.getLocalizedString(32138), "SkinHelper.AllVideosBackground"))
-    globalBackgrounds.append((ADDON.getLocalizedString(32139), "SkinHelper.RecentVideosBackground"))
-    globalBackgrounds.append((ADDON.getLocalizedString(32140), "SkinHelper.InProgressVideosBackground"))
-    
-    #wall backgrounds
-    globalBackgrounds.append((ADDON.getLocalizedString(32117), "SkinHelper.AllMoviesBackground.Wall"))
-    globalBackgrounds.append((ADDON.getLocalizedString(32118), "SkinHelper.AllMusicBackground.Wall"))
-    globalBackgrounds.append((ADDON.getLocalizedString(32119), "SkinHelper.AllMusicSongsBackground.Wall"))
-    globalBackgrounds.append((ADDON.getLocalizedString(32127), "SkinHelper.AllTvShowsBackground.Wall"))
-    
-    if xbmc.getCondVisibility("System.HasAddon(script.extendedinfo)"):
-        globalBackgrounds.append((xbmc.getInfoLabel("$ADDON[script.extendedinfo 32046]") + " (TheMovieDB)", "SkinHelper.TopRatedMovies"))
-        globalBackgrounds.append((xbmc.getInfoLabel("$ADDON[script.extendedinfo 32040]") + " (TheMovieDB)", "SkinHelper.TopRatedShows"))
-    
-    for node in globalBackgrounds:
-        label = node[0]
-        image = "$INFO[Window(Home).Property(%s)]" %node[1]
-        if xbmc.getInfoLabel(image):
-            li = xbmcgui.ListItem(label, path=image )
-            li.setArt({"fanart":image})
-            li.setThumbnailImage(image)
-            xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=image, listitem=li, isFolder=False)
-    
-    allSmartShortcuts = WINDOW.getProperty("allSmartShortcuts")
-    if allSmartShortcuts:
-        for node in eval (allSmartShortcuts):
-            label = "$INFO[Window(Home).Property(%s.title)]" %node
-            image = "$INFO[Window(Home).Property(%s.image)]" %node
-            if xbmc.getInfoLabel(image):
-                li = xbmcgui.ListItem(label, path=image )
-                li.setArt({"fanart":image})
-                li.setThumbnailImage(image)
-                xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=image, listitem=li, isFolder=False)
-
-    xbmcplugin.endOfDirectory(int(sys.argv[1]))
-    
+       
 def FAVOURITES(limit):
     allItems = []
     xbmcplugin.setContent(int(sys.argv[1]), 'files')
@@ -418,50 +245,6 @@ def RECENTSONGS(limit):
         item['album_description'] = item["art"].get("info","")
         allItems.append(item)
     return allItems    
-
-def getPluginListing(action,limit,refresh=None,optionalParam=None):
-    count = 0
-    allItems = []
-    
-    #get params for each action
-    if "EPISODES" in action: type = "episodes"
-    elif "MOVIE" in action: type = "movies"
-    elif "SHOW" in action: type = "tvshows"
-    elif "MEDIA" in action: type = "movies"
-    elif "PVR" in action: type = "episodes"
-    elif "ALBUM" in action: type = "albums"
-    elif "SONG" in action: type = "songs"
-    else: type = "files"
-    #set widget content type
-    xbmcplugin.setContent(int(sys.argv[1]), type)
-    
-    #try to get from cache first...
-    cacheStr=""
-    if refresh: 
-        cacheStr = "skinhelper-%s-%s-%s-%s" %(action,limit,optionalParam,refresh)
-        cache = WINDOW.getProperty(cacheStr).decode("utf-8")
-        if cache: allItems = eval(cache)
-    
-    #get the content from json when no cache
-    if not allItems:
-        if optionalParam:
-            allItems = eval(action)(limit,optionalParam)
-        else:
-            allItems = eval(action)(limit)
-    
-    #fill that listing...
-    for item in allItems:
-        liz = createListItem(item)
-        xbmcplugin.addDirectoryItem(int(sys.argv[1]), item['file'], liz, False)
-        count += 1
-        if count == limit:
-            break
-    
-    #end directory listing
-    xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
-    
-    #save the cache
-    WINDOW.setProperty(cacheStr, repr(allItems).encode("utf-8"))
     
 def NEXTEPISODES(limit):
     allItems = []
