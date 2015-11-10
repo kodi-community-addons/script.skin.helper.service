@@ -259,7 +259,7 @@ class ListItemMonitor(threading.Thread):
             self.updatePlexlinks()
             self.checkNotifications()
             buildWidgetsListing(False)
-            saveCacheToFile()
+            self.saveCacheToFile()
             logMsg("Ended Background worker...")
         except Exception as e:
             logMsg("ERROR in HomeMonitor doBackgroundWork ! --> " + str(e), 0)
