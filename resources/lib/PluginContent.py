@@ -304,7 +304,7 @@ def getPVRRecordings(limit):
         pvr_backend = xbmc.getInfoLabel("Pvr.BackendName").decode("utf-8")
         for item in json_result:
             #exclude live tv items from recordings list (mythtv hack)
-            if item["playcount"] == 0 and not ("mythtv" in pvr_backend.lower() and "livetv" in item["file"]):
+            if item["playcount"] == 0 and not ("mythtv" in pvr_backend.lower() and "/livetv/" in item.get("file","").lower()):
                 channelname = item["channel"]
                 item["channel"] = channelname
                 item["art"] = getPVRThumbs(item["title"], channelname, "recordings")

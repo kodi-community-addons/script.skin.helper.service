@@ -999,7 +999,7 @@ def getDataFromCacheFile(file):
 def saveDataToCacheFile(file,data):
     #safety check: does the config directory exist?
     if not xbmcvfs.exists(ADDON_DATA_PATH + os.sep):
-        xbmcvfs.mkdir(ADDON_DATA_PATH)
+        xbmcvfs.mkdirs(ADDON_DATA_PATH)
     try:            
         str_data = repr(data).encode("utf-8")
         f = xbmcvfs.File(file, 'w')
