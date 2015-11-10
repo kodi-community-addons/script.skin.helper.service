@@ -22,65 +22,28 @@ class Main:
             else: limit = 25
             action=params.get("action",None)
             if action: action = action[0].upper()
+            refresh=params.get("refresh",None)
+            if refresh: refresh = refresh[0].upper()
+            optionalParam = None
+            imdbid=params.get("imdbid","")
+            if imdbid: optionalParam = imdbid[0]
+            genre=params.get("genre","")
+            if genre: optionalParam = genre[0]
+            browse=params.get("browse","")
+            if browse: optionalParam = browse[0]
         
-            if action:           
-                if action == "NEXTEPISODES":
-                    getNextEpisodes(limit)
-                if action == "NEXTAIREDTVSHOWS":
-                    getNextAiredTvShows(limit)
-                elif action == "RECOMMENDEDMOVIES":
-                    getRecommendedMovies(limit)
-                elif action == "RECOMMENDEDMEDIA":
-                    getRecommendedMedia(limit)
-                elif action == "RECENTMEDIA":
-                    getRecentMedia(limit)
-                elif action == "SIMILARMOVIES":
-                    imdbid=params.get("imdbid","")
-                    if imdbid: imdbid = imdbid[0]
-                    getSimilarMovies(limit,imdbid)
-                elif action == "SIMILARSHOWS":
-                    imdbid=params.get("imdbid","")
-                    if imdbid: imdbid = imdbid[0]
-                    getSimilarTvShows(limit,imdbid)
-                elif action == "MOVIESFORGENRE":
-                    getMoviesForGenre(limit)
-                elif action == "SHOWSFORGENRE":
-                    getShowsForGenre(limit)
-                elif action == "INPROGRESSMEDIA":
-                    getInProgressMedia(limit) 
-                elif action == "INPROGRESSANDRECOMMENDEDMEDIA":
-                    getInProgressAndRecommendedMedia(limit)
-                elif action == "FAVOURITEMEDIA":
-                    getFavouriteMedia(limit)
-                elif action == "PVRCHANNELS":
-                    getPVRChannels(limit)
-                elif action == "PVRCHANNELGROUPS":
-                    getPVRChannelGroups(limit)
-                elif action == "RECENTALBUMS":
-                    browse=params.get("browse","")
-                    if browse: browse = browse[0]=="true"
-                    else: browse = False
-                    getRecentAlbums(limit,browse)
-                elif action == "RECOMMENDEDALBUMS":
-                    browse=params.get("browse","")
-                    if browse: browse = browse[0]=="true"
-                    else: browse = False
-                    getRecommendedAlbums(limit,browse)
-                elif action == "RECOMMENDEDSONGS":
-                    getRecommendedSongs(limit)
-                elif action == "RECENTSONGS":
-                    getRecentSongs(limit)
-                elif action == "RECENTPLAYEDALBUMS":
-                    browse=params.get("browse","")
-                    if browse: browse = browse[0]=="true"
-                    else: browse = False
-                    getRecentPlayedAlbums(limit,browse)
-                elif action == "RECENTPLAYEDSONGS":
-                    getRecentPlayedSongs(limit)
-                elif action == "PVRRECORDINGS":
-                    getPVRRecordings(limit)
-                elif action == "FAVOURITES":
-                    getFavourites(limit)
+            if action:
+                if action == "LAUNCHPVR":
+                    xbmc.executeJSONRPC('{ "jsonrpc": "2.0", "id": 0, "method": "Player.Open", "params": { "item": {"channelid": %d} } }' %int(path))
+                    xbmcplugin.setResolvedUrl(handle=int(sys.argv[1]), succeeded=False, listitem=xbmcgui.ListItem())
+                elif action == "LAUNCH":
+                    path = sys.argv[2].split("&path=")[1]
+                    xbmc.executebuiltin(path)
+                    xbmcplugin.setResolvedUrl(handle=int(sys.argv[1]), succeeded=False, listitem=xbmcgui.ListItem())
+                elif action == "PLAYALBUM":
+                    xbmc.executeJSONRPC('{ "jsonrpc": "2.0", "method": "Player.Open", "params": { "item": { "albumid": %d } }, "id": 1 }' % int(path))
+                    xbmcplugin.setResolvedUrl(handle=int(sys.argv[1]), succeeded=False, listitem=xbmcgui.ListItem())
+
                 elif action == "SMARTSHORTCUTS":
                     getSmartShortcuts(path)
                 elif action == "BACKGROUNDS":
@@ -103,16 +66,9 @@ class Main:
                     downloadthumbs=params.get("downloadthumbs",False)
                     if downloadthumbs: downloadthumbs = downloadthumbs[0]=="true"
                     getCast(movie,tvshow,movieset,downloadthumbs)
-                elif action == "LAUNCHPVR":
-                    xbmc.executeJSONRPC('{ "jsonrpc": "2.0", "id": 0, "method": "Player.Open", "params": { "item": {"channelid": %d} } }' %int(path))
-                    xbmcplugin.setResolvedUrl(handle=int(sys.argv[1]), succeeded=False, listitem=xbmcgui.ListItem())
-                elif action == "LAUNCH":
-                    path = sys.argv[2].split("&path=")[1]
-                    xbmc.executebuiltin(path)
-                    xbmcplugin.setResolvedUrl(handle=int(sys.argv[1]), succeeded=False, listitem=xbmcgui.ListItem())
-                elif action == "PLAYALBUM":
-                    xbmc.executeJSONRPC('{ "jsonrpc": "2.0", "method": "Player.Open", "params": { "item": { "albumid": %d } }, "id": 1 }' % int(path))
-                    xbmcplugin.setResolvedUrl(handle=int(sys.argv[1]), succeeded=False, listitem=xbmcgui.ListItem())
+                else:
+                    #get a widget listing
+                    getPluginListing(action,limit,refresh)
     
         else:
             #do plugin main listing...

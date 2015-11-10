@@ -271,6 +271,11 @@ def createListItem(item):
     
     if "type" in item:
         liz.setProperty("type", item['type'])
+        
+    if "extraproperties" in item:
+        if isinstance(item["extraproperties"],dict):
+            for key,value in item["extraproperties"].iteritems():
+                liz.setProperty(key, value)
     
     if "plot" in item:
         liz.setInfo( type=itemtype, infoLabels={ "Plot": item['plot'] })
@@ -430,10 +435,10 @@ def detectPluginContent(plugin,skipscan=False):
     image = None
     contentType = None
     #load from cache first
-    cache = WINDOW.getProperty("skinhelper-widgetcontenttype")
+    cache = WINDOW.getProperty("skinhelper-widgetcontenttype").decode("utf-8")
     if cache:
         cache = eval(cache)
-        if cache and cache.has_key(plugin):
+        if cache and cache.get(plugin):
             contentType = cache[plugin][0]
             image = cache[plugin][1]
             return (contentType, image)
@@ -761,27 +766,12 @@ def resetMusicWidgetWindowProps():
     WINDOW.setProperty("resetMusicArtCache","reset")
     xbmc.sleep(1000)
     #clear the cache for the music widgets
-    WINDOW.clearProperty("skinhelper-recentalbums")
-    WINDOW.clearProperty("skinhelper-recentplayedalbums")
-    WINDOW.clearProperty("skinhelper-recentplayedsongs")
-    WINDOW.clearProperty("skinhelper-recentsongs")
     WINDOW.setProperty("widgetreloadmusic", time.strftime("%Y%m%d%H%M%S", time.gmtime()))
 
 def resetVideoWidgetWindowProps():
     #clear the cache for the video widgets
     logMsg("Video database changed, refreshing widgets....",0)
     WINDOW.setProperty("resetVideoDbCache","reset")
-    WINDOW.clearProperty("skinhelper-recommendedmovies")
-    WINDOW.clearProperty("skinhelper-InProgressAndRecommendedMedia")
-    WINDOW.clearProperty("skinhelper-InProgressMedia")
-    WINDOW.clearProperty("skinhelper-RecommendedMedia")
-    WINDOW.clearProperty("skinhelper-nextepisodes")
-    WINDOW.clearProperty("skinhelper-similarmovies")
-    WINDOW.clearProperty("skinhelper-similarshows")
-    WINDOW.clearProperty("skinhelper-moviesforgenre")
-    WINDOW.clearProperty("skinhelper-showsforgenre")
-    WINDOW.clearProperty("skinhelper-recentmedia")
-    WINDOW.clearProperty("skinhelper-favouritemedia")
     xbmc.sleep(1000)
     WINDOW.setProperty("widgetreload", time.strftime("%Y%m%d%H%M%S", time.gmtime()))
 
@@ -833,155 +823,133 @@ def listFilesInPath(path, allFilesList=None):
     #return the list
     return allFilesList
 
-def buildWidgetsListing(skipscan=True):
+def buildWidgetsListing(skipscan=False):
+    allWidgets = {}
     try:
-        #do not continue if another instance is already running...
-        if WINDOW.getProperty("SkinHelper.buildWidgetsListing"):
-            logMsg("buildWidgetsListing already running - skipping...")
-        else:
-            logMsg("buildWidgetsListing started...")
-            WINDOW.setProperty("SkinHelper.buildWidgetsListing","running")
-            allWidgets = {}
-            widgets_cachefile = os.path.join(ADDON_DATA_PATH, 'widgetslisting.json' ).decode("utf-8")
-            
-            #first check if we have a cache version and fill the window prop so it will be available asap for the plugin entrypoints
-            if xbmcvfs.exists(widgets_cachefile):
-                f = xbmcvfs.File(widgets_cachefile, 'r')
-                WINDOW.setProperty("SkinHelper.WidgetsListing", f.read())
-                f.close()
-
-            #addons that provide dynamic content for widgets
-            #will only be loaded once so no cache refreshes
-            addonList = []
-            addonList.append(["script.skin.helper.service", "scriptwidgets"])
-            addonList.append(["service.library.data.provider", "librarydataprovider"])
-            addonList.append(["script.extendedinfo", "extendedinfo"])
-            
-            for addon in addonList:
-                if not allWidgets.has_key(addon[1]):
-                    foundWidgets = []
-                    logMsg("buildWidgetsListing processing: " + addon[0])
-                    if xbmc.getCondVisibility("System.HasAddon(%s)" %addon[0]):
-                        hasTMDBCredentials = False
-                        #extendedinfo has some login-required widgets, skip those
-                        if addon[0] == "script.extendedinfo":
-                            exinfoaddon = xbmcaddon.Addon(id=addon[0])
-                            if exinfoaddon.getSetting("tmdb_username") != "" and exinfoaddon.getSetting("tmdb_password") != "":
-                                hasTMDBCredentials = True
-                            del exinfoaddon
-                        media_array = getJSON('Files.GetDirectory','{ "directory": "plugin://%s", "media": "files" }' %addon[0])
-                        for item in media_array:
-                            logMsg("buildWidgetsListing processing: %s - %s" %(addon[0],item["label"]))
-                            #safety check: check if no library windows are active to prevent any addons setting the view
-                            curWindow = xbmc.getInfoLabel("$INFO[Window.Property(xmlfile)]")
-                            if curWindow.endswith("Nav.xml") or curWindow == "AddonBrowser.xml" or curWindow.startswith("MyPVR"):
-                                return
-                            content = item["file"]
-                            #extendedinfo has some login-required widgets, skip those
-                            if (addon[0] == "script.extendedinfo" and hasTMDBCredentials==False and ("info=starred" in content or "info=rated" in content or "info=account" in content)):
-                                continue
-                            #add reload param for skinhelper and libraryprovider widgets
-                            if not "reload=" in content and (addon == "script.skin.helper.service" or addon == "service.library.data.provider"):
-                                if "albums" in content or "songs" in content:
-                                    reloadstr = "&reload=$INFO[Window(Home).Property(widgetreloadmusic)]"
-                                else:
-                                    reloadstr = "&reload=$INFO[Window(Home).Property(widgetreload)]"
-                                content = content + reloadstr
-                            content = content.replace("&limit=100","&limit=25")
-                            label = item["label"]
-                            type, image = detectPluginContent(item["file"], skipscan)
-                            if type == "empty": continue
-                            foundWidgets.append([label, content, image, type])
-                        if addon[1] == "extendedinfo":
-                            #some additional entrypoints for extendedinfo...
-                            entrypoints = ["plugin://script.extendedinfo?info=youtubeusersearch&&id=Eurogamer","plugin://script.extendedinfo?info=youtubeusersearch&&id=Engadget","plugin://script.extendedinfo?info=youtubeusersearch&&id=MobileTechReview"]
-                            for entry in entrypoints:
-                                content = entry
-                                label = entry.split("id=")[1]
-                                type, image = detectPluginContent(content, skipscan)
-                                foundWidgets.append([label, content, image, type])
-
-                    allWidgets[addon[1]] = foundWidgets
-            
-            #skin provided playlists
-            paths = ["special://skin/playlists/","special://skin/extras/widgetplaylists/","special://skin/extras/playlists/"]
-            playlistsFound = []
-            for path in paths:
-                if xbmcvfs.exists(path):
-                    logMsg("buildWidgetsListing processing: " + path)
-                    media_array = getJSON('Files.GetDirectory','{ "directory": "%s", "media": "files" }' %path)
+        addonList = []
+        addonList.append(["script.skin.helper.service", "scriptwidgets"])
+        addonList.append(["service.library.data.provider", "librarydataprovider"])
+        addonList.append(["script.extendedinfo", "extendedinfo"])
+        
+        for addon in addonList:
+            if not allWidgets.has_key(addon[1]):
+                foundWidgets = []
+                logMsg("buildWidgetsListing processing: " + addon[0])
+                if xbmc.getCondVisibility("System.HasAddon(%s)" %addon[0]):
+                    hasTMDBCredentials = False
+                    #extendedinfo has some login-required widgets, skip those
+                    if addon[0] == "script.extendedinfo":
+                        exinfoaddon = xbmcaddon.Addon(id=addon[0])
+                        if exinfoaddon.getSetting("tmdb_username") != "" and exinfoaddon.getSetting("tmdb_password") != "":
+                            hasTMDBCredentials = True
+                        del exinfoaddon
+                    media_array = getJSON('Files.GetDirectory','{ "directory": "plugin://%s", "media": "files" }' %addon[0])
                     for item in media_array:
-                        if item["file"].endswith(".xsp"):
-                            playlist = item["file"]
-                            contents = xbmcvfs.File(item["file"], 'r')
-                            contents_data = contents.read().decode('utf-8')
-                            contents.close()
-                            xmldata = xmltree.fromstring(contents_data.encode('utf-8'))
-                            type = "unknown"
-                            label = item["label"]
-                            type2, image = detectPluginContent(item["file"],skipscan)
-                            if type2 == "empty": continue
-                            for line in xmldata.getiterator():
-                                if line.tag == "smartplaylist":
-                                    type = line.attrib['type']
-                                if line.tag == "name":
-                                    label = line.text
-                            try:
-                                languageid = int(label)
-                                label = xbmc.getLocalizedString(languageid)
-                            except: pass
-                            playlistsFound.append([label, playlist, image, type])
-            allWidgets["skinplaylists"] = playlistsFound
-                
-            #widgets from favourites
-            json_result = getJSON('Favourites.GetFavourites', '{"type": null, "properties": ["path", "thumbnail", "window", "windowparameter"]}')
-            foundWidgets = []
-            for fav in json_result:
-                matchFound = False
-                if "windowparameter" in fav:
-                    content = fav["windowparameter"]
-                    #check if this is a valid path with content
-                    if not "script://" in content.lower() and not "mode=9" in content.lower() and not "search" in content.lower() and not "play" in content.lower():
-                        window = fav["window"]
-                        label = fav["title"]
-                        logMsg("buildWidgetsListing processing favourite: " + label)
-                        type, image = detectPluginContent(content,skipscan)
-                        if type:
+                        logMsg("buildWidgetsListing processing: %s - %s" %(addon[0],item["label"]))
+                        #safety check: check if no library windows are active to prevent any addons setting the view
+                        curWindow = xbmc.getInfoLabel("$INFO[Window.Property(xmlfile)]")
+                        if curWindow.endswith("Nav.xml") or curWindow == "AddonBrowser.xml" or curWindow.startswith("MyPVR"):
+                            return
+                        content = item["file"]
+                        #extendedinfo has some login-required widgets, skip those
+                        if (addon[0] == "script.extendedinfo" and hasTMDBCredentials==False and ("info=starred" in content or "info=rated" in content or "info=account" in content)):
+                            continue
+                        #add reload param for skinhelper and libraryprovider widgets
+                        if not "reload=" in content and (addon == "script.skin.helper.service" or addon == "service.library.data.provider"):
+                            if "albums" in content or "songs" in content:
+                                reloadstr = "&reload=$INFO[Window(Home).Property(widgetreloadmusic)]"
+                            else:
+                                reloadstr = "&reload=$INFO[Window(Home).Property(widgetreload)]"
+                            content = content + reloadstr
+                        content = content.replace("&limit=100","&limit=25")
+                        label = item["label"]
+                        type, image = detectPluginContent(item["file"], skipscan)
+                        if type == "empty": continue
+                        foundWidgets.append([label, content, image, type])
+                    if addon[1] == "extendedinfo":
+                        #some additional entrypoints for extendedinfo...
+                        entrypoints = ["plugin://script.extendedinfo?info=youtubeusersearch&&id=Eurogamer","plugin://script.extendedinfo?info=youtubeusersearch&&id=Engadget","plugin://script.extendedinfo?info=youtubeusersearch&&id=MobileTechReview"]
+                        for entry in entrypoints:
+                            content = entry
+                            label = entry.split("id=")[1]
+                            type, image = detectPluginContent(content, skipscan)
                             foundWidgets.append([label, content, image, type])
-            allWidgets["favourites"] = foundWidgets
-                                
-            #some other widgets (by their direct endpoint) such as smartish widgets and PVR
-            otherWidgets = ["pvr","smartishwidgets","static"]
-            for widget in otherWidgets:
-                logMsg("buildWidgetsListing processing : " + widget)
-                if not allWidgets.has_key(widget):
-                    foundWidgets = []
-                    if widget=="pvr" and xbmc.getCondVisibility("PVR.HasTVChannels"):
-                        foundWidgets.append(["$LOCALIZE[19023]", "pvr://channels/tv/all channel/;reload=$INFO[Window(Home).Property(widgetreload2)]", "", "pvr"])
-                        foundWidgets.append(["$LOCALIZE[19017]", "plugin://script.skin.helper.service/?action=pvrrecordings&limit=25&reload=$INFO[Window(home).Property(widgetreload2)]", "", "pvr"])   
-                        #foundWidgets.append(["$ADDON[script.skin.helper.service 32133]", "plugin://script.skin.helper.service/?action=pvrchannelgroups&limit=25&reload=$INFO[Window(home).Property(widgetreload2)]", "", "pvr"])   
-                    if widget=="smartishwidgets" and xbmc.getCondVisibility("System.HasAddon(service.smartish.widgets) + Skin.HasSetting(enable.smartish.widgets)"):
-                        foundWidgets.append(["Smart(ish) Movies widget", "plugin://service.smartish.widgets?type=movies&reload=$INFO[Window.Property(smartish.movies)]", "", "movies"])
-                        foundWidgets.append(["Smart(ish) Episodes widget", "plugin://service.smartish.widgets?type=episodes&reload=$INFO[Window.Property(smartish.episodes)]", "", "episodes"])
-                        foundWidgets.append(["Smart(ish) PVR widget", "plugin://service.smartish.widgets?type=pvr&reload=$INFO[Window.Property(smartish.pvr)]", "", "pvr"])
-                        foundWidgets.append(["Smart(ish) Albums widget", "plugin://service.smartish.widgets?type=albums&reload=$INFO[Window.Property(smartish.albums)]", "", "albums"])
-                    
-                    if widget=="static":
-                        foundWidgets.append(["$LOCALIZE[8]", "$INCLUDE[WeatherWidget]", "", "static"])
-                        foundWidgets.append(["$LOCALIZE[130]", "$INCLUDE[SystemInfoWidget]", "", "static"])
-                        foundWidgets.append(["$LOCALIZE[31196]", "$INCLUDE[skinshortcuts-submenu]", "", "static"])
-                        if xbmc.getCondVisibility("System.HasAddon(script.games.rom.collection.browser)"):
-                            foundWidgets.append(["RCB Most played games", "$INCLUDE[RCBWidget]", "", "static"])
-                    
-                    allWidgets[widget] = foundWidgets
-                    
-            #save the widgets listing to file for quick access later by the plugin entrypoint
-            WINDOW.setProperty("SkinHelper.WidgetsListing", repr(allWidgets).encode("utf-8"))
-            saveDataToCacheFile(widgets_cachefile,allWidgets)
-            WINDOW.clearProperty("SkinHelper.buildWidgetsListing")
+
+                allWidgets[addon[1]] = foundWidgets
+        
+        #skin provided playlists
+        paths = ["special://skin/playlists/","special://skin/extras/widgetplaylists/","special://skin/extras/playlists/"]
+        playlistsFound = []
+        for path in paths:
+            if xbmcvfs.exists(path):
+                logMsg("buildWidgetsListing processing: " + path)
+                media_array = getJSON('Files.GetDirectory','{ "directory": "%s", "media": "files" }' %path)
+                for item in media_array:
+                    if item["file"].endswith(".xsp"):
+                        playlist = item["file"]
+                        contents = xbmcvfs.File(item["file"], 'r')
+                        contents_data = contents.read().decode('utf-8')
+                        contents.close()
+                        xmldata = xmltree.fromstring(contents_data.encode('utf-8'))
+                        type = "unknown"
+                        label = item["label"]
+                        type2, image = detectPluginContent(item["file"],skipscan)
+                        if type2 == "empty": continue
+                        for line in xmldata.getiterator():
+                            if line.tag == "smartplaylist":
+                                type = line.attrib['type']
+                            if line.tag == "name":
+                                label = line.text
+                        try:
+                            languageid = int(label)
+                            label = xbmc.getLocalizedString(languageid)
+                        except: pass
+                        playlistsFound.append([label, playlist, image, type])
+        allWidgets["skinplaylists"] = playlistsFound
+            
+        #widgets from favourites
+        json_result = getJSON('Favourites.GetFavourites', '{"type": null, "properties": ["path", "thumbnail", "window", "windowparameter"]}')
+        foundWidgets = []
+        for fav in json_result:
+            matchFound = False
+            if "windowparameter" in fav:
+                content = fav["windowparameter"]
+                #check if this is a valid path with content
+                if not "script://" in content.lower() and not "mode=9" in content.lower() and not "search" in content.lower() and not "play" in content.lower():
+                    window = fav["window"]
+                    label = fav["title"]
+                    logMsg("buildWidgetsListing processing favourite: " + label)
+                    type, image = detectPluginContent(content,skipscan)
+                    if type:
+                        foundWidgets.append([label, content, image, type])
+        allWidgets["favourites"] = foundWidgets
+                            
+        #some other widgets (by their direct endpoint) such as smartish widgets and PVR
+        otherWidgets = ["pvr","smartishwidgets","static"]
+        for widget in otherWidgets:
+            logMsg("buildWidgetsListing processing : " + widget)
+            if not allWidgets.has_key(widget):
+                foundWidgets = []
+                if widget=="pvr" and xbmc.getCondVisibility("PVR.HasTVChannels"):
+                    foundWidgets.append(["$LOCALIZE[19023]", "pvr://channels/tv/all channel/;reload=$INFO[Window(Home).Property(widgetreload2)]", "", "pvr"])
+                    foundWidgets.append(["$LOCALIZE[19017]", "plugin://script.skin.helper.service/?action=pvrrecordings&limit=25&reload=$INFO[Window(home).Property(widgetreload2)]", "", "pvr"])   
+                    #foundWidgets.append(["$ADDON[script.skin.helper.service 32133]", "plugin://script.skin.helper.service/?action=pvrchannelgroups&limit=25&reload=$INFO[Window(home).Property(widgetreload2)]", "", "pvr"])   
+                if widget=="smartishwidgets" and xbmc.getCondVisibility("System.HasAddon(service.smartish.widgets) + Skin.HasSetting(enable.smartish.widgets)"):
+                    foundWidgets.append(["Smart(ish) Movies widget", "plugin://service.smartish.widgets?type=movies&reload=$INFO[Window.Property(smartish.movies)]", "", "movies"])
+                    foundWidgets.append(["Smart(ish) Episodes widget", "plugin://service.smartish.widgets?type=episodes&reload=$INFO[Window.Property(smartish.episodes)]", "", "episodes"])
+                    foundWidgets.append(["Smart(ish) PVR widget", "plugin://service.smartish.widgets?type=pvr&reload=$INFO[Window.Property(smartish.pvr)]", "", "pvr"])
+                    foundWidgets.append(["Smart(ish) Albums widget", "plugin://service.smartish.widgets?type=albums&reload=$INFO[Window.Property(smartish.albums)]", "", "albums"])
+                if widget=="static":
+                    foundWidgets.append(["$LOCALIZE[8]", "$INCLUDE[WeatherWidget]", "", "static"])
+                    foundWidgets.append(["$LOCALIZE[130]", "$INCLUDE[SystemInfoWidget]", "", "static"])
+                    foundWidgets.append(["$LOCALIZE[31196]", "$INCLUDE[skinshortcuts-submenu]", "", "static"])
+                    if xbmc.getCondVisibility("System.HasAddon(script.games.rom.collection.browser)"):
+                        foundWidgets.append(["RCB Most played games", "$INCLUDE[RCBWidget]", "", "static"])
+                allWidgets[widget] = foundWidgets
     except Exception as e:
         logMsg("ERROR in buildWidgetsListing " + str(e), 0)
     logMsg("buildWidgetsListing completed...")
+    return allWidgets
     
 def getDataFromCacheFile(file):
     data = {}

@@ -39,7 +39,6 @@ class ListItemMonitor(threading.Thread):
     rottenCache = {}
     cachePath = os.path.join(ADDON_DATA_PATH,"librarycache.json")
     ActorImagesCachePath = os.path.join(ADDON_DATA_PATH,"actorimages.json")
-    widgetCachePath = os.path.join(ADDON_DATA_PATH,"widgetscache.json")
     
     def __init__(self, *args):
         logMsg("HomeMonitor - started")
@@ -60,9 +59,6 @@ class ListItemMonitor(threading.Thread):
         playerFile = ""
         lastPlayerItem = ""
         playerItem = ""
-        
-        #pre build widgets listing...
-        thread.start_new_thread(buildWidgetsListing, ())
 
         while (self.exit != True):
         
@@ -262,8 +258,8 @@ class ListItemMonitor(threading.Thread):
             self.checkNetflixReady()
             self.updatePlexlinks()
             self.checkNotifications()
-            #precache widgets listing
             buildWidgetsListing(False)
+            saveCacheToFile()
             logMsg("Ended Background worker...")
         except Exception as e:
             logMsg("ERROR in HomeMonitor doBackgroundWork ! --> " + str(e), 0)
@@ -273,48 +269,9 @@ class ListItemMonitor(threading.Thread):
         libraryCache["SetsCache"] = self.moviesetCache
         libraryCache["streamdetailsCache"] = self.streamdetailsCache
         libraryCache["rottenCache"] = self.rottenCache
+        widgetcache = WINDOW.getProperty("skinhelper-widgetcontenttype").decode("utf-8")
+        if widgetcache: libraryCache["widgetcache"] = eval(widgetcache)
         saveDataToCacheFile(self.cachePath,libraryCache)
-        
-        #safe widget cache
-        widgetCache = {}
-        widget = WINDOW.getProperty("skinhelper-recommendedmovies").decode("utf-8")
-        if widget: widgetCache["skinhelper-recommendedmovies"] = eval(widget)
-        widget = WINDOW.getProperty("skinhelper-widgetcontenttype").decode("utf-8")
-        if widget: widgetCache["skinhelper-widgetcontenttype"] = eval(widget)
-        widget = WINDOW.getProperty("skinhelper-InProgressAndRecommendedMedia").decode("utf-8")
-        if widget: widgetCache["skinhelper-InProgressAndRecommendedMedia"] = eval(widget)
-        widget = WINDOW.getProperty("skinhelper-InProgressMedia").decode("utf-8")
-        if widget: widgetCache["skinhelper-InProgressMedia"] = eval(widget)
-        widget = WINDOW.getProperty("skinhelper-RecommendedMedia").decode("utf-8")
-        if widget: widgetCache["skinhelper-RecommendedMedia"] = eval(widget)
-        widget = WINDOW.getProperty("skinhelper-pvrrecordings").decode("utf-8")
-        if widget: widgetCache["skinhelper-pvrrecordings"] = eval(widget)
-        widget = WINDOW.getProperty("skinhelper-pvrchannels").decode("utf-8")
-        if widget: widgetCache["skinhelper-pvrchannels"] = eval(widget)
-        widget = WINDOW.getProperty("skinhelper-recentalbums").decode("utf-8")
-        if widget: widgetCache["skinhelper-recentalbums"] = eval(widget)
-        widget = WINDOW.getProperty("skinhelper-recentplayedalbums").decode("utf-8")
-        if widget: widgetCache["skinhelper-recentplayedalbums"] = eval(widget)
-        widget = WINDOW.getProperty("skinhelper-recentplayedsongs").decode("utf-8")
-        if widget: widgetCache["skinhelper-recentplayedsongs"] = eval(widget)
-        widget = WINDOW.getProperty("skinhelper-recentsongs").decode("utf-8")
-        if widget: widgetCache["skinhelper-recentsongs"] = eval(widget)
-        widget = WINDOW.getProperty("skinhelper-nextepisodes").decode("utf-8")
-        if widget: widgetCache["skinhelper-nextepisodes"] = eval(widget)
-        widget = WINDOW.getProperty("skinhelper-nextairedtvshows").decode("utf-8")
-        if widget: widgetCache["skinhelper-nextairedtvshows"] = eval(widget)
-        widget = WINDOW.getProperty("skinhelper-similarmovies").decode("utf-8")
-        if widget: widgetCache["skinhelper-similarmovies"] = eval(widget)
-        widget = WINDOW.getProperty("skinhelper-recentmedia").decode("utf-8")
-        if widget: widgetCache["skinhelper-recentmedia"] = eval(widget)
-        widget = WINDOW.getProperty("skinhelper-favouritemedia").decode("utf-8")
-        if widget: widgetCache["skinhelper-favouritemedia"] = eval(widget)
-        widget = WINDOW.getProperty("skinhelper-recommendedalbums").decode("utf-8")
-        if widget: widgetCache["skinhelper-recommendedalbums"] = eval(widget)
-        widget = WINDOW.getProperty("skinhelper-recommendedsongs").decode("utf-8")
-        if widget: widgetCache["skinhelper-recommendedsongs"] = eval(widget)
-        saveDataToCacheFile(self.widgetCachePath,widgetCache)
-        
         actorcache = WINDOW.getProperty("SkinHelper.ActorImages").decode("utf-8")
         if actorcache:
             saveDataToCacheFile(self.ActorImagesCachePath,eval(actorcache))
@@ -328,10 +285,8 @@ class ListItemMonitor(threading.Thread):
             self.streamdetailsCache = data["streamdetailsCache"]
         if data.has_key("rottenCache"):
             self.rottenCache = data["rottenCache"]
-        #widgets cache
-        data = getDataFromCacheFile(self.widgetCachePath)
-        for key,value in data.iteritems():
-            WINDOW.setProperty(key,repr(value))
+        if data.has_key("widgetcache"):
+            WINDOW.setProperty("skinhelper-widgetcontenttype",repr(data["widgetcache"]).encode("utf-8"))
             
         #actorimagescache
         data = getDataFromCacheFile(self.ActorImagesCachePath)
@@ -934,7 +889,7 @@ class ListItemMonitor(threading.Thread):
         if self.musicArtCache.has_key(cacheId + "SkinHelper.Music.Art"):
             artwork = self.musicArtCache[cacheId + "SkinHelper.Music.Art"]
             
-        elif dbid and contenttype:
+        elif dbid and contenttype and dbid !='-1':
             logMsg("setMusicDetails no cache found for artist: %s - album: %s - dbid: %s - contenttype: %s  -- perform lookup by dbid"%(artist,album,dbid,contenttype))
             artwork = getMusicArtworkByDbId(dbid, contenttype)
             self.musicArtCache[cacheId + "SkinHelper.Music.Art"] = artwork
