@@ -956,18 +956,20 @@ class ListItemMonitor(threading.Thread):
                     streamdetails['SkinHelper.ListItemAudioStreams.%d'%count] = audioStr
                     allAudioStr.append(audioStr)
                     count += 1
-                count = 0
+                subscount = 0
+                subscountUnique = 0
                 for item in subtitles:
+                    subscount += 1
                     if item['language'] not in allSubs:
                         allSubs.append(item['language'])
-                        streamdetails['SkinHelper.ListItemSubtitles.%d'%count] = item['language']
-                        count += 1
+                        streamdetails['SkinHelper.ListItemSubtitles.%d'%subscountUnique] = item['language']
+                        subscountUnique += 1
                 streamdetails['SkinHelper.ListItemSubtitles'] = " / ".join(allSubs)
-                streamdetails['SkinHelper.ListItemSubtitles.Count'] = str(len(allSubs))
+                streamdetails['SkinHelper.ListItemSubtitles.Count'] = str(subscount)
                 streamdetails['SkinHelper.ListItemAllAudioStreams'] = " / ".join(allAudioStr)
                 streamdetails['SkinHelper.ListItemAudioStreams.Count'] = str(len(allAudioStr))
                 streamdetails['SkinHelper.ListItemLanguages'] = " / ".join(allLang)
-                streamdetails['SkinHelper.ListItemLanguages'] = str(len(allLang))
+                streamdetails['SkinHelper.ListItemLanguages.Count'] = str(len(allLang))
                 
                 self.streamdetailsCache[dbId+self.contentType] = streamdetails
                 

@@ -139,10 +139,10 @@ def getJSON(method,params):
         elif jsonobject.has_key('genres'):
             return jsonobject['genres']
         else:
-            logMsg("getJson - invalid result for Method %s - params: %s - response: %s" %(method,params, str(jsonobject))) 
+            logMsg("getJson - invalid result for Method %s - params: %s - response: %s" %(method,params, str(jsonobject)),0) 
             return {}
     else:
-        logMsg("getJson - empty result for Method %s - params: %s - response: %s" %(method,params, str(jsonobject))) 
+        logMsg("getJson - empty result for Method %s - params: %s - response: %s" %(method,params, str(jsonobject)),0) 
         return {}
 
 def setAddonsettings():

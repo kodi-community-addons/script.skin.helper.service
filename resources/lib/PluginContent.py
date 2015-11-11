@@ -6,6 +6,7 @@ from operator import itemgetter
 from Utils import *
 from ArtworkUtils import *
 
+
 def getPluginListing(action,limit,refresh=None,optionalParam=None):
     #general method to get a widget/plugin listing and check cache etc.
     count = 0

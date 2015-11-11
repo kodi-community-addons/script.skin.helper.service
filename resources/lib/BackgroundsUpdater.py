@@ -413,7 +413,7 @@ class BackgroundsUpdater(threading.Thread):
         if xbmc.getCondVisibility("Library.HasContent(music)"):
             self.setImageFromPath("SkinHelper.AllMusicBackground","musicdb://artists/","",None)
             self.setImageFromPath("SkinHelper.AllMusicSongsBackground","musicdb://songs/",None,None,True)
-            self.setImageFromPath("SkinHelper.RecentMusicBackground","SkinHelper.RecentMusicBackground","",['AudioLibrary.GetRecentlyAddedAlbums','{ "properties": ["title"], "limits": {"end":50} }'])
+            self.setImageFromPath("SkinHelper.RecentMusicBackground","SkinHelper.RecentMusicBackground","",['AudioLibrary.GetRecentlyAddedAlbums','{ "properties": ["title","fanart"], "limits": {"end":50} }'])
         
         #tmdb backgrounds (extendedinfo)
         if xbmc.getCondVisibility("System.HasAddon(script.extendedinfo)"):
