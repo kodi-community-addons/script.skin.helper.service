@@ -343,7 +343,7 @@ class BackgroundsUpdater(threading.Thread):
                         for file in files2:
                             if "pvrdetails.xml" in file:
                                 artwork = artutils.getArtworkFromCacheFile(os.path.join(thumbdir,"pvrdetails.xml"))
-                                if artwork.get("fanart"): images.append(artwork.get("fanart"))
+                                if artwork.get("fanart") and xbmcvfs.exists(artwork.get("fanart")): images.append(artwork.get("fanart"))
                                 del artwork
                         for dir2 in dirs2:
                             thumbdir = os.path.join(dir,dir2.decode("utf-8"))
@@ -351,7 +351,7 @@ class BackgroundsUpdater(threading.Thread):
                             for file in files3:
                                if "pvrdetails.xml" in file:
                                     artwork = artutils.getArtworkFromCacheFile(os.path.join(thumbdir,"pvrdetails.xml"))
-                                    if artwork.get("fanart"): images.append(artwork.get("fanart"))
+                                    if artwork.get("fanart") and xbmcvfs.exists(artwork.get("fanart")): images.append(artwork.get("fanart"))
                                     del artwork
                 del artutils
                     

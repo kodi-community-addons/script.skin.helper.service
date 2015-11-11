@@ -125,8 +125,6 @@ class ListItemMonitor(threading.Thread):
                     self.focusEpisode()
                     self.resetWindowProps()
                     self.folderPathLast = self.folderPath
-                
-                if not curListItem and self.lastListItem and not self.contentType:
                     self.lastListItem = ""
                     WINDOW.setProperty("curListItem",curListItem)
                 

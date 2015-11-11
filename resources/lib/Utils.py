@@ -763,16 +763,13 @@ def resetPlayerWindowProps():
     WINDOW.setProperty("SkinHelper.Player.Music.ExtraFanArt","")
     
 def resetMusicWidgetWindowProps():
-    WINDOW.setProperty("resetMusicArtCache","reset")
-    xbmc.sleep(1000)
     #clear the cache for the music widgets
+    logMsg("Music database changed, refreshing widgets....",0)
     WINDOW.setProperty("widgetreloadmusic", time.strftime("%Y%m%d%H%M%S", time.gmtime()))
 
 def resetVideoWidgetWindowProps():
     #clear the cache for the video widgets
     logMsg("Video database changed, refreshing widgets....",0)
-    WINDOW.setProperty("resetVideoDbCache","reset")
-    xbmc.sleep(1000)
     WINDOW.setProperty("widgetreload", time.strftime("%Y%m%d%H%M%S", time.gmtime()))
 
 def getResourceAddonFiles(addonName,allFilesList=None):
