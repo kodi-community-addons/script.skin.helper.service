@@ -159,7 +159,8 @@ ________________________________________________________________________________
 
 
 #### Music library window properties
-Some additional window properties that can be used in the music library. 
+Some additional window properties that can be used in the music library.
+The artwork is detected in the music paths automatically. Also in the addon settings for the skinhelper addon, you can enable a scraper for music artwork.
 
 | property 			| description |
 | :----------------------------	| :----------- |
@@ -180,6 +181,8 @@ For example in home.xml: <onload>SetProperty(SkinHelper.WidgetContainer,301)</on
 ##### Music artwork/properties for music player
 The music properties are also available for the player:
 
+| property 			| description |
+| :----------------------------	| :----------- |
 | Window(Home).Property(SkinHelper.Player.Music.Banner) | Will return the Artist's banner image (if found). |
 | Window(Home).Property(SkinHelper.Player.Music.FanArt) | Will return the Artist's fanart image (if found). |
 | Window(Home).Property(SkinHelper.Player.Music.ClearLogo) | Will return the Artist's logo image (if found). |

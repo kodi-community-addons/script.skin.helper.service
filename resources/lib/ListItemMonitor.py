@@ -507,6 +507,7 @@ class ListItemMonitor(threading.Thread):
         WINDOW.clearProperty('SkinHelper.MovieSet.Year')
         WINDOW.clearProperty('SkinHelper.MovieSet.Count')
         WINDOW.clearProperty('SkinHelper.MovieSet.Plot')
+        WINDOW.clearProperty('SkinHelper.MovieSet.ExtendedPlot')
         WINDOW.clearProperty('SkinHelper.RottenTomatoesRating')
         WINDOW.clearProperty('SkinHelper.RottenTomatoesAudienceRating')
         WINDOW.clearProperty('SkinHelper.RottenTomatoesConsensus')
