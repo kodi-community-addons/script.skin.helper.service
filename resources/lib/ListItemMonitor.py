@@ -126,6 +126,10 @@ class ListItemMonitor(threading.Thread):
                     self.resetWindowProps()
                     self.folderPathLast = self.folderPath
                 
+                if not curListItem and self.lastListItem and not self.contentType:
+                    self.lastListItem = ""
+                    WINDOW.setProperty("curListItem",curListItem)
+                
                 #only perform actions when the listitem has actually changed
                 if curListItem and curListItem != self.lastListItem and self.contentType:
                     
