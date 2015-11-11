@@ -737,6 +737,8 @@ def getMusicArtworkByDbId(dbid,itemtype):
     artistid = 0
     artistCacheFound = False
     albumCacheFound = False
+    artistpath = ""
+    albumpath = ""
     
     logMsg("getMusicArtworkByDbId dbid: %s  type: %s" %(dbid, itemtype))
     
@@ -851,8 +853,6 @@ def getMusicArtworkByDbId(dbid,itemtype):
             #lookup existing artwork in the paths (only if artistname in the path, to prevent lookups in various artists/compilations folders)
             if not normalize_string(artistartwork.get("artistname","").lower().replace("_","")) in normalize_string(artistpath.lower().replace("_","")):
                 logMsg("getMusicArtworkByDbId - lookup on disk skipped for %s - not correct folder structure (artistname\albumname)" %artistartwork.get("artistname",""))
-                artistpath = ""
-                albumpath = ""
             else:    
                 #lookup local artist artwork
                 artistartwork["path"] = artistpath
@@ -914,7 +914,6 @@ def getMusicArtworkByDbId(dbid,itemtype):
                 for artType in KodiArtTypes:
                     if albumartwork.has_key(artType[0]): albumartwork[artType[0]] = downloadImage(albumartwork[artType[0]],albumpath,artType[1])
     
-
     #write to persistant cache
     if artistartwork and not artistCacheFound:
         if artistartwork.get("landscape"): del artistartwork["landscape"]

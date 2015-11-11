@@ -486,7 +486,7 @@ def MOVIESFORGENRE(limit,genretitle=""):
         json_result = getJSON('VideoLibrary.GetMovies', '{ "sort": { "order": "descending", "method": "random" }, "filter": {"and": [{"operator":"is", "field":"genre", "value":"%s"}, {"operator":"is", "field":"playcount", "value":"0"}]}, "properties": [ %s ],"limits":{"end":%d} }' %(genretitle,fields_movies,limit))
         for item in json_result:
             if not item["title"] in allTitles:
-                item["extraproperties"] = {"genretitle": similartitle}
+                item["extraproperties"] = {"genretitle": genretitle}
                 allItems.append((item["rating"],item))
                 allTitles.append(item["title"])
 
@@ -551,7 +551,7 @@ def SHOWSFORGENRE(limit,genretitle=""):
         json_result = getJSON('VideoLibrary.GetTVShows', '{ "sort": { "order": "descending", "method": "random" }, "filter": {"and": [{"operator":"is", "field":"genre", "value":"%s"}, {"operator":"is", "field":"playcount", "value":"0"}]}, "properties": [ %s ],"limits":{"end":%d} }' %(genretitle,fields_tvshows,limit))
         for item in json_result:
             if not item["title"] in allTitles:
-                item["extraproperties"] = {"genretitle": similartitle}
+                item["extraproperties"] = {"genretitle": genretitle}
                 tvshowpath = "ActivateWindow(Videos,videodb://tvshows/titles/%s/,return)" %str(item["tvshowid"])
                 item["file"]="plugin://script.skin.helper.service?action=LAUNCH&path=" + tvshowpath
                 allItems.append((item["rating"],item))
