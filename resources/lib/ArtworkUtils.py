@@ -817,7 +817,7 @@ def getMusicArtworkByDbId(dbid,itemtype):
         artistartwork["albums"] = []
         artistartwork["tracklist"] = []
         for song in json_response:
-            if not trackName: trackName = song.get("label")
+            if not trackName: trackName = song.get("label","")
             if song.get("album"):
                 if not path: path = song["file"]
                 if not albumName: albumName = song.get("album")
@@ -876,7 +876,7 @@ def getMusicArtworkByDbId(dbid,itemtype):
     if enableMusicArtScraper and not artistCacheFound or (itemtype=="albums" and not albumCacheFound):
         #lookup details in musicbrainz
         #retrieve album id and artist id with a combined query of album name and artist name to get an accurate result
-        musicbrainzartistid, musicbrainzalbumid = getMusicBrainzId(artistartwork.get("artistname"),albumName,trackName)
+        musicbrainzartistid, musicbrainzalbumid = getMusicBrainzId(artistartwork.get("artistname",""),albumName,trackName)
         if itemtype=="albums" and musicbrainzalbumid: 
             albumartwork["musicbrainzalbumid"] = musicbrainzalbumid
         if musicbrainzartistid: 
