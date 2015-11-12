@@ -261,7 +261,6 @@ class ListItemMonitor(threading.Thread):
             self.checkNetflixReady()
             self.updatePlexlinks()
             self.checkNotifications()
-            buildWidgetsListing(False)
             self.saveCacheToFile()
             logMsg("Ended Background worker...")
         except Exception as e:

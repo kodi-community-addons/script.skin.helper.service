@@ -739,13 +739,6 @@ def matchStudioLogo(studiostr,studiologos):
     return studiologo
 
 def resetGlobalWidgetWindowProps():
-    WINDOW.clearProperty("skinhelper-favourites")
-    WINDOW.clearProperty("skinhelper-pvrrecordings")
-    WINDOW.clearProperty("skinhelper-pvrchannels")
-    WINDOW.clearProperty("skinhelper-nextairedtvshows")
-    WINDOW.clearProperty("skinhelper-similarmovies")
-    WINDOW.clearProperty("skinhelper-similarshows")
-    WINDOW.clearProperty("skinhelper-favouritemedia")
     WINDOW.setProperty("widgetreload2", time.strftime("%Y%m%d%H%M%S", time.gmtime()))
     
 def resetPlayerWindowProps():
