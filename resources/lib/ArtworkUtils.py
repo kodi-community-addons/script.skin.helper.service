@@ -788,7 +788,6 @@ def getMusicArtworkByDbId(dbid,itemtype):
                     else: albumartwork["tracklist"].append(song["title"])
                     albumartwork["songcount"] += 1
         
-        
             #make sure that our results are strings
             albumartwork["tracklist"] = "[CR]".join(albumartwork.get("tracklist",""))
             albumartwork["albumcount"] = "%s"%albumartwork.get("albumcount","")

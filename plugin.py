@@ -1,8 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-
 from resources.lib.PluginContent import *
 from resources.lib.SkinShortcutsIntegration import *
+enableProfiling = False
 
 class Main:
     
@@ -77,7 +77,20 @@ class Main:
 if (__name__ == "__main__"):
     try:
         if not WINDOW.getProperty("SkinHelper.KodiExit"):
-            Main()
+        
+            if enableProfiling:
+                import cProfile
+                import pstats
+                import random
+                from time import gmtime, strftime
+                filename = os.path.join( ADDON_DATA_PATH, strftime( "%Y%m%d%H%M%S",gmtime() ) + "-" + str( random.randrange(0,100000) ) + ".log" )
+                cProfile.run( 'Main()', filename )
+                stream = open( filename + ".txt", 'w')
+                p = pstats.Stats( filename, stream = stream )
+                p.sort_stats( "cumulative" )
+                p.print_stats()
+            else:
+                Main()
     except Exception as e:
         logMsg("Error in plugin.py --> " + str(e),0)
 logMsg('finished loading pluginentry')
