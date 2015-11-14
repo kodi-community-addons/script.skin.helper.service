@@ -124,7 +124,7 @@ def getWidgets(itemstoInclude = None):
     #build the widget listiing...
     for widgetType in itemstoInclude:
         if widgetType == "smartshortcuts":
-            getSmartShortcuts()
+            getSmartShortcuts(None,True)
             continue
         else:
             widgets = []
@@ -257,6 +257,7 @@ def getAddonWidgetListing(addonShortName,skipscan=False):
     addonList.append(["script.skin.helper.service", "scriptwidgets"])
     addonList.append(["service.library.data.provider", "librarydataprovider"])
     addonList.append(["script.extendedinfo", "extendedinfo"])
+    logMsg("getAddonWidgetListing " + addonShortName)
     for addon in addonList:
         if addon[1] == addonShortName:
             logMsg("buildWidgetsListing processing: " + addon[0])
@@ -271,10 +272,6 @@ def getAddonWidgetListing(addonShortName,skipscan=False):
                 media_array = getJSON('Files.GetDirectory','{ "directory": "plugin://%s", "media": "files" }' %addon[0])
                 for item in media_array:
                     logMsg("buildWidgetsListing processing: %s - %s" %(addon[0],item["label"]))
-                    #safety check: check if no library windows are active to prevent any addons setting the view
-                    curWindow = xbmc.getInfoLabel("$INFO[Window.Property(xmlfile)]")
-                    if curWindow.endswith("Nav.xml") or curWindow == "AddonBrowser.xml" or curWindow.startswith("MyPVR"):
-                        return
                     content = item["file"]
                     #extendedinfo has some login-required widgets, skip those
                     if (addon[0] == "script.extendedinfo" and hasTMDBCredentials==False and ("info=starred" in content or "info=rated" in content or "info=account" in content)):
@@ -304,7 +301,7 @@ def getAddonWidgetListing(addonShortName,skipscan=False):
 
     return foundWidgets
     
-def getFavouritesWidgetsListing():
+def getFavouritesWidgetsListing(skipscan=False):
     #widgets from favourites
     json_result = getJSON('Favourites.GetFavourites', '{"type": null, "properties": ["path", "thumbnail", "window", "windowparameter"]}')
     foundWidgets = []

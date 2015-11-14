@@ -432,6 +432,7 @@ def createListItem(item):
     
 def detectPluginContent(plugin,skipscan=False):
     #based on the properties in the listitem we try to detect the content
+    logMsg("detectPluginContent processing: " + plugin)
     image = None
     contentType = None
     #load from cache first
@@ -441,11 +442,13 @@ def detectPluginContent(plugin,skipscan=False):
         if cache and cache.get(plugin):
             contentType = cache[plugin][0]
             image = cache[plugin][1]
+            logMsg("detectPluginContent cache found for: " + plugin)
             return (contentType, image)
     else: cache = {}
         
     #probe path to determine content
     if not contentType:
+        logMsg("detectPluginContent cache NOT found for: " + plugin)
         #safety check: check if no library windows are active to prevent any addons setting the view
         curWindow = xbmc.getInfoLabel("$INFO[Window.Property(xmlfile)]")
         if curWindow.endswith("Nav.xml") or curWindow == "AddonBrowser.xml" or curWindow.startswith("MyPVR"):
@@ -506,26 +509,27 @@ def detectPluginContent(plugin,skipscan=False):
                         contentType = "movies"
                         break
     
-    #last resort or skipscan chosen - detect content based on the path
-    if not contentType:
-        if "movie" in plugin or "box" in plugin or "dvd" in plugin or "rentals" in plugin:
-            contentType = "movies"
-        elif "album" in plugin:
-            contentType = "albums"
-        elif "show" in plugin:
-            contentType = "tvshows"
-        elif "song" in plugin:
-            contentType = "songs"
-        elif "musicvideo" in plugin:
-            contentType = "musicvideos"
-        else:
-            contentType = "unknown"
-        
-    #save to cache
-    cache[plugin] = (contentType,image)
-    cache = repr(cache)
-    if contentType != "empty": 
-        WINDOW.setProperty("skinhelper-widgetcontenttype",cache)
+        #last resort or skipscan chosen - detect content based on the path
+        if not contentType:
+            if "movie" in plugin or "box" in plugin or "dvd" in plugin or "rentals" in plugin:
+                contentType = "movies"
+            elif "album" in plugin:
+                contentType = "albums"
+            elif "show" in plugin:
+                contentType = "tvshows"
+            elif "song" in plugin:
+                contentType = "songs"
+            elif "musicvideo" in plugin:
+                contentType = "musicvideos"
+            else:
+                contentType = "unknown"
+            
+        #save to cache
+        logMsg("detectPluginContent detected type for: %s is: %s " %(plugin,contentType))
+        cache[plugin] = (contentType,image)
+        cache = repr(cache)
+        if contentType != "empty": 
+            WINDOW.setProperty("skinhelper-widgetcontenttype",cache)
     
     #return the values
     return (contentType, getCleanImage(image))

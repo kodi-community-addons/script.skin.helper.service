@@ -110,7 +110,7 @@
                     </control>
                 </control>
 			</focusedlayout>
-			</control>
+        </control>
 		
 		<!--current color name-->
         <control type="label">

@@ -236,11 +236,11 @@ def getfanartTVimages(type,id,artwork=None):
     else:
         url = 'http://webservice.fanart.tv/v3/tv/%s?api_key=%s' %(id,api_key)
     try:
-        response = requests.get(url)
+        response = requests.get(url, timeout=5)
     except Exception as e:
         logMsg("getfanartTVimages lookup failed--> " + str(e), 0)
         return artwork
-    if response and response.content:
+    if response and response.content and response.status_code == 200:
         data = json.loads(response.content.decode('utf-8','replace'))
     else:
         return artwork
@@ -300,29 +300,33 @@ def getOfficialArtWork(title,artwork=None,type=None):
     if not type: type="multi"
     try: 
         url = 'http://api.themoviedb.org/3/search/%s?api_key=%s&language=%s&query=%s' %(type,tmdb_apiKey,KODILANGUAGE,try_encode(title))
-        response = requests.get(url)
-        data = json.loads(response.content.decode('utf-8','replace'))
-        #find exact match first
-        if data and data.get("results",None):
-            for item in data["results"]:
-                name = item.get("name")
-                if not name: name = item.get("title")
-                original_name = item.get("original_name","")
-                title_alt = title.lower().replace(" ","").replace("-","").replace(":","").replace("&","").replace(",","")
-                name_alt = name.lower().replace(" ","").replace("-","").replace(":","").replace("&","").replace(",","")
-                org_name_alt = original_name.lower().replace(" ","").replace("-","").replace(":","").replace("&","").replace(",","")
-                if name == title or original_name == title:
-                    #match found for exact title name
-                    matchFound = item
-                    break
-                elif name.split(" (")[0] == title or title_alt == name_alt or title_alt == org_name_alt:
-                    #match found with substituting some stuff
-                    matchFound = item
-                    break
-        
-            #if a match was not found, we accept the closest match from TMDB
-            if not matchFound and len(data.get("results")) > 0 and not len(data.get("results")) > 5:
-                matchFound = item = data.get("results")[0]
+        xbmc.log(url)
+        response = requests.get(url, timeout=5)
+        xbmc.log( "response ?")
+        xbmc.log( str(response.status_code) )
+        if response.status_code == 200:
+            data = json.loads(response.content.decode('utf-8','replace'))
+            #find exact match first
+            if data and data.get("results",None):
+                for item in data["results"]:
+                    name = item.get("name")
+                    if not name: name = item.get("title")
+                    original_name = item.get("original_name","")
+                    title_alt = title.lower().replace(" ","").replace("-","").replace(":","").replace("&","").replace(",","")
+                    name_alt = name.lower().replace(" ","").replace("-","").replace(":","").replace("&","").replace(",","")
+                    org_name_alt = original_name.lower().replace(" ","").replace("-","").replace(":","").replace("&","").replace(",","")
+                    if name == title or original_name == title:
+                        #match found for exact title name
+                        matchFound = item
+                        break
+                    elif name.split(" (")[0] == title or title_alt == name_alt or title_alt == org_name_alt:
+                        #match found with substituting some stuff
+                        matchFound = item
+                        break
+            
+                #if a match was not found, we accept the closest match from TMDB
+                if not matchFound and len(data.get("results")) > 0 and not len(data.get("results")) > 5:
+                    matchFound = item = data.get("results")[0]
    
         if matchFound and not type=="person":
             coverUrl = matchFound.get("poster_path","")
@@ -370,16 +374,16 @@ def getOfficialArtWork(title,artwork=None,type=None):
             artwork["fanart"] = "http://image.tmdb.org/t/p/original"+fanartUrl
         if type=="person" and matchFound.get("profile_path"):
             artwork["thumb"] = "http://image.tmdb.org/t/p/original"+matchFound.get("profile_path")
-
-        return artwork
     
     except Exception as e:
         if "getaddrinfo failed" in str(e):
             #no internet access - disable lookups for now
             WINDOW.setProperty("SkinHelper.DisableInternetLookups","disable")
-            logMsg("getOfficialArtWork - no internet access, disabling internet lookups for now")
+            logMsg("getOfficialArtWork - no internet access, disabling internet lookups for now",0)
         else:
             logMsg("getOfficialArtWork - Error in getOfficialArtWork --> " + str(e),0)
+            
+    return artwork
 
 def getActorImage(actorname):
     thumb = ""
