@@ -38,6 +38,7 @@ class Main:
                     xbmcplugin.setResolvedUrl(handle=int(sys.argv[1]), succeeded=False, listitem=xbmcgui.ListItem())
                 elif action == "LAUNCH":
                     path = sys.argv[2].split("&path=")[1]
+                    xbmc.executebuiltin("Action(Close)")
                     xbmc.executebuiltin(path)
                     xbmcplugin.setResolvedUrl(handle=int(sys.argv[1]), succeeded=False, listitem=xbmcgui.ListItem())
                 elif action == "PLAYALBUM":

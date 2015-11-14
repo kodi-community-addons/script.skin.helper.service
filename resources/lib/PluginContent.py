@@ -201,6 +201,7 @@ def RECENTALBUMS(limit,browse=""):
         item["extraproperties"] = {"extrafanart": item["art"].get("extrafanart",""), "tracklist":item["art"].get("tracklist","")}
         item['album_description'] = item["art"].get("info","")
         if browse == "true":
+            item["extraproperties"]["IsPlayable"] = "false"
             item["file"] = "musicdb://albums/%s/" %str(item["albumid"])
         else:
             item['file'] = "plugin://script.skin.helper.service/?action=playalbum&path=%s" %item['albumid']
@@ -217,6 +218,7 @@ def RECENTPLAYEDALBUMS(limit,browse=""):
         item["extraproperties"] = {"extrafanart": item["art"].get("extrafanart",""), "tracklist":item["art"].get("tracklist","")}
         item['album_description'] = item["art"].get("info","")
         if browse == "true":
+            item["extraproperties"]["IsPlayable"] = "false"
             item["file"] = "musicdb://albums/%s/" %str(item["albumid"])
         else:
             item['file'] = "plugin://script.skin.helper.service/?action=playalbum&path=%s" %item['albumid']
@@ -520,7 +522,7 @@ def SIMILARSHOWS(limit,imdbid=""):
             json_result = getJSON('VideoLibrary.GetTVShows', '{ "sort": { "order": "descending", "method": "random" }, "filter": {"and": [{"operator":"is", "field":"genre", "value":"%s"}, {"operator":"is", "field":"playcount", "value":"0"}]}, "properties": [ %s ],"limits":{"end":%d} }' %(genre,fields_tvshows,limit))
             for item in json_result:
                 if not item["title"] in allTitles and not item["title"] == similartitle:
-                    item["extraproperties"] = {"similartitle": similartitle}
+                    item["extraproperties"] = {"similartitle": similartitle, "IsPlayable": "false"}
                     tvshowpath = "ActivateWindow(Videos,videodb://tvshows/titles/%s/,return)" %str(item["tvshowid"])
                     item["file"]="plugin://script.skin.helper.service?action=LAUNCH&path=" + tvshowpath
                     allItems.append((item["rating"],item))
@@ -550,7 +552,7 @@ def SHOWSFORGENRE(limit,genretitle=""):
         json_result = getJSON('VideoLibrary.GetTVShows', '{ "sort": { "order": "descending", "method": "random" }, "filter": {"and": [{"operator":"is", "field":"genre", "value":"%s"}, {"operator":"is", "field":"playcount", "value":"0"}]}, "properties": [ %s ],"limits":{"end":%d} }' %(genretitle,fields_tvshows,limit))
         for item in json_result:
             if not item["title"] in allTitles:
-                item["extraproperties"] = {"genretitle": genretitle}
+                item["extraproperties"] = {"genretitle": genretitle, "IsPlayable": "false"}
                 tvshowpath = "ActivateWindow(Videos,videodb://tvshows/titles/%s/,return)" %str(item["tvshowid"])
                 item["file"]="plugin://script.skin.helper.service?action=LAUNCH&path=" + tvshowpath
                 allItems.append((item["rating"],item))

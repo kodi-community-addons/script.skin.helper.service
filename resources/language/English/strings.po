@@ -587,3 +587,7 @@ msgstr ""
 msgctxt "#32142"
 msgid "Recently added music"
 msgstr ""
+
+msgctxt "#32143"
+msgid "Artwork settings"
+msgstr ""
