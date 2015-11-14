@@ -304,6 +304,7 @@ def getAddonWidgetListing(addonShortName,skipscan=False):
 def getFavouritesWidgetsListing(skipscan=False):
     #widgets from favourites
     json_result = getJSON('Favourites.GetFavourites', '{"type": null, "properties": ["path", "thumbnail", "window", "windowparameter"]}')
+    print json_result
     foundWidgets = []
     for fav in json_result:
         matchFound = False

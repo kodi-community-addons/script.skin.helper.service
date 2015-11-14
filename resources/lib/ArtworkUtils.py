@@ -938,7 +938,7 @@ def getMusicArtworkByDbId(dbid,itemtype):
 
 def getMusicArtworkByName(artist, title="", album=""):
 
-    logMsg("getMusicArtworkByName artist: %s  - track: %s" %(artist,title))
+    logMsg("getMusicArtworkByName artist: %s  - track: %s  -  album: %s" %(artist,title,album),0)
     #query database for this track
     json_response = getJSON('AudioLibrary.GetSongs', '{ "filter": {"and": [{"operator":"contains", "field":"artist", "value":"%s"},{"operator":"contains", "field":"title", "value":"%s"}]}, "properties": [ "file","artistid","track","title","albumid","album","displayartist","albumartistid" ] }'%(artist,title))
     if json_response:
