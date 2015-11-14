@@ -554,7 +554,7 @@ class ListItemMonitor(threading.Thread):
             dbId = xbmc.getInfoLabel("ListItem.DBID")   
             if dbId:
                 #try to get from cache first
-                if self.moviesetCache.has_key(dbId):
+                if self.moviesetCache.get(dbId):
                     json_response = self.moviesetCache[dbId]
                 else:
                     json_response = getJSON('VideoLibrary.GetMovieSetDetails', '{"setid": %s, "properties": [ "thumbnail" ], "movies": { "properties":  [ "rating", "art", "file", "year", "director", "writer", "playcount", "genre" , "thumbnail", "runtime", "studio", "plotoutline", "plot", "country", "streamdetails"], "sort": { "order": "ascending",  "method": "year" }} }' % dbId)
@@ -859,11 +859,7 @@ class ListItemMonitor(threading.Thread):
         for item in json_result:
             if item.get("type","") == "audio":
                 json_result = getJSON('Player.GetItem', '{ "playerid": %d, "properties": [ "title","albumid","artist","album" ] }' %item.get("playerid"))
-                if json_result.get("albumid") and json_result["albumid"] > 0 and json_result.get("album","") != "Singles" :
-                    #player is playing a song from the database
-                    artwork = getMusicArtworkByDbId(str(json_result["albumid"]),"albums")
-                elif json_result.get("title"):
-                    #player is playing something else, try to look it up...
+                if json_result.get("title"):
                     if json_result.get("artist"):
                         artist = json_result.get("artist")[0]
                         title = json_result.get("title")
@@ -877,7 +873,7 @@ class ListItemMonitor(threading.Thread):
                             artist = json_result.get("title").split(splitchar)[0]
                             title = json_result.get("title").split(splitchar)[1]
                     if artist and title: artwork = getMusicArtworkByName(artist,title)
-            break
+                break
 
         #set properties
         for key, value in artwork.iteritems():
@@ -910,13 +906,13 @@ class ListItemMonitor(threading.Thread):
         dbId = xbmc.getInfoLabel("ListItem.DBID")
         if not dbId or dbId == "-1": return
         
-        if self.streamdetailsCache.has_key(dbId+self.contentType):
+        if self.streamdetailsCache.get(dbId+self.contentType):
             #get data from cache
             streamdetails = self.streamdetailsCache[dbId+self.contentType]
         else:
             json_result = {}
             # get data from json
-            if self.contentType == "movies" and dbId:
+            if "movies" in self.contentType and dbId:
                 json_result = getJSON('VideoLibrary.GetMovieDetails', '{ "movieid": %d, "properties": [ "title", "streamdetails" ] }' %int(dbId))
             elif self.contentType == "episodes" and dbId:
                 json_result = getJSON('VideoLibrary.GetEpisodeDetails', '{ "episodeid": %d, "properties": [ "title", "streamdetails" ] }' %int(dbId))
@@ -1052,7 +1048,7 @@ class ListItemMonitor(threading.Thread):
         imdbnumber = xbmc.getInfoLabel("ListItem.IMDBNumber")
         result = None
         if (self.contentType == "movies" or self.contentType=="setmovies") and imdbnumber:
-            if self.rottenCache.has_key(imdbnumber):
+            if self.rottenCache.get(imdbnumber):
                 #get data from cache
                 result = self.rottenCache[imdbnumber]
             elif not WINDOW.getProperty("SkinHelper.DisableInternetLookups"):
