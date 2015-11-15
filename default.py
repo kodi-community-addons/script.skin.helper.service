@@ -166,7 +166,13 @@ class Main:
                 headerMsg = params.get("HEADER")
                 bodyMsg = params.get("MESSAGE")
                 xbmcgui.Dialog().ok(heading=headerMsg, line1=bodyMsg)
-            
+                
+            elif action == "STRIPSTRING":
+                splitchar = params.get("SPLITCHAR")
+                string = params.get("STRING")
+                output = params.get("OUTPUT")
+                string = string.split(splitchar)[0]
+                WINDOW.setProperty(output, string)
 
 
 if (__name__ == "__main__"):

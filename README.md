@@ -538,6 +538,36 @@ You must supply the name of the setting as can be found in guisettings.xml or th
 </control>
 ```
 
+
+________________________________________________________________________________________________________
+
+#### OK dialog
+Can be used to present a simple OK dialog with a message
+
+```
+RunScript(script.skin.helper.service,action=dialogok&header=[text for header]&message=[message text])             
+```
+
+________________________________________________________________________________________________________
+
+#### Strip string
+Can be used to strip a string, the results will be stored to a window property
+
+```
+RunScript(script.skin.helper.service,action=stripstring&splitchar=[splitter text]&string=[your string]&output=[your window prop])             
+```
+
+Example:
+
+<onload>RunScript(script.skin.helper.service,action=stripstring&splitchar=.&string=$INFO[System.BuildVersion]&output=kodiversion_main)</onload>
+
+The above command will take the Kodi Buildversion Info string and split it on the "." character. The result is the main Kodi version, e.g. "15" or "16".
+You can access the result in your skin as a window property, in the above example kodiversion_main:
+$INFO[Window(Home).Property(kodiversion_main)]
+
+
+
+
 ________________________________________________________________________________________________________
 
 
