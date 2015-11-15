@@ -9,9 +9,9 @@ from Utils import *
 import musicbrainzngs as m
 
 tmdb_apiKey = base64.b64decode("NDc2N2I0YjJiYjk0YjEwNGZhNTUxNWM1ZmY0ZTFmZWM=")
-m.set_useragent("script.skin.helper.service", "0.01", "https://github.com/marcelveldt/script.skin.helper.service")
+m.set_useragent("script.skin.helper.service", "1.0.0", "https://github.com/marcelveldt/script.skin.helper.service")
 
-def getPVRThumbs(title,channel,type="channels",path="",genre=""):
+def getPVRThumbs(title,channel,type="channels",path="",genre="",ignoreCache=False, manualLookup=False):
     cacheFound = False
     ignore = False
     artwork = {}
@@ -34,7 +34,7 @@ def getPVRThumbs(title,channel,type="channels",path="",genre=""):
     if stripwords:
         for word in stripwords.split(";"): title = title.replace(word,"")
         
-    if ignore:
+    if ignore and not manualLookup:
         logMsg("getPVRThumb ignore filter active for %s %s--> "%(title,channel))
         return {}
         
@@ -43,9 +43,9 @@ def getPVRThumbs(title,channel,type="channels",path="",genre=""):
     if title.endswith("-"): title = title[:-1]
     if title.endswith(" - "): title = title[:-3]
 
-    comparetitle = normalize_string(title.lower().replace("_new","").replace("new_","").replace(" ","").replace("_","").replace("-","").replace('"',''))
+    comparetitle = getCompareString(title)
     dbID = comparetitle + channel
-    logMsg("getPVRThumb for %s %s--> "%(title,channel))
+    logMsg("getPVRThumb for %s %s--> "%(title,channel),0)
     
     #make sure we have our settings cached in memory...
     if not WINDOW.getProperty("SkinHelper.pvrthumbspath"):
@@ -60,7 +60,7 @@ def getPVRThumbs(title,channel,type="channels",path="",genre=""):
         
     #get the items from cache first
     cache = WINDOW.getProperty("SkinHelper.PVR.Artwork").decode('utf-8')
-    if cache:
+    if cache and ignoreCache==False:
         cache = eval(cache)
         if cache.has_key(dbID): 
             artwork = cache[dbID]
@@ -71,45 +71,13 @@ def getPVRThumbs(title,channel,type="channels",path="",genre=""):
     if not cacheFound:
         logMsg("getPVRThumb no cache found for dbID--> " + dbID)
         
-        #lookup existing pvrthumbs paths - try to find a match in custom path
-        #images will be looked up or stored to that path
-        customlookuppath = WINDOW.getProperty("SkinHelper.customlookuppath").decode("utf-8")
-        if customlookuppath: 
-            dirs, files = xbmcvfs.listdir(customlookuppath)
-            for dir in dirs:
-                dir = dir.decode("utf-8")
-                #try to find a match...
-                comparedir = normalize_string(dir.lower().replace("_new","").replace("new_","").replace(channel,"").replace(" ","").replace("_","").replace("_",""))
-                if comparedir == comparetitle:
-                    pvrThumbPath = os.path.join(customlookuppath,dir)
-                    break
-                elif channel and dir.lower() == channel.lower():
-                    #user has setup subfolders per channel on their pvr
-                    dirs2, files2 = xbmcvfs.listdir(os.path.join(customlookuppath,dir))
-                    for dir2 in dirs2:
-                        dir2 = dir2.decode("utf-8")
-                        comparedir = dir2.lower().replace(" ","").replace("_new","").replace("new_","").replace("_","").replace("-","").replace(channel,"")
-                        if comparedir == comparetitle:
-                            pvrThumbPath = os.path.join(customlookuppath,dir,dir2)
-                            break
-        
-        if not pvrThumbPath:
-            #nothing found in user custom path so use the global one...
-            directory_structure = WINDOW.getProperty("SkinHelper.directory_structure")
-            pvrthumbspath = WINDOW.getProperty("SkinHelper.pvrthumbspath").decode("utf-8")
-            if directory_structure == "1": pvrThumbPath = os.path.join(pvrthumbspath,normalize_string(channel),normalize_string(title))
-            elif directory_structure == "2": os.path.join(pvrthumbspath,normalize_string(channel + " - " + title))
-            else: pvrThumbPath = pvrThumbPath = os.path.join(pvrthumbspath,normalize_string(title))
-        
-        #make sure our path ends with a slash
-        if "/" in pvrThumbPath: sep = "/"
-        else: sep = "\\"
-        if not pvrThumbPath.endswith(sep): pvrThumbPath = pvrThumbPath + sep
+        pvrThumbPath = getPvrThumbPath(channel,title)
         logMsg("pvr thumbs path --> " + pvrThumbPath)
         
         #Do we have a persistant cache file (pvrdetails.xml) for this item ?
         cachefile = os.path.join(pvrThumbPath, "pvrdetails.xml")
-        artwork = getArtworkFromCacheFile(cachefile,artwork)
+        if not ignoreCache:
+            artwork = getArtworkFromCacheFile(cachefile,artwork)
         if artwork:
             cacheFound = True
             #modify cachefile with last access date for future auto cleanup
@@ -117,6 +85,10 @@ def getPVRThumbs(title,channel,type="channels",path="",genre=""):
             createNFO(cachefile,artwork)
                 
         if not cacheFound:
+        
+            searchtitle = title
+            if manualLookup:
+                searchtitle = xbmcgui.Dialog().input(ADDON.getLocalizedString(32147), title, type=xbmcgui.INPUT_ALPHANUM)
             
             #lookup actual recordings to get details for grouped recordings
             #also grab a thumb provided by the pvr
@@ -150,11 +122,11 @@ def getPVRThumbs(title,channel,type="channels",path="",genre=""):
             #lookup local library
             if WINDOW.getProperty("SkinHelper.useLocalLibraryLookups") == "true":
                 item = None
-                json_result = getJSON('VideoLibrary.GetTvShows','{ "filter": {"operator":"is", "field":"title", "value":"%s"}, "properties": [ %s ] }' %(title,fields_tvshows))
+                json_result = getJSON('VideoLibrary.GetTvShows','{ "filter": {"operator":"is", "field":"title", "value":"%s"}, "properties": [ %s ] }' %(searchtitle,fields_tvshows))
                 if len(json_result) > 0:
                     item = json_result[0]
                 else:
-                    json_result = getJSON('VideoLibrary.GetMovies','{ "filter": {"operator":"is", "field":"title", "value":"%s"}, "properties": [ %s ] }' %(title,fields_movies))
+                    json_result = getJSON('VideoLibrary.GetMovies','{ "filter": {"operator":"is", "field":"title", "value":"%s"}, "properties": [ %s ] }' %(searchtitle,fields_movies))
                     if len(json_result) > 0:
                         item = json_result[0]
                 if item and item.has_key("art"): 
@@ -168,21 +140,21 @@ def getPVRThumbs(title,channel,type="channels",path="",genre=""):
                     
             #if nothing in library or persistant cache, perform the internet scraping
             if not cacheFound and not WINDOW.getProperty("SkinHelper.DisableInternetLookups"):
-                                
+                    
                 #grab artwork from tmdb/fanart.tv
-                if WINDOW.getProperty("SkinHelper.useTMDBLookups") == "true":
+                if WINDOW.getProperty("SkinHelper.useTMDBLookups") == "true" or manualLookup:
                     if "movie" in genre.lower():
-                        artwork = getOfficialArtWork(title,artwork,"movie")
+                        artwork = getOfficialArtWork(searchtitle,artwork,"movie")
                     else:
-                        artwork = getOfficialArtWork(title,artwork)
+                        artwork = getOfficialArtWork(searchtitle,artwork)
                     
                 #lookup thumb on google as fallback
                 if not artwork.get("thumb") and channel and WINDOW.getProperty("SkinHelper.useGoogleLookups") == "true":
-                    artwork["thumb"] = searchGoogleImage("'%s' '%s'" %(title, channel) )
+                    artwork["thumb"] = searchGoogleImage("'%s' '%s'" %(searchtitle, channel) )
                 
                 #lookup thumb on youtube as fallback
                 if not artwork.get("thumb") and channel and WINDOW.getProperty("SkinHelper.useYoutubeLookups") == "true":
-                    artwork["thumb"] = searchYoutubeImage("'%s' '%s'" %(title, channel) )
+                    artwork["thumb"] = searchYoutubeImage("'%s' '%s'" %(searchtitle, channel) )
                 
                 if downloadLocal == True:
                     #download images if we want them local
@@ -221,6 +193,46 @@ def getPVRThumbs(title,channel,type="channels",path="",genre=""):
     
     return artwork
 
+def getPvrThumbPath(channel,title):
+    pvrThumbPath = ""
+    comparetitle = getCompareString(title)
+    #lookup existing pvrthumbs paths - try to find a match in custom path
+    #images will be looked up or stored to that path
+    customlookuppath = WINDOW.getProperty("SkinHelper.customlookuppath").decode("utf-8")
+    if customlookuppath: 
+        dirs, files = xbmcvfs.listdir(customlookuppath)
+        for dir in dirs:
+            dir = dir.decode("utf-8")
+            #try to find a match...
+            comparedir = getCompareString(dir)
+            if comparedir == comparetitle:
+                pvrThumbPath = os.path.join(customlookuppath,dir)
+                break
+            elif channel and dir.lower() == channel.lower():
+                #user has setup subfolders per channel on their pvr
+                dirs2, files2 = xbmcvfs.listdir(os.path.join(customlookuppath,dir))
+                for dir2 in dirs2:
+                    dir2 = dir2.decode("utf-8")
+                    comparedir = getCompareString(dir2,channel)
+                    if comparedir == comparetitle:
+                        pvrThumbPath = os.path.join(customlookuppath,dir,dir2)
+                        break
+    
+    if not pvrThumbPath:
+        #nothing found in user custom path so use the global one...
+        directory_structure = WINDOW.getProperty("SkinHelper.directory_structure")
+        pvrthumbspath = WINDOW.getProperty("SkinHelper.pvrthumbspath").decode("utf-8")
+        if directory_structure == "1": pvrThumbPath = os.path.join(pvrthumbspath,normalize_string(channel),normalize_string(title))
+        elif directory_structure == "2": os.path.join(pvrthumbspath,normalize_string(channel + " - " + title))
+        else: pvrThumbPath = pvrThumbPath = os.path.join(pvrthumbspath,title)
+   
+    #make sure our path ends with a slash
+    if "/" in pvrThumbPath: sep = "/"
+    else: sep = "\\"
+    if not pvrThumbPath.endswith(sep): pvrThumbPath = pvrThumbPath + sep
+    
+    return pvrThumbPath
+    
 def getfanartTVimages(type,id,artwork=None):
     #gets fanart.tv images for given id
     if not artwork: artwork={}
@@ -300,10 +312,7 @@ def getOfficialArtWork(title,artwork=None,type=None):
     if not type: type="multi"
     try: 
         url = 'http://api.themoviedb.org/3/search/%s?api_key=%s&language=%s&query=%s' %(type,tmdb_apiKey,KODILANGUAGE,try_encode(title))
-        xbmc.log(url)
         response = requests.get(url, timeout=5)
-        xbmc.log( "response ?")
-        xbmc.log( str(response.status_code) )
         if response.status_code == 200:
             data = json.loads(response.content.decode('utf-8','replace'))
             #find exact match first

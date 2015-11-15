@@ -70,7 +70,7 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
     def renameColorTheme(self,file,themeNameOld):
 
         dialog = xbmcgui.Dialog()
-        themeNameNew = dialog.input('Enter a name for the theme', themeNameOld.decode('utf-8'), type=xbmcgui.INPUT_ALPHANUM).decode("utf-8")
+        themeNameNew = dialog.input(ADDON.getLocalizedString(32146), themeNameOld.decode('utf-8'), type=xbmcgui.INPUT_ALPHANUM).decode("utf-8")
         if not themeNameNew:
             return
             

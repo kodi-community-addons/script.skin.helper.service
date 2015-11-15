@@ -828,8 +828,7 @@ def getDataFromCacheFile(file):
     except Exception as e:
         logMsg("ERROR in getDataFromCacheFile for file %s --> %s" %(file,str(e)), 0)
     return data
-    
-    
+      
 def saveDataToCacheFile(file,data):
     #safety check: does the config directory exist?
     if not xbmcvfs.exists(ADDON_DATA_PATH + os.sep):
@@ -842,10 +841,12 @@ def saveDataToCacheFile(file,data):
     except Exception as e:
         logMsg("ERROR in saveDataToCacheFile for file %s --> %s" %(file,str(e)), 0)
 
-def getCompareString(string):
+def getCompareString(string,optionalreplacestring=""):
     #strip all kinds of chars from a string to be used in compare actions
     string = try_encode(string)
-    string = string.lower().replace(".","").replace(" ","").replace("-","").replace("_","").replace("'","").replace("`","").replace("’","")
+    string = string.lower().replace(".","").replace(" ","").replace("-","").replace("_","").replace("'","").replace("`","").replace("’","").replace("_new","").replace("new_","")
+    if optionalreplacestring: string = string.replace(optionalreplacestring.lower(),"")
     string = try_decode(string)
+    string = normalize_string(string)
     return string
     

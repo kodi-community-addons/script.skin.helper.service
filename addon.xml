@@ -20,6 +20,13 @@
 			<visible>Container.Content(episodes) + [!Substring(Container.FolderPath,videodb://tvshows/titles,left) | Substring(Container.FolderPath,xsp=)] + [[!IsEmpty(ListItem.DBID) + !StringCompare(ListItem.DBID,-1)] | !IsEmpty(ListItem.Property(DBID))]</visible>
 		</item>
 	</extension>
+    <extension point="kodi.context.item" library="contextmenu_artwork.py">
+		<item>
+			<label>32143</label>
+            <description>PVR and Music artwork Configuration</description>
+            <visible>[[Window.IsActive(MyPVRChannels.xml) | Window.IsActive(MyPVRGuide.xml) | Window.IsActive(MyPVRRecordings.xml) | Window.IsActive(MyPVRTimers.xml) | Window.IsActive(MyPVRSearch.xml)] + Skin.HasSetting(SkinHelper.EnablePVRThumbs)] | [Container.Content(albums) | Container.Content(artists) | Container.Content(songs)]</visible>
+		</item>
+	</extension>
 	<extension point="xbmc.addon.metadata">
 		<summary lang="en">Helper service for Kodi skins</summary>
         <description>Helper service for Kodi skins</description>

@@ -591,3 +591,31 @@ msgstr ""
 msgctxt "#32143"
 msgid "Artwork settings"
 msgstr ""
+
+msgctxt "#32144"
+msgid "Refresh item (auto lookup)"
+msgstr ""
+
+msgctxt "#32145"
+msgid "Refresh item (manual lookup)"
+msgstr ""
+
+msgctxt "#32146"
+msgid "Enter a name for the theme"
+msgstr ""
+
+msgctxt "#32147"
+msgid "Enter search phrase for lookup"
+msgstr ""
+
+msgctxt "#32148"
+msgid "Open Configuration"
+msgstr ""
+
+msgctxt "#32149"
+msgid "Add channel to ignore list"
+msgstr ""
+
+msgctxt "#32150"
+msgid "Add title to ignore list"
+msgstr ""
