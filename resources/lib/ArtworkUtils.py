@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import requests
+import requests, urllib
 import base64
 from xml.dom.minidom import Document
 import xml.etree.ElementTree as ET
@@ -16,6 +16,9 @@ def getPVRThumbs(title,channel,type="channels",path="",genre="",ignoreCache=Fals
     ignore = False
     artwork = {}
     pvrThumbPath = None
+
+    if title: title = urllib.unquote(title)
+    if channel: channel = urllib.unquote(channel)
         
     #should we ignore this path ?
     ignoretitles = WINDOW.getProperty("SkinHelper.ignoretitles")
