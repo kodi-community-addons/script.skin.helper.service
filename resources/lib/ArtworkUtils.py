@@ -611,12 +611,12 @@ def getMusicBrainzId(artist, album="", track=""):
     try:
         if not WINDOW.getProperty("SkinHelper.TempDisableMusicBrainz"):
             MBalbum = None
-            if artist and album:
-                MBalbums = m.search_release_groups(query=single_urlencode(try_encode(album)),limit=1,offset=None, strict=False, artist=single_urlencode(try_encode(artist)))
-                if MBalbums and MBalbums.get("release-group-list"): MBalbum = MBalbums.get("release-group-list")[0]
             if not MBalbum and artist and track:
                 MBalbums = m.search_recordings(query=single_urlencode(try_encode(track)),limit=1,offset=None, strict=False, artist=single_urlencode(try_encode(artist)))
                 if MBalbums and MBalbums.get("recording-list"): MBalbum = MBalbums.get("recording-list")[0]
+            if not MBalbum and artist and album:
+                MBalbums = m.search_release_groups(query=single_urlencode(try_encode(album)),limit=1,offset=None, strict=False, artist=single_urlencode(try_encode(artist)))
+                if MBalbums and MBalbums.get("release-group-list"): MBalbum = MBalbums.get("release-group-list")[0]
             if MBalbum:
                 albumid = MBalbum.get("id","")
                 for MBartist in MBalbum.get("artist-credit"):
@@ -633,6 +633,19 @@ def getMusicBrainzId(artist, album="", track=""):
     
     #use theaudiodb as fallback
     try:
+        if not artistid and artist and track:
+            audiodb_url = 'http://www.theaudiodb.com/api/v1/json/193621276b2d731671156g/searchtrack.php'
+            params = {'s' : artist, 't': track}
+            response = requests.get(audiodb_url, params=params)
+            if response and response.content:
+                data = json.loads(response.content.decode('utf-8','replace'))
+                if data and data.get("track") and len(data.get("track")) > 0:
+                    adbdetails = data["track"][0]
+                    #safety check - only allow exact artist match
+                    foundartist = getCompareString(adbdetails.get("strArtist",""))
+                    if foundartist in matchartist:
+                        albumid = adbdetails.get("strMusicBrainzAlbumID")
+                        artistid = adbdetails.get("strMusicBrainzArtistID")
         if not artistid and artist and album:
             audiodb_url = 'http://www.theaudiodb.com/api/v1/json/193621276b2d731671156g/searchalbum.php'
             params = {'s' : artist, 'a': album}
@@ -647,19 +660,6 @@ def getMusicBrainzId(artist, album="", track=""):
                         albumid = adbdetails.get("strMusicBrainzID")
                         artistid = adbdetails.get("strMusicBrainzArtistID")
         
-        if not artistid and artist and track:
-            audiodb_url = 'http://www.theaudiodb.com/api/v1/json/193621276b2d731671156g/searchtrack.php'
-            params = {'s' : artist, 't': track}
-            response = requests.get(audiodb_url, params=params)
-            if response and response.content:
-                data = json.loads(response.content.decode('utf-8','replace'))
-                if data and data.get("track") and len(data.get("track")) > 0:
-                    adbdetails = data["track"][0]
-                    #safety check - only allow exact artist match
-                    foundartist = getCompareString(adbdetails.get("strArtist",""))
-                    if foundartist in matchartist:
-                        albumid = adbdetails.get("strMusicBrainzAlbumID")
-                        artistid = adbdetails.get("strMusicBrainzArtistID")
     except Exception as e:
         logMsg("getMusicArtworkByDbId AudioDb lookup failed --> " + str(e), 0)
     logMsg("getMusicBrainzId results for artist %s  - artistid:  %s  - albumid:  %s" %(artist,artistid,albumid))
