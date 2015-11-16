@@ -324,8 +324,10 @@ def getOtherWidgetsListing(widget):
     #some other widgets (by their direct endpoint) such as smartish widgets and PVR
     foundWidgets = []
     if widget=="pvr" and xbmc.getCondVisibility("PVR.HasTVChannels"):
-        foundWidgets.append(["$LOCALIZE[19023]", "pvr://channels/tv/all channel/;reload=$INFO[Window(Home).Property(widgetreload2)]", "", "pvr"])
-        foundWidgets.append(["$LOCALIZE[19017]", "plugin://script.skin.helper.service/?action=pvrrecordings&limit=25&reload=$INFO[Window(home).Property(widgetreload2)]", "", "pvr"])   
+        foundWidgets.append(["$ADDON[script.skin.helper.service 32153]", "pvr://channels/tv/all channel/;reload=$INFO[Window(Home).Property(widgetreload2)]", "", "pvr"])
+        foundWidgets.append(["$ADDON[script.skin.helper.service 32151]", "plugin://script.skin.helper.service/?action=pvrrecordings&limit=25&reload=$INFO[Window(home).Property(widgetreload2)]", "", "pvr"])
+        foundWidgets.append(["$ADDON[script.skin.helper.service 32152]", "plugin://script.skin.helper.service/?action=nextpvrrecordings&limit=25&reload=$INFO[Window(home).Property(widgetreload2)]", "", "pvr"])
+        foundWidgets.append(["$ADDON[script.skin.helper.service 32154]", "plugin://script.skin.helper.service/?action=pvrtimers&limit=25&reload=$INFO[Window(home).Property(widgetreload2)]", "", "pvr"])
         #foundWidgets.append(["$ADDON[script.skin.helper.service 32133]", "plugin://script.skin.helper.service/?action=pvrchannelgroups&limit=25&reload=$INFO[Window(home).Property(widgetreload2)]", "", "pvr"])   
     if widget=="smartishwidgets" and xbmc.getCondVisibility("System.HasAddon(service.smartish.widgets) + Skin.HasSetting(enable.smartish.widgets)"):
         foundWidgets.append(["Smart(ish) Movies widget", "plugin://service.smartish.widgets?type=movies&reload=$INFO[Window.Property(smartish.movies)]", "", "movies"])

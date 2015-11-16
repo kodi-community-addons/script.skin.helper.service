@@ -619,3 +619,19 @@ msgstr ""
 msgctxt "#32150"
 msgid "Add title to ignore list"
 msgstr ""
+
+msgctxt "#32151"
+msgid "PVR - Recent recordings"
+msgstr ""
+
+msgctxt "#32152"
+msgid "PVR - Next unwatched recordings"
+msgstr ""
+
+msgctxt "#32153"
+msgid "PVR - TV Channels"
+msgstr ""
+
+msgctxt "#32154"
+msgid "PVR - Timers"
+msgstr ""

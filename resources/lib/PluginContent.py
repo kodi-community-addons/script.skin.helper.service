@@ -134,6 +134,7 @@ def PVRRECORDINGS(limit):
 def NEXTPVRRECORDINGS(limit):
     #returns the first unwatched episode of all recordings, starting at the oldest
     allItems = []
+    allTitles = []
     allUnSortedItems = []
     if xbmc.getCondVisibility("PVR.HasTVChannels"):
         # Get a list of all the unwatched tv recordings   
@@ -141,21 +142,42 @@ def NEXTPVRRECORDINGS(limit):
         pvr_backend = xbmc.getInfoLabel("Pvr.BackendName").decode("utf-8")
         for item in json_result:
             #exclude live tv items from recordings list (mythtv hack)
-            if item["playcount"] == 0 and not ("mythtv" in pvr_backend.lower() and "/livetv/" in item.get("file","").lower()):
+            if not item["title"] in allTitles and item["playcount"] == 0 and not ("mythtv" in pvr_backend.lower() and "/livetv/" in item.get("file","").lower()):
                 channelname = item["channel"]
                 item["channel"] = channelname
                 item["art"] = getPVRThumbs(item["title"], channelname, "recordings")
-                if item.get("art") and item["art"].get("thumb"):
-                    item["art"]["thumb"] = item["art"].get("thumb")
                 item["channellogo"] = item["art"].get("channellogo","")
                 item["cast"] = None
                 allUnSortedItems.append((item["endtime"],item))
+                allTitles.append(item["title"])
                 
-        #sort the list so we return a recently added list or recordings
-        allUnSortedItems = sorted(allUnSortedItems,key=itemgetter(0),reverse=True)
+        #sort the list so we return the list with the oldest unwatched first
+        allUnSortedItems = sorted(allUnSortedItems,key=itemgetter(0),reverse=False)
         for item in allUnSortedItems:
             allItems.append(item[1])
     return allItems    
+
+def PVRTIMERS(limit):
+    # Get a list of all the upcoming timers
+    allItems = []
+    allUnSortedItems = []
+    if xbmc.getCondVisibility("PVR.HasTVChannels"):
+        json_result = getJSON('PVR.GetTimers', '{"properties": [ "title","endtime","starttime","channelid","summary","file" ]}' )
+        for item in json_result:
+            item["file"] = "plugin://script.skin.helper.service/?action=launch&path=ActivateWindow(tvtimers,return)"
+            channel_details = getJSON('PVR.GetChannelDetails', '{ "channelid": %d}' %item["channelid"])
+            channelname = channel_details.get("label","")
+            item["channel"] = channelname
+            item["art"] = getPVRThumbs(item["title"], channelname, "recordings")
+            item["channellogo"] = item["art"].get("channellogo","")
+            if not item.get("plot"): item["plot"] = item.get("summary","")
+            allUnSortedItems.append((item["starttime"],item))
+                
+        #sort the list so we return the list with the oldest unwatched first
+        allUnSortedItems = sorted(allUnSortedItems,key=itemgetter(0),reverse=False)
+        for item in allUnSortedItems:
+            allItems.append(item[1])
+    return allItems  
     
 def PVRCHANNELS(limit):
     count = 0

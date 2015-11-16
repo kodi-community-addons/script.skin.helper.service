@@ -96,6 +96,10 @@ def getJSON(method,params):
             return jsonobject['channels']
         elif jsonobject.has_key('recordings'):
             return jsonobject['recordings']
+        elif jsonobject.has_key('timers'):
+            return jsonobject['timers']
+        elif jsonobject.has_key('channeldetails'):
+            return jsonobject['channeldetails']    
         elif jsonobject.has_key('songs'):
             return jsonobject['songs']
         elif jsonobject.has_key('albums'):

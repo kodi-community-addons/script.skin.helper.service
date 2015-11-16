@@ -227,7 +227,7 @@ def getPvrThumbPath(channel,title):
         pvrthumbspath = WINDOW.getProperty("SkinHelper.pvrthumbspath").decode("utf-8")
         if directory_structure == "1": pvrThumbPath = os.path.join(pvrthumbspath,normalize_string(channel),normalize_string(title))
         elif directory_structure == "2": os.path.join(pvrthumbspath,normalize_string(channel + " - " + title))
-        else: pvrThumbPath = pvrThumbPath = os.path.join(pvrthumbspath,title)
+        else: pvrThumbPath = pvrThumbPath = os.path.join(pvrthumbspath,normalize_string(title))
    
     #make sure our path ends with a slash
     if "/" in pvrThumbPath: sep = "/"
