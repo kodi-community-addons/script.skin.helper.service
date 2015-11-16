@@ -854,25 +854,30 @@ class ListItemMonitor(threading.Thread):
         artwork = {}
         artist = ""
         title = ""
+        album = ""
         #get the playing item from the player...
         json_result = getJSON('Player.GetActivePlayers', '{}')
         for item in json_result:
             if item.get("type","") == "audio":
-                json_result = getJSON('Player.GetItem', '{ "playerid": %d, "properties": [ "title","albumid","artist","album" ] }' %item.get("playerid"))
+                json_result = getJSON('Player.GetItem', '{ "playerid": %d, "properties": [ "title","albumid","artist","album","displayartist" ] }' %item.get("playerid"))
                 if json_result.get("title"):
                     if json_result.get("artist"):
-                        artist = json_result.get("artist")[0]
+                        artist = json_result.get("displayartist")
                         title = json_result.get("title")
+                        album = json_result.get("album")
                     else:
-                        splitchar = None
-                        if " - " in json_result.get("title"): splitchar = " - "
-                        elif "- " in json_result.get("title"): splitchar = "- "
-                        elif " -" in json_result.get("title"): splitchar = " -"
-                        elif "-" in json_result.get("title"): splitchar = "-"
-                        if splitchar:
-                            artist = json_result.get("title").split(splitchar)[0]
-                            title = json_result.get("title").split(splitchar)[1]
-                    if artist and title: artwork = getMusicArtworkByName(artist,title)
+                        if not artist:
+                            #fix for internet streams
+                            splitchar = None
+                            if " - " in json_result.get("title"): splitchar = " - "
+                            elif "- " in json_result.get("title"): splitchar = "- "
+                            elif " -" in json_result.get("title"): splitchar = " -"
+                            elif "-" in json_result.get("title"): splitchar = "-"
+                            if splitchar:
+                                artist = json_result.get("title").split(splitchar)[0]
+                                title = json_result.get("title").split(splitchar)[1]
+                    logMsg("setMusicPlayerDetails: " + repr(json_result))
+                    if artist and title: artwork = getMusicArtworkByName(artist,title,album)
                 break
 
         #set properties

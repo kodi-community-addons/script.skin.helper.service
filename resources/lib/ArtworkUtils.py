@@ -45,7 +45,7 @@ def getPVRThumbs(title,channel,type="channels",path="",genre="",ignoreCache=Fals
 
     comparetitle = getCompareString(title)
     dbID = comparetitle + channel
-    logMsg("getPVRThumb for %s %s--> "%(title,channel),0)
+    logMsg("getPVRThumb for %s %s--> "%(title,channel))
     
     #make sure we have our settings cached in memory...
     if not WINDOW.getProperty("SkinHelper.pvrthumbspath"):
@@ -845,7 +845,7 @@ def getMusicArtworkByDbId(dbid,itemtype):
         artistartwork["songcount"] = "%s"%artistartwork.get("songcount","")
         
     #LOOKUP LOCAL ARTWORK PATH PASED ON SONG FILE PATH
-    if path and enableLocalMusicArtLookup and not artistCacheFound or (itemtype=="albums" and not albumCacheFound):
+    if path and enableLocalMusicArtLookup and (not artistCacheFound or (itemtype=="albums" and not albumCacheFound)):
         
         #only use existing path if the artistname is actually in the path 
         if "\\" in path:
@@ -863,6 +863,8 @@ def getMusicArtworkByDbId(dbid,itemtype):
             #lookup existing artwork in the paths (only if artistname in the path, to prevent lookups in various artists/compilations folders)
             if not normalize_string(artistartwork.get("artistname","").lower().replace("_","")) in normalize_string(artistpath.lower().replace("_","")):
                 logMsg("getMusicArtworkByDbId - lookup on disk skipped for %s - not correct folder structure (artistname\albumname)" %artistartwork.get("artistname",""))
+                albumpath = ""
+                artistpath = ""
             else:    
                 #lookup local artist artwork
                 artistartwork["path"] = artistpath
@@ -945,19 +947,19 @@ def getMusicArtworkByDbId(dbid,itemtype):
 
 def getMusicArtworkByName(artist, title="", album=""):
 
-    logMsg("getMusicArtworkByName artist: %s  - track: %s  -  album: %s" %(artist,title,album),0)
-    #query database for this track
-    json_response = getJSON('AudioLibrary.GetSongs', '{ "filter": {"and": [{"operator":"contains", "field":"artist", "value":"%s"},{"operator":"contains", "field":"title", "value":"%s"}]}, "properties": [ "file","artistid","track","title","albumid","album","displayartist","albumartistid" ] }'%(artist,title))
+    logMsg("getMusicArtworkByName artist: %s  - track: %s  -  album: %s" %(artist,title,album))
+    #query database for this track/album first
+    json_response = getJSON('AudioLibrary.GetSongs', '{ "filter": {"and": [{"operator":"contains", "field":"artist", "value":"%s"},{"operator":"contains", "field":"title", "value":"%s"}]}, "properties": [ "file","artistid","track","title","albumid","album","displayartist","albumartistid","albumartist" ] }'%(artist,title))
     if json_response:
         # local match found
         for item in json_response:
             #prevent returning details for a various artists entry
-            if item.get("album","") != "Singles" and not "various artists" in item.get("file","").lower() and not "compilations" in item.get("file","").lower():
-                artwork = getMusicArtworkByDbId(str(item["albumid"]),"albums")
-                return artwork
-            else:
-                artwork = getMusicArtworkByDbId(str(item["artistid"][0]),"artists")
-                return artwork
+            if item.get("album","") == album:
+                return getMusicArtworkByDbId(str(item["albumid"]),"albums")
+            elif item.get("album","") != "Singles" and not "various artists" in item.get("file","").lower() and not "Various" in item.get("albumartist"):
+                return getMusicArtworkByDbId(str(item["albumid"]),"albums")
+            elif "various artists" in item.get("file","").lower() or "Various" in item.get("albumartist"):
+                return getMusicArtworkByDbId(str(item["artistid"][0]),"artists")
             
     #manual lookup needed - try cache file first...
     cacheFile = "special://profile/addon_data/script.skin.helper.service/musicart/%s.xml" %normalize_string(artist)
