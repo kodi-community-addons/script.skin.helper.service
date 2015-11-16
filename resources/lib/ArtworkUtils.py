@@ -949,27 +949,24 @@ def getMusicArtworkByDbId(dbid,itemtype):
     return artwork
 
 def getMusicArtworkByName(artist, title="", album=""):
-
     logMsg("getMusicArtworkByName artist: %s  - track: %s  -  album: %s" %(artist,title,album))
+    
+    #try cache file first...
+    cacheFile = "special://profile/addon_data/script.skin.helper.service/musicart/%s.xml" %normalize_string(artist + "-" + title)
+    artistartwork = getArtworkFromCacheFile(cacheFile)
+    if artistartwork: return artistartwork
+    
     #query database for this track/album first
-    json_response = getJSON('AudioLibrary.GetSongs', '{ "filter": {"and": [{"operator":"contains", "field":"artist", "value":"%s"},{"operator":"contains", "field":"title", "value":"%s"}]}, "properties": [ "file","artistid","track","title","albumid","album","displayartist","albumartistid","albumartist" ] }'%(artist,title))
+    json_response = getJSON('AudioLibrary.GetSongs', '{ "filter": {"and": [{"operator":"contains", "field":"artist", "value":"%s"},{"operator":"contains", "field":"title", "value":"%s"}]}, "properties": [ "file","artistid","track","title","albumid","album","displayartist","albumartistid","albumartist","artist" ] }'%(artist,title))
     if json_response:
         # local match found
         for item in json_response:
             #prevent returning details for a various artists entry
-            if item.get("album","") == album:
+            if not "various" in item.get("file","").lower() and not "Various" in item.get("albumartist") and not "various" in item.get("displayartist").lower() and not "Various" in item["artist"] and not "Various" in item["albumartist"]:
+                logMsg("getMusicArtworkByName found match in local DB --> " + repr(json_response))
                 return getMusicArtworkByDbId(str(item["albumid"]),"albums")
-            elif item.get("album","") != "Singles" and not "various artists" in item.get("file","").lower() and not "Various" in item.get("albumartist"):
-                return getMusicArtworkByDbId(str(item["albumid"]),"albums")
-            elif "various artists" in item.get("file","").lower() or "Various" in item.get("albumartist"):
-                return getMusicArtworkByDbId(str(item["artistid"][0]),"artists")
             
-    #manual lookup needed - try cache file first...
-    cacheFile = "special://profile/addon_data/script.skin.helper.service/musicart/%s.xml" %normalize_string(artist)
-    artistartwork = getArtworkFromCacheFile(cacheFile)
-    if artistartwork: return artistartwork
     #lookup this artist by quering musicbrainz...
-    
     if " & " in artist: artists= artist.split(" & ")
     elif " ft. " in artist: artists= artist.split(" ft. ")
     elif " Ft. " in artist: artists= artist.split(" Ft. ")
