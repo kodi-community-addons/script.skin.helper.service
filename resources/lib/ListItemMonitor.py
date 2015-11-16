@@ -106,14 +106,13 @@ class ListItemMonitor(threading.Thread):
                     if not xbmc.getCondVisibility("Window.IsActive(visualisationpresetlist) | Window.IsActive(osdvideosettings) | Window.IsActive(osdaudiosettings) | Window.IsActive(videobookmarks) | Window.IsActive(videobookmarks)"):
                         xbmc.executebuiltin("Dialog.Close(%s)"%window)
                 
-            if not xbmc.getCondVisibility("Window.IsActive(fullscreenvideo) | Window.IsActive(script.pseudotv.TVOverlay.xml) | Window.IsActive(script.pseudotv.live.TVOverlay.xml)") or xbmc.getCondVisibility("Window.IsActive(pvrosdchannels) | Window.IsActive(pvrosdguide)"):
+            if not xbmc.getCondVisibility("Window.IsActive(fullscreenvideo) | Window.IsActive(script.pseudotv.TVOverlay.xml) | Window.IsActive(script.pseudotv.live.TVOverlay.xml)"):
         
                 #set some globals
                 try:
                     self.liPath = xbmc.getInfoLabel("ListItem.Path").decode('utf-8')
                     self.liLabel = xbmc.getInfoLabel("ListItem.Label").decode('utf-8')
                     self.folderPath = xbmc.getInfoLabel("Container.FolderPath").decode('utf-8')
-                    if not self.folderPath and self.liPath.startswith("pvr://guide"): self.folderPath = "pvr://guide"
                 except Exception as e: print e
                 curListItem = self.liPath + self.liLabel
                 

@@ -609,7 +609,7 @@ def getCurrentContentType():
         contenttype = "artists"
     elif xbmc.getCondVisibility("Container.Content(albums)"):
         contenttype = "albums"
-    elif xbmc.getCondVisibility("Window.IsActive(MyPVRChannels.xml) | Window.IsActive(MyPVRGuide.xml) | Window.IsActive(MyPVRTimers.xml) | Window.IsActive(MyPVRSearch.xml) | Window.IsActive(pvrosdchannels) | Window.IsActive(pvrosdguide)"):
+    elif xbmc.getCondVisibility("Window.IsActive(MyPVRChannels.xml) | Window.IsActive(MyPVRGuide.xml) | Window.IsActive(MyPVRTimers.xml) | Window.IsActive(MyPVRSearch.xml)"):
         contenttype = "tvchannels"
     elif xbmc.getCondVisibility("Window.IsActive(MyPVRRecordings.xml)"):
         contenttype = "tvrecordings"
