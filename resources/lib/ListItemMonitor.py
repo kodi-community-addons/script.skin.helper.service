@@ -106,7 +106,7 @@ class ListItemMonitor(threading.Thread):
                     if not xbmc.getCondVisibility("Window.IsActive(visualisationpresetlist) | Window.IsActive(osdvideosettings) | Window.IsActive(osdaudiosettings) | Window.IsActive(videobookmarks) | Window.IsActive(videobookmarks)"):
                         xbmc.executebuiltin("Dialog.Close(%s)"%window)
                 
-            if not xbmc.getCondVisibility("Window.IsActive(fullscreenvideo) | Window.IsActive(script.pseudotv.TVOverlay.xml) | Window.IsActive(script.pseudotv.live.TVOverlay.xml)"):
+            if not xbmc.getCondVisibility("Window.IsActive(fullscreenvideo) | Window.IsActive(script.pseudotv.TVOverlay.xml) | Window.IsActive(script.pseudotv.live.TVOverlay.xml)") or xbmc.getCondVisibility("Window.IsActive(pvrosdchannels) | Window.IsActive(pvrosdguide)"):
         
                 #set some globals
                 try:
