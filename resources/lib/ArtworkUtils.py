@@ -790,16 +790,15 @@ def getMusicArtworkByDbId(dbid,itemtype):
                 albumartwork["artistid"] = str(json_response["artistid"][0])
             #get track listing for album
             json_response = None
-            json_response = getJSON('AudioLibrary.GetSongs', '{ "filter":{"albumid": %s}, "properties": [ "file","artistid","track","title","albumid","album","displayartist","albumartistid" ] }'%int(dbid))
+            json_response = getJSON('AudioLibrary.GetSongs', '{ "filter":{"albumid": %s}, "properties": [ "file","artistid","track","title","albumid","album","displayartist","albumartistid" ], "sort": {"method":"track"} }'%int(dbid))
             albumartwork["songcount"] = 0
             albumartwork["albumcount"] = 0
             albumartwork["tracklist"] = []
             for song in json_response:
-                if song.get("album") and not "unknown title" in song.get("album").lower() and not "various artists" in song.get("file","").lower():
-                    if not path: path = song["file"]
-                    if song.get("track"): albumartwork["tracklist"].append("%s - %s" %(song["track"], song["title"]))
-                    else: albumartwork["tracklist"].append(song["title"])
-                    albumartwork["songcount"] += 1
+                if not path: path = song["file"]
+                if song.get("track"): albumartwork["tracklist"].append("%s - %s" %(song["track"], song["title"]))
+                else: albumartwork["tracklist"].append(song["title"])
+                albumartwork["songcount"] += 1
         
             #make sure that our results are strings
             albumartwork["tracklist"] = "[CR]".join(albumartwork.get("tracklist",""))
@@ -833,8 +832,7 @@ def getMusicArtworkByDbId(dbid,itemtype):
             if song.get("album"):
                 if not path: path = song["file"]
                 if not albumName: albumName = song.get("album")
-                if song.get("track"): artistartwork["tracklist"].append("%s - %s" %(song["track"], song["title"]))
-                else: artistartwork["tracklist"].append(song["title"])
+                artistartwork["tracklist"].append(song["title"])
                 artistartwork["songcount"] += 1
                 if song.get("album") and song["album"] not in artistartwork["albums"]:
                     artistartwork["albumcount"] +=1
