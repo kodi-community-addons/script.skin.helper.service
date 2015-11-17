@@ -647,8 +647,8 @@ def getMusicBrainzId(artist, album="", track=""):
                     #safety check - only allow exact artist match
                     foundartist = getCompareString(adbdetails.get("strArtist",""))
                     if foundartist in matchartist:
-                        albumid = adbdetails.get("strMusicBrainzAlbumID")
-                        artistid = adbdetails.get("strMusicBrainzArtistID")
+                        albumid = adbdetails.get("strMusicBrainzAlbumID","")
+                        artistid = adbdetails.get("strMusicBrainzArtistID","")
         if not artistid and artist and album:
             audiodb_url = 'http://www.theaudiodb.com/api/v1/json/193621276b2d731671156g/searchalbum.php'
             params = {'s' : artist, 'a': album}
@@ -660,8 +660,8 @@ def getMusicBrainzId(artist, album="", track=""):
                     #safety check - only allow exact artist match
                     foundartist = getCompareString(adbdetails.get("strArtist",""))
                     if foundartist in matchartist:
-                        albumid = adbdetails.get("strMusicBrainzID")
-                        artistid = adbdetails.get("strMusicBrainzArtistID")
+                        albumid = adbdetails.get("strMusicBrainzID","")
+                        artistid = adbdetails.get("strMusicBrainzArtistID","")
         
     except Exception as e:
         logMsg("getMusicArtworkByDbId AudioDb lookup failed --> " + str(e), 0)
@@ -767,14 +767,15 @@ def getMusicArtworkByDbId(dbid,itemtype):
     
     if itemtype == "songs":
         json_response = None
-        json_response = getJSON('AudioLibrary.GetSongDetails', '{ "songid": %s, "properties": [ "file","artistid","albumid","album","comment","fanart","thumbnail","displayartist"] }'%int(dbid))
+        json_response = getJSON('AudioLibrary.GetSongDetails', '{ "songid": %s, "properties": [ "file","artistid","albumid","album","comment","fanart","thumbnail","displayartist","artist","albumartist"] }'%int(dbid))
         if json_response:
-            if json_response.get("album") and json_response.get("albumid") and json_response.get("album","").lower() != "singles" and json_response.get("album","").lower() != "unknown title":
+            #don't return album info for various artists/compilations...
+            if json_response.get("album") and json_response.get("albumid") and json_response.get("album","").lower() != "singles" and json_response.get("album","").lower() != "unknown title" and not "various" in json_response.get("file","").lower() and not "Various Artists" in json_response.get("displayartist").lower() and not "Various Artists" in json_response["artist"] and not "Various Artists" in json_response["albumartist"]:
                 #album level is lowest level we get info from so change context to album once we have the song details...
                 itemtype = "albums"
                 dbid = str(json_response["albumid"])
             else:
-                #search by trackname as fallback for songs without albums (singles)
+                #search by trackname as fallback for songs without albums (singles) or compilations
                 return getMusicArtworkByName(json_response.get("displayartist"),json_response.get("label"))
 
     ############# ALBUM DETAILS #########################
@@ -784,16 +785,18 @@ def getMusicArtworkByDbId(dbid,itemtype):
             albumCacheFound = True
         else:
             json_response = None
-            json_response = getJSON('AudioLibrary.GetAlbumDetails','{ "albumid": %s, "properties": [ "description","fanart","thumbnail","artistid" ] }'%int(dbid))
+            json_response = getJSON('AudioLibrary.GetAlbumDetails','{ "albumid": %s, "properties": [ "description","fanart","thumbnail","artistid","artist","displayartist" ] }'%int(dbid))
+            logMsg("getMusicArtworkByDbId found album details --> " + repr(json_response))
             if json_response.get("description") and not albumartwork.get("info"): albumartwork["info"] = json_response["description"]
-            if json_response.get("fanart") and not albumartwork.get("fanart"): albumartwork["fanart"] = getCleanImage(json_response["fanart"])
-            if json_response.get("thumbnail") and not albumartwork.get("folder"): albumartwork["folder"] = json_response["thumbnail"]
+            if json_response.get("fanart") and not (json_response["label"].lower() == "singles" or "Various Artists" in json_response.get("displayartist").lower()): albumartwork["fanart"] = getCleanImage(json_response["fanart"])
+            if json_response.get("thumbnail") and not (json_response["label"].lower() == "singles" or "Various Artists" in json_response.get("displayartist").lower()): albumartwork["folder"] = json_response["thumbnail"]
             if json_response.get("label") and not albumartwork.get("albumname"): albumartwork["albumname"] = json_response["label"]
             if json_response.get("artistid") and not albumartwork.get("artistid"): 
                 albumartwork["artistid"] = str(json_response["artistid"][0])
             #get track listing for album
             json_response = None
-            json_response = getJSON('AudioLibrary.GetSongs', '{ "filter":{"albumid": %s}, "properties": [ "file","artistid","track","title","albumid","album","displayartist","albumartistid" ], "sort": {"method":"track"} }'%int(dbid))
+            json_response = getJSON('AudioLibrary.GetSongs', '{ "filter":{"albumid": %s}, "properties": [ "file","artistid","track","title","albumid","album","displayartist","albumartistid","artist","albumartist","displayartist" ], "sort": {"method":"track"} }'%int(dbid))
+            logMsg("getMusicArtworkByDbId found songs for album --> " + repr(json_response))
             albumartwork["songcount"] = 0
             albumartwork["albumcount"] = 0
             albumartwork["tracklist"] = []
@@ -819,13 +822,15 @@ def getMusicArtworkByDbId(dbid,itemtype):
     else:
         json_response = None
         json_response = getJSON('AudioLibrary.GetArtistDetails', '{ "artistid": %s, "properties": [ "description","fanart","thumbnail" ] }'%int(artistid))
+        logMsg("getMusicArtworkByDbId found artist details --> " + repr(json_response))
         if json_response.get("description") and not artistartwork.get("info"): artistartwork["info"] = json_response["description"]
-        if json_response.get("fanart") and not artistartwork.get("fanart"): artistartwork["fanart"] = getCleanImage(json_response["fanart"])
-        if json_response.get("thumbnail") and not artistartwork.get("folder"): artistartwork["folder"] = json_response["thumbnail"]
+        if json_response.get("fanart"): artistartwork["fanart"] = getCleanImage(json_response["fanart"])
+        if json_response.get("thumbnail") : artistartwork["folder"] = json_response["thumbnail"]
         if json_response.get("label") and not artistartwork.get("artistname",""): artistartwork["artistname"] = json_response["label"]
         #get track/album listing for artist
         json_response = None
-        json_response = getJSON('AudioLibrary.GetSongs', '{ "filter":{"artistid": %d}, "properties": [ "file","artistid","track","title","albumid","album","albumartistid" ] }'%int(artistid))
+        json_response = getJSON('AudioLibrary.GetSongs', '{ "filter":{"artistid": %d}, "properties": [ "file","artistid","track","title","albumid","album","albumartistid","artist","albumartist","displayartist" ] }'%int(artistid))
+        logMsg("getMusicArtworkByDbId found songs for artist --> " + repr(json_response))
         artistartwork["songcount"] = 0
         artistartwork["albumcount"] = 0
         artistartwork["albums"] = []
@@ -953,6 +958,7 @@ def getMusicArtworkByName(artist, title="", album=""):
     
     #try cache file first...
     cacheFile = "special://profile/addon_data/script.skin.helper.service/musicart/%s.xml" %normalize_string(artist + "-" + title)
+    albumartwork = {}
     artistartwork = getArtworkFromCacheFile(cacheFile)
     if artistartwork: return artistartwork
     
@@ -962,7 +968,7 @@ def getMusicArtworkByName(artist, title="", album=""):
         # local match found
         for item in json_response:
             #prevent returning details for a various artists entry
-            if not "various" in item.get("file","").lower() and not "Various" in item.get("albumartist") and not "various" in item.get("displayartist").lower() and not "Various" in item["artist"] and not "Various" in item["albumartist"]:
+            if not "various" in item.get("file","").lower() and not "Various Artists" in item.get("displayartist").lower() and not "Various Artists" in item["artist"] and not "Various Artists" in item["albumartist"]:
                 logMsg("getMusicArtworkByName found match in local DB --> " + repr(json_response))
                 return getMusicArtworkByDbId(str(item["albumid"]),"albums")
             
@@ -981,7 +987,7 @@ def getMusicArtworkByName(artist, title="", album=""):
         artistartwork = getArtistArtwork(artistid, artistartwork)
         if albumid:
             #if we also have album artwork use that too
-            artistartwork = getAlbumArtwork(albumid, artistartwork)
+            artistartwork = getAlbumArtwork(albumid,artistartwork)
         
     #process extrafanart
     if artistartwork.get("extrafanarts"):
