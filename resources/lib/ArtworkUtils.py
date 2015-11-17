@@ -693,7 +693,7 @@ def getArtistArtwork(musicbrainzartistid, artwork=None):
             if not artwork.get("folder") and adbdetails.get("strArtistThumb"): artwork["folder"] = adbdetails.get("strArtistThumb")
             if not artwork.get("info") and adbdetails.get("strBiography" + KODILANGUAGE.upper()): artwork["info"] = adbdetails.get("strBiography" + KODILANGUAGE.upper())
             if not artwork.get("info") and adbdetails.get("strBiographyEN"): artwork["info"] = adbdetails.get("strBiographyEN")
-            if artwork.get("info"): artwork["info"] = normalize_string(artwork["info"])
+            if artwork.get("info"): artwork["info"] = artwork.get("info").replace("\n","")
             
     return artwork
 
