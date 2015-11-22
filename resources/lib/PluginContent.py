@@ -131,7 +131,7 @@ def PVRRECORDINGS(limit):
             allItems.append(item[1])
     return allItems
 
-def NEXTPVRRECORDINGS(limit):
+def NEXTPVRRECORDINGS(limit,reversed="false"):
     #returns the first unwatched episode of all recordings, starting at the oldest
     allItems = []
     allTitles = []
@@ -152,7 +152,10 @@ def NEXTPVRRECORDINGS(limit):
                 allTitles.append(item["title"])
                 
         #sort the list so we return the list with the oldest unwatched first
-        allUnSortedItems = sorted(allUnSortedItems,key=itemgetter(0),reverse=False)
+        if reversed == "true":
+            allUnSortedItems = sorted(allUnSortedItems,key=itemgetter(0),reverse=True)
+        else:
+            allUnSortedItems = sorted(allUnSortedItems,key=itemgetter(0),reverse=False)
         for item in allUnSortedItems:
             allItems.append(item[1])
     return allItems    

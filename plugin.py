@@ -31,6 +31,8 @@ class Main:
             if genre: optionalParam = genre[0]
             browse=params.get("browse","")
             if browse: optionalParam = browse[0]
+            reversed=params.get("reversed","")
+            if reversed: optionalParam = reversed[0]
         
             if action:
                 if action == "LAUNCHPVR":
@@ -69,7 +71,7 @@ class Main:
                     getCast(movie,tvshow,movieset,downloadthumbs)
                 else:
                     #get a widget listing
-                    getPluginListing(action,limit,refresh)
+                    getPluginListing(action,limit,refresh,optionalParam)
     
         else:
             #do plugin main listing...

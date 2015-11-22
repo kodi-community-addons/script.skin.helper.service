@@ -53,7 +53,10 @@ def getPVRThumbs(title,channel,type="channels",path="",genre="",ignoreCache=Fals
     #make sure we have our settings cached in memory...
     if not WINDOW.getProperty("SkinHelper.pvrthumbspath"):
         setAddonsettings()
-    
+        
+    if type=="channels" and WINDOW.getProperty("SkinHelper.enablePVRThumbsRecordingsOnly")=="true":
+        #pvr artwork disabled for channels
+        return {}
     if type=="channels" and WINDOW.getProperty("SkinHelper.cacheGuideEntries")=="true":
         downloadLocal = True
     elif type=="recordings" and WINDOW.getProperty("SkinHelper.cacheRecordings")=="true":

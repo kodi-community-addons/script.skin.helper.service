@@ -113,6 +113,7 @@ class ListItemMonitor(threading.Thread):
                     self.liPath = xbmc.getInfoLabel("ListItem.Path").decode('utf-8')
                     self.liLabel = xbmc.getInfoLabel("ListItem.Label").decode('utf-8')
                     self.folderPath = xbmc.getInfoLabel("Container.FolderPath").decode('utf-8')
+                    if not self.folderPath and self.liPath.startswith("pvr://guide"): self.folderPath = "pvr://guide"
                 except Exception as e: print e
                 curListItem = self.liPath + self.liLabel
                 
