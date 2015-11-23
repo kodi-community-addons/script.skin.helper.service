@@ -639,3 +639,7 @@ msgstr ""
 msgctxt "#32155"
 msgid "Enable PVR artwork for Recordings/timers only"
 msgstr ""
+
+msgctxt "#32156"
+msgid "Posters"
+msgstr ""

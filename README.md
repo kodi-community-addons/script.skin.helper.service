@@ -260,6 +260,15 @@ Set it to 0 or clear the string to disable the backgrounds.
 | Window(Home).Property(SkinHelper.AllMusicSongsBackground.Wall) | Collection of Song/Album cover images (from the library) as wall prebuilt by the script|
 | Window(Home).Property(SkinHelper.AllTvShowsBackground.Wall) | Collection of Tv show fanart images (from the library) as wall prebuilt by the script|
 
+Additional properties available for the backgrounds (e.g. SkinHelper.AllMoviesBackground.Poster)
+
+| property 			| description |
+| :----------------------------	| :----------- |
+| Window(Home).Property(SkinHelper.BACKGROUNDNAME.poster) | Poster image for the background (if available)|
+| Window(Home).Property(SkinHelper.BACKGROUNDNAME.clearlogo) | Clearlogo image for the background (if available)|
+| Window(Home).Property(SkinHelper.BACKGROUNDNAME.landscape) | Landscape image for the background (if available)|
+| Window(Home).Property(SkinHelper.BACKGROUNDNAME.title) | Title for the background (if available)|
+
 NOTE: the generation of wall images is experimental and might have impact on the cpu while creating them (at startup only). The feature can be disabled in the addon settings.
 _______________________________________________________________________________________________________
 ________________________________________________________________________________________________________
