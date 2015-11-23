@@ -142,14 +142,14 @@ def NEXTPVRRECORDINGS(limit,reversed="false"):
         pvr_backend = xbmc.getInfoLabel("Pvr.BackendName").decode("utf-8")
         for item in json_result:
             #exclude live tv items from recordings list (mythtv hack)
-            if not item["title"] in allTitles and item["playcount"] == 0 and not ("mythtv" in pvr_backend.lower() and "/livetv/" in item.get("file","").lower()):
+            if not (item.get("directory") and item["directory"] in allTitles) and item["playcount"] == 0 and not ("mythtv" in pvr_backend.lower() and "/livetv/" in item.get("file","").lower()):
                 channelname = item["channel"]
                 item["channel"] = channelname
                 item["art"] = getPVRThumbs(item["title"], channelname, "recordings")
                 item["channellogo"] = item["art"].get("channellogo","")
                 item["cast"] = None
                 allUnSortedItems.append((item["endtime"],item))
-                allTitles.append(item["title"])
+                if item.get("directory"): allTitles.append(item["directory"])
                 
         #sort the list so we return the list with the oldest unwatched first
         if reversed == "true":
