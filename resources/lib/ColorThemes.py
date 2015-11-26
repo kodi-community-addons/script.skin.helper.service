@@ -391,7 +391,7 @@ def createColorTheme():
 
         #read the guisettings file to get all skin settings
         import BackupRestore as backup
-        newlist = backup.getSkinSettings(["color","opacity","texture","panel"])
+        newlist = backup.getSkinSettings(["color","opacity","texture","panel","colour"])
         if newlist:
             newlist.append(("THEMENAME", themeName))
             newlist.append(("DESCRIPTION", ADDON.getLocalizedString(32025)))
