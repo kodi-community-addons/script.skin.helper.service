@@ -296,6 +296,20 @@ This command will open the special search window in the script. It has a onscree
 
 ________________________________________________________________________________________________________
 
+
+#### Special Info Dialog
+```
+RunScript(script.skin.helper.service,action=showinfo,movieid=&INFO[ListItem.DBID])
+RunScript(script.skin.helper.service,action=showinfo,tvshowid=&INFO[ListItem.DBID])
+RunScript(script.skin.helper.service,action=showinfo,episodeid=&INFO[ListItem.DBID])
+```
+It is possible to show the infodialog provided by the script (see video library search command), for example if you want to call that info screen from your widgets.
+In that case run the command above. In the info dialog will also all special properties be available from the script.
+Note that ListItem.DBID and ListItem.DBTYPE can only be used for "real" library items, for widgets provided by this script, use ListItem.Property(DBID) and ListItem.Property(type) instead.
+
+________________________________________________________________________________________________________
+
+
 #### Message Dialog (dialogOK)
 ```
 RunScript(script.skin.helper.service,action=dialogok,header[yourheadertext],message=[your message body])

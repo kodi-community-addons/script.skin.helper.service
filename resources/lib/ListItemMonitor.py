@@ -184,9 +184,18 @@ class ListItemMonitor(threading.Thread):
                         self.setGenre(xbmc.getInfoLabel("Container(999).ListItem.Genre").decode('utf-8'))
                         self.setStreamDetails(xbmc.getInfoLabel("Container(999).ListItem.Property(dbid)"),xbmc.getInfoLabel("Container(999).ListItem.Property(contenttype)"))
                         self.setRottenRatings(xbmc.getInfoLabel("Container(999).ListItem.Property(imdbnumber)"),xbmc.getInfoLabel("Container(999).ListItem.Property(contenttype)"))
+                        #for tv show items, trigger nextaired addon
+                        nextaired = False
+                        if xbmc.getInfoLabel("Container(999).ListItem.TvShowTitle") and xbmc.getCondVisibility("System.HasAddon(script.tv.show.next.aired)"):
+                            xbmc.executebuiltin("RunScript(script.tv.show.next.aired,tvshowtitle=%s)" %xbmc.getInfoLabel("Container(999).ListItem.TvShowTitle"))
+                            nextaired = True
                         #wait untill the dialog is closed again
                         while xbmc.getCondVisibility("Window.IsActive(script-skin_helper_service-CustomInfo.xml)") and not self.exit:
                             xbmc.sleep(150)
+                        self.resetWindowProps()
+                        if nextaired:
+                            #fake show id to flush nextaired props
+                            xbmc.executebuiltin("RunScript(script.tv.show.next.aired,tvshowtitle=165628787629692696)")
                     except Exception as e:
                         logMsg("ERROR in LibraryMonitor HomeWidget ! --> " + str(e), 0)
                 

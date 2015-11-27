@@ -255,30 +255,33 @@ def createListItem(item):
     
     if "episodeid" in item:
         liz.setProperty("DBID", str(item['episodeid']))
-        liz.setInfo( type=itemtype, infoLabels={ "DBID": str(item['episodeid']) })
+        if not item.get("type"): item["type"] = "episode"
         liz.setIconImage('DefaultTVShows.png')
         
-    if "tvshowid" in item:
+    if "tvshowid" in item and not "episodeid" in item:
         liz.setProperty("DBID", str(item['tvshowid']))
-        liz.setInfo( type=itemtype, infoLabels={ "DBID": str(item['tvshowid']) })
+        if not item.get("type"): item["type"] = "tvshow"
         liz.setInfo( type=itemtype, infoLabels={ "TvShowTitle": item['label'] })
         liz.setIconImage('DefaultTVShows.png')
         
     if "songid" in item:
         liz.setProperty("DBID", str(item['songid']))
+        if not item.get("type"): item["type"] = "song"
         liz.setIconImage('DefaultAudio.png')
         
     if "movieid" in item:
         liz.setProperty("DBID", str(item['movieid']))
-        liz.setInfo( type=itemtype, infoLabels={ "DBID": str(item['movieid']) })
+        if not item.get("type"): item["type"] = "movie"
         liz.setIconImage('DefaultMovies.png')
     
     if "musicvideoid" in item:
         liz.setProperty("DBID", str(item['musicvideoid']))
+        if not item.get("type"): item["type"] = "musicvideo"
         liz.setIconImage('DefaultMusicVideos.png')
     
     if "type" in item:
         liz.setProperty("type", item['type'])
+        liz.setProperty("dbtype", item['type'])
         
     if "extraproperties" in item:
         if isinstance(item["extraproperties"],dict):
