@@ -1,6 +1,7 @@
 import sys, re
-import xbmc, xbmcgui
-
+import xbmc, xbmcgui, xbmcvfs
+from ArtworkUtils import *
+import PluginContent as plugincontent
 
 CANCEL_DIALOG  = ( 9, 10, 92, 216, 247, 257, 275, 61467, 61448, )
 ACTION_SHOW_INFO = ( 11, )
@@ -20,7 +21,9 @@ class GUI( xbmcgui.WindowXMLDialog ):
         pass
 
     def _show_info( self ):
-
+            
+        self.listitem.setProperty("contenttype",self.content)
+        
         if self.content == 'movies':
             self.listitem.setProperty("type","movie")
         
@@ -35,6 +38,31 @@ class GUI( xbmcgui.WindowXMLDialog ):
         
         self.setFocus( self.getControl( 5 ) )
 
+        try: #optional: recommended list
+            similarlist = self.getControl( 997 )
+            similarcontent = []
+            if self.content == 'movies':
+                similarcontent = plugincontent.SIMILARMOVIES(25,list.getSelectedItem().getProperty("imdbnumber"))
+            elif self.content == 'tvshows':
+                similarcontent = plugincontent.SIMILARSHOWS(25,list.getSelectedItem().getProperty("imdbnumber"))
+            for item in similarcontent:
+                liz = createListItem(item)
+                liz.setThumbnailImage(item["art"].get("poster"))
+                similarlist.addItem(liz)
+        except: pass
+
+        try: #optional: cast list
+            castlist = self.getControl( 998 )
+            json = list.getSelectedItem().getProperty("json").decode("utf-8")
+            castlst = eval(json).get("cast")
+            downloadThumbs = False
+            for cast in castlst:
+                liz = xbmcgui.ListItem(label=cast["name"],label2=cast["role"],iconImage=cast.get("thumbnail"))
+                liz.setProperty('path', "RunScript(script.extendedinfo,info=extendedactorinfo,name=%s)"%cast["name"])
+                liz.setThumbnailImage(cast.get("thumbnail"))
+                castlist.addItem(liz)
+        except: pass
+
     def _close_dialog( self, action=None ):
         self.action = action
         self.close()
@@ -42,12 +70,24 @@ class GUI( xbmcgui.WindowXMLDialog ):
     def onClick( self, controlId ):
         if controlId == 5:
             if self.content == 'movies':
-                self._close_dialog( 'play_movie' )
-            elif self.content == 'tvshows':
-                self._close_dialog( 'browse_tvshow' )
+                path = self.getControl( 999 ).getSelectedItem().getProperty('dbid')
+                self._close_dialog('{ "jsonrpc": "2.0", "method": "Player.Open", "params": { "item": { "movieid": %s } }, "id": 1 }' % path)
             elif self.content == 'episodes':
-                self._close_dialog( 'play_episode' )
-
+                path = self.getControl( 999 ).getSelectedItem().getProperty('dbid')
+                self._close_dialog('{ "jsonrpc": "2.0", "method": "Player.Open", "params": { "item": { "episodeid": %s } }, "id": 1 }' % path)
+            elif self.content == 'tvshows':
+                path = self.getControl( 999 ).getSelectedItem().getProperty('path')
+                self._close_dialog('ActivateWindow(Videos,%s,return)' %path)
+        if controlId == 997:
+            selectedItem = self.getControl( 997 ).getSelectedItem()
+            path = self.getControl( 997 ).getSelectedItem().getfilename()
+            self._close_dialog('{ "jsonrpc": "2.0", "method": "Player.Open", "params": { "item": { "file": "%s" } }, "id": 1 }' % path)
+        if controlId == 998:
+            path = self.getControl( 998 ).getSelectedItem().getProperty('path')
+            xbmc.executebuiltin(path)
+            
+            
+    
     def onFocus( self, controlId ):
         pass
 

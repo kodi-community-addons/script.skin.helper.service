@@ -71,7 +71,13 @@ class Main:
                 from resources.lib.SearchDialog import SearchDialog
                 searchDialog = SearchDialog("script-skin_helper_service-CustomSearch.xml", ADDON_PATH, "Default", "1080i")
                 searchDialog.doModal()
+                resultAction = searchDialog.action
                 del searchDialog
+                if resultAction:
+                    if "jsonrpc" in resultAction:
+                        xbmc.executeJSONRPC(resultAction)
+                    else:
+                        xbmc.executebuiltin(resultAction)
             
             elif action == "COLORPICKER":
                 from resources.lib.ColorPicker import ColorPicker

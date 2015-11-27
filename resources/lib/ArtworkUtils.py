@@ -312,7 +312,7 @@ def getOfficialArtWork(title,artwork=None,type=None):
     if not artwork: artwork={}
     coverUrl = ""
     fanartUrl = ""
-    matchFound = None
+    matchFound = {}
     media_id = None
     media_type = None
     if not type: type="multi"

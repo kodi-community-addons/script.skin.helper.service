@@ -489,6 +489,7 @@ def SIMILARMOVIES(limit,imdbid=""):
     allItems = []
     allTitles = list()
     #lookup movie by imdbid or just pick a random watched movie
+
     if imdbid:
         match = []
         json_result = getJSON('VideoLibrary.GetMovies', '{ "properties": [ "title", "rating", "genre", "imdbnumber"]}')
@@ -866,7 +867,6 @@ def getExtraFanArt(path):
     xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
     
 def getCast(movie=None,tvshow=None,movieset=None,downloadThumbs=False):
-    
     itemId = None
     item = {}
     allCast = []

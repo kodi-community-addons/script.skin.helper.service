@@ -234,6 +234,9 @@ def createListItem(item):
     if "duration" in item:
         liz.setInfo( type=itemtype, infoLabels={ "duration": item['duration'] })
     
+    if "runtime" in item:
+        liz.setInfo( type=itemtype, infoLabels={ "duration": item['runtime'] })
+    
     if "file" in item:
         liz.setPath(item['file'])
         liz.setProperty("path", item['file'])
@@ -281,9 +284,12 @@ def createListItem(item):
         if isinstance(item["extraproperties"],dict):
             for key,value in item["extraproperties"].iteritems():
                 liz.setProperty(key, value)
-    
     if "plot" in item:
         liz.setInfo( type=itemtype, infoLabels={ "Plot": item['plot'] })
+        
+    if "imdbnumber" in item:
+        liz.setInfo( type=itemtype, infoLabels={ "imdbnumber": item['imdbnumber'] })
+        liz.setProperty("imdbnumber", str(item['imdbnumber']))
     
     if "album_description" in item:
         liz.setProperty("Album_Description",item['album_description'])
@@ -403,7 +409,40 @@ def createListItem(item):
             for stream in value:
                 if 'video' in key: hasVideoStream = True
                 liz.addStreamInfo(key, stream)
-
+    
+    if item.get('streamdetails2',''):
+        streamdetails = item["streamdetails"]
+        audiostreams = streamdetails.get('audio',[])
+        videostreams = streamdetails.get('video',[])
+        subtitles = streamdetails.get('subtitle',[])
+        if len(videostreams) > 0:
+            stream = videostreams[0]
+            height = stream.get("height","")
+            width = stream.get("width","")
+            if height and width:
+                resolution = ""
+                if width <= 720 and height <= 480: resolution = "480"
+                elif width <= 768 and height <= 576: resolution = "576"
+                elif width <= 960 and height <= 544: resolution = "540"
+                elif width <= 1280 and height <= 720: resolution = "720"
+                elif width <= 1920 and height <= 1080: resolution = "1080"
+                elif width * height >= 6000000: resolution = "4K"
+                liz.setProperty("VideoResolution", resolution)
+            if stream.get("codec",""):
+                liz.setProperty("VideoCodec", str(stream["codec"]))    
+            if stream.get("aspect",""):
+                liz.setProperty("VideoAspect", str(round(stream["aspect"], 2))) 
+        if len(audiostreams) > 0:
+            #grab details of first audio stream
+            stream = audiostreams[0]
+            liz.setProperty("AudioCodec", stream.get('codec',''))
+            liz.setProperty("AudioChannels", str(stream.get('channels','')))
+            liz.setProperty("AudioLanguage", stream.get('language',''))
+        if len(subtitles) > 0:
+            #grab details of first subtitle
+            liz.setProperty("SubtitleLanguage", subtitles[0].get('language',''))
+    
+    
     if not hasVideoStream and "runtime" in item:
         stream = {'duration': item['runtime']}
         liz.addStreamInfo("video", stream)
