@@ -312,7 +312,7 @@ def NEXTEPISODES(limit):
             count +=1
             if count == limit:
                 break       
-    if count >= limit:
+    if count < limit:
         # Fill the list with first episodes of unwatched tv shows
         json_result = getJSON('VideoLibrary.GetTVShows', '{ "sort": { "order": "ascending", "method": "dateadded" }, "filter": {"and": [{"operator":"false", "field":"inprogress", "value":""}]}, "properties": [ "title", "studio", "mpaa", "file", "art" ] }')
         for show in json_result:

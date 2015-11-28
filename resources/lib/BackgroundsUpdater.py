@@ -41,8 +41,6 @@ class BackgroundsUpdater(threading.Thread):
 
     def run(self):
 
-        KodiMonitor = xbmc.Monitor()
-            
         #first run get backgrounds immediately from filebased cache and reset the cache in memory to populate all images from scratch
         try:
             self.getCacheFromFile()
