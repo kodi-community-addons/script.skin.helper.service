@@ -865,7 +865,7 @@ def getExtraFanArt(path):
             xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=item, listitem=li)
     xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
     
-def getCast(movie=None,tvshow=None,movieset=None,downloadThumbs=False):
+def getCast(movie=None,tvshow=None,movieset=None,episode=None,downloadThumbs=False):
     itemId = None
     item = {}
     allCast = []
@@ -882,6 +882,9 @@ def getCast(movie=None,tvshow=None,movieset=None,downloadThumbs=False):
         elif movie:
             cachedataStr = "movie.castcache-" + str(movie)+str(downloadThumbs)
             itemId = int(movie)
+        elif episode:
+            cachedataStr = "episode.castcache-" + str(episode)+str(downloadThumbs)
+            itemId = int(episode)
         else:
             cachedataStr = xbmc.getInfoLabel("ListItem.Title")+xbmc.getInfoLabel("ListItem.FileNameAndPath")+str(downloadThumbs)
     except: pass
@@ -911,6 +914,12 @@ def getCast(movie=None,tvshow=None,movieset=None,downloadThumbs=False):
             if json_result: item = json_result
         elif tvshow and not itemId:
             json_result = getJSON('VideoLibrary.GetTvShows', '{ "filter": {"operator":"is", "field":"title", "value":"%s"}, "properties": [ "title", "cast" ] }' %tvshow.encode("utf-8"))
+            if json_result: item = json_result[0]
+        elif episode and itemId:
+            json_result = getJSON('VideoLibrary.GetEpisodeDetails', '{ "episodeid": %d, "properties": [ "title", "cast" ] }' %itemId)
+            if json_result: item = json_result
+        elif episode and not itemId:
+            json_result = getJSON('VideoLibrary.GetEpisodes', '{ "filter": {"operator":"is", "field":"title", "value":"%s"}, "properties": [ "title", "cast" ] }' %episode.encode("utf-8"))
             if json_result: item = json_result[0]
         elif movieset and itemId:
             json_result = getJSON('VideoLibrary.GetMovieSetDetails', '{ "setid": %d, "properties": [ "title" ] }' %itemId)

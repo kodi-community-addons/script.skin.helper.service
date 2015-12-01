@@ -66,9 +66,11 @@ class Main:
                     if tvshow: tvshow = tvshow[0]
                     movieset=params.get("movieset",None)
                     if movieset: movieset = movieset[0]
+                    episode=params.get("episode",None)
+                    if episode: episode = episode[0]
                     downloadthumbs=params.get("downloadthumbs",False)
                     if downloadthumbs: downloadthumbs = downloadthumbs[0]=="true"
-                    getCast(movie,tvshow,movieset,downloadthumbs)
+                    getCast(movie,tvshow,movieset,episode,downloadthumbs)
                 else:
                     #get a widget listing
                     getPluginListing(action,limit,refresh,optionalParam)

@@ -1103,15 +1103,17 @@ ________________________________________________________________________________
 plugin://script.skin.helper.service/?action=getcast&movie=[MOVIENAME OR DBID]
 plugin://script.skin.helper.service/?action=getcast&tvshow=[TVSHOW NAME OR DBID]
 plugin://script.skin.helper.service/?action=getcast&movieset=[MOVIESET NAME OR DBID]
+plugin://script.skin.helper.service/?action=getcast&episode=[EPISODE NAME OR DBID]
 ```
 Provides the Cast list for the specified media type as a listing.
 Label = Name of the actor
 Label2 = Role
 Icon = Thumb of the actor
 
-You can use the name of the Movie or the DBID to perform the lookup.
-
+You can use the name of the item or the DBID to perform the lookup.
 There will also a Window Property be set when you use the above query to the script: SkinHelper.ListItemCast --> It will return the cast list seperated by [CR]
+
+Optional parameter: downloadthumbs=true --> will auto download any missing actor thumbs from IMDB
 ________________________________________________________________________________________________________
 ________________________________________________________________________________________________________
 
