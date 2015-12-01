@@ -943,6 +943,7 @@ def getCast(movie=None,tvshow=None,movieset=None,downloadThumbs=False):
         #process cast for regular movie or show
         if item and item.has_key("cast"):
             for cast in item["cast"]:
+                if cast.get("thumbnail"): cast["thumbnail"] = getCleanImage(cast.get("thumbnail"))
                 if not cast.get("thumbnail") or not xbmcvfs.exists(cast.get("thumbnail")) and downloadThumbs: 
                     artwork = getOfficialArtWork(cast["name"],None,"person")
                     cast["thumbnail"] = artwork.get("thumb","")
@@ -963,6 +964,7 @@ def getCast(movie=None,tvshow=None,movieset=None,downloadThumbs=False):
                 if json_result:
                     for cast in json_result["cast"]:
                         if not cast["name"] in moviesetCastList:
+                            if cast.get("thumbnail"): cast["thumbnail"] = getCleanImage(cast.get("thumbnail"))
                             if not cast.get("thumbnail") or not xbmcvfs.exists(cast.get("thumbnail")) and downloadThumbs:
                                 artwork = getOfficialArtWork(cast["name"],None,"person")
                                 cast["thumbnail"] = artwork.get("thumb","")
