@@ -1080,7 +1080,7 @@ class ListItemMonitor(threading.Thread):
 
     def setRottenRatings(self,imdbnumber="",contenttype=""):
         if not imdbnumber:
-            dbId = xbmc.getInfoLabel("ListItem.IMDBNumber")
+            imdbnumber = xbmc.getInfoLabel("ListItem.IMDBNumber")
         if not contenttype:
             contenttype = self.contentType
         result = None
