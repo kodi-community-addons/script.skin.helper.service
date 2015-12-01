@@ -886,7 +886,7 @@ def getCast(movie=None,tvshow=None,movieset=None,downloadThumbs=False):
             cachedataStr = xbmc.getInfoLabel("ListItem.Title")+xbmc.getInfoLabel("ListItem.FileNameAndPath")+str(downloadThumbs)
     except: pass
     
-    cachedata = WINDOW.getProperty(cachedataStr)
+    cachedata = WINDOW.getProperty(cachedataStr).decode("utf-8")
     if cachedata:
         #get data from cache
         cachedata = eval(cachedata)
@@ -904,19 +904,19 @@ def getCast(movie=None,tvshow=None,movieset=None,downloadThumbs=False):
             json_result = getJSON('VideoLibrary.GetMovieDetails', '{ "movieid": %d, "properties": [ "title", "cast" ] }' %itemId)
             if json_result: item = json_result
         elif movie and not itemId:
-            json_result = getJSON('VideoLibrary.GetMovies', '{ "filter": {"operator":"is", "field":"title", "value":"%s"}, "properties": [ "title", "cast" ] }' %movie)
+            json_result = getJSON('VideoLibrary.GetMovies', '{ "filter": {"operator":"is", "field":"title", "value":"%s"}, "properties": [ "title", "cast" ] }' %movie.encode("utf-8"))
             if json_result: item = json_result[0]
         elif tvshow and itemId:
             json_result = getJSON('VideoLibrary.GetTVShowDetails', '{ "tvshowid": %d, "properties": [ "title", "cast" ] }' %itemId)
             if json_result: item = json_result
         elif tvshow and not itemId:
-            json_result = getJSON('VideoLibrary.GetTvShows', '{ "filter": {"operator":"is", "field":"title", "value":"%s"}, "properties": [ "title", "cast" ] }' %tvshow)
+            json_result = getJSON('VideoLibrary.GetTvShows', '{ "filter": {"operator":"is", "field":"title", "value":"%s"}, "properties": [ "title", "cast" ] }' %tvshow.encode("utf-8"))
             if json_result: item = json_result[0]
         elif movieset and itemId:
             json_result = getJSON('VideoLibrary.GetMovieSetDetails', '{ "setid": %d, "properties": [ "title" ] }' %itemId)
             if json_result.has_key("movies"): moviesetmovies = json_result['movies']      
         elif movieset and not itemId:
-            json_result = getJSON('VideoLibrary.GetMovieSets', '{ "filter": {"operator":"is", "field":"title", "value":"%s"}, "properties": [ "title" ] }' %tvshow)
+            json_result = getJSON('VideoLibrary.GetMovieSets', '{ "filter": {"operator":"is", "field":"title", "value":"%s"}, "properties": [ "title" ] }' %movieset.encode("utf-8"))
             if json_result: 
                 movieset = json_result[0]
                 if movieset.has_key("movies"):
