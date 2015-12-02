@@ -12,6 +12,7 @@ import datetime as dt
 import unicodedata
 import urlparse
 import xml.etree.ElementTree as xmltree
+from xml.dom.minidom import parse
 
 try:
     import simplejson as json
@@ -215,6 +216,19 @@ def setSkinVersion():
         WINDOW.setProperty("SkinHelper.skinTitle",skinLabel + " - " + xbmc.getLocalizedString(19114) + ": " + skinVersion)
         WINDOW.setProperty("SkinHelper.skinVersion",xbmc.getLocalizedString(19114) + ": " + skinVersion)
         WINDOW.setProperty("SkinHelper.Version",ADDON_VERSION.replace(".",""))
+        
+        #auto correct labels for skin settings
+        settings_file = xbmc.translatePath( 'special://skin/extras/skinsettings.xml' ).decode("utf-8")
+        if xbmcvfs.exists( settings_file ):
+            doc = parse( settings_file )
+            listing = doc.documentElement.getElementsByTagName( 'setting' )
+            for count, item in enumerate(listing):
+                id = item.attributes[ 'id' ].nodeValue
+                value = item.attributes[ 'value' ].nodeValue
+                curvalue = xbmc.getInfoLabel("Skin.String(%s)" %id.encode("utf-8"))
+                if value.lower() == curvalue.lower():
+                    label = xbmc.getInfoLabel(item.attributes[ 'label' ].nodeValue).decode("utf-8")
+                    xbmc.executebuiltin("Skin.SetString(%s.label,%s)" %(id.encode("utf-8"),label.encode("utf-8")))
     except Exception as e:
         logMsg("Error in setSkinVersion --> " + str(e), 0)
     

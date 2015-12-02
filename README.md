@@ -589,6 +589,41 @@ You can access the result in your skin as a window property, in the above exampl
 $INFO[Window(Home).Property(kodiversion_main)]
 
 
+________________________________________________________________________________________________________
+
+#### Set skin setting
+Can be used to present a select dialog to specify a certain skin setting.
+Prevents you from creating all kinds of toggle options.
+
+
+You need to create the file skinsettings.xml in your extras folder (special://skin/extras/skinsettings.xml).
+Inside that xml file you define all options that a user can choose when setting a specific skin string.
+For example:
+```xml
+<settings>
+    <!-- home layout -->
+    <setting id="HomeLayout" value="1" label="$LOCALIZE[31309] - 1 row" condition="" icon="" description=""/>
+    <setting id="HomeLayout" value="2" label="$LOCALIZE[31309] - 2 rows" condition="" icon="" description=""/>
+    <setting id="HomeLayout" value="3" label="$LOCALIZE[31309] - 3 rows" condition="" icon="" description=""/>
+    
+    <!-- background setting -->
+    <setting id="CustomBackgroundSetting" value="default" label="$LOCALIZE[31023]" condition="" icon="special://skin/extras/backgrounds/global.jpg" description=""/>
+    <setting id="CustomBackgroundSetting" value="weather" label="$LOCALIZE[31025]" condition="" icon="$VAR[WeatherFanArtPath]$INFO[Window(Weather).Property(current.fanartCode)]/weather.jpg" description=""/>
+    <setting id="CustomBackgroundSetting" value="||BROWSEIMAGE||" label="Custom image" condition="" description=""/>
+</settings>
+```
+
+If you want to set the Skin String "HomeLayout", you can call the script like this:
+
+```
+<control type="button" id="423003">
+    <label>[B]$LOCALIZE[31121]:[/B] $INFO[Skin.String(HomeLayout.label)]</label>
+    <onclick>RunScript(script.skin.helper.service,action=setskinsetting,setting=HomeLayout,header=$LOCALIZE[31124])</onclick>
+</control>         
+```
+This will present DialogSelect with your options. Once the user makes a selection, the value will be written to the Skin String.
+Also the prefix .label will store the label from the select dialog.
+
 
 
 ________________________________________________________________________________________________________

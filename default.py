@@ -51,6 +51,11 @@ class Main:
             elif action == "SETFORCEDVIEW":
                 contenttype = params.get("CONTENTTYPE",None)
                 setForcedView(contenttype)
+                
+            elif action == "SETSKINSETTING":
+                setting = params.get("SETTING","")
+                windowHeader = params.get("HEADER","")
+                setSkinSetting(setting,windowHeader)
             
             elif action == "TOGGLEKODISETTING":
                 kodisetting = params.get("SETTING")
@@ -196,6 +201,8 @@ class Main:
             elif action == "RESET":
                 import resources.lib.BackupRestore as backup
                 backup.reset()
+                xbmc.sleep(2000)
+                setSkinVersion()
             
             elif action == "DIALOGOK":
                 headerMsg = params.get("HEADER")
