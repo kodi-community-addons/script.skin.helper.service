@@ -216,22 +216,31 @@ def setSkinVersion():
         WINDOW.setProperty("SkinHelper.skinTitle",skinLabel + " - " + xbmc.getLocalizedString(19114) + ": " + skinVersion)
         WINDOW.setProperty("SkinHelper.skinVersion",xbmc.getLocalizedString(19114) + ": " + skinVersion)
         WINDOW.setProperty("SkinHelper.Version",ADDON_VERSION.replace(".",""))
-        
         #auto correct labels for skin settings
-        settings_file = xbmc.translatePath( 'special://skin/extras/skinsettings.xml' ).decode("utf-8")
-        if xbmcvfs.exists( settings_file ):
-            doc = parse( settings_file )
-            listing = doc.documentElement.getElementsByTagName( 'setting' )
-            for count, item in enumerate(listing):
-                id = item.attributes[ 'id' ].nodeValue
-                value = item.attributes[ 'value' ].nodeValue
-                curvalue = xbmc.getInfoLabel("Skin.String(%s)" %id.encode("utf-8"))
-                if value.lower() == curvalue.lower():
-                    label = xbmc.getInfoLabel(item.attributes[ 'label' ].nodeValue).decode("utf-8")
-                    xbmc.executebuiltin("Skin.SetString(%s.label,%s)" %(id.encode("utf-8"),label.encode("utf-8")))
+        correctSkinSettings()
     except Exception as e:
         logMsg("Error in setSkinVersion --> " + str(e), 0)
-    
+ 
+def correctSkinSettings():     
+    settings_file = xbmc.translatePath( 'special://skin/extras/skinsettings.xml' ).decode("utf-8")
+    if xbmcvfs.exists( settings_file ):
+        doc = parse( settings_file )
+        listing = doc.documentElement.getElementsByTagName( 'setting' )
+        for count, item in enumerate(listing):
+            id = item.attributes[ 'id' ].nodeValue
+            value = item.attributes[ 'value' ].nodeValue
+            curvalue = xbmc.getInfoLabel("Skin.String(%s)" %id.encode("utf-8"))
+            if value.startswith("||SUBLEVEL||"):
+                sublevel = value.replace("||SUBLEVEL||","")
+                for count2, item2 in enumerate(listing):
+                    if item2.attributes[ 'id' ].nodeValue == sublevel:
+                        if item2.attributes[ 'value' ].nodeValue.lower() == curvalue.lower():
+                            label = xbmc.getInfoLabel(item2.attributes[ 'label' ].nodeValue).decode("utf-8")
+                            xbmc.executebuiltin("Skin.SetString(%s.label,%s)" %(id.encode("utf-8"),label.encode("utf-8")))
+            if value and value.lower() == curvalue.lower():
+                label = xbmc.getInfoLabel(item.attributes[ 'label' ].nodeValue).decode("utf-8")
+                xbmc.executebuiltin("Skin.SetString(%s.label,%s)" %(id.encode("utf-8"),label.encode("utf-8")))
+ 
 def createListItem(item):
 
     itemtype = "Video"
