@@ -338,7 +338,6 @@ def NEXTAIREDTVSHOWS(limit):
                 json_result = getJSON('VideoLibrary.GetTvShows','{ "filter": {"operator":"is", "field":"title", "value":"%s"}, "properties": [ %s ] }' %(tvshow,fields_tvshows))
                 if len(json_result) > 0:
                     item = json_result[0]
-                    path = "videodb://tvshows/titles/%s/" %str(item["tvshowid"])
                     extraprops = {}
                     extraprops["airtime"] = WINDOW.getProperty("NextAired.%s.AirTime"%str(count)).decode("utf-8")
                     extraprops["Path"] = WINDOW.getProperty("NextAired.%s.Path"%str(count)).decode("utf-8")
@@ -375,7 +374,12 @@ def NEXTAIREDTVSHOWS(limit):
                     extraprops["Art(clearart)"] = WINDOW.getProperty("NextAired.%s.Art(clearart)"%str(count)).decode("utf-8")
                     extraprops["Art(characterart)"] = WINDOW.getProperty("NextAired.%s.Art(characterart)"%str(count)).decode("utf-8")
                     item["extraproperties"] = extraprops
-                    item["file"] = path
+                    tvshowpath = "ActivateWindow(Videos,videodb://tvshows/titles/%s/,return)" %str(item["tvshowid"])
+                    item["file"]="plugin://script.skin.helper.service?action=LAUNCH&path=" + tvshowpath
+                    item["tvshowtitle"] = WINDOW.getProperty("NextAired.%s.Label"%str(count)).decode("utf-8")
+                    item["title"] = WINDOW.getProperty("NextAired.%s.NextTitle"%str(count)).decode("utf-8")
+                    item["season"] = WINDOW.getProperty("NextAired.%s.NextSeasonNumber"%str(count)).decode("utf-8")
+                    item["episode"] = WINDOW.getProperty("NextAired.%s.NextEpisodeNumber"%str(count)).decode("utf-8")
                     allItems.append(item)
                     count += 1
                     if count == limit:
