@@ -56,6 +56,12 @@ class Main:
                 setting = params.get("SETTING","")
                 windowHeader = params.get("HEADER","")
                 setSkinSetting(setting,windowHeader)
+                
+            elif action == "SETSKINSHORTCUTSPROPERTY":
+                setting = params.get("SETTING","")
+                windowHeader = params.get("HEADER","")
+                property = params.get("PROPERTY","")
+                setSkinShortCutsProperty(setting,windowHeader,property)
             
             elif action == "TOGGLEKODISETTING":
                 kodisetting = params.get("SETTING")
