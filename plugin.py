@@ -12,7 +12,7 @@ class Main:
         
         #get params
         params = urlparse.parse_qs(sys.argv[2][1:].decode("utf-8"))
-        logMsg("Parameter string: %s" % sys.argv[2])
+        logMsg("Parameter string: %s" % sys.argv[2],0)
         
         if params:        
             path=params.get("path",None)
@@ -37,6 +37,19 @@ class Main:
             if action:
                 if action == "LAUNCHPVR":
                     xbmc.executeJSONRPC('{ "jsonrpc": "2.0", "id": 0, "method": "Player.Open", "params": { "item": {"channelid": %d} } }' %int(path))
+                    xbmcplugin.setResolvedUrl(handle=int(sys.argv[1]), succeeded=False, listitem=xbmcgui.ListItem())
+                if action == "PLAYRECORDING":
+                    #retrieve the recording and play as listitem to get resume working
+                    json_result = getJSON('PVR.GetRecordingDetails', '{"recordingid": %d, "properties": [ %s ]}' %(int(path),fields_pvrrecordings))
+                    if json_result:
+                        xbmc.executeJSONRPC('{ "jsonrpc": "2.0", "method": "Player.Open", "params": { "item": { "recordingid": %d } }, "id": 1 }' % int(path))
+                        if json_result["resume"].get("position"):
+                            for i in range(25):
+                                if xbmc.getCondVisibility("Player.HasVideo"):
+                                    break
+                                xbmc.sleep(250)
+                            xbmc.Player().seekTime(json_result["resume"].get("position"))
+
                     xbmcplugin.setResolvedUrl(handle=int(sys.argv[1]), succeeded=False, listitem=xbmcgui.ListItem())
                 elif action == "LAUNCH":
                     path = sys.argv[2].split("&path=")[1]

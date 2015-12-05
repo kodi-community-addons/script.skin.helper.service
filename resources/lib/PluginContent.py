@@ -123,6 +123,7 @@ def PVRRECORDINGS(limit):
                     item["art"]["thumb"] = item["art"].get("thumb")
                 item["channellogo"] = item["art"].get("channellogo","")
                 item["cast"] = None
+                item["file"] = sys.argv[0] + "?action=playrecording&path=" + str(item["recordingid"])
                 allUnSortedItems.append((item["endtime"],item))
                 
         #sort the list so we return a recently added list or recordings

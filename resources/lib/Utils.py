@@ -100,7 +100,9 @@ def getJSON(method,params):
         elif jsonobject.has_key('timers'):
             return jsonobject['timers']
         elif jsonobject.has_key('channeldetails'):
-            return jsonobject['channeldetails']    
+            return jsonobject['channeldetails']
+        elif jsonobject.has_key('recordingdetails'):
+            return jsonobject['recordingdetails']
         elif jsonobject.has_key('songs'):
             return jsonobject['songs']
         elif jsonobject.has_key('albums'):
@@ -401,6 +403,7 @@ def createListItem(item):
     if "resume" in item:
         liz.setProperty("resumetime", str(item['resume']['position']))
         liz.setProperty("totaltime", str(item['resume']['total']))
+        liz.setProperty('StartOffset', str(item['resume']['position']))
     
     if "art" in item:
         art = item['art']
