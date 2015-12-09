@@ -33,6 +33,8 @@ class Main:
             if browse: optionalParam = browse[0]
             reversed=params.get("reversed","")
             if reversed: optionalParam = reversed[0]
+            name=params.get("name","")
+            if name: optionalParam = name[0]
         
             if action:
                 if action == "LAUNCHPVR":

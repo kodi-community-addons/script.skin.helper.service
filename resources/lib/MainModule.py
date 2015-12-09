@@ -297,7 +297,7 @@ def setSkinSetting(setting="", windowHeader="", sublevel="", valueOnly=""):
                 icon = item.attributes[ 'icon' ].nodeValue
                 description = "[B]%s[/B][CR]" %label
                 description += item.attributes[ 'description' ].nodeValue
-                description = xbmc.getInfoLabel(description)
+                description = xbmc.getInfoLabel(description.encode("utf-8"))
                 if condition and not xbmc.getCondVisibility(condition): continue
                 if icon: useRichLayout = True
                 if icon and icon.startswith("$"): icon = xbmc.getInfoLabel(icon)

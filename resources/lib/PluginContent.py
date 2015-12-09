@@ -869,6 +869,27 @@ def getExtraFanArt(path):
             li = xbmcgui.ListItem(item, path=item)
             xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=item, listitem=li)
     xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
+
+def GETCASTMEDIA(limit,name=""):
+    print "getcastmedia"
+    allItems = []
+    if name:
+        json_result = getJSON('VideoLibrary.GetMovies', '{ "properties": [ %s ] }' %fields_movies)
+        for item in json_result:
+            for castmember in item["cast"]:
+                if castmember["name"].lower() == name.lower():
+                    url = "RunScript(script.skin.helper.service,action=showinfo,movieid=%s)" %item["movieid"]
+                    item["file"] = "plugin://script.skin.helper.service/?action=launch&path=" + url
+                    allItems.append(item)
+        json_result = getJSON('VideoLibrary.GetTvShows', '{ "properties": [ %s ] }' %fields_tvshows)
+        for item in json_result:
+            for castmember in item["cast"]:
+                if castmember["name"].lower() == name.lower():
+                    url = "RunScript(script.skin.helper.service,action=showinfo,tvshowid=%s)" %item["tvshowid"]
+                    item["file"] = "plugin://script.skin.helper.service/?action=launch&path=" + url
+                    allItems.append(item)
+    print allItems
+    return allItems
     
 def getCast(movie=None,tvshow=None,movieset=None,episode=None,downloadThumbs=False):
     itemId = None
@@ -962,6 +983,7 @@ def getCast(movie=None,tvshow=None,movieset=None,episode=None,downloadThumbs=Fal
                     artwork = getOfficialArtWork(cast["name"],None,"person")
                     cast["thumbnail"] = artwork.get("thumb","")
                 liz = xbmcgui.ListItem(label=cast["name"],label2=cast["role"],iconImage=cast.get("thumbnail"))
+                liz.setProperty("DBID",cast["id"])
                 allCast.append([cast["name"],cast["role"],cast.get("thumbnail","")])
                 castNames.append(cast["name"])
                 url = "RunScript(script.extendedinfo,info=extendedactorinfo,name=%s)"%cast["name"]
