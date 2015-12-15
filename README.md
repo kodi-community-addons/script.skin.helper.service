@@ -83,7 +83,11 @@ Some additional window properties that can be used in the video library.
 |Window(Home).Property(SkinHelper.RottenTomatoesAwards) | awards for the movie |
 |Window(Home).Property(SkinHelper.RottenTomatoesBoxOffice) | amount the film made at box office |
 |Window(Home).Property(SkinHelper.TMDB.Budget) | budget spent to this movie in dollars (from tmdb)|
+|Window(Home).Property(SkinHelper.TMDB.Budget.mln) | budget spent to this movie in millions of dollars|
+|Window(Home).Property(SkinHelper.TMDB.Budget.formatted) | Same as Budget.mln but formatted as $ 123 mln.|
 |Window(Home).Property(SkinHelper.TMDB.Revenue) | revenue for this movie in dollars (from tmdb) |
+|Window(Home).Property(SkinHelper.TMDB.Revenue.mln) | Revenue for this movie in millions of dollars|
+|Window(Home).Property(SkinHelper.TMDB.Revenue.formatted) | Same as Revenue.mln but formatted as $ 123 mln.|
 |Window(Home).Property(SkinHelper.TMDB.Tagline) | tagline for this movie (from tmdb) |
 |Window(Home).Property(SkinHelper.TMDB.Homepage) | homepage for this movie (from tmdb) |
 |Window(Home).Property(SkinHelper.TMDB.Status) | status for this movie, e.g. released (from tmdb) |

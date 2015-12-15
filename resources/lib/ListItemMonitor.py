@@ -1105,12 +1105,23 @@ class ListItemMonitor(threading.Thread):
                         url = 'http://api.themoviedb.org/3/movie/%s?api_key=%s' %(data[0].get("id"),tmdb_apiKey)
                         response = requests.get(url)
                         data = json.loads(response.content.decode('utf-8','replace'))
-                        result["budget"] = str(data.get("budget",""))
-                        result["revenue"] = str(data.get("revenue",""))
+                        
+                        if data.get("budget","") and data.get("budget") > 0:
+                            result["budget"] = str(data.get("budget",""))
+                            mln = int(data.get("budget") / 1000000)
+                            result["budget.mln"] = str(mln)
+                            result["budget.formatted"] = "$ %s mln." %mln
+                        
+                        if data.get("revenue","") and data.get("revenue") > 0:
+                            result["revenue"] = str(data.get("revenue",""))
+                            mln = int(data.get("revenue") / 1000000)
+                            result["revenue.mln"] = str(mln)
+                            result["revenue.formatted"] = "$ %s mln." %mln
+                            
                         result["tagline"] = data.get("tagline","")
                         result["homepage"] = data.get("homepage","")
                         result["status"] = data.get("status","")
-                        result["popularity"] = data.get("popularity","")
+                        result["popularity"] = str(data.get("popularity",""))
                 #save to cache
                 if result: self.extendedinfocache[imdbnumber] = result
             
@@ -1123,7 +1134,11 @@ class ListItemMonitor(threading.Thread):
                 WINDOW.setProperty("SkinHelper.RottenTomatoesBoxOffice",result.get('BoxOffice',""))
                 
                 WINDOW.setProperty("SkinHelper.TMDB.Budget",result.get('budget',""))
+                WINDOW.setProperty("SkinHelper.TMDB.Budget.formatted",result.get('budget.formatted',""))
+                WINDOW.setProperty("SkinHelper.TMDB.Budget.mln",result.get('budget.mln',""))
                 WINDOW.setProperty("SkinHelper.TMDB.revenue",result.get('revenue',""))
+                WINDOW.setProperty("SkinHelper.TMDB.revenue.formatted",result.get('revenue.formatted',""))
+                WINDOW.setProperty("SkinHelper.TMDB.revenue.mln",result.get('revenue.mln',""))
                 WINDOW.setProperty("SkinHelper.TMDB.tagline",result.get('tagline',""))
                 WINDOW.setProperty("SkinHelper.TMDB.homepage",result.get('homepage',""))
                 WINDOW.setProperty("SkinHelper.TMDB.status",result.get('status',""))
