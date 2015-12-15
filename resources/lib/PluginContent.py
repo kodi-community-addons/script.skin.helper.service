@@ -983,7 +983,6 @@ def getCast(movie=None,tvshow=None,movieset=None,episode=None,downloadThumbs=Fal
                     artwork = getOfficialArtWork(cast["name"],None,"person")
                     cast["thumbnail"] = artwork.get("thumb","")
                 liz = xbmcgui.ListItem(label=cast["name"],label2=cast["role"],iconImage=cast.get("thumbnail"))
-                liz.setProperty("DBID",cast["id"])
                 allCast.append([cast["name"],cast["role"],cast.get("thumbnail","")])
                 castNames.append(cast["name"])
                 url = "RunScript(script.extendedinfo,info=extendedactorinfo,name=%s)"%cast["name"]
