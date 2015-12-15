@@ -209,7 +209,7 @@ def backup(filterString="",silent=None,promptfilename="false"):
 def restoreSkinSettings(filename, progressDialog=None):
     if xbmcvfs.exists(filename):
         f = xbmcvfs.File(filename, 'r')
-        importstring = f.read()
+        importstring = eval(f.read())
         f.close()
         xbmc.sleep(200)
         for count, skinsetting in enumerate(importstring):
@@ -250,7 +250,7 @@ def restore(silent=None):
     if silent and not silent.lower().endswith("zip"):
         xbmc.executebuiltin( "ActivateWindow(busydialog)" )
         try:
-            restoreSkinSettings(skinsettingsfile, progressDialog)
+            restoreSkinSettings(silent)
         except: logMsg("ERROR while restoring backup !",0)
         xbmc.executebuiltin( "Dialog.Close(busydialog)" )
     else:
