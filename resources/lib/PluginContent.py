@@ -246,7 +246,7 @@ def getThumb(searchphrase):
 
 def RECENTALBUMS(limit,browse=""):
     allItems = []
-    json_result = getJSON('AudioLibrary.GetRecentlyAddedAlbums', '{ "sort": { "order": "descending", "method": "dateadded" }, "properties": [ %s ], "limits":{"end":%d} }' %(fields_albums,limit))
+    json_result = getJSON('AudioLibrary.GetRecentlyAddedAlbums', '{ "properties": [ %s ], "limits":{"end":%d} }' %(fields_albums,limit))
     for item in json_result:
         item["art"] = getMusicArtworkByDbId(item["albumid"], "albums")
         item["type"] = "album"
@@ -280,7 +280,7 @@ def RECENTPLAYEDALBUMS(limit,browse=""):
 
 def RECENTPLAYEDSONGS(limit):
     allItems = []
-    json_result = getJSON('AudioLibrary.GetRecentlyPlayedSongs', '{ "sort": { "order": "descending", "method": "lastplayed" }, "properties": [ %s ], "limits":{"end":%d} }' %(fields_songs,limit))
+    json_result = getJSON('AudioLibrary.GetRecentlyPlayedSongs', '{ "properties": [ %s ], "limits":{"end":%d} }' %(fields_songs,limit))
     for item in json_result:
         item["art"] = getMusicArtworkByDbId(item["songid"], "songs")
         item["type"] = "song"
@@ -291,7 +291,7 @@ def RECENTPLAYEDSONGS(limit):
 
 def RECENTSONGS(limit):
     allItems = []
-    json_result = getJSON('AudioLibrary.GetRecentlyAddedSongs', '{ "sort": { "order": "descending", "method": "dateadded" }, "properties": [ %s ], "limits":{"end":%d} }' %(fields_songs,limit))
+    json_result = getJSON('AudioLibrary.GetRecentlyAddedSongs', '{ "properties": [ %s ], "limits":{"end":%d} }' %(fields_songs,limit))
     for item in json_result:
         item["art"] = getMusicArtworkByDbId(item["songid"], "songs")
         item["type"] = "song"
