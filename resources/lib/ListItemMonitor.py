@@ -1108,15 +1108,17 @@ class ListItemMonitor(threading.Thread):
                         
                         if data.get("budget","") and data.get("budget") > 0:
                             result["budget"] = str(data.get("budget",""))
-                            mln = int(data.get("budget") / 1000000)
-                            result["budget.mln"] = str(mln)
-                            result["budget.formatted"] = "$ %s mln." %mln
+                            mln = float(data.get("budget")) / 1000000
+                            mln = "%.1f" % mln
+                            result["budget.formatted"] = "$ %s mln." %mln.replace(".0","").replace(".",",")
+                            result["budget.mln"] = mln
                         
                         if data.get("revenue","") and data.get("revenue") > 0:
                             result["revenue"] = str(data.get("revenue",""))
-                            mln = int(data.get("revenue") / 1000000)
-                            result["revenue.mln"] = str(mln)
-                            result["revenue.formatted"] = "$ %s mln." %mln
+                            mln = float(data.get("revenue")) / 1000000
+                            mln = "%.1f" % mln
+                            result["revenue.formatted"] = "$ %s mln." %mln.replace(".0","").replace(".",",")
+                            result["revenue.mln"] = mln
                             
                         result["tagline"] = data.get("tagline","")
                         result["homepage"] = data.get("homepage","")
