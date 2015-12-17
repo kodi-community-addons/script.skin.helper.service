@@ -7,6 +7,7 @@ from xml.dom.minidom import Document
 import xml.etree.ElementTree as ET
 from Utils import *
 import musicbrainzngs as m
+from GoogleImages import *
 
 tmdb_apiKey = base64.b64decode("NDc2N2I0YjJiYjk0YjEwNGZhNTUxNWM1ZmY0ZTFmZWM=")
 m.set_useragent("script.skin.helper.service", "1.0.0", "https://github.com/marcelveldt/script.skin.helper.service")
@@ -156,7 +157,7 @@ def getPVRThumbs(title,channel,type="channels",path="",genre="",ignoreCache=Fals
                     
                 #lookup thumb on google as fallback
                 if not artwork.get("thumb") and channel and WINDOW.getProperty("SkinHelper.useGoogleLookups") == "true":
-                    artwork["thumb"] = searchGoogleImage("'%s' '%s'" %(searchtitle, channel) )
+                    artwork["thumb"] = searchGoogleImage(searchtitle, channel)
                 
                 #lookup thumb on youtube as fallback
                 if not artwork.get("thumb") and channel and WINDOW.getProperty("SkinHelper.useYoutubeLookups") == "true":
@@ -526,15 +527,51 @@ def searchChannelLogo(searchphrase):
         WINDOW.setProperty(searchphrase.encode('utf-8') + "SkinHelper.PVR.ChannelLogo",image)
         return image
 
-def searchGoogleImage(searchphrase):
+def searchGoogleImage(searchphrase1, searchphrase2):
+    if searchphrase2: searchphrase = "'%s' '%s'" %(searchphrase1, searchphrase2)
+    else: searchphrase = searchphrase1
+    
+    try:
+        api = googleImagesAPI()
+        api.perPage = 5
+        query = api.createQuery(searchphrase)
+        images = api.getImages(query,page=1)
+        for img in images:
+            image = img.get("unescapedUrl")
+            page = img.get("page")
+            images2 = api.getPageImages(page)
+
+            #prefer results with searchphrase in url
+            for img2 in images2:
+                url = img2["url"]
+                if getCompareString(searchphrase1) in getCompareString(url) and ".jpg" in url:
+                    #TODO: improve this and return more results (filter out the mess)
+                    return url
+            
+            # fallback to just JPG files 
+            for img2 in images2:
+                url = img2["url"]
+                if (".jpg" in url or ".png" in url):
+                    #TODO: improve this and return more results (filter out the mess)
+                    return url
+                    
+    except Exception as e:
+        if "getaddrinfo failed" in str(e):
+            WINDOW.setProperty("SkinHelper.DisableInternetLookups","disable")
+            logMsg("searchGoogleImage - no internet access, disabling internet lookups for now")
+        else:
+            logMsg("getTMDBimage - ERROR in searchGoogleImage ! --> " + str(e))
+    return ""
+        
+def searchGoogleImageOld(searchphrase):
     image = ""
-   
     try:
         ip_address = xbmc.getInfoLabel("Network.IPAddress")
         url = 'http://ajax.googleapis.com/ajax/services/search/images'
         params = {'v' : '1.0', 'safe': 'off', 'userip': ip_address, 'q': searchphrase, 'imgsz': 'medium|large|xlarge'}
         response = requests.get(url, params=params)
         data = json.loads(response.content.decode('utf-8','replace'))
+        print data
         if data and data.get("responseData"):
             if data['responseData'].get("results"):
                 results = data['responseData']['results']
@@ -555,8 +592,10 @@ def searchGoogleImage(searchphrase):
     logMsg("getTMDBimage - GOOGLE match NOT found for %s" %searchphrase)
     return image
  
-def searchYoutubeImage(searchphrase):
+def searchYoutubeImage(searchphrase, searchphrase2=""):
     image = ""
+    if searchphrase2:
+        searchphrase = searchphrase + " " + searchphrase2
     matchFound = False
     #safety check: prevent multiple youtube searches at once...
     waitForYouTubeCount = 0
@@ -588,19 +627,13 @@ def searchThumb(searchphrase, searchphrase2=""):
     #is this item already in the cache?
     image = WINDOW.getProperty(try_encode(searchphrase + searchphrase2) + "SkinHelper.PVR.Thumb").decode("utf-8")
     if not image and not WINDOW.getProperty("SkinHelper.DisableInternetLookups"):
-        if searchphrase2:
-            searchphrase = searchphrase + " " + searchphrase2
-            
         WINDOW.setProperty("getthumbbusy","busy")
-                  
         #lookup with Google images
         if not image:
-            image = searchGoogleImage(searchphrase)
-        
+            image = searchGoogleImage(searchphrase, searchphrase2)
         # Do lookup with youtube addon as last resort
         if not image:
-            searchYoutubeImage(searchphrase)
-                
+            searchYoutubeImage(searchphrase, searchphrase2)
         if image:
             if ".jpg/" in image:
                 image = image.split(".jpg/")[0] + ".jpg"
