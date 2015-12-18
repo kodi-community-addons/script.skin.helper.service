@@ -253,12 +253,12 @@ def selectView(contenttype="other", currentView=None, displayNone=False, display
         return id
 
 def setSkinShortCutsProperty(setting="",windowHeader="",propertyName=""):
-    curValue = xbmc.getInfoLabel("$INFO[Container(211).ListItem.Property(%s)]" %propertyName)
+    curValue = xbmc.getInfoLabel("$INFO[Container(211).ListItem.Property(%s)]" %propertyName).decode("utf-8")
     if not curValue: curValue = "None"
     if setting:
         (value, label) = setSkinSetting(setting, windowHeader, None, curValue)
     else:
-        value = xbmcgui.Dialog().input(windowHeader, curValue, type=xbmcgui.INPUT_ALPHANUM)
+        value = xbmcgui.Dialog().input(windowHeader, curValue, type=xbmcgui.INPUT_ALPHANUM).decode("utf-8")
     if value:
         xbmc.executebuiltin("SetProperty(customProperty,%s)" %propertyName.encode("utf-8"))
         xbmc.executebuiltin("SetProperty(customValue,%s)" %value.encode("utf-8"))
@@ -319,8 +319,8 @@ def setSkinSetting(setting="", windowHeader="", sublevel="", valueOnly=""):
         selectedItem = w.result
         del w
         if selectedItem != -1:
-            value = allValues[selectedItem].getProperty("value")
-            label = allValues[selectedItem].getLabel()
+            value = try_decode( allValues[selectedItem].getProperty("value") )
+            label = try_decode( allValues[selectedItem].getLabel() )
             description = allValues[selectedItem].getProperty("description")
             if value.startswith("||SUBLEVEL||"):
                 sublevel = value.replace("||SUBLEVEL||","")
@@ -336,7 +336,7 @@ def setSkinSetting(setting="", windowHeader="", sublevel="", valueOnly=""):
                     else:
                         xbmc.executebuiltin("Skin.SetString(%s,%s)" %(setting.encode("utf-8"),value.encode("utf-8")))
                         xbmc.executebuiltin("Skin.SetString(%s.label,%s)" %(setting.encode("utf-8"),label.encode("utf-8")))
-
+        else: return (None,None)
                     
 def toggleKodiSetting(settingname):
     #toggle kodi setting
