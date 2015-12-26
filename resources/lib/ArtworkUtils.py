@@ -456,7 +456,8 @@ def getArtworkFromCacheFile(cachefile,artwork=None):
             cacheFound = True
             for child in root:
                 if not artwork.get(child.tag):
-                    artwork[child.tag] = try_decode(child.text)
+                    value = try_decode(child.text).replace('\n', ' ').replace('\r', '')
+                    artwork[child.tag] = value
             del root
         except Exception as e:
             logMsg("ERROR in getArtworkFromCacheFile %s  --> %s" %(cachefile,str(e)), 0)
@@ -729,7 +730,7 @@ def getArtistArtwork(musicbrainzartistid, artwork=None):
             if not artwork.get("folder") and adbdetails.get("strArtistThumb"): artwork["folder"] = adbdetails.get("strArtistThumb")
             if not artwork.get("info") and adbdetails.get("strBiography" + KODILANGUAGE.upper()): artwork["info"] = adbdetails.get("strBiography" + KODILANGUAGE.upper())
             if not artwork.get("info") and adbdetails.get("strBiographyEN"): artwork["info"] = adbdetails.get("strBiographyEN")
-            if artwork.get("info"): artwork["info"] = artwork.get("info").replace("\n","")
+            if artwork.get("info"): artwork["info"] = artwork.get("info").replace('\n', ' ').replace('\r', '')
             
     return artwork
 
@@ -752,7 +753,7 @@ def getAlbumArtwork(musicbrainzalbumid, artwork=None):
             if not artwork.get("discart") and adbdetails.get("strAlbumCDart"): artwork["discart"] = adbdetails.get("strAlbumCDart")
             if not artwork.get("info") and adbdetails.get("strDescription" + KODILANGUAGE.upper()): artwork["info"] = adbdetails.get("strDescription" + KODILANGUAGE.upper())
             if not artwork.get("info") and adbdetails.get("strDescriptionEN"): artwork["info"] = adbdetails.get("strDescriptionEN")
-            if artwork.get("info"): artwork["info"] = normalize_string(artwork["info"])
+            if artwork.get("info"): artwork["info"] = normalize_string(artwork["info"]).replace('\n', ' ').replace('\r', '')
     
     if not artwork.get("thumb") and not artwork.get("folder") and not WINDOW.getProperty("SkinHelper.TempDisableMusicBrainz"): 
         try: 
