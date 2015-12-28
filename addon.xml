@@ -34,8 +34,8 @@
 		<language></language>
 		<platform>all</platform>
 		<license>GPL v2.0</license>
-		<forum></forum>
+		<forum>http://forum.kodi.tv/showthread.php?tid=235676</forum>
 		<website></website>
-		<source></source>
+		<source>https://github.com/marcelveldt/script.skin.helper.service</source>
 	</extension>
 </addon>
