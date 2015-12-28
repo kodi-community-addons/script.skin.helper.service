@@ -640,6 +640,22 @@ def buildRecommendedMediaListing(limit,ondeckContent=False,recommendedContent=Tr
                     allOndeckItems.append((lastplayed,item))
                     allTitles.append(item["title"])
         
+        #plex in progress
+        if WINDOW.getProperty("plexbmc.0.title"):
+            nodes = []
+            for i in range(50):
+                key = "plexbmc.%s.ondeck"%(str(i))
+                path = WINDOW.getProperty(key + ".content")
+                label = WINDOW.getProperty(key + ".title")
+                if not path: break
+                else:
+                    json_result = getJSON('Files.GetDirectory', '{ "directory": "%s", "media": "files", "properties": [ %s ] }' %(path,fields_files))
+                    for item in json_result:
+                        lastplayed = item["lastplayed"]
+                        if not item["title"] in allTitles:
+                            allOndeckItems.append((lastplayed,item))
+                            allTitles.append(item["title"])
+
         # Get a list of all the in-progress Movies
         json_result = getJSON('VideoLibrary.GetMovies', '{ "sort": { "order": "descending", "method": "lastplayed" }, "filter": {"and": [{"operator":"true", "field":"inprogress", "value":""}]}, "properties": [ %s ] }' %fields_movies)
         for item in json_result:
@@ -676,11 +692,11 @@ def buildRecommendedMediaListing(limit,ondeckContent=False,recommendedContent=Tr
         json_result = getJSON('VideoLibrary.GetTVShows', '{ "sort": { "order": "descending", "method": "lastplayed" }, "filter": {"and": [{"operator":"true", "field":"inprogress", "value":""}]}, "properties": [ "title" ] }')
         for item in json_result:
             json_query2 = getJSON('VideoLibrary.GetEpisodes', '{ "tvshowid": %d, "sort": {"method":"episode"}, "filter": {"and": [ {"field": "playcount", "operator": "lessthan", "value":"1"}, {"field": "season", "operator": "greaterthan", "value": "0"} ]}, "properties": [ %s ], "limits":{"end":1}}' %(item['tvshowid'], fields_episodes))
-            for item in json_query2:
-                lastplayed = item["lastplayed"]
-                if not item["title"] in allTitles:
-                    allOndeckItems.append((lastplayed,item))
-                    allTitles.append(item["title"])         
+            for item2 in json_query2:
+                lastplayed = item2["lastplayed"]
+                if not item2["title"] in allTitles:
+                    allOndeckItems.append((lastplayed,item2))
+                    allTitles.append(item2["title"])         
         
         #sort the list with in progress items by lastplayed date   
         allItems = sorted(allOndeckItems,key=itemgetter(0),reverse=True)
