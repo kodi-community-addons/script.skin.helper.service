@@ -398,6 +398,25 @@ def RECOMMENDEDMOVIES(limit):
             break
         allItems.append(item)
         numitems +=1
+    
+    #plex in progress
+    if WINDOW.getProperty("plexbmc.0.title"):
+        nodes = []
+        for i in range(50):
+            key = "plexbmc.%s.ondeck"%(str(i))
+            path = WINDOW.getProperty(key + ".content")
+            label = WINDOW.getProperty(key + ".title")
+            type = WINDOW.getProperty("plexbmc.%s.type"%(str(i)))
+            if not label: break
+            else:
+                if "movie" in type:
+                    json_result = getJSON('Files.GetDirectory', '{ "directory": "%s", "media": "files", "properties": [ %s ] }' %(path,fields_files))
+                    for item in json_result:
+                        if numitems >= limit:
+                            break
+                        allItems.append(item)
+                        numitems +=1
+    
     # Fill the list with random items with a score higher then 7
     json_result = getJSON('VideoLibrary.GetMovies','{ "sort": { "order": "descending", "method": "random" }, "filter": {"and": [{"operator":"is", "field":"playcount", "value":"0"},{"operator":"greaterthan", "field":"rating", "value":"7"}]}, "properties": [ %s ] }' %fields_movies)
     # If we found any, find the oldest unwatched show for each one.
@@ -406,6 +425,25 @@ def RECOMMENDEDMOVIES(limit):
             break
         allItems.append(item)
         numitems +=1
+        
+    #plex recommended
+    if WINDOW.getProperty("plexbmc.0.title"):
+        for i in range(50):
+            key = "plexbmc.%s.ondeck"%(str(i))
+            path = WINDOW.getProperty(key + ".unwatched")
+            label = WINDOW.getProperty(key + ".title")
+            type = WINDOW.getProperty("plexbmc.%s.type"%(str(i)))
+            if not label: break
+            if "movie" in type:
+                json_result = getJSON('Files.GetDirectory', '{ "directory": "%s", "media": "files", "properties": [ %s ] }' %(path,fields_files))
+                for item in json_result:
+                    rating = item["rating"]
+                    if rating > 7:
+                        if numitems >= limit:
+                            break
+                        allItems.append(item)
+                        numitems +=1    
+        
     return allItems
 
 def RECOMMENDEDALBUMS(limit,browse=False):
@@ -642,19 +680,17 @@ def buildRecommendedMediaListing(limit,ondeckContent=False,recommendedContent=Tr
         
         #plex in progress
         if WINDOW.getProperty("plexbmc.0.title"):
-            nodes = []
             for i in range(50):
                 key = "plexbmc.%s.ondeck"%(str(i))
                 path = WINDOW.getProperty(key + ".content")
                 label = WINDOW.getProperty(key + ".title")
                 if not path: break
-                else:
-                    json_result = getJSON('Files.GetDirectory', '{ "directory": "%s", "media": "files", "properties": [ %s ] }' %(path,fields_files))
-                    for item in json_result:
-                        lastplayed = item["lastplayed"]
-                        if not item["title"] in allTitles:
-                            allOndeckItems.append((lastplayed,item))
-                            allTitles.append(item["title"])
+                json_result = getJSON('Files.GetDirectory', '{ "directory": "%s", "media": "files", "properties": [ %s ] }' %(path,fields_files))
+                for item in json_result:
+                    lastplayed = item["lastplayed"]
+                    if not item["title"] in allTitles:
+                        allOndeckItems.append((lastplayed,item))
+                        allTitles.append(item["title"])
 
         # Get a list of all the in-progress Movies
         json_result = getJSON('VideoLibrary.GetMovies', '{ "sort": { "order": "descending", "method": "lastplayed" }, "filter": {"and": [{"operator":"true", "field":"inprogress", "value":""}]}, "properties": [ %s ] }' %fields_movies)
@@ -726,6 +762,22 @@ def buildRecommendedMediaListing(limit,ondeckContent=False,recommendedContent=Tr
                     allRecommendedItems.append((rating,item))
                     allTitles.append(item["title"])
                     
+        #plex recommended
+        if WINDOW.getProperty("plexbmc.0.title"):
+            for i in range(50):
+                key = "plexbmc.%s.unwatched"%(str(i))
+                path = WINDOW.getProperty(key + ".content")
+                label = WINDOW.getProperty(key + ".title")
+                type = WINDOW.getProperty("plexbmc.%s.type"%(str(i)))
+                if not label: break
+                if "movie" in type or "show" in type:
+                    json_result = getJSON('Files.GetDirectory', '{ "directory": "%s", "media": "files", "properties": [ %s ] }' %(path,fields_files))
+                    for item in json_result:
+                        rating = item["rating"]
+                        if not item["title"] in allTitles and rating > 7:
+                            allOndeckItems.append((rating,item))
+                            allTitles.append(item["title"])
+                    
         #sort the list with recommended items by rating 
         allItems += sorted(allRecommendedItems,key=itemgetter(0),reverse=True)
         
@@ -787,6 +839,22 @@ def RECENTMEDIA(limit):
         if not item["title"] in allTitles:
             allItems.append((lastplayed,item))
             allTitles.append(item["title"])
+    
+    #recent plex items
+    if WINDOW.getProperty("plexbmc.0.title"):
+        nodes = []
+        for i in range(50):
+            key = "plexbmc.%s.recent"%(str(i))
+            path = WINDOW.getProperty(key + ".content")
+            label = WINDOW.getProperty(key + ".title")
+            type = WINDOW.getProperty("plexbmc.%s.type"%(str(i)))
+            if not label: break
+            json_result = getJSON('Files.GetDirectory', '{ "directory": "%s", "media": "files", "properties": [ %s ] }' %(path,fields_files))
+            for item in json_result:
+                dateadded = item["dateadded"]
+                if not item["title"] in allTitles:
+                    allItems.append((dateadded,item))
+                    allTitles.append(item["title"])
     
     #sort the list with in recent items by lastplayed date   
     allItems = sorted(allItems,key=itemgetter(0),reverse=True)
