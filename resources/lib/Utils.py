@@ -232,6 +232,8 @@ def correctSkinSettings():
             id = item.attributes[ 'id' ].nodeValue
             value = item.attributes[ 'value' ].nodeValue
             curvalue = xbmc.getInfoLabel("Skin.String(%s)" %id.encode("utf-8"))
+            try: default = item.attributes[ 'default' ].nodeValue
+            except: default = ""
             if value.startswith("||SUBLEVEL||"):
                 sublevel = value.replace("||SUBLEVEL||","")
                 for count2, item2 in enumerate(listing):
@@ -242,6 +244,10 @@ def correctSkinSettings():
             if value and value.lower() == curvalue.lower():
                 label = xbmc.getInfoLabel(item.attributes[ 'label' ].nodeValue).decode("utf-8")
                 xbmc.executebuiltin("Skin.SetString(%s.label,%s)" %(id.encode("utf-8"),label.encode("utf-8")))
+            if not curvalue and default=="true":
+                label = xbmc.getInfoLabel(item.attributes[ 'label' ].nodeValue).decode("utf-8")
+                xbmc.executebuiltin("Skin.SetString(%s.label,%s)" %(id.encode("utf-8"),label.encode("utf-8")))
+                xbmc.executebuiltin("Skin.SetString(%s,%s)" %(id.encode("utf-8"),value.encode("utf-8")))
  
 def createListItem(item):
 

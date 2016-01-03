@@ -1012,7 +1012,7 @@ class ListItemMonitor(threading.Thread):
           
     def setForcedView(self):
         currentForcedView = xbmc.getInfoLabel("Skin.String(SkinHelper.ForcedViews.%s)" %self.contentType)
-        if self.contentType and currentForcedView and currentForcedView != "None" and xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.ForcedViews.Enabled)"):
+        if self.contentType and currentForcedView and currentForcedView != "None" and xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.ForcedViews.Enabled)" and self.folderPath != "pvr://guide"):
             WINDOW.setProperty("SkinHelper.ForcedView",currentForcedView)
             xbmc.executebuiltin("Container.SetViewMode(%s)" %currentForcedView)
             if not xbmc.getCondVisibility("Control.HasFocus(%s)" %currentForcedView):
