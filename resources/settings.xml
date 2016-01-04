@@ -29,7 +29,9 @@
         <setting id="enableMusicArtScraper" type="bool" label="32123" default="true"/>
         <setting id="enableLocalMusicArtLookup" type="bool" label="32124" default="true"/>
         <setting id="downloadMusicArt" type="bool" label="32125" default="false" visible="eq(-1,true)"/>
+        <setting id="preferOnlineMusicArt" type="bool" label="32159" default="false" visible="eq(-1,true)"/>
         <setting label="32126" type="action" action="RunScript(script.skin.helper.service,action=RESETCACHE,path=music)"/>
+        <setting label="Precache all artwork" type="action" action="RunScript(script.skin.helper.service,action=CACHEALLMUSICART)" option="close"/>
     </category>
     <category label="32134">
         <setting id="enableDebugLog" type="bool" label="32135" default="false"/>

@@ -38,7 +38,7 @@ fields_tvshows = fields_base + '"sorttitle", "mpaa", "premiered", "year", "episo
 fields_episodes = fields_file + '"cast", "productioncode", "rating", "votes", "episode", "showtitle", "tvshowid", "season", "firstaired", "writer", "originaltitle"'
 fields_musicvideos = fields_file + '"genre", "artist", "tag", "album", "track", "studio", "year"'
 fields_files = fields_file + fields_movies + ", " + fields_tvshows + ", " + fields_episodes
-fields_songs = '"artist", "title", "rating", "fanart", "thumbnail", "duration", "playcount", "comment", "file", "album", "lastplayed", "genre"'
+fields_songs = '"artist","displayartist", "title", "rating", "fanart", "thumbnail", "duration", "playcount", "comment", "file", "album", "lastplayed", "genre"'
 fields_albums = '"title", "fanart", "thumbnail", "genre", "displayartist", "artist", "genreid", "musicbrainzalbumartistid", "year", "rating", "artistid", "musicbrainzalbumid", "theme", "description", "type", "style", "playcount", "albumlabel", "mood"'
 fields_pvrrecordings = '"art", "channel", "directory", "endtime", "file", "genre", "icon", "playcount", "plot", "plotoutline", "resume", "runtime", "starttime", "streamurl", "title"'
 KodiArtTypes = [ ("thumb","thumb.jpg"),("poster","poster.jpg"),("fanart","fanart.jpg"),("banner","banner.jpg"),("landscape","landscape.jpg"),("clearlogo","logo.png"),("clearart","clearart.png"),("channellogo","channellogo.png"),("discart","disc.png"),("discart","cdart.png"),("extrafanart","extrafanart/"),("characterart","characterart.png"),("folder","folder.jpg") ]
@@ -182,6 +182,7 @@ def setAddonsettings():
     WINDOW.setProperty("SkinHelper.maxNumFanArts",SETTING("maxNumFanArts"))
     WINDOW.setProperty("SkinHelper.splittitlechar",SETTING("splittitlechar"))
     WINDOW.setProperty("SkinHelper.enablePVRThumbsRecordingsOnly",SETTING("enablePVRThumbsRecordingsOnly"))
+    WINDOW.setProperty("SkinHelper.preferOnlineMusicArt",SETTING("preferOnlineMusicArt"))
     
 def indentXML( elem, level=0 ):
     i = "\n" + level*"\t"

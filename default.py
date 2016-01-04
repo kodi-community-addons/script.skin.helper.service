@@ -167,6 +167,11 @@ class Main:
             
             elif action == "BUSYTEXTURE":    
                 selectBusyTexture()
+                
+            elif action == "CACHEALLMUSICART": 
+                import resources.lib.ArtworkUtils as artworkutils
+                artworkutils.preCacheAllMusicArt()
+                del artworkutils
 
             elif action == "RESETCACHE":
                 path = params.get("PATH")

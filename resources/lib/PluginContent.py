@@ -248,7 +248,7 @@ def RECENTALBUMS(limit,browse=""):
     allItems = []
     json_result = getJSON('AudioLibrary.GetRecentlyAddedAlbums', '{ "properties": [ %s ], "limits":{"end":%d} }' %(fields_albums,limit))
     for item in json_result:
-        item["art"] = getMusicArtworkByDbId(item["albumid"], "albums")
+        item["art"] = getMusicArtwork(item["displayartist"], item["label"])
         item["type"] = "album"
         item["extraproperties"] = {"extrafanart": item["art"].get("extrafanart",""), "tracklist":item["art"].get("tracklist","")}
         item['album_description'] = item["art"].get("info","")
@@ -265,7 +265,7 @@ def RECENTPLAYEDALBUMS(limit,browse=""):
     allItems = []
     json_result = getJSON('AudioLibrary.GetRecentlyPlayedAlbums', '{ "sort": { "order": "descending", "method": "lastplayed" }, "properties": [ %s ], "limits":{"end":%d} }' %(fields_albums,limit))
     for item in json_result:
-        item["art"] = getMusicArtworkByDbId(item["albumid"], "albums")
+        item["art"] = getMusicArtwork(item["displayartist"], item["label"])
         item["type"] = "album"
         item["extraproperties"] = {"extrafanart": item["art"].get("extrafanart",""), "tracklist":item["art"].get("tracklist","")}
         item['album_description'] = item["art"].get("info","")
@@ -282,7 +282,7 @@ def RECENTPLAYEDSONGS(limit):
     allItems = []
     json_result = getJSON('AudioLibrary.GetRecentlyPlayedSongs', '{ "properties": [ %s ], "limits":{"end":%d} }' %(fields_songs,limit))
     for item in json_result:
-        item["art"] = getMusicArtworkByDbId(item["songid"], "songs")
+        item["art"] = getMusicArtwork(item["displayartist"], item["album"])
         item["type"] = "song"
         item["extraproperties"] = {"extrafanart": item["art"].get("extrafanart",""), "tracklist":item["art"].get("tracklist","")}
         item['album_description'] = item["art"].get("info","")
@@ -293,7 +293,7 @@ def RECENTSONGS(limit):
     allItems = []
     json_result = getJSON('AudioLibrary.GetRecentlyAddedSongs', '{ "properties": [ %s ], "limits":{"end":%d} }' %(fields_songs,limit))
     for item in json_result:
-        item["art"] = getMusicArtworkByDbId(item["songid"], "songs")
+        item["art"] = getMusicArtwork(item["artist"], item["album"])
         item["type"] = "song"
         item["extraproperties"] = {"extrafanart": item["art"].get("extrafanart",""), "tracklist":item["art"].get("tracklist","")}
         item['album_description'] = item["art"].get("info","")
@@ -467,7 +467,7 @@ def RECOMMENDEDALBUMS(limit,browse=False):
             for item in json_result:
                 if count == limit: break
                 if not item["title"] in allTitles and not item["title"] == similartitle and genre in item["genre"]:
-                    item["art"] = getMusicArtworkByDbId(item["albumid"], "albums")
+                    item["art"] = getMusicArtwork(item["displayartist"], item["label"])
                     item["type"] = "album"
                     item["extraproperties"] = {"extrafanart": item["art"].get("extrafanart",""), "tracklist":item["art"].get("tracklist","")}
                     item['album_description'] = item["art"].get("info","")
@@ -508,7 +508,7 @@ def RECOMMENDEDSONGS(limit):
             for item in json_result:
                 if count == limit: break
                 if not item["title"] in allTitles and not item["title"] == similartitle:
-                    item["art"] = getMusicArtworkByDbId(item["songid"], "songs")
+                    item["art"] = getMusicArtwork(item["displayartist"], item["album"])
                     item["type"] = "song"
                     item["extraproperties"] = {"extrafanart": item["art"].get("extrafanart",""), "tracklist":item["art"].get("tracklist","")}
                     item['album_description'] = item["art"].get("info","")

@@ -9,6 +9,7 @@ from Utils import *
 import musicbrainzngs as m
 from GoogleImages import *
 
+
 tmdb_apiKey = base64.b64decode("NDc2N2I0YjJiYjk0YjEwNGZhNTUxNWM1ZmY0ZTFmZWM=")
 m.set_useragent("script.skin.helper.service", "1.0.0", "https://github.com/marcelveldt/script.skin.helper.service")
 
@@ -173,14 +174,11 @@ def getPVRThumbs(title,channel,type="channels",path="",genre="",ignoreCache=Fals
                     if downloadLocal:
                         efadir = os.path.join(pvrThumbPath,"extrafanart/")
                         count = 1
-                        for fanart in artwork.get("extrafanarts"):
+                        for fanart in eval(artwork.get("extrafanarts")):
                             downloadImage(fanart,efadir,"fanart%s.jpg"%count)
                             count += 1
                         artwork["extrafanart"] = efadir
                     else: artwork["extrafanart"] = "plugin://script.skin.helper.service/?action=EXTRAFANART&path=%s" %(single_urlencode(try_encode(cachefile)))
-                    artwork["extrafanarts"] = repr(artwork["extrafanarts"])
-                else:
-                    artwork.pop("extrafanarts", None)
                 
                 #create persistant cache pvrdetails.xml file...
                 if title and channel:
@@ -240,11 +238,13 @@ def getPvrThumbPath(channel,title):
     
     return pvrThumbPath
     
-def getfanartTVimages(type,id,artwork=None):
+def getfanartTVimages(type,id,artwork=None,allowoverwrite=True):
     #gets fanart.tv images for given id
     if not artwork: artwork={}
     api_key = "639191cb0774661597f28a47e7e2bad5"
     logMsg("get fanart.tv images for type: %s - id: %s" %(type,id))
+    extrafanarts = []
+    if artwork.get("extrafanarts"): extrafanarts = eval(extrafanarts)
     
     if type == "movie":
         url = 'http://webservice.fanart.tv/v3/movies/%s?api_key=%s' %(id,api_key)
@@ -268,14 +268,15 @@ def getfanartTVimages(type,id,artwork=None):
         cover = None
         if type == "album" and data.has_key("albums"):
             for key, value in data["albums"].iteritems():
-                if value.has_key("cdart") and not artwork.get("discart"):
+                if value.has_key("cdart") and xbmcvfs.exists(value["cdart"][0].get("url")) and (not artwork.get("discart") or (allowoverwrite and not "http:" in artwork.get("discart"))):
                     artwork["discart"] = value["cdart"][0].get("url")
-                elif value.has_key("albumcover") and not artwork.get("folder"):
+                elif value.has_key("albumcover") and xbmcvfs.exists(value["albumcover"][0].get("url")) and (not artwork.get("folder") or (allowoverwrite and not "http:" in artwork.get("folder"))):
                     artwork["folder"] = value["albumcover"][0].get("url")
-        
         else:
             #we need to use a little mapping between fanart.tv arttypes and kodi artttypes
-            fanartTVTypes = [ ("logo","clearlogo"),("disc","discart"),("clearart","clearart"),("banner","banner"),("artistthumb","folder"),("thumb","landscape"),("clearlogo","clearlogo"),("poster","poster"),("background","fanart"),("showbackground","fanart"),("characterart","characterart"),("artistbackground","fanart")]
+            fanartTVTypes = [ ("logo","clearlogo"),("musiclogo","clearlogo"),("disc","discart"),("clearart","clearart"),("banner","banner"),("clearlogo","clearlogo"),("poster","poster"),("background","fanart"),("showbackground","fanart"),("characterart","characterart")]
+            if type != "artist": fanartTVTypes.append( ("thumb","landscape") )
+            if type == "artist": fanartTVTypes.append( ("thumb","folder") )
             prefixes = ["",type,"hd","hd"+type]
             for fanarttype in fanartTVTypes:
                 for prefix in prefixes:
@@ -284,28 +285,32 @@ def getfanartTVimages(type,id,artwork=None):
                         for item in data[fanarttvimage]:
                             if item.get("lang","") == KODILANGUAGE:
                                 #select image in preferred language
-                                artwork[fanarttype[1]] = item.get("url")
-                                break
-                        if not artwork.has_key(fanarttype[1]) and len(data.get(fanarttvimage)) > 0:
-                            #just grab the first english one as fallback
-                            for item in data[fanarttvimage]:
-                                if item.get("lang","") == "en":
+                                if xbmcvfs.exists(item.get("url")):
                                     artwork[fanarttype[1]] = item.get("url")
                                     break
+                        if not artwork.get(fanarttype[1]) or (allowoverwrite and not "http:" in artwork.get(fanarttype[1])):
+                            #just grab the first english one as fallback
+                            for item in data[fanarttvimage]:
+                                if item.get("lang","") == "en" or not item.get("lang"):
+                                    if xbmcvfs.exists(item.get("url")):
+                                        artwork[fanarttype[1]] = item.get("url")
+                                        break
                         #grab extrafanarts in list
                         if "background" in fanarttvimage:
-                            if not artwork.get("extrafanarts"): 
-                                artwork["extrafanarts"] = []
                             try:
                                 maxfanarts = WINDOW.getProperty("SkinHelper.maxNumFanArts")
                                 if maxfanarts: maxfanarts = int(maxfanarts)
                             except: maxfanarts = 0
                             fanartcount = 0
                             for item in data[fanarttvimage]:
-                                if fanartcount >= maxfanarts: break
-                                artwork["extrafanarts"].append(item.get("url"))
-                                fanartcount += 1
-                    
+                                if item.get("url") not in extrafanarts and fanartcount < maxfanarts:
+                                    if xbmcvfs.exists(item.get("url")):
+                                        extrafanarts.append(item.get("url"))
+                                        fanartcount += 1               
+    #save extrafanarts as string
+    if extrafanarts:
+        artwork["extrafanarts"] = repr(extrafanarts)
+    
     return artwork
 
 def getOfficialArtWork(title,artwork=None,type=None):
@@ -418,16 +423,24 @@ def getActorImage(actorname):
     WINDOW.setProperty("SkinHelper.ActorImages",repr(cache))
     return thumb
             
-def downloadImage(imageUrl,thumbsPath, filename):
+def downloadImage(imageUrl,thumbsPath, filename, allowoverwrite=False):
     try:
         if not xbmcvfs.exists(thumbsPath):
             xbmcvfs.mkdirs(thumbsPath)
         newFile = os.path.join(thumbsPath,filename)
+        if xbmcvfs.exists(newFile) and allowoverwrite and imageUrl != newFile:
+            retries = 0
+            while xbmcvfs.exists(newFile) and retries < 10:
+                xbmcvfs.delete(newFile)
+                xbmc.sleep(500)
+                retries += 1
         if not xbmcvfs.exists(newFile):
             #do not overwrite existing images
             xbmcvfs.copy(imageUrl,newFile)
         return newFile
-    except: return imageUrl
+    except Exception as e:
+        logMsg("ERROR in downloadImage --> " + str(e), 0)
+        return imageUrl
 
 def createNFO(cachefile, artwork):
     try:
@@ -572,7 +585,6 @@ def searchGoogleImageOld(searchphrase):
         params = {'v' : '1.0', 'safe': 'off', 'userip': ip_address, 'q': searchphrase, 'imgsz': 'medium|large|xlarge'}
         response = requests.get(url, params=params)
         data = json.loads(response.content.decode('utf-8','replace'))
-        print data
         if data and data.get("responseData"):
             if data['responseData'].get("results"):
                 results = data['responseData']['results']
@@ -647,16 +659,17 @@ def getMusicBrainzId(artist, album="", track=""):
     album = album.replace(" (single)","")
     track = track.split(" (")[0]
     matchartist = getCompareString(artist)
+    if artist.startswith("The "): artist = artist.replace("The ","")
     logMsg("getMusicBrainzId -- artist:  -  %s  - album:  %s  - track:  %s" %(artist,album,track))
     try:
         if not WINDOW.getProperty("SkinHelper.TempDisableMusicBrainz"):
             MBalbum = None
-            if not MBalbum and artist and track:
-                MBalbums = m.search_recordings(query=single_urlencode(try_encode(track)),limit=1,offset=None, strict=False, artist=single_urlencode(try_encode(artist)))
-                if MBalbums and MBalbums.get("recording-list"): MBalbum = MBalbums.get("recording-list")[0]
             if not MBalbum and artist and album:
                 MBalbums = m.search_release_groups(query=single_urlencode(try_encode(album)),limit=1,offset=None, strict=False, artist=single_urlencode(try_encode(artist)))
                 if MBalbums and MBalbums.get("release-group-list"): MBalbum = MBalbums.get("release-group-list")[0]
+            elif not MBalbum and artist and track:
+                MBalbums = m.search_recordings(query=single_urlencode(try_encode(track)),limit=1,offset=None, strict=False, artist=single_urlencode(try_encode(artist)))
+                if MBalbums and MBalbums.get("recording-list"): MBalbum = MBalbums.get("recording-list")[0]
             if MBalbum:
                 albumid = MBalbum.get("id","")
                 for MBartist in MBalbum.get("artist-credit"):
@@ -673,19 +686,6 @@ def getMusicBrainzId(artist, album="", track=""):
     
     #use theaudiodb as fallback
     try:
-        if not artistid and artist and track:
-            audiodb_url = 'http://www.theaudiodb.com/api/v1/json/193621276b2d731671156g/searchtrack.php'
-            params = {'s' : artist, 't': track}
-            response = requests.get(audiodb_url, params=params)
-            if response and response.content:
-                data = json.loads(response.content.decode('utf-8','replace'))
-                if data and data.get("track") and len(data.get("track")) > 0:
-                    adbdetails = data["track"][0]
-                    #safety check - only allow exact artist match
-                    foundartist = getCompareString(adbdetails.get("strArtist",""))
-                    if foundartist in matchartist:
-                        albumid = adbdetails.get("strMusicBrainzAlbumID","")
-                        artistid = adbdetails.get("strMusicBrainzArtistID","")
         if not artistid and artist and album:
             audiodb_url = 'http://www.theaudiodb.com/api/v1/json/193621276b2d731671156g/searchalbum.php'
             params = {'s' : artist, 'a': album}
@@ -699,73 +699,117 @@ def getMusicBrainzId(artist, album="", track=""):
                     if foundartist in matchartist:
                         albumid = adbdetails.get("strMusicBrainzID","")
                         artistid = adbdetails.get("strMusicBrainzArtistID","")
+        if not artistid and artist and track:
+            audiodb_url = 'http://www.theaudiodb.com/api/v1/json/193621276b2d731671156g/searchtrack.php'
+            params = {'s' : artist, 't': track}
+            response = requests.get(audiodb_url, params=params)
+            if response and response.content:
+                data = json.loads(response.content.decode('utf-8','replace'))
+                if data and data.get("track") and len(data.get("track")) > 0:
+                    adbdetails = data["track"][0]
+                    #safety check - only allow exact artist match
+                    foundartist = getCompareString(adbdetails.get("strArtist",""))
+                    if foundartist in matchartist:
+                        albumid = adbdetails.get("strMusicBrainzAlbumID","")
+                        artistid = adbdetails.get("strMusicBrainzArtistID","")
         
     except Exception as e:
-        logMsg("getMusicArtworkByDbId AudioDb lookup failed --> " + str(e), 0)
+        logMsg("getMusicArtwork AudioDb lookup failed --> " + str(e), 0)
     logMsg("getMusicBrainzId results for artist %s  - artistid:  %s  - albumid:  %s" %(artist,artistid,albumid))
     return (artistid, albumid)
 
-def getArtistArtwork(musicbrainzartistid, artwork=None):
+def getArtistArtwork(musicbrainzartistid, artwork=None, allowoverwrite=True):
     if not artwork: artwork = {}
     #get fanart.tv artwork for artist
-    artwork = getfanartTVimages("artist",musicbrainzartistid,artwork)
+    artwork = getfanartTVimages("artist",musicbrainzartistid,artwork, allowoverwrite)
+    extrafanarts = []
+    if artwork.get("extrafanarts"): extrafanarts = eval(artwork.get("extrafanarts"))
+    
     #get audiodb info for artist  (and use as spare for artwork)
     try:
         audiodb_url = 'http://www.theaudiodb.com/api/v1/json/193621276b2d731671156g/artist-mb.php?i=%s' %musicbrainzartistid
         response = requests.get(audiodb_url)
     except Exception as e:
-        logMsg("getMusicArtworkByDbId AudioDb lookup failed --> " + str(e), 0)
-        return {}
+        logMsg("getMusicArtwork AudioDb lookup failed --> " + str(e), 0)
     if response and response.content:
         data = json.loads(response.content.decode('utf-8','replace'))
         if data and data.get("artists") and len(data.get("artists")) > 0:
             adbdetails = data["artists"][0]
-            if not artwork.get("banner") and adbdetails.get("strArtistBanner"): artwork["banner"] = adbdetails.get("strArtistBanner")
-            artwork["extrafanarts"] = []
-            if adbdetails.get("strArtistFanart"): artwork["extrafanarts"].append(adbdetails.get("strArtistFanart"))
-            if adbdetails.get("strArtistFanart2"): artwork["extrafanarts"].append(adbdetails.get("strArtistFanart2"))
-            if adbdetails.get("strArtistFanart3"): artwork["extrafanarts"].append(adbdetails.get("strArtistFanart3"))
-            if not artwork.get("clearlogo") and adbdetails.get("strArtistLogo"): artwork["clearlogo"] = adbdetails.get("strArtistLogo")
-            if not artwork.get("artistthumb") and adbdetails.get("strArtistThumb"): artwork["artistthumb"] = adbdetails.get("strArtistThumb")
-            if not artwork.get("folder") and adbdetails.get("strArtistThumb"): artwork["folder"] = adbdetails.get("strArtistThumb")
+            if not artwork.get("banner") and adbdetails.get("strArtistBanner") and xbmcvfs.exists(adbdetails.get("strArtistBanner")): artwork["banner"] = adbdetails.get("strArtistBanner")
+            if adbdetails.get("strArtistFanart") and not artwork.get("fanart") and xbmcvfs.exists(adbdetails.get("strArtistFanart")): artwork["fanart"] = adbdetails.get("strArtistFanart")
+            if adbdetails.get("strArtistFanart2") and not adbdetails.get("strArtistFanart2") in extrafanarts and xbmcvfs.exists(adbdetails.get("strArtistFanart2")): extrafanarts.append(adbdetails.get("strArtistFanart2"))
+            if adbdetails.get("strArtistFanart3") and not adbdetails.get("strArtistFanart3") in extrafanarts and xbmcvfs.exists(adbdetails.get("strArtistFanart3")): extrafanarts.append(adbdetails.get("strArtistFanart3"))
+            if extrafanarts and adbdetails.get("strArtistFanart") and not adbdetails.get("strArtistFanart") in extrafanarts and xbmcvfs.exists(adbdetails.get("strArtistFanart")): extrafanarts.append(adbdetails.get("strArtistFanart"))
+            if not artwork.get("clearlogo") and adbdetails.get("strArtistLogo") and xbmcvfs.exists(adbdetails.get("strArtistLogo")): artwork["clearlogo"] = adbdetails.get("strArtistLogo")
+            if not artwork.get("artistthumb") and adbdetails.get("strArtistThumb") and xbmcvfs.exists(adbdetails.get("strArtistThumb")): artwork["artistthumb"] = adbdetails.get("strArtistThumb")
+            if not artwork.get("folder") and adbdetails.get("strArtistThumb") and xbmcvfs.exists(adbdetails.get("strArtistThumb")): artwork["folder"] = adbdetails.get("strArtistThumb")
             if not artwork.get("info") and adbdetails.get("strBiography" + KODILANGUAGE.upper()): artwork["info"] = adbdetails.get("strBiography" + KODILANGUAGE.upper())
             if not artwork.get("info") and adbdetails.get("strBiographyEN"): artwork["info"] = adbdetails.get("strBiographyEN")
             if artwork.get("info"): artwork["info"] = artwork.get("info").replace('\n', ' ').replace('\r', '')
-            
+    
+    #get lastFM info for artist  (and use as spare for artwork)
+    if not artwork.get("info") or not artwork.get("artistthumb"):
+        try:
+            lastfm_url = 'http://ws.audioscrobbler.com/2.0/?method=artist.getInfo&format=json&api_key=1869cecbff11c2715934b45b721e6fb0&mbid=%s' %musicbrainzartistid
+            response = requests.get(lastfm_url)
+        except Exception as e:
+            logMsg("getMusicArtwork LastFM lookup failed --> " + str(e), 0)
+        if response and response.content:
+            data = json.loads(response.content.decode('utf-8','replace'))
+            if data and data.get("artist"):
+                lfmdetails = data["artist"]
+                if lfmdetails.get("image"):
+                    for image in lfmdetails["image"]:
+                        if not artwork.get("artistthumb") and image["size"]=="extralarge" and image and xbmcvfs.exists(image["#text"]): artwork["artistthumb"] = image["#text"]
+                
+                if not artwork.get("info") and lfmdetails.get("bio"): artwork["info"] = lfmdetails["bio"].get("content","").replace('\n', ' ').replace('\r', '')  
+    
+    #save extrafanarts as string
+    if extrafanarts:
+        artwork["extrafanarts"] = repr(extrafanarts)
+    
     return artwork
 
-def getAlbumArtwork(musicbrainzalbumid, artwork=None):
+def getAlbumArtwork(musicbrainzalbumid, artwork=None, allowoverwrite=True):
     if not artwork: artwork = {}
     #get fanart.tv artwork for album
-    artwork = getfanartTVimages("album",musicbrainzalbumid,artwork)
+    artwork = getfanartTVimages("album",musicbrainzalbumid,artwork,allowoverwrite)
     #get album info on theaudiodb (and use as spare for artwork)
     try:
         audiodb_url = 'http://www.theaudiodb.com/api/v1/json/193621276b2d731671156g/album-mb.php?i=%s' %musicbrainzalbumid
         response = requests.get(audiodb_url)
     except Exception as e:
-        logMsg("getMusicArtworkByDbId AudioDB lookup failed --> " + str(e), 0)
+        logMsg("getMusicArtwork AudioDB lookup failed --> " + str(e), 0)
         return {}
     if response and response.content:
         data = json.loads(response.content.decode('utf-8','replace'))
         if data and data.get("album") and len(data.get("album")) > 0:
             adbdetails = data["album"][0]
-            if not artwork.get("folder") and adbdetails.get("strAlbumThumb"): artwork["folder"] = adbdetails.get("strAlbumThumb")
-            if not artwork.get("discart") and adbdetails.get("strAlbumCDart"): artwork["discart"] = adbdetails.get("strAlbumCDart")
+            if not artwork.get("folder") and adbdetails.get("strAlbumThumb") and xbmcvfs.exists(adbdetails.get("strAlbumThumb")): artwork["folder"] = adbdetails.get("strAlbumThumb")
+            if not artwork.get("discart") and adbdetails.get("strAlbumCDart") and xbmcvfs.exists(adbdetails.get("strAlbumCDart")): artwork["discart"] = adbdetails.get("strAlbumCDart")
             if not artwork.get("info") and adbdetails.get("strDescription" + KODILANGUAGE.upper()): artwork["info"] = adbdetails.get("strDescription" + KODILANGUAGE.upper())
             if not artwork.get("info") and adbdetails.get("strDescriptionEN"): artwork["info"] = adbdetails.get("strDescriptionEN")
             if artwork.get("info"): artwork["info"] = normalize_string(artwork["info"]).replace('\n', ' ').replace('\r', '')
     
-    if not artwork.get("thumb") and not artwork.get("folder") and not WINDOW.getProperty("SkinHelper.TempDisableMusicBrainz"): 
-        try: 
-            new_file = "special://profile/addon_data/script.skin.helper.service/musicart/%s.jpg" %musicbrainzalbumid
-            thumbfile = m.get_image_front(musicbrainzalbumid)
-            if thumbfile: 
-                f = xbmcvfs.File(new_file, 'w')
-                f.write(thumbfile)
-                f.close()
-            artwork["folder"] = new_file
-        except: pass
+    #get lastFM info for artist  (and use as spare for artwork)
+    if not artwork.get("info") or not artwork.get("folder") and artwork.get("artistname") and artwork.get("albumname"):
+        try:
+            lastfm_url = 'http://ws.audioscrobbler.com/2.0/?method=album.getInfo&format=json&api_key=1869cecbff11c2715934b45b721e6fb0&artist=%s&album=%s' %(artwork["artistname"],artwork["albumname"])
+            response = requests.get(lastfm_url)
+        except Exception as e:
+            logMsg("getMusicArtwork LastFM lookup failed --> " + str(e), 0)
+        if response and response.content:
+            data = json.loads(response.content.decode('utf-8','replace'))
+            if data and data.get("album"):
+                lfmdetails = data["album"]
+                if isinstance(lfmdetails,list): lfmdetails = lfmdetails[0]
+                if lfmdetails.get("image"):
+                    for image in lfmdetails["image"]:
+                        if not artwork.get("folder") and image["size"]=="extralarge" and image and xbmcvfs.exists(image["#text"]): artwork["folder"] = image["#text"]
+
+                if not artwork.get("info") and lfmdetails.get("wiki"): artwork["info"] = lfmdetails["wiki"].get("content","").replace('\n', ' ').replace('\r', '').split(' <a')[0]  
     
+    #get album thumb from musicbrainz
     if not artwork.get("thumb") and not artwork.get("folder") and not WINDOW.getProperty("SkinHelper.TempDisableMusicBrainz"): 
         try: 
             new_file = "special://profile/addon_data/script.skin.helper.service/musicart/%s.jpg" %musicbrainzalbumid
@@ -780,117 +824,130 @@ def getAlbumArtwork(musicbrainzalbumid, artwork=None):
     
     
     return artwork
-            
-def getMusicArtworkByDbId(dbid,itemtype):
-        
+
+def preCacheAllMusicArt():
+    #process all albums and precache the artwork
+    progressDialog = xbmcgui.DialogProgressBG()
+    progressDialog.create(ADDON.getLocalizedString(32157))
+    progressDialog.update(0, ADDON.getLocalizedString(32157),"Collecting albums...")
+    json_response = getJSON('AudioLibrary.GetAlbums', '{ "properties": [ "artist","displayartist" ] }')
+    if json_response:
+        # local match found
+        for count, item in enumerate(json_response):
+            progressDialog.update((count * 100) / len(json_response),ADDON.getLocalizedString(32157), item["displayartist"] + " - " + item["label"])
+            getMusicArtwork(item["displayartist"],"",item["label"],ignoreCache=False)
+            logMsg("preCacheAllMusicArt -- " + item["displayartist"] + " - " + item["label"], 0)
+      
+def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
+    if not artistName and not albumName and not trackName: return {}
     albumartwork = {}
     path = ""
-    albumName = ""
-    trackName = ""
-    artistid = 0
     artistCacheFound = False
     albumCacheFound = False
     artistpath = ""
     albumpath = ""
-    
-    logMsg("getMusicArtworkByDbId dbid: %s  type: %s" %(dbid, itemtype))
+    if albumName == trackName: trackName = ""
+    if artistName == trackName: trackName = ""
+    if not albumName and trackName: albumName = trackName
+    artistOnly = False
+    if not albumName: artistOnly = True
+    localArtistMatch = False
+    localAlbumMatch = False
+
+    logMsg("getMusicArtwork artist: %s  - track: %s  -  album: %s" %(artistName,trackName,albumName))
     
     enableMusicArtScraper = WINDOW.getProperty("SkinHelper.enableMusicArtScraper") == "true"
     downloadMusicArt = WINDOW.getProperty("SkinHelper.downloadMusicArt") == "true"
+    allowoverwrite = WINDOW.getProperty("SkinHelper.preferOnlineMusicArt") == "true"
     enableLocalMusicArtLookup = WINDOW.getProperty("SkinHelper.enableLocalMusicArtLookup") == "true"
 
-    if itemtype == "artists":
-        artistid = int(dbid)
-    
-    if itemtype == "songs":
-        json_response = None
-        json_response = getJSON('AudioLibrary.GetSongDetails', '{ "songid": %s, "properties": [ "file","artistid","albumid","album","comment","fanart","thumbnail","displayartist","artist","albumartist"] }'%int(dbid))
-        if json_response:
-            #don't return album info for various artists/compilations...
-            if json_response.get("album") and json_response.get("albumid") and json_response.get("album","").lower() != "singles" and json_response.get("album","").lower() != "unknown title" and not "various" in json_response.get("file","").lower() and not "Various Artists" in json_response.get("displayartist").lower() and not "Various Artists" in json_response["artist"] and not "Various Artists" in json_response["albumartist"]:
-                #album level is lowest level we get info from so change context to album once we have the song details...
-                itemtype = "albums"
-                dbid = str(json_response["albumid"])
-            else:
-                #search by trackname as fallback for songs without albums (singles) or compilations
-                return getMusicArtworkByName(json_response.get("displayartist"),json_response.get("label"))
-
     ############# ALBUM DETAILS #########################
-    if itemtype == "albums":
-        albumartwork = getArtworkFromCacheFile("special://profile/addon_data/script.skin.helper.service/musicart/cache-albums-%s.xml" %dbid)
-        if albumartwork and albumartwork.get("artistid"): 
+    if artistName and albumName:
+    
+        #get details from cachefile to prevent online lookups
+        if not ignoreCache: albumartwork = getArtworkFromCacheFile("special://profile/addon_data/script.skin.helper.service/musicart/%s-%s.xml" %(normalize_string(artistName),normalize_string(albumName)))
+        else: albumartwork = {}
+        if albumartwork and albumartwork.get("artistname"): 
             albumCacheFound = True
-        else:
-            json_response = None
-            json_response = getJSON('AudioLibrary.GetAlbumDetails','{ "albumid": %s, "properties": [ "description","fanart","thumbnail","artistid","artist","displayartist" ] }'%int(dbid))
-            logMsg("getMusicArtworkByDbId found album details --> " + repr(json_response))
-            if json_response.get("description") and not albumartwork.get("info"): albumartwork["info"] = json_response["description"]
-            if json_response.get("fanart") and not (json_response["label"].lower() == "singles" or "Various Artists" in json_response.get("displayartist").lower()): albumartwork["fanart"] = getCleanImage(json_response["fanart"])
-            if json_response.get("thumbnail") and not (json_response["label"].lower() == "singles" or "Various Artists" in json_response.get("displayartist").lower()): albumartwork["folder"] = json_response["thumbnail"]
-            if json_response.get("label") and not albumartwork.get("albumname"): albumartwork["albumname"] = json_response["label"]
-            if json_response.get("artistid") and not albumartwork.get("artistid"): 
-                albumartwork["artistid"] = str(json_response["artistid"][0])
-            #get track listing for album
-            json_response = None
-            json_response = getJSON('AudioLibrary.GetSongs', '{ "filter":{"albumid": %s}, "properties": [ "file","artistid","track","title","albumid","album","displayartist","albumartistid","artist","albumartist","displayartist" ], "sort": {"method":"track"} }'%int(dbid))
-            logMsg("getMusicArtworkByDbId found songs for album --> " + repr(json_response))
-            albumartwork["songcount"] = 0
-            albumartwork["albumcount"] = 0
-            albumartwork["tracklist"] = []
-            for song in json_response:
-                if not path: path = song["file"]
-                if song.get("track"): albumartwork["tracklist"].append("%s - %s" %(song["track"], song["title"]))
-                else: albumartwork["tracklist"].append(song["title"])
-                albumartwork["songcount"] += 1
+
+        songcount = 0
+        tracklist = []
         
+        #always grab the local details for counts and track listings to be accurate
+        json_items = getJSON('AudioLibrary.GetAlbums','{ "filter": {"operator":"is", "field":"album", "value":"%s"}, "properties": [ "description","fanart","thumbnail","artistid","artist","displayartist","musicbrainzalbumid" ] }'%(albumName))
+        for json_response in json_items:
+            if artistName in json_response["displayartist"]:
+                logMsg("getMusicArtwork found album details --> " + repr(json_response))
+                localAlbumMatch = True
+                if json_response.get("description") and not albumartwork.get("info"): albumartwork["info"] = json_response["description"]
+                if json_response.get("thumbnail") and not (json_response["label"].lower() == "singles" or "Various Artists" in json_response.get("displayartist").lower()): albumartwork["folder"] = json_response["thumbnail"]
+                if json_response.get("label") and not albumartwork.get("albumname"): albumartwork["albumname"] = json_response["label"]
+                if json_response.get("displayartist") and not albumartwork.get("artistname"): albumartwork["artistname"] = json_response["displayartist"]
+                if json_response.get("musicbrainzalbumid") and not albumartwork.get("musicbrainzalbumid"): albumartwork["musicbrainzalbumid"] = json_response["musicbrainzalbumid"]
+                albumid = json_response.get("albumid")
+                #get track listing for album
+                json_response2 = getJSON('AudioLibrary.GetSongs', '{ "properties": [ %s ], "sort": {"method":"track"}, "filter": { "albumid": %d}}'%(fields_songs,albumid))
+                for song in json_response2:
+                    logMsg("getMusicArtwork found song for album --> " + repr(song))
+                    if not path: path = song["file"]
+                    if song.get("track"): tracklist.append("%s - %s" %(song["track"], song["title"]))
+                    else: tracklist.append(song["title"])
+                    songcount += 1
+            
+            if not albumartwork.get("artistname"): albumartwork["artistname"] = artistName
+            
             #make sure that our results are strings
-            albumartwork["tracklist"] = "[CR]".join(albumartwork.get("tracklist",""))
-            albumartwork["albumcount"] = "%s"%albumartwork.get("albumcount","")
-            albumartwork["songcount"] = "%s"%albumartwork.get("songcount","")
-        
-        #set our global params
-        albumName = albumartwork.get("albumname","")
-        artistid = albumartwork.get("artistid","")
-        
-        
+            albumartwork["tracklist"] = "[CR]".join(tracklist)
+            albumartwork["albumcount"] = "1"
+            albumartwork["songcount"] = "%s"%songcount
+   
     ############## ARTIST DETAILS #######################################
-    artistartwork = getArtworkFromCacheFile("special://profile/addon_data/script.skin.helper.service/musicart/cache-artists-%s.xml" %artistid)
+    
+    #get details from cachefile to prevent online lookups
+    if not ignoreCache: artistartwork = getArtworkFromCacheFile("special://profile/addon_data/script.skin.helper.service/musicart/%s.xml" %normalize_string(artistName))
+    else: artistartwork = {}
     if artistartwork: artistCacheFound = True
-    else:
-        json_response = None
-        json_response = getJSON('AudioLibrary.GetArtistDetails', '{ "artistid": %s, "properties": [ "description","fanart","thumbnail" ] }'%int(artistid))
-        logMsg("getMusicArtworkByDbId found artist details --> " + repr(json_response))
+    
+    songcount = 0
+    albumcount = 0
+    albums = []
+    tracklist = []
+    
+    #always grab the local details for counts and track listings to be accurate
+    json_response = None
+    json_response = getJSON('AudioLibrary.GetArtists', '{ "filter": {"operator":"is", "field":"artist", "value":"%s"}, "properties": [ "description","fanart","thumbnail","musicbrainzartistid" ] }'%artistName)
+    logMsg("getMusicArtwork found artist details --> " + repr(json_response))
+    if len(json_response) == 1:
+        json_response = json_response[0]
+        localArtistMatch = True
         if json_response.get("description") and not artistartwork.get("info"): artistartwork["info"] = json_response["description"]
         if json_response.get("fanart"): artistartwork["fanart"] = getCleanImage(json_response["fanart"])
         if json_response.get("thumbnail") : artistartwork["folder"] = json_response["thumbnail"]
         if json_response.get("label") and not artistartwork.get("artistname",""): artistartwork["artistname"] = json_response["label"]
+        if json_response.get("musicbrainzartistid") and not artistartwork.get("musicbrainzartistid"): artistartwork["musicbrainzartistid"] = json_response["musicbrainzartistid"]
         #get track/album listing for artist
-        json_response = None
-        json_response = getJSON('AudioLibrary.GetSongs', '{ "filter":{"artistid": %d}, "properties": [ "file","artistid","track","title","albumid","album","albumartistid","artist","albumartist","displayartist" ] }'%int(artistid))
-        logMsg("getMusicArtworkByDbId found songs for artist --> " + repr(json_response))
-        artistartwork["songcount"] = 0
-        artistartwork["albumcount"] = 0
-        artistartwork["albums"] = []
-        artistartwork["tracklist"] = []
-        for song in json_response:
+        json_response2 = None
+        json_response2 = getJSON('AudioLibrary.GetSongs', '{ "filter":{"artistid": %d}, "properties": [ %s ] }'%(json_response.get("artistid"),fields_songs))
+        logMsg("getMusicArtwork found songs for artist --> " + repr(json_response2))
+        for song in json_response2:
             if not trackName: trackName = song.get("label","")
             if song.get("album"):
-                if not path: path = song["file"]
+                if not path and normalize_string(artistName.lower().replace("_","")) in normalize_string(song["file"].lower().replace("_","")): path = song["file"]
                 if not albumName: albumName = song.get("album")
-                artistartwork["tracklist"].append(song["title"])
-                artistartwork["songcount"] += 1
-                if song.get("album") and song["album"] not in artistartwork["albums"]:
-                    artistartwork["albumcount"] +=1
-                    artistartwork["albums"].append(song["album"])
+                tracklist.append(song["title"])
+                songcount += 1
+                if song.get("album") and song["album"] not in albums:
+                    albumcount +=1
+                    albums.append(song["album"])
         
         #make sure that our results are strings
-        artistartwork["albums"] = "[CR]".join(artistartwork.get("albums",""))
-        artistartwork["tracklist"] = "[CR]".join(artistartwork.get("tracklist",""))
-        artistartwork["albumcount"] = "%s"%artistartwork.get("albumcount","")
-        artistartwork["songcount"] = "%s"%artistartwork.get("songcount","")
-        
+        artistartwork["albums"] = "[CR]".join(albums)
+        artistartwork["tracklist"] = "[CR]".join(tracklist)
+        artistartwork["albumcount"] = "%s"%albumcount
+        artistartwork["songcount"] = "%s"%songcount
+     
     #LOOKUP LOCAL ARTWORK PATH PASED ON SONG FILE PATH
-    if path and enableLocalMusicArtLookup and (not artistCacheFound or (itemtype=="albums" and not albumCacheFound)):
+    if path and enableLocalMusicArtLookup and (not artistCacheFound or (albumName and not albumCacheFound)) and localArtistMatch:
         
         #only use existing path if the artistname is actually in the path 
         if "\\" in path:
@@ -906,8 +963,8 @@ def getMusicArtworkByDbId(dbid,itemtype):
             artistpath = path.rsplit(delim, 2)[0] + delim #artist level
 
             #lookup existing artwork in the paths (only if artistname in the path, to prevent lookups in various artists/compilations folders)
-            if not normalize_string(artistartwork.get("artistname","").lower().replace("_","")) in normalize_string(artistpath.lower().replace("_","")):
-                logMsg("getMusicArtworkByDbId - lookup on disk skipped for %s - not correct folder structure (artistname\albumname)" %artistartwork.get("artistname",""))
+            if not normalize_string(artistName.lower().replace("_","")) in normalize_string(artistpath.lower().replace("_","")):
+                logMsg("getMusicArtwork - lookup on disk skipped for %s - not correct folder structure (artistname\albumname)" %artistartwork.get("artistname",""))
                 albumpath = ""
                 artistpath = ""
             else:    
@@ -917,124 +974,77 @@ def getMusicArtworkByDbId(dbid,itemtype):
                     artpath = os.path.join(artistpath,artType[1])
                     if xbmcvfs.exists(artpath) and not artistartwork.get(artType[0]):
                         artistartwork[artType[0]] = artpath
-                        logMsg("getMusicArtworkByDbId - %s found on disk for %s - itemtype: %s" %(artType[0],artistartwork.get("artistname",""), itemtype))
-        
+                        logMsg("getMusicArtwork - %s found on disk for %s" %(artType[0],artistName))
+                
                 #lookup local album artwork
-                if itemtype == "albums":
+                if albumName and xbmcvfs.exists(albumpath):
                     albumartwork["path"] = albumpath
                     #lookup existing artwork in the paths
                     for artType in KodiArtTypes:
                         artpath = os.path.join(albumpath,artType[1])
                         if xbmcvfs.exists(artpath) and not albumartwork.get(artType[0]):
                             albumartwork[artType[0]] = artpath
-                            logMsg("getMusicArtworkByDbId - %s found on disk for %s - itemtype: %s" %(artType[0],albumName, itemtype))
-    
+                            logMsg("getMusicArtwork - %s found on disk for %s" %(artType[0],albumName))
+                else: albumpath = ""
+       
     #online lookup for details
-    if enableMusicArtScraper and not artistCacheFound or (itemtype=="albums" and not albumCacheFound):
+    if enableMusicArtScraper and not artistCacheFound or (albumName and not albumCacheFound):
         #lookup details in musicbrainz
         #retrieve album id and artist id with a combined query of album name and artist name to get an accurate result
-        musicbrainzartistid, musicbrainzalbumid = getMusicBrainzId(artistartwork.get("artistname",""),albumName,trackName)
-        if itemtype=="albums" and musicbrainzalbumid: 
+        musicbrainzartistid, musicbrainzalbumid = getMusicBrainzId(artistName,albumName,trackName)
+        if albumName and musicbrainzalbumid and not albumartwork.get("musicbrainzalbumid"): 
             albumartwork["musicbrainzalbumid"] = musicbrainzalbumid
-        if musicbrainzartistid: 
+        if musicbrainzartistid and not artistartwork.get("musicbrainzartistid"): 
             artistartwork["musicbrainzartistid"] = musicbrainzartistid
         
         ########################################################## ARTIST LEVEL #########################################################
-        if musicbrainzartistid and not artistCacheFound:
-            artistartwork = getArtistArtwork(musicbrainzartistid, artistartwork)
+        if artistartwork.get("musicbrainzartistid") and not artistCacheFound:
+            artistartwork = getArtistArtwork(artistartwork.get("musicbrainzartistid"), artistartwork, allowoverwrite)
 
             #download images if we want them local
             if downloadMusicArt and artistpath:
                 for artType in KodiArtTypes:
-                    if artistartwork.has_key(artType[0]): artistartwork[artType[0]] = downloadImage(artistartwork[artType[0]],artistpath,artType[1])
+                    if artistartwork.has_key(artType[0]): artistartwork[artType[0]] = downloadImage(artistartwork[artType[0]],artistpath,artType[1],allowoverwrite)
             
             #extrafanart images
             if artistartwork.get("extrafanarts"):
                 if downloadMusicArt and artistpath:
                     efadir = os.path.join(artistpath,"extrafanart/")
+                    xbmcvfs.mkdir(efadir)
                     count = 1
-                    for fanart in artistartwork.get("extrafanarts"):
+                    for fanart in eval(artistartwork.get("extrafanarts")):
                         downloadImage(fanart,efadir,"fanart%s.jpg"%count)
                         count += 1
                     artistartwork["extrafanart"] = efadir
-                else: artistartwork["extrafanart"] = "plugin://script.skin.helper.service/?action=EXTRAFANART&path=special://profile/addon_data/script.skin.helper.service/musicart/cache-artists-%s.xml" %(artistid)
-                artistartwork["extrafanarts"] = repr(artistartwork["extrafanarts"])
-            else:
-                artistartwork["extrafanarts"] = ""
+                else: artistartwork["extrafanart"] = "plugin://script.skin.helper.service/?action=EXTRAFANART&path=special://profile/addon_data/script.skin.helper.service/musicart/%s.xml" %(artistName)
             
         ######################################################### ALBUM LEVEL #########################################################    
-        if itemtype == "albums" and musicbrainzalbumid and not albumCacheFound:
-            albumartwork = getAlbumArtwork(musicbrainzalbumid, albumartwork)
+        if albumName and albumartwork.get("musicbrainzalbumid") and not albumCacheFound:
+            albumartwork = getAlbumArtwork(albumartwork.get("musicbrainzalbumid"), albumartwork, allowoverwrite)
             
             #download images if we want them local
-            if downloadMusicArt and albumpath:
+            if downloadMusicArt and albumpath and localAlbumMatch:
                 for artType in KodiArtTypes:
-                    if albumartwork.has_key(artType[0]): albumartwork[artType[0]] = downloadImage(albumartwork[artType[0]],albumpath,artType[1])
+                    if albumartwork.has_key(artType[0]): albumartwork[artType[0]] = downloadImage(albumartwork[artType[0]],albumpath,artType[1],allowoverwrite)
     
     #write to persistant cache
-    if artistartwork and not artistCacheFound:
+    if artistartwork:
         if artistartwork.get("landscape"): del artistartwork["landscape"]
         if artistartwork.get("folder") and not artistartwork.get("thumb"): artistartwork["thumb"] = artistartwork.get("folder")
-        cachefile = "special://profile/addon_data/script.skin.helper.service/musicart/cache-artists-%s.xml" %(artistid)
-        createNFO(cachefile,artistartwork)
-    if albumartwork and itemtype=="albums" and not albumCacheFound:
+        createNFO("special://profile/addon_data/script.skin.helper.service/musicart/%s.xml" %normalize_string(artistName),artistartwork)
+    if albumartwork and albumName and not artistOnly:
         if albumartwork.get("landscape"): del albumartwork["landscape"]
         if albumartwork.get("folder") and not albumartwork.get("thumb"): albumartwork["thumb"] = albumartwork.get("folder")
-        cachefile = "special://profile/addon_data/script.skin.helper.service/musicart/cache-albums-%s.xml" %(dbid)
-        createNFO(cachefile,albumartwork)
-    
-    #return artwork combined
+        createNFO("special://profile/addon_data/script.skin.helper.service/musicart/%s-%s.xml" %(normalize_string(artistName),normalize_string(albumName)),albumartwork)
+
+    #return the results...    
     artwork = artistartwork
-    if itemtype == "albums" and albumartwork:
+    #combine album info with artist info
+    if artistartwork.get("info") and albumartwork.get("info") and not artistOnly:
+        artwork["info"] = albumartwork["info"] + "  ---  " + artistartwork["info"]
+    #return artwork combined
+    if albumartwork and not artistOnly:
         for key, value in albumartwork.iteritems():
-            if value: artwork[key] = value
+            if value and key != "info": artwork[key] = value
+
     return artwork
-
-def getMusicArtworkByName(artist, title="", album=""):
-    logMsg("getMusicArtworkByName artist: %s  - track: %s  -  album: %s" %(artist,title,album))
-    
-    #try cache file first...
-    cacheFile = "special://profile/addon_data/script.skin.helper.service/musicart/%s.xml" %normalize_string(artist + "-" + title)
-    albumartwork = {}
-    artistartwork = getArtworkFromCacheFile(cacheFile)
-    if artistartwork: return artistartwork
-    
-    #query database for this track/album first
-    json_response = getJSON('AudioLibrary.GetSongs', '{ "filter": {"and": [{"operator":"contains", "field":"artist", "value":"%s"},{"operator":"contains", "field":"title", "value":"%s"}]}, "properties": [ "file","artistid","track","title","albumid","album","displayartist","albumartistid","albumartist","artist" ] }'%(artist,title))
-    if json_response:
-        # local match found
-        for item in json_response:
-            #prevent returning details for a various artists entry
-            if not "various" in item.get("file","").lower() and not "Various Artists" in item.get("displayartist").lower() and not "Various Artists" in item["artist"] and not "Various Artists" in item["albumartist"]:
-                logMsg("getMusicArtworkByName found match in local DB --> " + repr(json_response))
-                return getMusicArtworkByDbId(str(item["albumid"]),"albums")
-            
-    #lookup this artist by quering musicbrainz...
-    if " & " in artist: artists= artist.split(" & ")
-    elif " ft. " in artist: artists= artist.split(" ft. ")
-    elif " Ft. " in artist: artists= artist.split(" Ft. ")
-    elif " ft " in artist: artists= artist.split(" ft ")
-    elif " feat. " in artist: artists= artist.split(" feat. ")
-    elif " featuring " in artist: artists= artist.split(" featuring ")
-    else: artists = [artist]
-    for artist in artists:
-        #retrieve musicbrainz id with a combined query of track name and artist name to get an accurate result
-        artistid, albumid = getMusicBrainzId(artist,album,title)
-        #get artwork for artist
-        artistartwork = getArtistArtwork(artistid, artistartwork)
-        if albumid:
-            #if we also have album artwork use that too
-            artistartwork = getAlbumArtwork(albumid,artistartwork)
-        
-    #process extrafanart
-    if artistartwork.get("extrafanarts"):
-        artistartwork["extrafanart"] = "plugin://script.skin.helper.service/?action=EXTRAFANART&path=%s" %(single_urlencode(try_encode(cacheFile)))
-        artistartwork["extrafanarts"] = repr(artistartwork["extrafanarts"])
-    else: artistartwork["extrafanarts"] = ""
-    
-    if artistartwork.get("folder") and not artistartwork.get("thumb"): artistartwork["thumb"] = artistartwork.get("folder")
-        
-    #write cachefile for later use
-    createNFO(cacheFile,artistartwork)
-
-    return artistartwork
