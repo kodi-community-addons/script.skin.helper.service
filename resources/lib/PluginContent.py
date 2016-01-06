@@ -293,7 +293,7 @@ def RECENTSONGS(limit):
     allItems = []
     json_result = getJSON('AudioLibrary.GetRecentlyAddedSongs', '{ "properties": [ %s ], "limits":{"end":%d} }' %(fields_songs,limit))
     for item in json_result:
-        item["art"] = getMusicArtwork(item["artist"], item["album"])
+        item["art"] = getMusicArtwork(item["displayartist"], item["album"])
         item["type"] = "song"
         item["extraproperties"] = {"extrafanart": item["art"].get("extrafanart",""), "tracklist":item["art"].get("tracklist","")}
         item['album_description'] = item["art"].get("info","")
@@ -955,7 +955,6 @@ def getExtraFanArt(path):
     xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
 
 def GETCASTMEDIA(limit,name=""):
-    print "getcastmedia"
     allItems = []
     if name:
         json_result = getJSON('VideoLibrary.GetMovies', '{ "properties": [ %s ] }' %fields_movies)
@@ -972,7 +971,6 @@ def GETCASTMEDIA(limit,name=""):
                     url = "RunScript(script.skin.helper.service,action=showinfo,tvshowid=%s)" %item["tvshowid"]
                     item["file"] = "plugin://script.skin.helper.service/?action=launch&path=" + url
                     allItems.append(item)
-    print allItems
     return allItems
     
 def getCast(movie=None,tvshow=None,movieset=None,episode=None,downloadThumbs=False):

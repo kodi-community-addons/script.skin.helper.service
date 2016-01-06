@@ -38,7 +38,7 @@ fields_tvshows = fields_base + '"sorttitle", "mpaa", "premiered", "year", "episo
 fields_episodes = fields_file + '"cast", "productioncode", "rating", "votes", "episode", "showtitle", "tvshowid", "season", "firstaired", "writer", "originaltitle"'
 fields_musicvideos = fields_file + '"genre", "artist", "tag", "album", "track", "studio", "year"'
 fields_files = fields_file + fields_movies + ", " + fields_tvshows + ", " + fields_episodes
-fields_songs = '"artist","displayartist", "title", "rating", "fanart", "thumbnail", "duration", "playcount", "comment", "file", "album", "lastplayed", "genre"'
+fields_songs = '"artist","displayartist", "title", "rating", "fanart", "thumbnail", "duration", "playcount", "comment", "file", "album", "lastplayed", "genre", "musicbrainzartistid"'
 fields_albums = '"title", "fanart", "thumbnail", "genre", "displayartist", "artist", "genreid", "musicbrainzalbumartistid", "year", "rating", "artistid", "musicbrainzalbumid", "theme", "description", "type", "style", "playcount", "albumlabel", "mood"'
 fields_pvrrecordings = '"art", "channel", "directory", "endtime", "file", "genre", "icon", "playcount", "plot", "plotoutline", "resume", "runtime", "starttime", "streamurl", "title"'
 KodiArtTypes = [ ("thumb","thumb.jpg"),("poster","poster.jpg"),("fanart","fanart.jpg"),("banner","banner.jpg"),("landscape","landscape.jpg"),("clearlogo","logo.png"),("clearart","clearart.png"),("channellogo","channellogo.png"),("discart","disc.png"),("discart","cdart.png"),("extrafanart","extrafanart/"),("characterart","characterart.png"),("folder","folder.jpg") ]
@@ -64,7 +64,10 @@ def getContentPath(libPath):
             libPath = libPath.replace(",return","/")
             libPath = libPath.replace(", return","/")
         else:
-            libPath = libPath.split(",",1)[1]
+            if ", " in libPath:
+                libPath = libPath.split(", ",1)[1]
+            else:
+                libPath = libPath.split(",",1)[1]
             libPath = libPath.replace(",return","")
             libPath = libPath.replace(", return","")
         
@@ -719,6 +722,7 @@ def normalize_string(text):
     text = text.replace('|', "")
     text = text.replace('(', "")
     text = text.replace(')', "")
+    text = text.replace("\"","")
     text = text.strip()
     text = text.rstrip('.')
     text = unicodedata.normalize('NFKD', try_decode(text))

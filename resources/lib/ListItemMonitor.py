@@ -894,8 +894,18 @@ class ListItemMonitor(threading.Thread):
                                 artist = json_result.get("title").split(splitchar)[0]
                                 title = json_result.get("title").split(splitchar)[1]
                     logMsg("setMusicPlayerDetails: " + repr(json_result))
-                    artwork = getMusicArtwork(artist,album,title)
-                break
+        
+        cacheId = artist+album+title
+        #get the items from cache first
+        if self.musicArtCache.has_key(cacheId + "SkinHelper.Music.Art"):
+            artwork = self.musicArtCache[cacheId + "SkinHelper.Music.Art"]
+            logMsg("setMusicPlayerDetails FOUND CACHE FOR  artist: %s - album: %s - title: %s "%(artist,album,title))
+        else:
+            logMsg("setMusicPlayerDetails CACHE NOT FOUND FOR  artist: %s - album: %s - title: %s "%(artist,album,title))
+            artwork = getMusicArtwork(artist,album,title)
+            if artwork.get("info") and xbmc.getInfoLabel("MusicPlayer.Comment"):
+                artwork["info"] = normalize_string(xbmc.getInfoLabel("MusicPlayer.Comment")).replace('\n', ' ').replace('\r', '').split(" a href")[0] + "  -  " + artwork["info"]
+            self.musicArtCache[cacheId + "SkinHelper.Music.Art"] = artwork
 
         #set properties
         for key, value in artwork.iteritems():
@@ -904,14 +914,14 @@ class ListItemMonitor(threading.Thread):
     def setMusicDetails(self,artist,album,title):
         artwork = {}
         cacheId = artist+album
-        logMsg("setMusicDetails artist: %s - album: %s - title: %s "%(artist,album,title),0)
+        logMsg("setMusicDetails artist: %s - album: %s - title: %s "%(artist,album,title))
         
         #get the items from cache first
         if self.musicArtCache.has_key(cacheId + "SkinHelper.Music.Art"):
             artwork = self.musicArtCache[cacheId + "SkinHelper.Music.Art"]
-            logMsg("setMusicDetails FOUND CACHE FOR  artist: %s - album: %s - title: %s "%(artist,album,title),0)
+            logMsg("setMusicDetails FOUND CACHE FOR  artist: %s - album: %s - title: %s "%(artist,album,title))
         else:
-            logMsg("setMusicDetails CACHE NOT FOUND FOR  artist: %s - album: %s - title: %s "%(artist,album,title),0)
+            logMsg("setMusicDetails CACHE NOT FOUND FOR  artist: %s - album: %s - title: %s "%(artist,album,title))
             artwork = getMusicArtwork(artist,album,title)
             self.musicArtCache[cacheId + "SkinHelper.Music.Art"] = artwork
 
@@ -1000,7 +1010,7 @@ class ListItemMonitor(threading.Thread):
           
     def setForcedView(self):
         currentForcedView = xbmc.getInfoLabel("Skin.String(SkinHelper.ForcedViews.%s)" %self.contentType)
-        if self.contentType and currentForcedView and currentForcedView != "None" and xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.ForcedViews.Enabled)" and self.folderPath != "pvr://guide"):
+        if self.contentType and currentForcedView and currentForcedView != "None" and xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.ForcedViews.Enabled)") and self.folderPath != "pvr://guide":
             WINDOW.setProperty("SkinHelper.ForcedView",currentForcedView)
             xbmc.executebuiltin("Container.SetViewMode(%s)" %currentForcedView)
             if not xbmc.getCondVisibility("Control.HasFocus(%s)" %currentForcedView):
@@ -1016,23 +1026,34 @@ class ListItemMonitor(threading.Thread):
         efaPath = None
         efaFound = False
         liArt = None
+        extraFanArtfiles = []
+        filename = xbmc.getInfoLabel("ListItem.FileNameAndPath").decode("utf-8")
         
         if xbmc.getCondVisibility("Window.IsActive(movieinformation) | !Skin.HasSetting(SkinHelper.EnableExtraFanart)"):
             return
         
+        cachePath = self.liPath
+        if "plugin.video.emby.movies" in self.liPath or "plugin.video.emby.musicvideos" in self.liPath:
+            cachePath = filename
+        
         #get the item from cache first
-        if self.extraFanartCache.has_key(self.liPath):
-            if self.extraFanartCache[self.liPath][0] == "None":
+        if self.extraFanartCache.has_key(cachePath):
+            if self.extraFanartCache[cachePath][0] == "None":
                 return
             else:
-                WINDOW.setProperty("SkinHelper.ExtraFanArtPath",self.extraFanartCache[self.liPath][0])
+                WINDOW.setProperty("SkinHelper.ExtraFanArtPath",self.extraFanartCache[cachePath][0])
                 count = 0
-                for file in self.extraFanartCache[self.liPath][1]:
+                for file in self.extraFanartCache[cachePath][1]:
                     WINDOW.setProperty("SkinHelper.ExtraFanArt." + str(count),file)
                     count +=1  
                 return
         
-        if (self.liPath != None and self.liPath != self.liPathLast and (xbmc.getCondVisibility("Container.Content(movies) | Container.Content(seasons) | Container.Content(episodes) | Container.Content(tvshows)")) and not "videodb:" in self.liPath):
+        #support for emby addon
+        if "plugin.video.emby" in self.liPath:
+            efaPath = "plugin://plugin.video.emby/extrafanart?path=" + cachePath
+            efaFound = True
+        #lookup the extrafanart in the media location
+        elif (self.liPath != None and self.liPath != self.liPathLast and (xbmc.getCondVisibility("Container.Content(movies) | Container.Content(seasons) | Container.Content(episodes) | Container.Content(tvshows)")) and not "videodb:" in self.liPath):
                            
             if xbmc.getCondVisibility("Container.Content(episodes)"):
                 liArt = xbmc.getInfoLabel("ListItem.Art(tvshow.fanart)").decode('utf-8')
@@ -1052,7 +1073,7 @@ class ListItemMonitor(threading.Thread):
                 if xbmcvfs.exists(efaPath):
                     dirs, files = xbmcvfs.listdir(efaPath)
                     count = 0
-                    extraFanArtfiles = []
+                    
                     for file in files:
                         if file.lower().endswith(".jpg"):
                             efaFound = True
@@ -1060,11 +1081,11 @@ class ListItemMonitor(threading.Thread):
                             extraFanArtfiles.append(efaPath+file)
                             count +=1  
        
-                if (efaPath != None and efaFound == True):
-                    WINDOW.setProperty("SkinHelper.ExtraFanArtPath",efaPath)
-                    self.extraFanartCache[self.liPath] = [efaPath, extraFanArtfiles]     
-                else:
-                    self.extraFanartCache[self.liPath] = ["None",[]]
+        if (efaPath != None and efaFound == True):
+            WINDOW.setProperty("SkinHelper.ExtraFanArtPath",efaPath)
+            self.extraFanartCache[cachePath] = [efaPath, extraFanArtfiles]     
+        else:
+            self.extraFanartCache[cachePath] = ["None",[]]
 
     def setExtendedMovieInfo(self,imdbnumber="",contenttype=""):
         if not imdbnumber:
