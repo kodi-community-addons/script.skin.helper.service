@@ -12,7 +12,7 @@ class Main:
         
         #get params
         params = urlparse.parse_qs(sys.argv[2][1:].decode("utf-8"))
-        logMsg("Parameter string: %s" % sys.argv[2],0)
+        logMsg("Parameter string: %s" % sys.argv[2])
         
         if params:        
             path=params.get("path",None)
