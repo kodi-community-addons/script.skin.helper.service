@@ -252,6 +252,13 @@ def selectView(contenttype="other", currentView=None, displayNone=False, display
         id = allViews[selectedItem].getProperty("id")
         return id
 
+def waitForSkinShortcutsWindow():
+    #wait untill skinshortcuts is active window (because of any animations that may have been applied)
+    for i in range(40):
+        if not (xbmc.getCondVisibility("Window.IsActive(DialogSelect.xml) | Window.IsActive(script-skin_helper_service-ColorPicker.xml) | Window.IsActive(DialogKeyboard.xml)")):
+            break
+        else: xbmc.sleep(100)
+        
 def setSkinShortCutsProperty(setting="",windowHeader="",propertyName=""):
     curValue = xbmc.getInfoLabel("$INFO[Container(211).ListItem.Property(%s)]" %propertyName).decode("utf-8")
     if not curValue: curValue = "None"
@@ -260,6 +267,7 @@ def setSkinShortCutsProperty(setting="",windowHeader="",propertyName=""):
     else:
         value = xbmcgui.Dialog().input(windowHeader, curValue, type=xbmcgui.INPUT_ALPHANUM).decode("utf-8")
     if value:
+        waitForSkinShortcutsWindow()
         xbmc.executebuiltin("SetProperty(customProperty,%s)" %propertyName.encode("utf-8"))
         xbmc.executebuiltin("SetProperty(customValue,%s)" %value.encode("utf-8"))
         xbmc.executebuiltin("SendClick(404)")

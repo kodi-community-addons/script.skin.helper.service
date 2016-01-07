@@ -130,6 +130,7 @@ class Main:
                 colorPicker.shortcutProperty = propname
                 colorPicker.doModal()
                 if propname and not isinstance(colorPicker.result, int):
+                    waitForSkinShortcutsWindow()  
                     wid = xbmcgui.getCurrentWindowDialogId()
                     currentWindow = xbmcgui.Window( xbmcgui.getCurrentWindowDialogId() )
                     currentWindow.setProperty("customProperty",propname)
