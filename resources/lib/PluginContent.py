@@ -978,7 +978,6 @@ def getCast(movie=None,tvshow=None,movieset=None,episode=None,downloadThumbs=Fal
     item = {}
     allCast = []
     castNames = list()
-    moviesetmovies = None
     cachedataStr = ""
     try:
         if movieset:
@@ -993,109 +992,90 @@ def getCast(movie=None,tvshow=None,movieset=None,episode=None,downloadThumbs=Fal
         elif episode:
             cachedataStr = "episode.castcache-" + str(episode)+str(downloadThumbs)
             itemId = int(episode)
-        else:
+        elif not (movie or tvshow or episode or movieset) and xbmc.getCondVisibility("Window.IsActive(DialogVideoInfo.xml)"):
             cachedataStr = xbmc.getInfoLabel("ListItem.Title")+xbmc.getInfoLabel("ListItem.FileNameAndPath")+str(downloadThumbs)
     except: pass
     
     cachedata = WINDOW.getProperty(cachedataStr).decode("utf-8")
     if cachedata:
         #get data from cache
-        cachedata = eval(cachedata)
-        for cast in cachedata:
-            liz = xbmcgui.ListItem(label=cast[0],label2=cast[1],iconImage=cast[2])
-            liz.setProperty('IsPlayable', 'false')
-            url = "RunScript(script.extendedinfo,info=extendedactorinfo,name=%s)"%cast[0]
-            path="plugin://script.skin.helper.service/?action=launch&path=" + url
-            castNames.append(cast[0])
-            liz.setThumbnailImage(cast[2])
-            xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=path, listitem=liz, isFolder=False)
+        allCast = eval(cachedata)
     else:
+        
         #retrieve data from json api...
         if movie and itemId:
             json_result = getJSON('VideoLibrary.GetMovieDetails', '{ "movieid": %d, "properties": [ "title", "cast" ] }' %itemId)
-            if json_result: item = json_result
+            if json_result and json_result.get("cast"): allCast = json_result.get("cast")
         elif movie and not itemId:
             json_result = getJSON('VideoLibrary.GetMovies', '{ "filter": {"operator":"is", "field":"title", "value":"%s"}, "properties": [ "title", "cast" ] }' %movie.encode("utf-8"))
-            if json_result: item = json_result[0]
+            if json_result and json_result[0].get("cast"): allCast = json_result[0].get("cast")
         elif tvshow and itemId:
             json_result = getJSON('VideoLibrary.GetTVShowDetails', '{ "tvshowid": %d, "properties": [ "title", "cast" ] }' %itemId)
-            if json_result: item = json_result
+            if json_result and json_result.get("cast"): allCast = json_result.get("cast")
         elif tvshow and not itemId:
             json_result = getJSON('VideoLibrary.GetTvShows', '{ "filter": {"operator":"is", "field":"title", "value":"%s"}, "properties": [ "title", "cast" ] }' %tvshow.encode("utf-8"))
-            if json_result: item = json_result[0]
+            if json_result and json_result[0].get("cast"): allCast = json_result[0].get("cast")
         elif episode and itemId:
             json_result = getJSON('VideoLibrary.GetEpisodeDetails', '{ "episodeid": %d, "properties": [ "title", "cast" ] }' %itemId)
-            if json_result: item = json_result
+            if json_result and json_result.get("cast"): allCast = json_result.get("cast")
         elif episode and not itemId:
             json_result = getJSON('VideoLibrary.GetEpisodes', '{ "filter": {"operator":"is", "field":"title", "value":"%s"}, "properties": [ "title", "cast" ] }' %episode.encode("utf-8"))
-            if json_result: item = json_result[0]
-        elif movieset and itemId:
-            json_result = getJSON('VideoLibrary.GetMovieSetDetails', '{ "setid": %d, "properties": [ "title" ] }' %itemId)
-            if json_result.has_key("movies"): moviesetmovies = json_result['movies']      
-        elif movieset and not itemId:
-            json_result = getJSON('VideoLibrary.GetMovieSets', '{ "filter": {"operator":"is", "field":"title", "value":"%s"}, "properties": [ "title" ] }' %movieset.encode("utf-8"))
-            if json_result: 
-                movieset = json_result[0]
-                if movieset.has_key("movies"):
-                    moviesetmovies = movieset['movies']
-        else:
-            #no item provided, try to grab the cast list from container 50 (dialogvideoinfo)
+            if json_result and json_result[0].get("cast"): allCast = json_result[0].get("cast")
+        
+        #moviesets
+        if movieset:
+            moviesetmovies = []
+            if itemId:
+                json_result = getJSON('VideoLibrary.GetMovieSetDetails', '{ "setid": %d, "properties": [ "title" ] }' %itemId)
+                if json_result.has_key("movies"): moviesetmovies = json_result['movies']
+            elif not itemId:
+                json_result = getJSON('VideoLibrary.GetMovieSets', '{ "filter": {"operator":"is", "field":"title", "value":"%s"}, "properties": [ "title" ] }' %movieset.encode("utf-8"))
+                if json_result: moviesetmovies = json_result[0]['movies']
+            if moviesetmovies:
+                for setmovie in moviesetmovies:
+                    json_result = getJSON('VideoLibrary.GetMovieDetails', '{ "movieid": %d, "properties": [ "title", "cast" ] }' %setmovie["movieid"])
+                    if json_result and json_result.get("cast"): allCast += json_result.get("cast")
+        
+        #no item provided, try to grab the cast list from container 50 (dialogvideoinfo)
+        elif not (movie or tvshow or episode or movieset) and xbmc.getCondVisibility("Window.IsActive(DialogVideoInfo.xml)"):
             for i in range(250):
                 label = xbmc.getInfoLabel("Container(50).ListItemNoWrap(%s).Label" %i).decode("utf-8")
                 if not label: break
                 label2 = xbmc.getInfoLabel("Container(50).ListItemNoWrap(%s).Label2" %i).decode("utf-8")
                 thumb = getCleanImage( xbmc.getInfoLabel("Container(50).ListItemNoWrap(%s).Thumb" %i).decode("utf-8") )
-                if (not thumb or not xbmcvfs.exists(thumb)) and downloadThumbs: 
-                    artwork = getOfficialArtWork(label,None,"person")
-                    thumb = artwork.get("thumb","")
-                url = "RunScript(script.extendedinfo,info=extendedactorinfo,name=%s)"%label
-                path="plugin://script.skin.helper.service/?action=launch&path=" + url
-                liz = xbmcgui.ListItem(label=label,label2=label2,iconImage=thumb)
-                liz.setProperty('IsPlayable', 'false')
-                liz.setThumbnailImage(thumb)
-                xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=path, listitem=liz, isFolder=False)
-                allCast.append([label,label2,thumb])
+                allCast.append( { "name": label, "role": label2, "thumbnail": thumb } )
                 
+        #lookup tmdb if item is requested that is not in local db
+        tmdbdetails = {}
+        if movie and not allCast and not itemId:
+            tmdbdetails = getTmdbDetails(movie,None,"movie",True)
+        elif tvshow and not allCast and not itemId:
+            tmdbdetails = getTmdbDetails(tvshow,None,"tv",True)
+        if tmdbdetails:
+            allCast = tmdbdetails.get("cast")
         
-        #process cast for regular movie or show
-        if item and item.has_key("cast"):
-            for cast in item["cast"]:
+        
+        #optional: download missing actor thumbs
+        if allCast and downloadThumbs:
+            for cast in allCast:
                 if cast.get("thumbnail"): cast["thumbnail"] = getCleanImage(cast.get("thumbnail"))
-                if not cast.get("thumbnail") or not xbmcvfs.exists(cast.get("thumbnail")) and downloadThumbs: 
-                    artwork = getOfficialArtWork(cast["name"],None,"person")
+                if not cast.get("thumbnail"): 
+                    artwork = getTmdbDetails(cast["name"],None,"person")
                     cast["thumbnail"] = artwork.get("thumb","")
-                liz = xbmcgui.ListItem(label=cast["name"],label2=cast["role"],iconImage=cast.get("thumbnail"))
-                allCast.append([cast["name"],cast["role"],cast.get("thumbnail","")])
-                castNames.append(cast["name"])
-                url = "RunScript(script.extendedinfo,info=extendedactorinfo,name=%s)"%cast["name"]
-                path="plugin://script.skin.helper.service/?action=launch&path=" + url
-                liz.setProperty('IsPlayable', 'false')
-                liz.setThumbnailImage(cast.get("thumbnail"))
-                xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=path, listitem=liz, isFolder=False)
-        
-        #process cast for all movies in a movieset
-        elif moviesetmovies:
-            moviesetCastList = []
-            for setmovie in moviesetmovies:
-                json_result = getJSON('VideoLibrary.GetMovieDetails', '{ "movieid": %d, "properties": [ "title", "cast" ] }' %setmovie["movieid"])
-                if json_result:
-                    for cast in json_result["cast"]:
-                        if not cast["name"] in moviesetCastList:
-                            if cast.get("thumbnail"): cast["thumbnail"] = getCleanImage(cast.get("thumbnail"))
-                            if not cast.get("thumbnail") or not xbmcvfs.exists(cast.get("thumbnail")) and downloadThumbs:
-                                artwork = getOfficialArtWork(cast["name"],None,"person")
-                                cast["thumbnail"] = artwork.get("thumb","")
-                            liz = xbmcgui.ListItem(label=cast["name"],label2=cast["role"],iconImage=cast.get("thumbnail",""))
-                            allCast.append([cast["name"],cast["role"],cast["thumbnail"]])
-                            castNames.append(cast["name"])
-                            url = "RunScript(script.extendedinfo,info=extendedactorinfo,name=%s)"%cast["name"]
-                            path="plugin://script.skin.helper.service/?action=launch&path=" + url
-                            liz.setProperty('IsPlayable', 'false')
-                            liz.setThumbnailImage(cast.get("thumbnail"))
-                            xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=path, listitem=liz, isFolder=False)
-                            moviesetCastList.append(cast["name"])
-            
+
+        #save to cache    
         WINDOW.setProperty(cachedataStr,repr(allCast))
+    
+    #process listing with the results...
+    for cast in allCast:
+        if cast.get("name") not in castNames:
+            liz = xbmcgui.ListItem(label=cast.get("name"),label2=cast.get("role"),iconImage=cast.get("thumbnail"))
+            liz.setProperty('IsPlayable', 'false')
+            url = "RunScript(script.extendedinfo,info=extendedactorinfo,name=%s)"%cast.get("name")
+            path="plugin://script.skin.helper.service/?action=launch&path=" + url
+            castNames.append(cast.get("name"))
+            liz.setThumbnailImage(cast.get("thumbnail"))
+            xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=path, listitem=liz, isFolder=False)
     
     WINDOW.setProperty('SkinHelper.ListItemCast', "[CR]".join(castNames))
     

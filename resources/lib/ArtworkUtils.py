@@ -16,7 +16,7 @@ m.set_useragent("script.skin.helper.service", "1.0.0", "https://github.com/marce
 try:
     if urllib.urlopen("http://musicbrainzvm:5000").getcode() == 200:
         m.set_hostname("musicbrainzvm:5000")
-        logMsg("musicbrainzvm is alive - using custom MB server",0)
+        logMsg("musicbrainzvm is alive - using custom MB server")
 except: pass
 
 def getPVRThumbs(title,channel,type="channels",path="",genre="",ignoreCache=False, manualLookup=False):
@@ -158,9 +158,9 @@ def getPVRThumbs(title,channel,type="channels",path="",genre="",ignoreCache=Fals
                 #grab artwork from tmdb/fanart.tv
                 if WINDOW.getProperty("SkinHelper.useTMDBLookups") == "true" or manualLookup:
                     if "movie" in genre.lower():
-                        artwork = getOfficialArtWork(searchtitle,artwork,"movie")
+                        artwork = getTmdbDetails(searchtitle,artwork,"movie")
                     else:
-                        artwork = getOfficialArtWork(searchtitle,artwork)
+                        artwork = getTmdbDetails(searchtitle,artwork)
                     
                 #lookup thumb on google as fallback
                 if not artwork.get("thumb") and channel and WINDOW.getProperty("SkinHelper.useGoogleLookups") == "true":
@@ -321,7 +321,7 @@ def getfanartTVimages(type,id,artwork=None,allowoverwrite=True):
         artwork["extrafanarts"] = repr(extrafanarts)
     return artwork
 
-def getOfficialArtWork(title,artwork=None,type=None):
+def getTmdbDetails(title,artwork=None,type=None,includeCast=False):
     #perform search on TMDB and return artwork
     if not artwork: artwork={}
     coverUrl = ""
@@ -361,7 +361,9 @@ def getOfficialArtWork(title,artwork=None,type=None):
             coverUrl = matchFound.get("poster_path","")
             fanartUrl = matchFound.get("backdrop_path","")
             id = str(matchFound.get("id",""))
-            media_type = matchFound.get("media_type","")
+            media_type = type
+            if media_type == "multi" and matchFound.get("media_type"):
+                media_type = matchFound.get("media_type","")
             name = item.get("name")
             if not name: name = item.get("title")
             artwork["tmdb_title"] = name
@@ -371,10 +373,12 @@ def getOfficialArtWork(title,artwork=None,type=None):
             languages = [KODILANGUAGE,"en"]
             for language in languages:
                 if WINDOW.getProperty("SkinHelper.useFanArtTv") == "true" and id:
-                    if media_type == "movie" or not media_type:
+                    if media_type == "movie":
                         url = 'http://api.themoviedb.org/3/movie/%s?api_key=%s&language=%s' %(id,tmdb_apiKey,language)
-                    else:
+                        if includeCast: url += '&append_to_response=credits'
+                    elif media_type == "tv":
                         url = 'http://api.themoviedb.org/3/tv/%s?api_key=%s&append_to_response=external_ids&language=%s' %(id,tmdb_apiKey,language)
+                        if includeCast: url = 'http://api.themoviedb.org/3/tv/%s?api_key=%s&append_to_response=external_ids,credits&language=%s' %(id,tmdb_apiKey,language)
                     response = requests.get(url)
                     data = json.loads(response.content.decode('utf-8','replace'))
                     if data:
@@ -386,12 +390,17 @@ def getOfficialArtWork(title,artwork=None,type=None):
                             artwork["tvdb_id"] = media_id
                         if data.get("vote_average"):
                             artwork["rating"] = str(data.get("vote_average"))
+                        if data.get("credits") and data["credits"].get("cast"):
+                            artwork["cast"] = []
+                            for cast in data["credits"].get("cast"):
+                                cast_thumb = ""
+                                if cast.get("profile_path"): cast_thumb = "http://image.tmdb.org/t/p/original" + cast.get("profile_path")
+                                artwork["cast"].append( {"name": cast.get("name"), "role": cast.get("character"), "thumbnail": cast_thumb } )
                         if data.get("overview"):
                             artwork["plot"] = data.get("overview")
                             #break if we've found the plot
                             break
-                            
-        
+
         #lookup artwork on fanart.tv
         if media_id and media_type:
             artwork = getfanartTVimages(media_type,media_id,artwork)
@@ -408,9 +417,9 @@ def getOfficialArtWork(title,artwork=None,type=None):
         if "getaddrinfo failed" in str(e):
             #no internet access - disable lookups for now
             WINDOW.setProperty("SkinHelper.DisableInternetLookups","disable")
-            logMsg("getOfficialArtWork - no internet access, disabling internet lookups for now",0)
+            logMsg("getTmdbDetails - no internet access, disabling internet lookups for now",0)
         else:
-            logMsg("getOfficialArtWork - Error in getOfficialArtWork --> " + str(e),0)
+            logMsg("getTmdbDetails - Error in getTmdbDetails --> " + str(e),0)
             
     return artwork
 
@@ -425,7 +434,7 @@ def getActorImage(actorname):
     else: cache = {}
     
     #lookup image online
-    thumb = getOfficialArtWork(actorname,None,"person")
+    thumb = getTmdbDetails(actorname,None,"person")
     #save in cache
     cache[actorname] = thumb
     WINDOW.setProperty("SkinHelper.ActorImages",repr(cache))
