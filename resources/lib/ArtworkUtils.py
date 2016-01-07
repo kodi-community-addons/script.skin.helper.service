@@ -13,9 +13,11 @@ from GoogleImages import *
 tmdb_apiKey = base64.b64decode("NDc2N2I0YjJiYjk0YjEwNGZhNTUxNWM1ZmY0ZTFmZWM=")
 m.set_useragent("script.skin.helper.service", "1.0.0", "https://github.com/marcelveldt/script.skin.helper.service")
 
-if urllib.urlopen("http://musicbrainzvm:5000").getcode() == 200:
-    m.set_hostname("musicbrainzvm:5000")
-    logMsg("musicbrainzvm is alive - using custom MB server",0)
+try:
+    if urllib.urlopen("http://musicbrainzvm:5000").getcode() == 200:
+        m.set_hostname("musicbrainzvm:5000")
+        logMsg("musicbrainzvm is alive - using custom MB server",0)
+except: pass
 
 def getPVRThumbs(title,channel,type="channels",path="",genre="",ignoreCache=False, manualLookup=False):
     cacheFound = False
