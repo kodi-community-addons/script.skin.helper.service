@@ -23,6 +23,7 @@ class BackgroundsUpdater(threading.Thread):
     normalTaskInterval = 30
     refreshSmartshortcuts = False
     lastWindow = None
+    manualWalls = list()
     
     def __init__(self, *args):
         self.lastPicturesPath = xbmc.getInfoLabel("skin.string(SkinHelper.PicturesBackgroundPath)")
@@ -128,7 +129,7 @@ class BackgroundsUpdater(threading.Thread):
         if WINDOW.getProperty("SkinHelper.preferBWwallbackgrounds") == "true":
             windowProp = "BW_" + windowProp
         
-        #load from cache    
+        #load wall from cache    
         if self.allBackgrounds.get(windowProp):
             image = random.choice(self.allBackgrounds[windowProp])
             image = image.get("fanart","")
@@ -154,7 +155,27 @@ class BackgroundsUpdater(threading.Thread):
                 if image:
                     image = image.get("fanart","")
                     WINDOW.setProperty(windowProp, image)
+    
+    def setManualWallFromPath(self, windowProp, libPath, type="fanart", items=20):
+        
+        #only continue if the cache is prefilled
+        if self.allBackgrounds.get(libPath):
+            if windowProp in self.manualWalls:
+                #only refresh one random image...
+                image = random.choice(self.allBackgrounds[libPath])
+                image = image.get(type)
+                if image:
+                    WINDOW.setProperty("%s.%s" %(windowProp,random.randint(0, items)), image)
                 
+            else:
+                #first run: set all images
+                for i in range(items):
+                    image = random.choice(self.allBackgrounds[libPath])
+                    image = image.get(type)
+                    if image:
+                        WINDOW.setProperty("%s.%s" %(windowProp,i), image)
+                    self.manualWalls.append(windowProp)
+    
     def setImageFromPath(self, windowProp, libPath, fallbackImage="", customJson=None):
         if self.exit:
             return False
@@ -416,6 +437,7 @@ class BackgroundsUpdater(threading.Thread):
             self.setImageFromPath("SkinHelper.InProgressMoviesBackground","SkinHelper.InProgressMoviesBackground","",['VideoLibrary.GetMovies','{ "properties": ["title","art"], "filter": {"and": [{"operator":"true", "field":"inprogress", "value":""}]}, "sort": { "order": "ascending", "method": "random", "ignorearticle": true } }'])
             self.setImageFromPath("SkinHelper.RecentMoviesBackground","SkinHelper.RecentMoviesBackground","",['VideoLibrary.GetRecentlyAddedMovies','{ "properties": ["title","art"], "limits": {"end":50}, "sort": { "order": "ascending", "method": "random", "ignorearticle": true } }'])
             self.setImageFromPath("SkinHelper.UnwatchedMoviesBackground","SkinHelper.UnwatchedMoviesBackground","",['VideoLibrary.GetMovies','{ "properties": ["title","art"], "filter": {"and": [{"operator":"is", "field":"playcount", "value":""}]}, "limits": {"end":50}, "sort": { "order": "ascending", "method": "random", "ignorearticle": true } }'])
+            self.setManualWallFromPath("SkinHelper.AllMoviesBackground","SkinHelper.AllMoviesBackground")
             
         #tvshows backgrounds
         if xbmc.getCondVisibility("Library.HasContent(tvshows)"):
