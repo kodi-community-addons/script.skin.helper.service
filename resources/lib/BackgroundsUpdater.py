@@ -21,9 +21,12 @@ class BackgroundsUpdater(threading.Thread):
     cachePath = None
     SmartShortcutsCachePath = None
     normalTaskInterval = 30
-    refreshSmartshortcuts = False
+    wallTaskInterval = 30
+    backgroundDelay = 0
+    wallImagesDelay = 0
     lastWindow = None
     manualWalls = list()
+    skinShortcutsActive = False
     
     def __init__(self, *args):
         self.lastPicturesPath = xbmc.getInfoLabel("skin.string(SkinHelper.PicturesBackgroundPath)")
@@ -44,12 +47,13 @@ class BackgroundsUpdater(threading.Thread):
 
         #first run get backgrounds immediately from filebased cache and reset the cache in memory to populate all images from scratch
         try:
+            self.getSkinConfig()
             self.getCacheFromFile()
             self.UpdateBackgrounds()
+            self.updateWallImages()
         except Exception as e:
             logMsg("ERROR in BackgroundsUpdater ! --> " + str(e), 0)
             
-        
         self.allBackgrounds = {}
         self.smartShortcuts = {}
          
@@ -57,36 +61,46 @@ class BackgroundsUpdater(threading.Thread):
             
             if xbmc.getCondVisibility("![Window.IsActive(fullscreenvideo) | Window.IsActive(script.pseudotv.TVOverlay.xml) | Window.IsActive(script.pseudotv.live.TVOverlay.xml)] | Window.IsActive(script.pseudotv.live.EPG.xml)") and xbmc.getInfoLabel("skin.string(SkinHelper.RandomFanartDelay)"):
 
-                try:
-                    backgroundDelay = int(xbmc.getInfoLabel("skin.string(SkinHelper.RandomFanartDelay)"))
-                except:
-                    backgroundDelay = 0
-                
                 # force refresh smart shortcuts when skin settings launched (so user sees any newly added smartshortcuts)
-                currentWindow = xbmc.getInfoLabel("$INFO[Window.Property(xmlfile)]")
-                if ("skinshortcuts.xml" in currentWindow or "SkinSettings" in currentWindow) and currentWindow != self.lastWindow and self.refreshSmartshortcuts == False:
-                    self.lastWindow = currentWindow
-                    self.refreshSmartshortcuts = True
-                    try:
-                        self.UpdateBackgrounds()
-                    except Exception as e:
-                        logMsg("ERROR in UpdateBackgrounds ! --> " + str(e), 0)
-                        
+                if xbmc.getCondVisibility("Window.IsActive(script-skinshortcuts.xml) | Window.IsActive(SkinSettings)"):
+                    if not skinShortcutsActive:
+                        try: self.UpdateBackgrounds(refreshSmartshortcuts=True)
+                        except Exception as e: logMsg("ERROR in UpdateBackgrounds ! --> " + str(e), 0)
+                        skinShortcutsActive = True
+                else: skinShortcutsActive = False      
                 
-                # Update home backgrounds every interval (default 60 seconds)
-                if backgroundDelay != 0:
-                    if (self.normalTaskInterval >= backgroundDelay):
+                # Update home backgrounds every interval (if enabled by skinner)
+                if self.backgroundDelay != 0:
+                    if (self.normalTaskInterval >= self.backgroundDelay):
                         self.normalTaskInterval = 0
                         try:
                             self.UpdateBackgrounds()
                             self.setDayNightColorTheme()
+                            self.getSkinConfig()
                         except Exception as e:
                             logMsg("ERROR in UpdateBackgrounds ! --> " + str(e), 0)
                             
+                # Update manual wall images - if enabled by the skinner
+                if self.wallImagesDelay != 0:
+                    if (self.wallTaskInterval >= self.wallImagesDelay):
+                        self.wallTaskInterval = 0
+                        try:
+                            self.updateWallImages()
+                        except Exception as e:
+                            logMsg("ERROR in UpdateBackgrounds.updateWallImages ! --> " + str(e), 0)
+                            
             
-            xbmc.sleep(150)
-            self.normalTaskInterval += 0.15
-                               
+            xbmc.sleep(1000)
+            self.normalTaskInterval += 1
+            self.wallTaskInterval += 1
+    
+    def getSkinConfig(self):
+        #gets the settings for the script as set by the skinner..
+        try: self.backgroundDelay = int(xbmc.getInfoLabel("Skin.String(SkinHelper.RandomFanartDelay)"))
+        except: self.backgroundDelay = 0
+        try: self.wallImagesDelay = int(xbmc.getInfoLabel("Skin.String(SkinHelper.WallImagesDelay)"))
+        except: self.wallImagesDelay = 0
+    
     def saveCacheToFile(self):
         saveDataToCacheFile(self.cachePath,self.allBackgrounds)
         saveDataToCacheFile(self.SmartShortcutsCachePath,self.smartShortcuts)
@@ -157,7 +171,6 @@ class BackgroundsUpdater(threading.Thread):
                     WINDOW.setProperty(windowProp, image)
     
     def setManualWallFromPath(self, windowProp, libPath, type="fanart", items=20):
-        
         #only continue if the cache is prefilled
         if self.allBackgrounds.get(libPath):
             if windowProp in self.manualWalls:
@@ -165,7 +178,7 @@ class BackgroundsUpdater(threading.Thread):
                 image = random.choice(self.allBackgrounds[libPath])
                 image = image.get(type)
                 if image:
-                    WINDOW.setProperty("%s.%s" %(windowProp,random.randint(0, items)), image)
+                    WINDOW.setProperty("%s.Wall.%s" %(windowProp,random.randint(0, items)), image)
                 
             else:
                 #first run: set all images
@@ -173,8 +186,29 @@ class BackgroundsUpdater(threading.Thread):
                     image = random.choice(self.allBackgrounds[libPath])
                     image = image.get(type)
                     if image:
-                        WINDOW.setProperty("%s.%s" %(windowProp,i), image)
+                        WINDOW.setProperty("%s.Wall.%s" %(windowProp,i), image)
                     self.manualWalls.append(windowProp)
+    
+    def updateWallImages(self):
+        #manual wall images, provides a collection of images which are randomly changing
+        if self.wallImagesDelay == 0:
+            return
+            
+        wall_images_movie = xbmc.getInfoLabel("Skin.String(SkinHelper.WallImagesLimit.Movies)")
+        if wall_images_movie:
+            wall_images_movie = int(wall_images_movie)
+            self.setManualWallFromPath("SkinHelper.AllMoviesBackground","SkinHelper.AllMoviesBackground", type="fanart", items=wall_images_movie)
+            
+        wall_images_tvshows = xbmc.getInfoLabel("Skin.String(SkinHelper.WallImagesLimit.TvShows)")
+        if wall_images_tvshows:
+            wall_images_tvshows = int(wall_images_tvshows)
+            self.setManualWallFromPath("SkinHelper.AllTvShowsBackground","SkinHelper.AllTvShowsBackground", type="fanart", items=wall_images_tvshows)
+            
+        wall_images_music = xbmc.getInfoLabel("Skin.String(SkinHelper.WallImagesLimit.Music)")
+        if wall_images_music:
+            wall_images_music = int(wall_images_music)
+            self.setManualWallFromPath("SkinHelper.AllMusicBackground","SkinHelper.AllMusicBackground", type="fanart", items=wall_images_music)
+        
     
     def setImageFromPath(self, windowProp, libPath, fallbackImage="", customJson=None):
         if self.exit:
@@ -424,9 +458,12 @@ class BackgroundsUpdater(threading.Thread):
                     if key == "fanart": WINDOW.setProperty(windowProp, value)
                     else: WINDOW.setProperty(windowProp + "." + key, value)
     
-    def UpdateBackgrounds(self):
+    def UpdateBackgrounds(self,refreshSmartshortcuts=False):
         
         allSmartShortcuts = []
+        
+        if self.backgroundDelay == 0:
+            return
         
         #conditional background
         WINDOW.setProperty("SkinHelper.ConditionalBackground", conditionalBackgrounds.getActiveConditionalBackground())
@@ -437,7 +474,6 @@ class BackgroundsUpdater(threading.Thread):
             self.setImageFromPath("SkinHelper.InProgressMoviesBackground","SkinHelper.InProgressMoviesBackground","",['VideoLibrary.GetMovies','{ "properties": ["title","art"], "filter": {"and": [{"operator":"true", "field":"inprogress", "value":""}]}, "sort": { "order": "ascending", "method": "random", "ignorearticle": true } }'])
             self.setImageFromPath("SkinHelper.RecentMoviesBackground","SkinHelper.RecentMoviesBackground","",['VideoLibrary.GetRecentlyAddedMovies','{ "properties": ["title","art"], "limits": {"end":50}, "sort": { "order": "ascending", "method": "random", "ignorearticle": true } }'])
             self.setImageFromPath("SkinHelper.UnwatchedMoviesBackground","SkinHelper.UnwatchedMoviesBackground","",['VideoLibrary.GetMovies','{ "properties": ["title","art"], "filter": {"and": [{"operator":"is", "field":"playcount", "value":""}]}, "limits": {"end":50}, "sort": { "order": "ascending", "method": "random", "ignorearticle": true } }'])
-            self.setManualWallFromPath("SkinHelper.AllMoviesBackground","SkinHelper.AllMoviesBackground")
             
         #tvshows backgrounds
         if xbmc.getCondVisibility("Library.HasContent(tvshows)"):
@@ -476,7 +512,7 @@ class BackgroundsUpdater(threading.Thread):
         if xbmc.getCondVisibility("System.HasAddon(plugin.video.emby) + Skin.HasSetting(SmartShortcuts.emby)"):
             logMsg("Processing smart shortcuts for emby nodes.... ")
             
-            if self.smartShortcuts.has_key("emby") and not self.refreshSmartshortcuts:
+            if self.smartShortcuts.has_key("emby") and not refreshSmartshortcuts:
                 logMsg("get emby entries from cache.... ")
                 nodes = self.smartShortcuts["emby"]
                 for node in nodes:
@@ -513,7 +549,7 @@ class BackgroundsUpdater(threading.Thread):
         #smart shortcuts --> playlists
         if xbmc.getCondVisibility("Skin.HasSetting(SmartShortcuts.playlists)"):
             logMsg("Processing smart shortcuts for playlists.... ")
-            if self.smartShortcuts.has_key("playlists") and not self.refreshSmartshortcuts:
+            if self.smartShortcuts.has_key("playlists") and not refreshSmartshortcuts:
                 logMsg("get playlist entries from cache.... ")
                 playlists = self.smartShortcuts["playlists"]
                 for playlist in playlists:
@@ -567,7 +603,7 @@ class BackgroundsUpdater(threading.Thread):
         if xbmc.getCondVisibility("Skin.HasSetting(SmartShortcuts.favorites)"):
             logMsg("Processing smart shortcuts for favourites.... ")
             try:
-                if self.smartShortcuts.has_key("favourites") and not self.refreshSmartshortcuts:
+                if self.smartShortcuts.has_key("favourites") and not refreshSmartshortcuts:
                     logMsg("get favourites entries from cache.... ")
                     favourites = self.smartShortcuts["favourites"]
                     for favourite in favourites:
@@ -614,7 +650,7 @@ class BackgroundsUpdater(threading.Thread):
             nodes = []
             logMsg("Processing smart shortcuts for plex nodes.... ")
             
-            if self.smartShortcuts.has_key("plex") and not self.refreshSmartshortcuts:
+            if self.smartShortcuts.has_key("plex") and not refreshSmartshortcuts:
                 logMsg("get plex entries from cache.... ")
                 nodes = self.smartShortcuts["plex"]
                 for node in nodes:
@@ -661,7 +697,7 @@ class BackgroundsUpdater(threading.Thread):
         #smart shortcuts --> netflix nodes
         if xbmc.getCondVisibility("System.HasAddon(plugin.video.netflixbmc) + Skin.HasSetting(SmartShortcuts.netflix)") and WINDOW.getProperty("netflixready") == "ready":
             
-            if self.smartShortcuts.has_key("netflix") and not self.refreshSmartshortcuts:
+            if self.smartShortcuts.has_key("netflix") and not refreshSmartshortcuts:
                 logMsg("get netflix entries from cache.... ")
                 nodes = self.smartShortcuts["netflix"]
                 for node in nodes:
@@ -837,8 +873,7 @@ class BackgroundsUpdater(threading.Thread):
             WINDOW.setProperty("allSmartShortcuts", repr(allSmartShortcuts))
         elif self.smartShortcuts.has_key("allSmartShortcuts"):
             WINDOW.setProperty("allSmartShortcuts", repr(self.smartShortcuts["allSmartShortcuts"]))
-        
-        self.refreshSmartshortcuts = False        
+      
                 
         #wall backgrounds
         self.setWallImageFromPath("SkinHelper.AllMoviesBackground.Wall","SkinHelper.AllMoviesBackground")
