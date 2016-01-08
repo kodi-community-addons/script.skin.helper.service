@@ -288,18 +288,46 @@ If you want to create a wall with images yourself in your skin and you need rand
 First of all you need to enable this by setting the delay in a skin string: Skin.SetString(SkinHelper.WallImagesDelay, 10)
 0 disables the feature completely, any other number controls the amount of seconds that the wall will rotate a random image.
 
-The individual wall images are currently available for movies, tvshows and music fanart. If you need more library entries or other artwork types let me know on the forums.
+Secondly you will have to enable the generation of wall images for each SkinHelper provided background by setting a skin string:
+Skin.SetString(BACKGROUNDNAME.EnableWallImages, 20)
+This value controls the number of images that should be provided by the script, if empty or 0 there will be no images generated.
+Once both the global delay and the item-specific limit skinstrings are set, the images will be available like this: 
+Window(Home).Property(BACKGROUNDNAME.Wall.X) (where X is the number of the image, start counting from 0)
 
-Enable movie images: Skin.SetString(SkinHelper.WallImagesLimit.Movies, 20)
-This limit setting controls the number of images that should be provided by the script.
-Once both the delay and the limit skinstrings are set, the images will be available like this: 
-SkinHelper.AllMoviesBackground.Wall.X (where X is the number of the image, start counting from 0)
+You should be able to enable the wall-images feature for any rotating skinhelper background, including those from the smart shortcuts.
+Also note that the additional properties will also be available e.g. Window(Home).Property(SkinHelper.AllMoviesBackground.Wall.1.Poster)
 
-Enable tvshow images: Skin.SetString(SkinHelper.WallImagesLimit.TvShows, 20)
-SkinHelper.AllTvShowsBackground.Wall.X
+Examples...
 
-Enable music artist images: Skin.SetString(SkinHelper.WallImagesLimit.Music, 20)
-SkinHelper.AllMusicBackground.Wall.X
+To get a collection of 10 images from the AllMoviesBackground provided by skinhelper:
+Skin.SetString(SkinHelper.AllMoviesBackground.EnableWallImages, 10)
+And to get e.g. fanart image 5 from the collection: Window(Home).Property(SkinHelper.AllMoviesBackground.Wall.5)
+Or the poster: Window(Home).Property(SkinHelper.AllMoviesBackground.Wall.5.Poster)
+
+
+Or to get the images for one of the plex smart shortcuts:
+Skin.SetString(plexbmc.0.image.EnableWallImages, 10)  --> enable it for 10 images
+And to get for example the first fanart image of the collection: Window(Home).Property(plexbmc.0.image.Wall.0)
+
+Last example, get the images for playlists (smart shortcuts for playlists should be enabled!)
+Skin.SetString(playlist.0.image.EnableWallImages, 10)  --> enable it for the first playlist and we want 10 images
+And to get for example the second fanart image of the collection: Window(Home).Property(playlist.0.image.Wall.1)
+
+The dynamic backgrounds for the smartshortcuts (e.g. playlist.X.image) should be set individually.
+It should be pretty safe if you just enable them for all available options, the script checks if the smartshortcuts actually exists.
+So ,you should be fine if you do this:
+Skin.SetString(playlist.0.image.EnableWallImages, 10)
+Skin.SetString(playlist.1.image.EnableWallImages, 10)
+Skin.SetString(playlist.2.image.EnableWallImages, 10)
+Skin.SetString(playlist.3.image.EnableWallImages, 10)
+etc. etc.
+
+CAUTION: The script uses the already cached in memory collections of images to provide you the individual images to build your wall, it does add a little overhead but it should not be noticeable.
+What you do have to realize is that if you show for example a wall of 20 fanart images in your skin, all 20 fanart images will be cached by Kodi in memory, this WILL impact the performance.
+You might run into problems when using this approach on a low powered platform such as the Raspberry Pi.
+
+To have the least impact on performance as possible, you can use the prebuilt wall images that are provided by this script.
+These are already resized into 1 image so that Kodi will only have to load 1 fanart image in memory.
 
 ________________________________________________________________________________________________________
 

@@ -25,7 +25,8 @@ class BackgroundsUpdater(threading.Thread):
     backgroundDelay = 0
     wallImagesDelay = 0
     lastWindow = None
-    manualWalls = list()
+    manualWallsLoaded = list()
+    manualWalls = {}
     skinShortcutsActive = False
     
     def __init__(self, *args):
@@ -98,8 +99,17 @@ class BackgroundsUpdater(threading.Thread):
         #gets the settings for the script as set by the skinner..
         try: self.backgroundDelay = int(xbmc.getInfoLabel("Skin.String(SkinHelper.RandomFanartDelay)"))
         except: self.backgroundDelay = 0
+        
         try: self.wallImagesDelay = int(xbmc.getInfoLabel("Skin.String(SkinHelper.WallImagesDelay)"))
         except: self.wallImagesDelay = 0
+        #enumerate through all background collections to check wether we should want a wall collection provided
+        #store in memory so wo do not have to query the skin settings too often
+        if self.wallImagesDelay != 0
+            for key, value in self.allBackgrounds():
+                if value:
+                    limitrange = xbmc.getInfoLabel("Skin.String(%s.EnableWallImages)" %key)
+                    if limitrange:
+                        self.manualWalls[key] = int(limitrange)
     
     def saveCacheToFile(self):
         saveDataToCacheFile(self.cachePath,self.allBackgrounds)
@@ -170,46 +180,37 @@ class BackgroundsUpdater(threading.Thread):
                     image = image.get("fanart","")
                     WINDOW.setProperty(windowProp, image)
     
-    def setManualWallFromPath(self, windowProp, libPath, type="fanart", items=20):
+    def setManualWallFromPath(self, windowProp, numItems=20):
         #only continue if the cache is prefilled
-        if self.allBackgrounds.get(libPath):
-            if windowProp in self.manualWalls:
+        if self.allBackgrounds.get(windowProp):
+            if windowProp in self.manualWallsLoaded:
                 #only refresh one random image...
-                image = random.choice(self.allBackgrounds[libPath])
-                image = image.get(type)
+                image = random.choice(self.allBackgrounds[windowProp])
                 if image:
-                    WINDOW.setProperty("%s.Wall.%s" %(windowProp,random.randint(0, items)), image)
-                
+                    for key, value in image.iteritems():
+                        if key == "fanart": WINDOW.setProperty("%s.Wall.%s" %(windowProp,random.randint(0, numItems)), value)
+                        else: WINDOW.setProperty("%s.Wall.%s.%s" %(windowProp,random.randint(0, numItems),key), value)
             else:
                 #first run: set all images
-                for i in range(items):
+                for i in range(numItems):
                     image = random.choice(self.allBackgrounds[libPath])
                     image = image.get(type)
                     if image:
-                        WINDOW.setProperty("%s.Wall.%s" %(windowProp,i), image)
-                    self.manualWalls.append(windowProp)
+                        for key, value in image.iteritems():
+                            if key == "fanart": WINDOW.setProperty("%s.Wall.%s" %(windowProp,i), value)
+                            else: WINDOW.setProperty("%s.Wall.%s.%s" %(windowProp,i,key), value)
+                    self.manualWallsLoaded.append(windowProp)
     
     def updateWallImages(self):
         #manual wall images, provides a collection of images which are randomly changing
-        if self.wallImagesDelay == 0:
+        if self.wallImagesDelay == 0 or not self.manualWalls:
             return
-            
-        wall_images_movie = xbmc.getInfoLabel("Skin.String(SkinHelper.WallImagesLimit.Movies)")
-        if wall_images_movie:
-            wall_images_movie = int(wall_images_movie)
-            self.setManualWallFromPath("SkinHelper.AllMoviesBackground","SkinHelper.AllMoviesBackground", type="fanart", items=wall_images_movie)
-            
-        wall_images_tvshows = xbmc.getInfoLabel("Skin.String(SkinHelper.WallImagesLimit.TvShows)")
-        if wall_images_tvshows:
-            wall_images_tvshows = int(wall_images_tvshows)
-            self.setManualWallFromPath("SkinHelper.AllTvShowsBackground","SkinHelper.AllTvShowsBackground", type="fanart", items=wall_images_tvshows)
-            
-        wall_images_music = xbmc.getInfoLabel("Skin.String(SkinHelper.WallImagesLimit.Music)")
-        if wall_images_music:
-            wall_images_music = int(wall_images_music)
-            self.setManualWallFromPath("SkinHelper.AllMusicBackground","SkinHelper.AllMusicBackground", type="fanart", items=wall_images_music)
         
-    
+        #we have a list stored in memory for the wall collections the skinner wants to be generated
+        for key, value in self.manualWalls():
+            self.setManualWallFromPath(key, value)
+
+        
     def setImageFromPath(self, windowProp, libPath, fallbackImage="", customJson=None):
         if self.exit:
             return False
@@ -227,9 +228,9 @@ class BackgroundsUpdater(threading.Thread):
         images = []
                
         #cache entry exists and cache is not expired, load cache entry
-        if self.allBackgrounds.has_key(libPath):
+        if self.allBackgrounds.has_key(windowProp):
             logMsg("load random image from the cache file... " + libPath)
-            image = random.choice(self.allBackgrounds[libPath])
+            image = random.choice(self.allBackgrounds[windowProp])
             if image:
                 for key, value in image.iteritems():
                     if key == "fanart": WINDOW.setProperty(windowProp, value)
@@ -276,7 +277,7 @@ class BackgroundsUpdater(threading.Thread):
 
         #all is fine, we have some images to randomize and return one
         if images:
-            self.allBackgrounds[libPath] = images
+            self.allBackgrounds[windowProp] = images
             random.shuffle(images)
             image = images[0]
             for key, value in image.iteritems():
