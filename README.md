@@ -280,7 +280,27 @@ Additional properties available for the backgrounds (e.g. SkinHelper.AllMoviesBa
 | Window(Home).Property(SkinHelper.BACKGROUNDNAME.title) | Title for the background (if available)|
 
 NOTE: the generation of wall images is experimental and might have impact on the cpu while creating them (at startup only). The feature can be disabled in the addon settings.
-_______________________________________________________________________________________________________
+
+
+#### Individual random images for creating image walls yourself in your skin
+If you want to create a wall with images yourself in your skin and you need randomly changing images, there is a way to let the script provide these images for you.
+
+First of all you need to enable this by setting the delay in a skin string: Skin.SetString(SkinHelper.WallImagesDelay, 10)
+0 disables the feature completely, any other number controls the amount of seconds that the wall will rotate a random image.
+
+The individual wall images are currently available for movies, tvshows and music fanart. If you need more library entries or other artwork types let me know on the forums.
+
+Enable movie images: Skin.SetString(SkinHelper.WallImagesLimit.Movies, 20)
+This limit setting controls the number of images that should be provided by the script.
+Once both the delay and the limit skinstrings are set, the images will be available like this: 
+SkinHelper.AllMoviesBackground.Wall.X (where X is the number of the image, start counting from 0)
+
+Enable tvshow images: Skin.SetString(SkinHelper.WallImagesLimit.TvShows, 20)
+SkinHelper.AllTvShowsBackground.Wall.X
+
+Enable music artist images: Skin.SetString(SkinHelper.WallImagesLimit.Music, 20)
+SkinHelper.AllMusicBackground.Wall.X
+
 ________________________________________________________________________________________________________
 
 ### Tools and actions provided by the script
