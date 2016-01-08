@@ -48,8 +48,8 @@ class BackgroundsUpdater(threading.Thread):
 
         #first run get backgrounds immediately from filebased cache and reset the cache in memory to populate all images from scratch
         try:
-            self.getSkinConfig()
             self.getCacheFromFile()
+            self.getSkinConfig()
             self.UpdateBackgrounds()
             self.updateWallImages()
         except Exception as e:
@@ -100,16 +100,23 @@ class BackgroundsUpdater(threading.Thread):
         try: self.backgroundDelay = int(xbmc.getInfoLabel("Skin.String(SkinHelper.RandomFanartDelay)"))
         except: self.backgroundDelay = 0
         
-        try: self.wallImagesDelay = int(xbmc.getInfoLabel("Skin.String(SkinHelper.WallImagesDelay)"))
-        except: self.wallImagesDelay = 0
-        #enumerate through all background collections to check wether we should want a wall collection provided
-        #store in memory so wo do not have to query the skin settings too often
-        if self.wallImagesDelay != 0
-            for key, value in self.allBackgrounds():
-                if value:
-                    limitrange = xbmc.getInfoLabel("Skin.String(%s.EnableWallImages)" %key)
-                    if limitrange:
-                        self.manualWalls[key] = int(limitrange)
+        try: 
+            wallImagesDelay = xbmc.getInfoLabel("Skin.String(SkinHelper.WallImagesDelay)")
+            if wallImagesDelay:
+                print "wallImagesDelay " + wallImagesDelay
+                self.wallImagesDelay = int(wallImagesDelay)
+                #enumerate through all background collections to check wether we should want a wall collection provided
+                #store in memory so wo do not have to query the skin settings too often
+                if self.wallImagesDelay != 0:
+                    for key, value in self.allBackgrounds.iteritems():
+                        if value:
+                            limitrange = xbmc.getInfoLabel("Skin.String(%s.EnableWallImages)" %key)
+                            if limitrange:
+                                print "enable wall images for %s  - limit %s" %(key, limitrange) 
+                                self.manualWalls[key] = int(limitrange)
+        except Exception as e:
+            logMsg("ERROR in UpdateBackgrounds.getSkinConfig ! --> " + str(e), 0)
+            self.wallImagesDelay = 0
     
     def saveCacheToFile(self):
         saveDataToCacheFile(self.cachePath,self.allBackgrounds)
@@ -193,8 +200,7 @@ class BackgroundsUpdater(threading.Thread):
             else:
                 #first run: set all images
                 for i in range(numItems):
-                    image = random.choice(self.allBackgrounds[libPath])
-                    image = image.get(type)
+                    image = random.choice(self.allBackgrounds[windowProp])
                     if image:
                         for key, value in image.iteritems():
                             if key == "fanart": WINDOW.setProperty("%s.Wall.%s" %(windowProp,i), value)
@@ -207,10 +213,9 @@ class BackgroundsUpdater(threading.Thread):
             return
         
         #we have a list stored in memory for the wall collections the skinner wants to be generated
-        for key, value in self.manualWalls():
+        for key, value in self.manualWalls.iteritems():
             self.setManualWallFromPath(key, value)
 
-        
     def setImageFromPath(self, windowProp, libPath, fallbackImage="", customJson=None):
         if self.exit:
             return False
@@ -879,8 +884,8 @@ class BackgroundsUpdater(threading.Thread):
         #wall backgrounds
         self.setWallImageFromPath("SkinHelper.AllMoviesBackground.Wall","SkinHelper.AllMoviesBackground")
         self.setWallImageFromPath("SkinHelper.AllMoviesBackground.Poster.Wall","SkinHelper.AllMoviesBackground","poster")
-        self.setWallImageFromPath("SkinHelper.AllMusicBackground.Wall","musicdb://artists/")
-        self.setWallImageFromPath("SkinHelper.AllMusicSongsBackground.Wall","musicdb://songs/","thumbnail")
+        self.setWallImageFromPath("SkinHelper.AllMusicBackground.Wall","SkinHelper.AllMusicBackground")
+        self.setWallImageFromPath("SkinHelper.AllMusicSongsBackground.Wall","SkinHelper.AllMusicSongsBackground","thumbnail")
         self.setWallImageFromPath("SkinHelper.AllTvShowsBackground.Wall","SkinHelper.AllTvShowsBackground")
         self.setWallImageFromPath("SkinHelper.AllTvShowsBackground.Poster.Wall","SkinHelper.AllTvShowsBackground","poster")
                 
