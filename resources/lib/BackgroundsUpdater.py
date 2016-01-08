@@ -103,7 +103,6 @@ class BackgroundsUpdater(threading.Thread):
         try: 
             wallImagesDelay = xbmc.getInfoLabel("Skin.String(SkinHelper.WallImagesDelay)")
             if wallImagesDelay:
-                print "wallImagesDelay " + wallImagesDelay
                 self.wallImagesDelay = int(wallImagesDelay)
                 #enumerate through all background collections to check wether we should want a wall collection provided
                 #store in memory so wo do not have to query the skin settings too often
@@ -112,7 +111,7 @@ class BackgroundsUpdater(threading.Thread):
                         if value:
                             limitrange = xbmc.getInfoLabel("Skin.String(%s.EnableWallImages)" %key)
                             if limitrange:
-                                print "enable wall images for %s  - limit %s" %(key, limitrange) 
+
                                 self.manualWalls[key] = int(limitrange)
         except Exception as e:
             logMsg("ERROR in UpdateBackgrounds.getSkinConfig ! --> " + str(e), 0)
