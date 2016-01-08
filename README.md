@@ -300,27 +300,44 @@ Also note that the additional properties will also be available e.g. Window(Home
 Examples...
 
 To get a collection of 10 images from the AllMoviesBackground provided by skinhelper:
+
 Skin.SetString(SkinHelper.AllMoviesBackground.EnableWallImages, 10)
+
 And to get e.g. fanart image 5 from the collection: Window(Home).Property(SkinHelper.AllMoviesBackground.Wall.5)
+
 Or the poster: Window(Home).Property(SkinHelper.AllMoviesBackground.Wall.5.Poster)
+
 
 
 Or to get the images for one of the plex smart shortcuts:
 Skin.SetString(plexbmc.0.image.EnableWallImages, 10)  --> enable it for 10 images
+
 And to get for example the first fanart image of the collection: Window(Home).Property(plexbmc.0.image.Wall.0)
 
+
 Last example, get the images for playlists (smart shortcuts for playlists should be enabled!)
+
 Skin.SetString(playlist.0.image.EnableWallImages, 10)  --> enable it for the first playlist and we want 10 images
+
 And to get for example the second fanart image of the collection: Window(Home).Property(playlist.0.image.Wall.1)
 
+
 The dynamic backgrounds for the smartshortcuts (e.g. playlist.X.image) should be set individually.
+
 It should be pretty safe if you just enable them for all available options, the script checks if the smartshortcuts actually exists.
+
 So ,you should be fine if you do this:
+
 Skin.SetString(playlist.0.image.EnableWallImages, 10)
+
 Skin.SetString(playlist.1.image.EnableWallImages, 10)
+
 Skin.SetString(playlist.2.image.EnableWallImages, 10)
+
 Skin.SetString(playlist.3.image.EnableWallImages, 10)
+
 etc. etc.
+
 
 CAUTION: The script uses the already cached in memory collections of images to provide you the individual images to build your wall, it does add a little overhead but it should not be noticeable.
 What you do have to realize is that if you show for example a wall of 20 fanart images in your skin, all 20 fanart images will be cached by Kodi in memory, this WILL impact the performance.
