@@ -336,7 +336,9 @@ def setSkinSetting(setting="", windowHeader="", sublevel="", valueOnly=""):
                 setSkinSetting(setting, windowHeader)
             else:
                 if value == "||BROWSEIMAGE||":
-                    value = xbmcgui.Dialog().browse( 2 , label, 'files')
+                    if xbmcgui.Dialog().yesno( label, ADDON.getLocalizedString(32064), yeslabel=ADDON.getLocalizedString(32065), nolabel=ADDON.getLocalizedString(32066) ):
+                        value = xbmcgui.Dialog().browse( 2 , label, 'files')
+                    else: value = xbmcgui.Dialog().browse( 0 , ADDON.getLocalizedString(32067), 'files')
                 if value:
                     if valueOnly: 
                         return (value,label)
