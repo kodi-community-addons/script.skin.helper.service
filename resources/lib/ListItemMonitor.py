@@ -138,9 +138,9 @@ class ListItemMonitor(threading.Thread):
                     
                     if not self.liLabel == "..":
                         # monitor listitem props when musiclibrary is active
-                        if self.contentType == "albums" or self.contentType == "artists" or self.contentType == "songs":
+                        if self.contentType in ["albums","artists","songs"]:
                             try:
-                                thread.start_new_thread(self.setPVRThumbs, (xbmc.getInfoLabel("ListItem.Artist").decode('utf-8'),xbmc.getInfoLabel("ListItem.Album").decode('utf-8'),xbmc.getInfoLabel("ListItem.Title").decode('utf-8'),True,))
+                                thread.start_new_thread(self.setMusicDetails, (xbmc.getInfoLabel("ListItem.Artist").decode('utf-8'),xbmc.getInfoLabel("ListItem.Album").decode('utf-8'),xbmc.getInfoLabel("ListItem.Title").decode('utf-8'),True,))
                                 self.setGenre()
                             except Exception as e:
                                 logMsg("ERROR in setMusicDetails ! --> " + str(e), 0)
