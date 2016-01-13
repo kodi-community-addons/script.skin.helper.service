@@ -71,7 +71,7 @@ def addSmartShortcutDirectoryItem(entry, isFolder=True, widget=None, widget2=Non
 
 def addSmartShortcutsSublevel(entry):
     if "emby" in entry:
-        contentStrings = ["", ".recent", ".inprogress", ".unwatched", ".recentepisodes", ".inprogressepisodes", ".nextepisodes"]
+        contentStrings = ["", ".recent", ".inprogress", ".unwatched", ".recentepisodes", ".inprogressepisodes", ".nextepisodes", ".recommended"]
     elif "plex" in entry:
         contentStrings = ["", ".ondeck", ".recent", ".unwatched"]
     elif "netflix" in entry:
@@ -93,6 +93,9 @@ def addSmartShortcutsSublevel(entry):
             elif type == "tvshows" and "emby" in entry:
                 widget = entry + ".nextepisodes"
                 widget2 = entry + ".recent"
+            elif (type == "homevideos" or type == "photos") and "emby" in entry:
+                widget = entry + ".recent"
+                widget2 = entry + ".recommended"
             else:
                 widget = entry
         if xbmc.getInfoLabel("$INFO[Window(Home).Property(%s.path)]" %key):

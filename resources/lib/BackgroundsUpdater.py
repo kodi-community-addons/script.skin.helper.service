@@ -220,6 +220,11 @@ class BackgroundsUpdater(threading.Thread):
             return False
             
         libPath = getContentPath(libPath)
+        
+        #special treatment for emby nodes...
+        if "plugin.video.emby" in libPath and "browsecontent" in libPath and not "filter" in libPath:
+            libPath = libPath + "&filter=random"
+        
         logMsg("getting images for path " + libPath)
 
         #is path in the temporary blacklist ?
@@ -299,17 +304,17 @@ class BackgroundsUpdater(threading.Thread):
         logMsg("setting pictures background...")
         customPath = xbmc.getInfoLabel("skin.string(SkinHelper.CustomPicturesBackgroundPath)")
         if (self.lastPicturesPath != customPath):
-            if (self.allBackgrounds.has_key("pictures")):
+            if (self.allBackgrounds.has_key(windowProp)):
                 logMsg("path has changed for pictures - clearing cache...")
-                del self.allBackgrounds["pictures"]
+                del self.allBackgrounds[windowProp]
             
         self.lastPicturesPath = customPath
 
         try:
-            if (self.allBackgrounds.has_key("pictures")):
+            if (self.allBackgrounds.has_key(windowProp)):
                 #get random image from our global cache file
-                if self.allBackgrounds["pictures"]:
-                    image = random.choice(self.allBackgrounds["pictures"])
+                if self.allBackgrounds[windowProp]:
+                    image = random.choice(self.allBackgrounds[windowProp])
                     if image:
                         for key, value in image.iteritems():
                             if key == "fanart": WINDOW.setProperty(windowProp, value)
@@ -367,7 +372,7 @@ class BackgroundsUpdater(threading.Thread):
                                             count += 1
                 
                 #store images in the cache
-                self.allBackgrounds["pictures"] = images
+                self.allBackgrounds[windowProp] = images
                 
                 # return a random image
                 if images != []:
@@ -388,10 +393,10 @@ class BackgroundsUpdater(threading.Thread):
     def setPvrBackground(self,windowProp):
         logMsg("setting pvr background...")
         try:
-            if (self.allBackgrounds.has_key("pvrfanart")):
+            if (self.allBackgrounds.has_key(windowProp)):
                 #get random image from our global cache file
-                if self.allBackgrounds["pvrfanart"]:
-                    image = random.choice(self.allBackgrounds["pvrfanart"])
+                if self.allBackgrounds[windowProp]:
+                    image = random.choice(self.allBackgrounds[windowProp])
                     if image:
                         for key, value in image.iteritems():
                             if key == "fanart": WINDOW.setProperty(windowProp, value)
@@ -428,7 +433,7 @@ class BackgroundsUpdater(threading.Thread):
                 del artutils
                     
                 #store images in the cache
-                self.allBackgrounds["pvrfanart"] = images
+                self.allBackgrounds[windowProp] = images
                 
                 # return a random image
                 if images != []:
@@ -533,7 +538,7 @@ class BackgroundsUpdater(threading.Thread):
                 logMsg("no cache - Get emby entries from file.... ")            
                
                 embyProperty = WINDOW.getProperty("emby.nodes.total")
-                contentStrings = ["", ".recent", ".inprogress", ".unwatched", ".recentepisodes", ".inprogressepisodes", ".nextepisodes"]
+                contentStrings = ["", ".recent", ".inprogress", ".unwatched", ".recentepisodes", ".inprogressepisodes", ".nextepisodes", "recommended"]
                 if embyProperty:
                     nodes = []
                     totalNodes = int(embyProperty)

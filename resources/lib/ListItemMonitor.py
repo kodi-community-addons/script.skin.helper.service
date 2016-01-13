@@ -114,7 +114,7 @@ class ListItemMonitor(threading.Thread):
                     self.liLabel = xbmc.getInfoLabel("ListItem.Label").decode('utf-8')
                     self.folderPath = xbmc.getInfoLabel("Container.FolderPath").decode('utf-8')
                     if not self.folderPath and self.liPath.startswith("pvr://guide"): self.folderPath = "pvr://guide"
-                except Exception as e: print e
+                except Exception as e: logMsg(str(e))
                 curListItem = self.liPath + self.liLabel
                 
                 #perform actions if the container path has changed
@@ -140,7 +140,7 @@ class ListItemMonitor(threading.Thread):
                         # monitor listitem props when musiclibrary is active
                         if self.contentType == "albums" or self.contentType == "artists" or self.contentType == "songs":
                             try:
-                                self.setMusicDetails(xbmc.getInfoLabel("ListItem.Artist").decode('utf-8'),xbmc.getInfoLabel("ListItem.Album").decode('utf-8'),xbmc.getInfoLabel("ListItem.Title").decode('utf-8'))
+                                thread.start_new_thread(self.setPVRThumbs, (xbmc.getInfoLabel("ListItem.Artist").decode('utf-8'),xbmc.getInfoLabel("ListItem.Album").decode('utf-8'),xbmc.getInfoLabel("ListItem.Title").decode('utf-8'),True,))
                                 self.setGenre()
                             except Exception as e:
                                 logMsg("ERROR in setMusicDetails ! --> " + str(e), 0)
@@ -164,7 +164,7 @@ class ListItemMonitor(threading.Thread):
                         elif self.contentType == "tvchannels" or self.contentType == "tvrecordings":
                             try:
                                 self.setDuration()
-                                self.setPVRThumbs()
+                                thread.start_new_thread(self.setPVRThumbs, ("","","","",True,))
                                 self.setGenre()
                             except Exception as e:
                                 logMsg("ERROR in LibraryMonitor ! --> " + str(e), 0)
@@ -741,7 +741,7 @@ class ListItemMonitor(threading.Thread):
         
         WINDOW.setProperty('SkinHelper.ListItemDirectors', "[CR]".join(directors))
        
-    def setPVRThumbs(self,title="",channel="",path="",genre=""):
+    def setPVRThumbs(self,title="",channel="",path="",genre="", multiThreaded=False):
                 
         if not title: title = xbmc.getInfoLabel("ListItem.Title").decode('utf-8')
         if not channel: channel = xbmc.getInfoLabel("ListItem.ChannelName").decode('utf-8')
@@ -768,6 +768,11 @@ class ListItemMonitor(threading.Thread):
             artwork = getPVRThumbs(title, channel, type, path, genre)
             self.pvrArtCache[dbID + "SkinHelper.PVR.Artwork"] = artwork
         
+        #return if another listitem was focused in the meanwhile
+        if multiThreaded and title != xbmc.getInfoLabel("ListItem.Title").decode('utf-8'):
+            return
+        
+        #set window props
         for key, value in artwork.iteritems():
             WINDOW.setProperty("SkinHelper.PVR." + key,value)
 
@@ -911,7 +916,7 @@ class ListItemMonitor(threading.Thread):
         for key, value in artwork.iteritems():
             WINDOW.setProperty("SkinHelper.Player.Music." + key,value.encode("utf-8"))
     
-    def setMusicDetails(self,artist,album,title):
+    def setMusicDetails(self,artist,album,title, multiThreaded=False):
         artwork = {}
         cacheId = artist+album
         logMsg("setMusicDetails artist: %s - album: %s - title: %s "%(artist,album,title))
@@ -924,7 +929,11 @@ class ListItemMonitor(threading.Thread):
             logMsg("setMusicDetails CACHE NOT FOUND FOR  artist: %s - album: %s - title: %s "%(artist,album,title))
             artwork = getMusicArtwork(artist,album,title)
             self.musicArtCache[cacheId + "SkinHelper.Music.Art"] = artwork
-
+        
+        #return if another listitem was focused in the meanwhile
+        if multiThreaded and title != xbmc.getInfoLabel("ListItem.Title").decode('utf-8'):
+            return
+        
         #set properties
         for key, value in artwork.iteritems():
             WINDOW.setProperty("SkinHelper.Music." + key,value)
@@ -1155,7 +1164,6 @@ class ListItemMonitor(threading.Thread):
                 WINDOW.setProperty("SkinHelper.TMDB.status",result.get('status',""))
                 WINDOW.setProperty("SkinHelper.TMDB.popularity",result.get('popularity',""))
    
-
     def focusEpisode(self):
         # monitor episodes for auto focus first unwatched - Helix only as it is included in Kodi as of Isengard by default
         if xbmc.getCondVisibility("Skin.HasSetting(AutoFocusUnwatchedEpisode)"):

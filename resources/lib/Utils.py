@@ -30,6 +30,7 @@ KODI_VERSION  = int(xbmc.getInfoLabel( "System.BuildVersion" ).split(".")[0])
 WINDOW = xbmcgui.Window(10000)
 SETTING = ADDON.getSetting
 KODILANGUAGE = xbmc.getLanguage(xbmc.ISO_639_1)
+sys.path.append(xbmc.translatePath(os.path.join(ADDON_PATH, 'resources', 'lib')).decode('utf-8'))
 
 fields_base = '"dateadded", "file", "lastplayed","plot", "title", "art", "playcount",'
 fields_file = fields_base + '"streamdetails", "director", "resume", "runtime",'
