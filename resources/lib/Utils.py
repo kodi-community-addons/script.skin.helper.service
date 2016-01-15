@@ -71,7 +71,7 @@ def getContentPath(libPath):
                 libPath = libPath.split(" , ",1)[1]
             elif " ," in libPath:
                 libPath = libPath.split(", ",1)[1]
-            elif "," in libPath::
+            elif "," in libPath:
                 libPath = libPath.split(",",1)[1]
             libPath = libPath.replace(",return","")
             libPath = libPath.replace(", return","")
