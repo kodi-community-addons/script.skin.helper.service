@@ -314,6 +314,13 @@ def setSkinSetting(setting="", windowHeader="", sublevel="", valueOnly=""):
                 listitem.setProperty("icon",icon)
                 listitem.setProperty("description",description)
                 listitem.setLabel2(description)
+                #additional onselect actions
+                additionalactions = []
+                for action in item.getElementsByTagName( 'onselect' ):
+                    condition = action.attributes[ 'condition' ].nodeValue
+                    if condition and not xbmc.getCondVisibility(condition): continue
+                    additionalactions.append(action.firstChild.nodeValue)
+                listitem.setProperty("additionalactions"," || ".join(additionalactions))
                 allValues.append(listitem)
                 itemcount +=1
         if useRichLayout:
@@ -345,6 +352,9 @@ def setSkinSetting(setting="", windowHeader="", sublevel="", valueOnly=""):
                     else:
                         xbmc.executebuiltin("Skin.SetString(%s,%s)" %(setting.encode("utf-8"),value.encode("utf-8")))
                         xbmc.executebuiltin("Skin.SetString(%s.label,%s)" %(setting.encode("utf-8"),label.encode("utf-8")))
+                        additionalactions = allValues[selectedItem].getProperty("additionalactions").split(" || ")
+                        for action in additionalactions:
+                            xbmc.executebuiltin(action)
         else: return (None,None)
                     
 def toggleKodiSetting(settingname):
