@@ -11,6 +11,8 @@ def getPluginListing(action,limit,refresh=None,optionalParam=None):
     #general method to get a widget/plugin listing and check cache etc.
     count = 0
     allItems = []
+    cacheStr = "skinhelper-%s-%s-%s-%s" %(action,limit,optionalParam,refresh)
+    logMsg("getPluginListing - action: %s - limit: %s - refresh: %s - optionalParam: %s" %(action,limit,refresh,optionalParam),0)
     
     #get params for each action
     if "EPISODES" in action: type = "episodes"
@@ -25,18 +27,20 @@ def getPluginListing(action,limit,refresh=None,optionalParam=None):
     xbmcplugin.setContent(int(sys.argv[1]), type)
     
     #try to get from cache first...
-    cacheStr=""
-    if refresh: 
-        cacheStr = "skinhelper-%s-%s-%s-%s" %(action,limit,optionalParam,refresh)
-        cache = WINDOW.getProperty(cacheStr).decode("utf-8")
-        if cache: allItems = eval(cache)
+    cache = WINDOW.getProperty(cacheStr).decode("utf-8")
+    logMsg("get values from cache for " + action,0)
+    if cache: allItems = eval(cache)
     
     #Call the correct method to get the content from json when no cache
     if not allItems:
+        logMsg("get values from json for " + action,0)
         if optionalParam:
             allItems = eval(action)(limit,optionalParam)
         else:
             allItems = eval(action)(limit)
+        #save the cache
+        allItems = prepareListItems(allItems)
+        WINDOW.setProperty(cacheStr, repr(allItems).encode("utf-8"))
     
     #fill that listing...
     for item in allItems:
@@ -49,9 +53,6 @@ def getPluginListing(action,limit,refresh=None,optionalParam=None):
     #end directory listing
     xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
     
-    #save the cache
-    WINDOW.setProperty(cacheStr, repr(allItems).encode("utf-8"))
-
 def addDirectoryItem(label, path, folder=True):
     li = xbmcgui.ListItem(label, path=path)
     li.setThumbnailImage("special://home/addons/script.skin.helper.service/icon.png")
@@ -99,9 +100,9 @@ def FAVOURITES(limit):
                     image = value
             path = favourite.childNodes [ 0 ].nodeValue
             path="plugin://script.skin.helper.service/?action=launch&path=" + path
-            li = {"title": label, "thumbnail":image, "file":path}
-            li["extraproperties"] = {"IsPlayable": "false"}
-            allItems.append(li)
+            item = {"label": label, "title": label, "thumbnail":image, "file":path}
+            item["extraproperties"] = {"IsPlayable": "false"}
+            allItems.append(item)
             if count == limit:
                 break
     return allItems
@@ -119,8 +120,6 @@ def PVRRECORDINGS(limit):
                 channelname = item["channel"]
                 item["channel"] = channelname
                 item["art"] = getPVRThumbs(item["title"], channelname, "recordings")
-                if item.get("art") and item["art"].get("thumb"):
-                    item["art"]["thumb"] = item["art"].get("thumb")
                 item["channellogo"] = item["art"].get("channellogo","")
                 item["cast"] = None
                 item["file"] = sys.argv[0] + "?action=playrecording&path=" + str(item["recordingid"])
@@ -145,7 +144,6 @@ def NEXTPVRRECORDINGS(limit,reversed="false"):
             #exclude live tv items from recordings list (mythtv hack)
             if not (item.get("directory") and item["directory"] in allTitles) and item["playcount"] == 0 and not ("mythtv" in pvr_backend.lower() and "/livetv/" in item.get("file","").lower()):
                 channelname = item["channel"]
-                item["channel"] = channelname
                 item["art"] = getPVRThumbs(item["title"], channelname, "recordings")
                 item["channellogo"] = item["art"].get("channellogo","")
                 item["cast"] = None

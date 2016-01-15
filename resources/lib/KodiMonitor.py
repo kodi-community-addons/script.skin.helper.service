@@ -24,18 +24,15 @@ class Kodi_Monitor(xbmc.Monitor):
         logMsg("Kodi_Monitor: sender %s - method: %s  - data: %s"%(sender,method,data))
                
         if method == "VideoLibrary.OnUpdate":
-            WINDOW.setProperty("resetVideoDbCache","reset")
-            xbmc.sleep(2000)
-            resetVideoWidgetWindowProps() 
+            resetVideoWidgetWindowProps()
+
         
         if method == "AudioLibrary.OnUpdate":
-            WINDOW.setProperty("resetMusicArtCache","reset")
             resetMusicWidgetWindowProps()
         
         if method == "Player.OnStop":
             WINDOW.clearProperty("Skinhelper.PlayerPlaying")
             resetPlayerWindowProps()
-            xbmc.sleep(1000)
             resetVideoWidgetWindowProps()
         
         if method == "Player.OnPlay":

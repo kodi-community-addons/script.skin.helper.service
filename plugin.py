@@ -12,7 +12,7 @@ class Main:
         
         #get params
         params = urlparse.parse_qs(sys.argv[2][1:].decode("utf-8"))
-        logMsg("Parameter string: %s" % sys.argv[2])
+        logMsg("Parameter string: %s" % sys.argv[2],0)
         
         if params:        
             path=params.get("path",None)
@@ -22,7 +22,7 @@ class Main:
             else: limit = 25
             action=params.get("action",None)
             if action: action = action[0].upper()
-            refresh=params.get("refresh",None)
+            refresh=params.get("reload",None)
             if refresh: refresh = refresh[0].upper()
             optionalParam = None
             imdbid=params.get("imdbid","")
@@ -106,6 +106,7 @@ if (__name__ == "__main__"):
                 filename = os.path.join( ADDON_DATA_PATH, strftime( "%Y%m%d%H%M%S",gmtime() ) + "-" + str( random.randrange(0,100000) ) + ".log" )
                 cProfile.run( 'Main()', filename )
                 stream = open( filename + ".txt", 'w')
+                stream.write(sys.argv[2])
                 p = pstats.Stats( filename, stream = stream )
                 p.sort_stats( "cumulative" )
                 p.print_stats()
