@@ -30,7 +30,7 @@ class BackgroundsUpdater(threading.Thread):
     skinShortcutsActive = False
     
     def __init__(self, *args):
-        self.lastPicturesPath = xbmc.getInfoLabel("skin.string(SkinHelper.PicturesBackgroundPath)")
+        self.lastPicturesPath = xbmc.getInfoLabel("skin.string(SkinHelper.PicturesBackgroundPath)").decode("utf-8")
         self.cachePath = os.path.join(ADDON_DATA_PATH,"AllBackgrounds.json")
         self.SmartShortcutsCachePath = os.path.join(ADDON_DATA_PATH,"smartshotcutscache.json")
 
@@ -301,25 +301,22 @@ class BackgroundsUpdater(threading.Thread):
         return False
 
     def setPicturesBackground(self,windowProp):
-        logMsg("setting pictures background...")
-        customPath = xbmc.getInfoLabel("skin.string(SkinHelper.CustomPicturesBackgroundPath)")
+        customPath = xbmc.getInfoLabel("skin.string(SkinHelper.CustomPicturesBackgroundPath)").decode("utf-8")
+        
+        #flush cache if custompath changed
         if (self.lastPicturesPath != customPath):
-            if (self.allBackgrounds.has_key(windowProp)):
-                logMsg("path has changed for pictures - clearing cache...")
-                del self.allBackgrounds[windowProp]
-            
-        self.lastPicturesPath = customPath
+            self.allBackgrounds[windowProp] = []
+            self.lastPicturesPath = customPath
 
         try:
-            if (self.allBackgrounds.has_key(windowProp)):
-                #get random image from our global cache file
-                if self.allBackgrounds[windowProp]:
-                    image = random.choice(self.allBackgrounds[windowProp])
-                    if image:
-                        for key, value in image.iteritems():
-                            if key == "fanart": WINDOW.setProperty(windowProp, value)
-                            else: WINDOW.setProperty(windowProp + "." + key, value)
-                    return True 
+            #get random image from cache
+            if self.allBackgrounds.get(windowProp):
+                image = random.choice(self.allBackgrounds[windowProp])
+                if image:
+                    for key, value in image.iteritems():
+                        if key == "fanart": WINDOW.setProperty(windowProp, value)
+                        else: WINDOW.setProperty(windowProp + "." + key, value)
+                return 
             else:
                 #load the pictures from the custom path or from all picture sources
                 images = []
@@ -329,11 +326,11 @@ class BackgroundsUpdater(threading.Thread):
                     dirs, files = xbmcvfs.listdir(customPath)
                     #pick all images from path
                     for file in files:
-                        if file.endswith(".jpg") or file.endswith(".png") or file.endswith(".JPG") or file.endswith(".PNG"):
-                            image = os.path.join(customPath,file.decode("utf-8","ignore"))
-                            images.append({"fanart": image, "title": file})
+                        if file.lower().endswith(".jpg") or file.lower().endswith(".png"):
+                            image = os.path.join(customPath,file.decode("utf-8"))
+                            images.append({"fanart": image, "title": file.decode("utf-8")})
                 else:
-                    #load picture sources
+                    #load pictures from all sources
                     media_array = getJSON('Files.GetSources','{"media": "pictures"}')
                     for source in media_array:
                         if source.has_key('file'):
@@ -375,20 +372,17 @@ class BackgroundsUpdater(threading.Thread):
                 self.allBackgrounds[windowProp] = images
                 
                 # return a random image
-                if images != []:
+                if images:
                     random.shuffle(images)
                     image = images[0]
                     for key, value in image.iteritems():
                         if key == "fanart": WINDOW.setProperty(windowProp, value)
                         else: WINDOW.setProperty(windowProp + "." + key, value)
-                    return True
                 else:
                     logMsg("image sources array or cache empty so skipping image-sources background untill next restart")
-                    return True
         #if something fails, return None
         except:
-            logMsg("exception occured in getPicturesBackground.... ",0)
-            return False            
+            logMsg("exception occured in getPicturesBackground.... ",0)           
     
     def setPvrBackground(self,windowProp):
         logMsg("setting pvr background...")

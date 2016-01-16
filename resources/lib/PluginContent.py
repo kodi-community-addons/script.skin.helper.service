@@ -12,7 +12,6 @@ def getPluginListing(action,limit,refresh=None,optionalParam=None):
     count = 0
     allItems = []
     cacheStr = "skinhelper-%s-%s-%s-%s" %(action,limit,optionalParam,refresh)
-    logMsg("getPluginListing - action: %s - limit: %s - refresh: %s - optionalParam: %s" %(action,limit,refresh,optionalParam),0)
     
     #get params for each action
     if "EPISODES" in action: type = "episodes"
@@ -28,12 +27,10 @@ def getPluginListing(action,limit,refresh=None,optionalParam=None):
     
     #try to get from cache first...
     cache = WINDOW.getProperty(cacheStr).decode("utf-8")
-    logMsg("get values from cache for " + action,0)
     if cache: allItems = eval(cache)
     
     #Call the correct method to get the content from json when no cache
     if not allItems:
-        logMsg("get values from json for " + action,0)
         if optionalParam:
             allItems = eval(action)(limit,optionalParam)
         else:

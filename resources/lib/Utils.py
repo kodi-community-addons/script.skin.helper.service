@@ -257,11 +257,10 @@ def createListItem(item):
     liz = xbmcgui.ListItem(label=item.get("label",""),label2=item.get("label2",""))
     liz.setProperty('IsPlayable', 'true')
     liz.setPath(item.get('file'))
-
-    if item.get("type") in ["song","album","artist"]:
+    
+    nodetype = "Video"
+    if item.get("type","") in ["song","album","artist"]:
         nodetype = "Music"
-    else: 
-        nodetpe = "Video"
     
     #extra properties
     for key, value in item.get("extraproperties",{}).iteritems():
