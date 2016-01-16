@@ -298,6 +298,7 @@ def setSkinSetting(setting="", windowHeader="", sublevel="", valueOnly=""):
             allValues.append(listitem)
         for count, item in enumerate(listing):
             id = item.attributes[ 'id' ].nodeValue
+            if id.startswith("$"): id = xbmc.getInfoLabel(id).decode("utf-8")
             label = xbmc.getInfoLabel(item.attributes[ 'label' ].nodeValue).decode("utf-8")
             if (not sublevel and id.lower() == setting.lower()) or (sublevel and sublevel.lower() == id.lower()):
                 value = item.attributes[ 'value' ].nodeValue
