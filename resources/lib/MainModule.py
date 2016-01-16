@@ -320,7 +320,9 @@ def setSkinSetting(setting="", windowHeader="", sublevel="", valueOnly=""):
                 for action in item.getElementsByTagName( 'onselect' ):
                     condition = action.attributes[ 'condition' ].nodeValue
                     if condition and not xbmc.getCondVisibility(condition): continue
-                    additionalactions.append(action.firstChild.nodeValue)
+                    command = action.firstChild.nodeValue
+                    if "$" in command: command = xbmc.getInfoLabel(command)
+                    additionalactions.append(command)
                 listitem.setProperty("additionalactions"," || ".join(additionalactions))
                 allValues.append(listitem)
                 itemcount +=1

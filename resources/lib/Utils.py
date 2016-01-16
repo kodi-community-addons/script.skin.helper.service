@@ -234,23 +234,47 @@ def correctSkinSettings():
         for count, item in enumerate(listing):
             id = item.attributes[ 'id' ].nodeValue
             value = item.attributes[ 'value' ].nodeValue
-            curvalue = xbmc.getInfoLabel("Skin.String(%s)" %id.encode("utf-8"))
+            curvalue = xbmc.getInfoLabel("Skin.String(%s)" %id.encode("utf-8")).decode("utf-8")
+            label = xbmc.getInfoLabel(item.attributes[ 'label' ].nodeValue).decode("utf-8")
+            additionalactions = item.getElementsByTagName( 'onselect' )
             try: default = item.attributes[ 'default' ].nodeValue
             except: default = ""
+            
+            #skip submenu level itself, this happens when a setting id also exists as a submenu value for an item
+            skip = False
+            for count3, item3 in enumerate(listing):
+                if item3.attributes[ 'value' ].nodeValue == "||SUBLEVEL||" + id:
+                    skip = True
+            if skip: continue
+            
+            #enumerate sublevel if needed
             if value.startswith("||SUBLEVEL||"):
                 sublevel = value.replace("||SUBLEVEL||","")
                 for count2, item2 in enumerate(listing):
                     if item2.attributes[ 'id' ].nodeValue == sublevel:
-                        if item2.attributes[ 'value' ].nodeValue.lower() == curvalue.lower():
+                        try: subdefault = item2.attributes[ 'default' ].nodeValue
+                        except: subdefault = ""
+                        #match in sublevel or default found in sublevel values
+                        if (item2.attributes[ 'value' ].nodeValue.lower() == curvalue.lower()) or (not curvalue and subdefault=="true"):
                             label = xbmc.getInfoLabel(item2.attributes[ 'label' ].nodeValue).decode("utf-8")
-                            xbmc.executebuiltin("Skin.SetString(%s.label,%s)" %(id.encode("utf-8"),label.encode("utf-8")))
+                            value = item2.attributes[ 'value' ].nodeValue
+                            default = subdefault
+                            additionalactions = item2.getElementsByTagName( 'onselect' )
+                            break
+            #only correct the label
             if value and value.lower() == curvalue.lower():
-                label = xbmc.getInfoLabel(item.attributes[ 'label' ].nodeValue).decode("utf-8")
                 xbmc.executebuiltin("Skin.SetString(%s.label,%s)" %(id.encode("utf-8"),label.encode("utf-8")))
+            #set the default value if current value is empty
             if not curvalue and default=="true":
-                label = xbmc.getInfoLabel(item.attributes[ 'label' ].nodeValue).decode("utf-8")
                 xbmc.executebuiltin("Skin.SetString(%s.label,%s)" %(id.encode("utf-8"),label.encode("utf-8")))
                 xbmc.executebuiltin("Skin.SetString(%s,%s)" %(id.encode("utf-8"),value.encode("utf-8")))
+                #additional onselect actions
+                for action in additionalactions:
+                    condition = action.attributes[ 'condition' ].nodeValue
+                    if condition and not xbmc.getCondVisibility(condition): continue
+                    command = action.firstChild.nodeValue
+                    if "$" in command: command = xbmc.getInfoLabel(command)
+                    xbmc.executebuiltin(command)
  
 def createListItem(item):
 
