@@ -297,8 +297,6 @@ def createListItem(item):
             "size": item.get("size"),
             "genre": item.get("genre"),
             "year": item.get("year"),
-            "episode": item.get("episode"),
-            "season": item.get("season"),
             "top250": item.get("top250"),
             "tracknumber": item.get("tracknumber"),
             "rating": item.get("rating"),
@@ -331,6 +329,10 @@ def createListItem(item):
         if item.get("date"): infolabels["date"] = item.get("date")
         if item.get("lastplayed"): infolabels["lastplayed"] = item.get("lastplayed")
         if item.get("dateadded"): infolabels["dateadded"] = item.get("dateadded")
+        if item.get("type") == "episode":
+            infolabels["season"] = item.get("season")
+            infolabels["episode"] = item.get("episode")
+
         liz.setInfo( type="Video", infoLabels=infolabels)
         #streamdetails
         if item.get("streamdetails"):
@@ -374,14 +376,23 @@ def prepareListItem(item):
     #fix values returned from json to be used as listitem values
     properties = item.get("extraproperties",{})
     
+    #set type
+    for idvar in [ ('episode','DefaultTVShows.png'),('tvshow','DefaultTVShows.png'),('movie','DefaultMovies.png'),('song','DefaultAudio.png'),('musicvideo','DefaultMusicVideos.png') ]:
+        if item.get(idvar[0] + "id"):
+            properties["DBID"] = str(item.get(idvar[0] + "id"))
+            if not item.get("type"): item["type"] = idvar[0]
+            if not item.get("icon"): item["icon"] = idvar[1]
+            break
+    
     #general properties
-    genre = item.get('genre')
     if item.get('genre') and isinstance(item.get('genre'), list): item["genre"] = " / ".join(item.get('genre'))
     if item.get('studio') and isinstance(item.get('studio'), list): item["studio"] = " / ".join(item.get('studio'))
     if item.get('writer') and isinstance(item.get('writer'), list): item["writer"] = " / ".join(item.get('writer'))
     if item.get('director') and isinstance(item.get('director'), list): item["director"] = " / ".join(item.get('director'))
-    if not isinstance(item.get('artist'), list): item["artist"] = [item.get('artist')]
+    if not isinstance(item.get('artist'), list) and item.get('artist'): item["artist"] = [item.get('artist')]
+    if not item.get('artist'): item["artist"] = []
     if not item.get("duration") and item.get("runtime"): item["duration"] = item.get("runtime")
+    if not item.get("tvshowtitle") and item.get("showtitle"): item["tvshowtitle"] = item.get("showtitle")
     properties["dbtype"] = item.get("type")
     properties["type"] = item.get("type")
     properties["path"] = item.get("file")
@@ -396,14 +407,6 @@ def prepareListItem(item):
                 listCastAndRole.append( (castmember["name"], castmember["role"]) )
     item["cast"] = listCast
     item["castandrole"] = listCastAndRole
-    
-    #set type
-    for idvar in [ ('episode','DefaultTVShows.png'),('tvshow','DefaultTVShows.png'),('movie','DefaultMovies.png'),('song','DefaultAudio.png'),('musicvideo','DefaultMusicVideos.png') ]:
-        if item.get(idvar[0] + "id"):
-            properties["DBID"] = str(item.get(idvar[0] + "id"))
-            if not item.get("type"): item["type"] = idvar[0]
-            if not item.get("icon"): item["icon"] = idvar[1]
-            break
     
     if item.get("season") and item.get("episode"):
         properties["episodeno"] = "s%se%s" %(item.get("season"),item.get("episode"))
@@ -443,7 +446,7 @@ def prepareListItem(item):
             properties["AudioCodec"] = stream.get('codec','')
             properties["AudioChannels"] = str(stream.get('channels',''))
             properties["AudioLanguage"] = stream.get('language','')
-            item["streamdetails"]["video"] = stream
+            item["streamdetails"]["audio"] = stream
         
         #grab details of first subtitle
         if len(subtitles) > 0:
@@ -476,17 +479,16 @@ def prepareListItem(item):
     #artwork
     art = item.get("art",{})
     if item.get("type") == "episode":
-        if art and not art.get("fanart") and art.get("tvshow.fanart"):
+        if not art.get("fanart") and art.get("tvshow.fanart"):
             art["fanart"] = art.get("tvshow.fanart")
-        if art and not art.get("poster") and art.get("tvshow.poster"):
+        if not art.get("poster") and art.get("tvshow.poster"):
             art["poster"] = art.get("tvshow.poster")
-        if art and not art.get("clearlogo") and art.get("tvshow.clearlogo"):
+        if not art.get("clearlogo") and art.get("tvshow.clearlogo"):
             art["clearlogo"] = art.get("tvshow.clearlogo")
-        if art and not art.get("landscape") and art.get("tvshow.landscape"):
+        if not art.get("landscape") and art.get("tvshow.landscape"):
             art["landscape"] = art.get("tvshow.landscape")
     if not art.get("fanart") and item.get('fanart'): art["fanart"] = item.get('fanart')
     if not art.get("thumb") and item.get('thumbnail'): art["thumb"] = item.get('thumbnail')
-    if not art.get("thumb") and art.get("poster"): art["thumb"] = art.get("poster")
     if not art.get("thumb") and item.get('icon'): art["thumb"] = item.get('icon')
     
     #return the result
