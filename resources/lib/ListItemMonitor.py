@@ -44,6 +44,7 @@ class ListItemMonitor(threading.Thread):
     def __init__(self, *args):
         logMsg("HomeMonitor - started")
         self.event =  threading.Event()
+        monitor = xbmc.Monitor()
         threading.Thread.__init__(self, *args)
     
     def stop(self):
@@ -257,7 +258,7 @@ class ListItemMonitor(threading.Thread):
                 self.widgetTaskInterval += 0.1
             else:
                 #fullscreen video is playing
-                xbmc.sleep(2000)
+                self.monitor.waitForAbort(2)
                 self.delayedTaskInterval += 2
                 self.widgetTaskInterval += 2
     
@@ -705,7 +706,7 @@ class ListItemMonitor(threading.Thread):
                                 WINDOW.setProperty('SkinHelper.ExtraFanArtPath', set_fanart[0])
                                 fanartcount = 0
                             else:
-                                xbmc.sleep(1000)
+                                self.monitor.waitForAbort(1)
                                 fanartcount += 1
 
     def setAddonName(self):

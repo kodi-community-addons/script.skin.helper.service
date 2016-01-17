@@ -33,6 +33,7 @@ class BackgroundsUpdater(threading.Thread):
         self.lastPicturesPath = xbmc.getInfoLabel("skin.string(SkinHelper.PicturesBackgroundPath)").decode("utf-8")
         self.cachePath = os.path.join(ADDON_DATA_PATH,"AllBackgrounds.json")
         self.SmartShortcutsCachePath = os.path.join(ADDON_DATA_PATH,"smartshotcutscache.json")
+        monitor = xbmc.Monitor()
 
         logMsg("BackgroundsUpdater - started")
         self.event =  threading.Event()
@@ -91,7 +92,7 @@ class BackgroundsUpdater(threading.Thread):
                             logMsg("ERROR in UpdateBackgrounds.updateWallImages ! --> " + str(e), 0)
                             
             
-            xbmc.sleep(1000)
+            self.monitor.waitForAbort(1)
             self.normalTaskInterval += 1
             self.wallTaskInterval += 1
     

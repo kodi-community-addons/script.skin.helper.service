@@ -831,7 +831,7 @@ def resetMusicWidgetWindowProps():
         WINDOW.setProperty("resetVideoDbCache","reset")
         logMsg("Music database changed, refreshing widgets....",0)
         WINDOW.setProperty("widgetreloadmusic", time.strftime("%Y%m%d%H%M%S", time.gmtime()))
-        xbmc.sleep(2000) #add sleep to prevent same action within time period
+        xbmc.Monitor().waitForAbort(2) #add sleep to prevent same action within time period
         WINDOW.clearProperty("skinhelper-refreshmusicwidgetsbusy")
 
 def resetVideoWidgetWindowProps():
@@ -841,7 +841,7 @@ def resetVideoWidgetWindowProps():
         WINDOW.setProperty("resetVideoDbCache","reset")
         logMsg("Video database changed, refreshing widgets....",0)
         WINDOW.setProperty("widgetreload", time.strftime("%Y%m%d%H%M%S", time.gmtime()))
-        xbmc.sleep(2000) #add sleep to prevent same action within time period
+        xbmc.Monitor().waitForAbort(2) #add sleep to prevent same action within time period
         WINDOW.clearProperty("skinhelper-refreshvideowidgetsbusy")
     
 

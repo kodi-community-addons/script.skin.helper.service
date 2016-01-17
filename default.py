@@ -3,6 +3,7 @@
 
 #from resources.lib.Utils import *
 from resources.lib.MainModule import *
+monitor = xbmc.Monitor()
 
 class Main:
     
@@ -213,7 +214,7 @@ class Main:
             elif action == "RESET":
                 import resources.lib.BackupRestore as backup
                 backup.reset()
-                xbmc.sleep(2000)
+                monitor.waitForAbort(2)
                 setSkinVersion()
             
             elif action == "DIALOGOK":

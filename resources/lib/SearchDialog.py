@@ -218,7 +218,7 @@ class BackgroundSearchThread(threading.Thread):
                 lastSearchString = currentSearch
                 self.doSearch(currentSearch)
 
-            xbmc.sleep(2000)
+            xbmc.Monitor().waitForAbort(2)
 
         
     def doSearch(self, searchTerm):

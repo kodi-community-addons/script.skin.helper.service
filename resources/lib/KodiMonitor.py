@@ -55,6 +55,6 @@ class Kodi_Monitor(xbmc.Monitor):
                         tryCount += 1
                     
                     # close info again
-                    xbmc.sleep(secondsToDisplay*1000)
+                    self.waitForAbort(secondsToDisplay)
                     if xbmc.getCondVisibility("Window.IsActive(fullscreeninfo)"):
                         xbmc.executebuiltin('Action(info)')

@@ -10,7 +10,7 @@ def getSkinSettings(filter=None):
     else:
         #workaround - reload skin to get guisettings
         xbmc.executebuiltin("Reloadskin")
-        xbmc.sleep(1500)
+        xbmc.Monitor().waitForAbort(1.5)
         guisettings_path = xbmc.translatePath('special://profile/addon_data/%s/settings.xml' %xbmc.getSkinDir()).decode("utf-8")
     if xbmcvfs.exists(guisettings_path):
         logMsg("guisettings.xml found")
@@ -318,7 +318,7 @@ def restoreFull(silent=None):
                 restoreSkinSettings(skinsettingsfile, progressDialog)
 
             #cleanup temp
-            xbmc.sleep(500)
+            xbmc.Monitor().waitForAbort(0.5)
             recursiveDelete(temp_path)
             if not silent:
                 xbmcgui.Dialog().ok(ADDON.getLocalizedString(32032), ADDON.getLocalizedString(32034))
