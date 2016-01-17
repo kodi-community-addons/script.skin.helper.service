@@ -11,26 +11,46 @@ def getPluginListing(action,limit,refresh=None,optionalParam=None):
     #general method to get a widget/plugin listing and check cache etc.
     count = 0
     allItems = []
-    cacheStr = "skinhelper-%s-%s-%s-%s" %(action,limit,optionalParam,refresh)
+    cachePath = os.path.join(ADDON_DATA_PATH,"widgetcache-%s.json" %action)
     
     #get params for each action
-    if "EPISODES" in action: type = "episodes"
-    elif "MOVIE" in action: type = "movies"
-    elif "SHOW" in action: type = "tvshows"
-    elif "MEDIA" in action: type = "movies"
-    elif "PVR" in action: type = "episodes"
-    elif "ALBUM" in action: type = "albums"
-    elif "SONG" in action: type = "songs"
+    if "EPISODES" in action: 
+        type = "episodes"
+        refresh = WINDOW.getProperty("widgetreload-episodes")
+    elif "MOVIE" in action: 
+        type = "movies"
+        refresh = WINDOW.getProperty("widgetreload-movies")
+    elif "SHOW" in action: 
+        type = "tvshows"
+        refresh = WINDOW.getProperty("widgetreload-tvshows")
+    elif "MEDIA" in action: 
+        type = "movies"
+    elif "PVR" in action: 
+        type = "episodes"
+    elif "ALBUM" in action: 
+        type = "albums"
+    elif "SONG" in action: 
+        type = "songs"
     else: type = "files"
+    
+    cacheStr = "skinhelper-%s-%s-%s-%s" %(action,limit,optionalParam,refresh)
+    
     #set widget content type
     xbmcplugin.setContent(int(sys.argv[1]), type)
     
     #try to get from cache first...
     cache = WINDOW.getProperty(cacheStr).decode("utf-8")
-    if cache: allItems = eval(cache)
+    if cache: 
+        allItems = eval(cache)
+        print "get items from cache.. " + action
+    
+    #get from persistant cache on first boot
+    if not cache and not refresh:
+        allItems = getDataFromCacheFile(cachePath)
     
     #Call the correct method to get the content from json when no cache
     if not allItems:
+        print "get items NOT from cache.. " + action
         if optionalParam:
             allItems = eval(action)(limit,optionalParam)
         else:
@@ -38,6 +58,7 @@ def getPluginListing(action,limit,refresh=None,optionalParam=None):
         #save the cache
         allItems = prepareListItems(allItems)
         WINDOW.setProperty(cacheStr, repr(allItems).encode("utf-8"))
+        saveDataToCacheFile(cachePath,allItems)
     
     #fill that listing...
     for item in allItems:

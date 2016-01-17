@@ -14,30 +14,31 @@ class Kodi_Monitor(xbmc.Monitor):
         WINDOW.setProperty("resetPvrArtCache","reset")
     
     def onDatabaseUpdated(self,database):
+        logMsg("Kodi_Monitor: onDatabaseUpdated: " + database,0)
         if database == "video":
-            resetVideoWidgetWindowProps()
+            resetVideoWidgetWindowProps("",True)
         if database == "music" :
-            resetMusicWidgetWindowProps()
+            resetMusicWidgetWindowProps("",True)
            
     def onNotification(self,sender,method,data):
         
         logMsg("Kodi_Monitor: sender %s - method: %s  - data: %s"%(sender,method,data))
                
         if method == "VideoLibrary.OnUpdate":
-            resetVideoWidgetWindowProps()
+            if not xbmc.getCondVisibility("Library.IsScanningVideo"):
+                resetVideoWidgetWindowProps(data)
 
-        
         if method == "AudioLibrary.OnUpdate":
-            resetMusicWidgetWindowProps()
+            if not xbmc.getCondVisibility("Library.IsScanningMusic"):
+                resetMusicWidgetWindowProps()
         
         if method == "Player.OnStop":
             WINDOW.clearProperty("Skinhelper.PlayerPlaying")
-            print data
             resetPlayerWindowProps()
-            resetVideoWidgetWindowProps()
-        
+            resetVideoWidgetWindowProps(data)
+            resetMusicWidgetWindowProps(data)
+
         if method == "Player.OnPlay":
-            
             #skip if the player is already playing
             if WINDOW.getProperty("Skinhelper.PlayerPlaying") == "playing": return
             try: secondsToDisplay = int(xbmc.getInfoLabel("Skin.String(SkinHelper.ShowInfoAtPlaybackStart)"))

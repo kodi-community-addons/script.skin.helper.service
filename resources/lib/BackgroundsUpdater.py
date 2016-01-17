@@ -407,7 +407,7 @@ class BackgroundsUpdater(threading.Thread):
                 for path in paths:
                     dirs, files = xbmcvfs.listdir(path)
                     for dir in dirs:
-                        dir = dir.decode("utf-8")
+                        dir = try_decode(dir)
                         thumbdir = os.path.join(path,dir)
                         dirs2, files2 = xbmcvfs.listdir(thumbdir)
                         for file in files2:
