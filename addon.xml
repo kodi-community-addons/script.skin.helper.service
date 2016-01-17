@@ -18,7 +18,7 @@
 		<item>
 			<label>32072</label>
             <description>Display Series level button in next/recent/in progress episodes listings</description>
-			<visible>Container.Content(episodes) + [!Substring(Container.FolderPath,videodb://tvshows/titles,left) | Substring(Container.FolderPath,xsp=)] + [[!IsEmpty(ListItem.DBID) + !StringCompare(ListItem.DBID,-1)] | !IsEmpty(ListItem.Property(DBID))]</visible>
+			<visible>Container.Content(episodes) + !StringCompare(Container.ListItem(0).TvShowTitle,Container.ListItem(1).TvShowTitle)</visible>
 		</item>
 	</extension>
     <extension point="kodi.context.item" library="contextmenu_artwork.py">
