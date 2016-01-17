@@ -33,7 +33,7 @@ class BackgroundsUpdater(threading.Thread):
         self.lastPicturesPath = xbmc.getInfoLabel("skin.string(SkinHelper.PicturesBackgroundPath)").decode("utf-8")
         self.cachePath = os.path.join(ADDON_DATA_PATH,"AllBackgrounds.json")
         self.SmartShortcutsCachePath = os.path.join(ADDON_DATA_PATH,"smartshotcutscache.json")
-        monitor = xbmc.Monitor()
+        self.monitor = xbmc.Monitor()
 
         logMsg("BackgroundsUpdater - started")
         self.event =  threading.Event()

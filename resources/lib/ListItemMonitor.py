@@ -44,7 +44,7 @@ class ListItemMonitor(threading.Thread):
     def __init__(self, *args):
         logMsg("HomeMonitor - started")
         self.event =  threading.Event()
-        monitor = xbmc.Monitor()
+        self.monitor = xbmc.Monitor()
         threading.Thread.__init__(self, *args)
     
     def stop(self):
