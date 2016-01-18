@@ -105,9 +105,8 @@ class Main:
                     item = getJSON('VideoLibrary.GetTVShowDetails', '{ "tvshowid": %s, "properties": [ %s ] }' %(params.get("TVSHOWID"),fields_tvshows))
                     content = "tvshows"
                 if item:
-                    if item.get("streamdetails"): item["streamdetails2"] = item["streamdetails"]
+                    liz = prepareListItem(item)
                     liz = createListItem(item)
-                    liz.setProperty("path", item.get("file"))
                     liz.setProperty("json",repr(item))
                     info_dialog = GUI( "script-skin_helper_service-CustomInfo.xml" , ADDON_PATH, "Default", "1080i", listitem=liz, content=content )
                     info_dialog.doModal()

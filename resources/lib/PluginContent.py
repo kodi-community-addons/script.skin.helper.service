@@ -42,7 +42,6 @@ def getPluginListing(action,limit,refresh=None,optionalParam=None):
     cache = WINDOW.getProperty(cacheStr).decode("utf-8")
     if cache: 
         allItems = eval(cache)
-        print "get items from cache.. " + action
     
     #get from persistant cache on first boot
     if not cache and not refresh:
@@ -50,7 +49,6 @@ def getPluginListing(action,limit,refresh=None,optionalParam=None):
     
     #Call the correct method to get the content from json when no cache
     if not allItems:
-        print "get items NOT from cache.. " + action
         if optionalParam:
             allItems = eval(action)(limit,optionalParam)
         else:
