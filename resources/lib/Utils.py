@@ -627,7 +627,7 @@ def double_urlencode(text):
 def single_urlencode(text):
    """single URL-encode a given 'text'.  Do not return the 'variablename=' portion."""
 
-   blah = urllib.urlencode({'blahblahblah':text})
+   blah = urllib.urlencode({'blahblahblah':try_encode(text)})
 
    #we know the length of the 'blahblahblah=' is equal to 13.  This lets us avoid any messy string matches
    blah = blah[13:]

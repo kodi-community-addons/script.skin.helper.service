@@ -28,13 +28,13 @@ class WebService(threading.Thread):
             conn.getresponse()
             self.exit = True
             self.event.set()
-        except Exception as e: logMsg("WebServer exception occurred " + str(e))
+        except Exception as e: logMsg("WebServer exception occurred " + str(e),0)
 
     def run(self):
         try:
             server = StoppableHttpServer(('127.0.0.1', port), StoppableHttpRequestHandler)
             server.serve_forever()
-        except Exception as e: logMsg("WebServer exception occurred " + str(e))
+        except Exception as e: logMsg("WebServer exception occurred " + str(e),0)
             
 
 
@@ -111,7 +111,7 @@ class StoppableHttpRequestHandler (SimpleHTTPServer.SimpleHTTPRequestHandler):
             if fallback.startswith("Default"): fallback = "special://skin/media/" + fallback
 
         if action == "getthumb":
-            image = searchGoogleImage(title)
+            image = searchThumb(title)
         
         elif action == "getvarimage":
             title = title.replace("{","[").replace("}","]")

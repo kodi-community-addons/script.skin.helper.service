@@ -7,14 +7,14 @@ import urllib2, re
 
 
 class googleImagesAPI:
-    baseURL = 'https://www.google.com/search?hl=en&site=imghp&tbm=isch&tbs=isz:m{start}{query}'
+    baseURL = 'https://www.google.com/search?hl=en&site=imghp&tbm=isch&tbs=isz:l{start}{query}'
     perPage = 1
     
     def __init__(self):
         pass
                 
     def createQuery(self,terms,**kwargs):
-        args = ['q={0}'.format(urllib.quote_plus(terms))]
+        args = ['q={0}'.format(urllib.quote_plus(try_encode(terms)))]
         for k in kwargs.keys():
             if kwargs[k]: args.append('{0}={1}'.format(k,kwargs[k]))
         return '&'.join(args)
