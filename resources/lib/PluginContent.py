@@ -40,15 +40,19 @@ def getPluginListing(action,limit,refresh=None,optionalParam=None):
     
     #try to get from cache first...
     cache = WINDOW.getProperty(cacheStr).decode("utf-8")
-    if cache: 
+    if cache:
+        logMsg("getPluginListing-%s-%s-%s-%s -- got data from cache" %(action,limit,optionalParam,refresh),0)
         allItems = eval(cache)
     
     #get from persistant cache on first boot
     if not cache and not refresh:
+        logMsg("getPluginListing-%s-%s-%s-%s -- initial start, load cache from file" %(action,limit,optionalParam,refresh),0)
         allItems = getDataFromCacheFile(cachePath)
+        WINDOW.setProperty(cacheStr, repr(allItems).encode("utf-8"))
     
     #Call the correct method to get the content from json when no cache
     if not allItems:
+        logMsg("getPluginListing-%s-%s-%s-%s -- no cache, quering json api to get items" %(action,limit,optionalParam,refresh),0)
         if optionalParam:
             allItems = eval(action)(limit,optionalParam)
         else:
@@ -96,7 +100,7 @@ def doMainListing():
     addDirectoryItem(ADDON.getLocalizedString(32132), "plugin://script.skin.helper.service/?action=recommendedsongs&limit=100")
     if xbmc.getCondVisibility("System.HasAddon(script.tv.show.next.aired)"):
         addDirectoryItem(ADDON.getLocalizedString(32055), "plugin://script.skin.helper.service/?action=nextairedtvshows&limit=100")
-
+    
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
        
 def FAVOURITES(limit):

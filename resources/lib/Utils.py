@@ -617,21 +617,13 @@ def getLocalDateTimeFromUtc(timestring):
         return (timestring,timestring)
 
 def double_urlencode(text):
-   """double URL-encode a given 'text'.  Do not return the 'variablename=' portion."""
-
    text = single_urlencode(text)
    text = single_urlencode(text)
-
    return text
 
 def single_urlencode(text):
-   """single URL-encode a given 'text'.  Do not return the 'variablename=' portion."""
-
    blah = urllib.urlencode({'blahblahblah':try_encode(text)})
-
-   #we know the length of the 'blahblahblah=' is equal to 13.  This lets us avoid any messy string matches
    blah = blah[13:]
-
    return blah
 
 def createSmartShortcutSubmenu(windowProp,iconimage):
@@ -855,7 +847,7 @@ def resetVideoWidgetWindowProps(data="",resetAll=False):
         type = data["item"]["type"]
 
     if (type in ["movie","tvshow","episode"] or resetAll) and not WINDOW.getProperty("skinhelper-refreshvideowidgetsbusy"):
-        logMsg("Video database changed - type: %s - resetAll: %s, refreshing widgets...." %(type,resetAll))
+        logMsg("Video database changed - type: %s - resetAll: %s, refreshing widgets...." %(type,resetAll),0)
         WINDOW.setProperty("skinhelper-refreshvideowidgetsbusy","busy")
         if resetAll: WINDOW.setProperty("resetVideoDbCache","reset")
         timestr = time.strftime("%Y%m%d%H%M%S", time.gmtime())
