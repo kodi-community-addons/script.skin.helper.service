@@ -119,9 +119,12 @@ class ListItemMonitor(threading.Thread):
                 curListItem = self.liPath + self.liLabel
                 
                 #perform actions if the container path has changed
-                #always wait for the contenttype because plugins can be slow
                 if self.folderPath != self.folderPathLast:
-                    self.contentType = getCurrentContentType()
+                    #always wait for the contenttype because plugins can be slow
+                    for i in range(20):
+                        self.contentType = getCurrentContentType()
+                        if self.contentType: break
+                        else: xbmc.sleep(250)
                     self.setForcedView()
                     self.focusEpisode()
                     self.resetWindowProps()
@@ -941,8 +944,10 @@ class ListItemMonitor(threading.Thread):
               
     def setStreamDetails(self,dbId="",contenttype=""):
         streamdetails = {}
-        if not dbId:
+        if not dbId or dbId == "-1":
             dbId = xbmc.getInfoLabel("ListItem.DBID")
+        if not dbId or dbId == "-1":
+            dbId = xbmc.getInfoLabel("ListItem.Property(DBID)")
         if not contenttype:
             contenttype = self.contentType
             
@@ -1100,6 +1105,8 @@ class ListItemMonitor(threading.Thread):
     def setExtendedMovieInfo(self,imdbnumber="",contenttype=""):
         if not imdbnumber:
             imdbnumber = xbmc.getInfoLabel("ListItem.IMDBNumber")
+        if not imdbnumber:
+            imdbnumber = xbmc.getInfoLabel("ListItem.Property(IMDBNumber)")
         if not contenttype:
             contenttype = self.contentType
         result = {}

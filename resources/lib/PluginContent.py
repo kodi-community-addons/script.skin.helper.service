@@ -12,7 +12,6 @@ def getPluginListing(action,limit,refresh=None,optionalParam=None):
     count = 0
     allItems = []
     cachePath = os.path.join(ADDON_DATA_PATH,"widgetcache-%s.json" %action)
-    
     #get params for each action
     if "EPISODES" in action: 
         type = "episodes"

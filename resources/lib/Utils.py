@@ -394,6 +394,7 @@ def prepareListItem(item):
     if not item.get("duration") and item.get("runtime"): item["duration"] = item.get("runtime")
     if not item.get("tvshowtitle") and item.get("showtitle"): item["tvshowtitle"] = item.get("showtitle")
     if not item.get("premiered") and item.get("firstaired"): item["premiered"] = item.get("firstaired")
+    if not properties.get("imdbnumber") and item.get("imdbnumber"): properties["imdbnumber"] = item.get("imdbnumber")
     properties["dbtype"] = item.get("type")
     properties["type"] = item.get("type")
     properties["path"] = item.get("file")
@@ -496,7 +497,6 @@ def prepareListItem(item):
     item["extraproperties"] = properties
     return item
     
-
 def detectPluginContent(plugin,skipscan=False):
     #based on the properties in the listitem we try to detect the content
     logMsg("detectPluginContent processing: " + plugin)
@@ -644,6 +644,7 @@ def createSmartShortcutSubmenu(windowProp,iconimage):
 
 def getCurrentContentType():
     contenttype=""
+    
     if xbmc.getCondVisibility("Container.Content(episodes)"):
         contenttype = "episodes"
     elif xbmc.getCondVisibility("Container.Content(movies) + !substring(Container.FolderPath,setid=)"):
