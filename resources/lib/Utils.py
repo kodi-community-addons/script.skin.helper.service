@@ -393,6 +393,7 @@ def prepareListItem(item):
     if not item.get('artist'): item["artist"] = []
     if not item.get("duration") and item.get("runtime"): item["duration"] = item.get("runtime")
     if not item.get("tvshowtitle") and item.get("showtitle"): item["tvshowtitle"] = item.get("showtitle")
+    if not item.get("premiered") and item.get("firstaired"): item["premiered"] = item.get("firstaired")
     properties["dbtype"] = item.get("type")
     properties["type"] = item.get("type")
     properties["path"] = item.get("file")
