@@ -393,6 +393,14 @@ This command will open Kodi's dialog OK window with the text you supplied
 ________________________________________________________________________________________________________
 
 
+#### Message Dialog (textviewer)
+```
+RunScript(script.skin.helper.service,action=textviewer,header[yourheadertext],message=[your message body])
+```
+This command will open Kodi's TextViewer window with the text you supplied (NOTE: textviewer is available as of Kodi Jarvis 16)
+________________________________________________________________________________________________________
+
+
 
 #### Color Picker
 ```
@@ -636,16 +644,6 @@ You must supply the name of the setting as can be found in guisettings.xml or th
 </control>
 ```
 
-
-________________________________________________________________________________________________________
-
-#### OK dialog
-Can be used to present a simple OK dialog with a message
-
-```
-RunScript(script.skin.helper.service,action=dialogok&amp;header=[text for header]&amp;message=[message text])             
-```
-
 ________________________________________________________________________________________________________
 
 #### Strip string
@@ -665,6 +663,18 @@ $INFO[Window(Home).Property(kodiversion_main)]
 
 
 ________________________________________________________________________________________________________
+
+
+#### Check if file exists
+```
+RunScript(script.skin.helper.service,action=fileexists,file=[filenamepath],skinstring=[skinstring to store the result],windowprop=[windowprop to store the result])
+```
+This command will check the filesystem if a particular file exists and will write the results to either a skin string or window property.
+If the file exists, the result will be written as EXISTS in the property or skinstring, if it doesn't exist, the property/string will be empty.
+________________________________________________________________________________________________________
+
+
+
 
 #### Set skin setting
 Can be used to present a select dialog to specify a certain skin setting.

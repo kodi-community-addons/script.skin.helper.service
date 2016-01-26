@@ -221,6 +221,26 @@ class Main:
                 bodyMsg = params.get("MESSAGE")
                 xbmcgui.Dialog().ok(heading=headerMsg, line1=bodyMsg)
                 
+            elif action == "TEXTVIEWER":
+                headerMsg = params.get("HEADER")
+                bodyMsg = params.get("MESSAGE")
+                xbmcgui.Dialog().textviewer(heading=headerMsg, line1=bodyMsg)
+
+            elif action == "FILEEXISTS":
+                filename = params.get("FILE")
+                skinstring = params.get("SKINSTRING")
+                windowprop = params.get("WINDOWPROP")
+                if xbmcvfs.exists(filename):
+                    if windowprop:
+                        WINDOW.setProperty(windowprop,"exists")
+                    if skinstring:
+                        xbmc.executebuiltin("Skin.SetString(%s,exists)" %skinstring)
+                else:
+                    if windowprop:
+                        WINDOW.clearProperty(windowprop)
+                    if skinstring:
+                        xbmc.executebuiltin("Skin.Reset(%s)" %skinstring)
+            
             elif action == "STRIPSTRING":
                 splitchar = params.get("SPLITCHAR")
                 string = params.get("STRING")
