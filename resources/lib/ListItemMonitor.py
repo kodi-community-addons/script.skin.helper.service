@@ -1,13 +1,13 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import threading
-import thread
+import threading, thread
+import requests
 import random
 import xml.etree.ElementTree as etree
 from Utils import *
 import ArtworkUtils as artutils
-from SkinShortcutsIntegration import *
+import SkinShortcutsIntegration as skinshortcuts
 
 
 class ListItemMonitor(threading.Thread):
