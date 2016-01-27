@@ -651,7 +651,7 @@ ________________________________________________________________________________
 
 #### Check if file exists
 ```
-RunScript(script.skin.helper.service,action=fileexists,file=[filenamepath],skinstring=[skinstring to store the result],windowprop=[windowprop to store the result])
+RunScript(script.skin.helper.service,action=fileexists&amp;file=[filenamepath]&amp;skinstring=[skinstring to store the result]&amp;windowprop=[windowprop to store the result])
 ```
 This command will check the filesystem if a particular file exists and will write the results to either a skin string or window property.
 If the file exists, the result will be written as EXISTS in the property or skinstring, if it doesn't exist, the property/string will be empty.
