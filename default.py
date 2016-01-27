@@ -224,7 +224,7 @@ class Main:
             elif action == "TEXTVIEWER":
                 headerMsg = params.get("HEADER")
                 bodyMsg = params.get("MESSAGE")
-                xbmcgui.Dialog().textviewer(heading=headerMsg, line1=bodyMsg)
+                xbmcgui.Dialog().textviewer(heading=headerMsg, text=bodyMsg)
 
             elif action == "FILEEXISTS":
                 filename = params.get("FILE")

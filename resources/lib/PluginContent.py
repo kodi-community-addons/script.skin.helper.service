@@ -4,7 +4,7 @@
 from xml.dom.minidom import parse
 from operator import itemgetter
 from Utils import *
-from ArtworkUtils import *
+import ArtworkUtils as artutils
 
 
 def getPluginListing(action,limit,refresh=None,optionalParam=None):
@@ -40,18 +40,18 @@ def getPluginListing(action,limit,refresh=None,optionalParam=None):
     #try to get from cache first...
     cache = WINDOW.getProperty(cacheStr).decode("utf-8")
     if cache:
-        logMsg("getPluginListing-%s-%s-%s-%s -- got data from cache" %(action,limit,optionalParam,refresh),0)
+        logMsg("getPluginListing-%s-%s-%s-%s -- got data from cache" %(action,limit,optionalParam,refresh))
         allItems = eval(cache)
     
     #get from persistant cache on first boot
     if not cache and not refresh:
-        logMsg("getPluginListing-%s-%s-%s-%s -- initial start, load cache from file" %(action,limit,optionalParam,refresh),0)
+        logMsg("getPluginListing-%s-%s-%s-%s -- initial start, load cache from file" %(action,limit,optionalParam,refresh))
         allItems = getDataFromCacheFile(cachePath)
         WINDOW.setProperty(cacheStr, repr(allItems).encode("utf-8"))
     
     #Call the correct method to get the content from json when no cache
     if not allItems:
-        logMsg("getPluginListing-%s-%s-%s-%s -- no cache, quering json api to get items" %(action,limit,optionalParam,refresh),0)
+        logMsg("getPluginListing-%s-%s-%s-%s -- no cache, quering json api to get items" %(action,limit,optionalParam,refresh))
         if optionalParam:
             allItems = eval(action)(limit,optionalParam)
         else:
@@ -138,7 +138,7 @@ def PVRRECORDINGS(limit):
             if item["playcount"] == 0 and not ("mythtv" in pvr_backend.lower() and "/livetv/" in item.get("file","").lower()):
                 channelname = item["channel"]
                 item["channel"] = channelname
-                item["art"] = getPVRThumbs(item["title"], channelname, "recordings")
+                item["art"] = artutils.getPVRThumbs(item["title"], channelname, "recordings")
                 item["channellogo"] = item["art"].get("channellogo","")
                 item["cast"] = None
                 item["file"] = sys.argv[0] + "?action=playrecording&path=" + str(item["recordingid"])
@@ -163,7 +163,7 @@ def NEXTPVRRECORDINGS(limit,reversed="false"):
             #exclude live tv items from recordings list (mythtv hack)
             if not (item.get("directory") and item["directory"] in allTitles) and item["playcount"] == 0 and not ("mythtv" in pvr_backend.lower() and "/livetv/" in item.get("file","").lower()):
                 channelname = item["channel"]
-                item["art"] = getPVRThumbs(item["title"], channelname, "recordings")
+                item["art"] = artutils.getPVRThumbs(item["title"], channelname, "recordings")
                 item["channellogo"] = item["art"].get("channellogo","")
                 item["cast"] = None
                 allUnSortedItems.append((item["endtime"],item))
@@ -189,7 +189,7 @@ def PVRTIMERS(limit):
             channel_details = getJSON('PVR.GetChannelDetails', '{ "channelid": %d}' %item["channelid"])
             channelname = channel_details.get("label","")
             item["channel"] = channelname
-            item["art"] = getPVRThumbs(item["title"], channelname, "recordings")
+            item["art"] = artutils.getPVRThumbs(item["title"], channelname, "recordings")
             item["channellogo"] = item["art"].get("channellogo","")
             if not item.get("plot"): item["plot"] = item.get("summary","")
             allUnSortedItems.append((item["starttime"],item))
@@ -212,7 +212,7 @@ def PVRCHANNELS(limit):
         if channel.has_key('broadcastnow'):
             #channel with epg data
             item = channel['broadcastnow']
-            item["art"] = getPVRThumbs(item["title"], channelname, "channels")
+            item["art"] = artutils.getPVRThumbs(item["title"], channelname, "channels")
             if not channelicon: channelicon = item["art"].get("channelicon")
         else:
             #channel without epg
@@ -252,7 +252,7 @@ def getThumb(searchphrase):
     
     while xbmc.getCondVisibility("Container.Scrolling") or WINDOW.getProperty("getthumbbusy")=="busy":
         xbmc.sleep(150)
-    image = searchThumb(searchphrase)
+    image = artutils.searchThumb(searchphrase)
     if image:
         WINDOW.setProperty("SkinHelper.ListItemThumb",image)
     else:
@@ -265,7 +265,7 @@ def RECENTALBUMS(limit,browse=""):
     allItems = []
     json_result = getJSON('AudioLibrary.GetRecentlyAddedAlbums', '{ "properties": [ %s ], "limits":{"end":%d} }' %(fields_albums,limit))
     for item in json_result:
-        item["art"] = getMusicArtwork(item["displayartist"], item["label"])
+        item["art"] = artutils.getMusicArtwork(item["displayartist"], item["label"])
         item["type"] = "album"
         item["extraproperties"] = {"extrafanart": item["art"].get("extrafanart",""), "tracklist":item["art"].get("tracklist","")}
         item['album_description'] = item["art"].get("info","")
@@ -282,7 +282,7 @@ def RECENTPLAYEDALBUMS(limit,browse=""):
     allItems = []
     json_result = getJSON('AudioLibrary.GetRecentlyPlayedAlbums', '{ "sort": { "order": "descending", "method": "lastplayed" }, "properties": [ %s ], "limits":{"end":%d} }' %(fields_albums,limit))
     for item in json_result:
-        item["art"] = getMusicArtwork(item["displayartist"], item["label"])
+        item["art"] = artutils.getMusicArtwork(item["displayartist"], item["label"])
         item["type"] = "album"
         item["extraproperties"] = {"extrafanart": item["art"].get("extrafanart",""), "tracklist":item["art"].get("tracklist","")}
         item['album_description'] = item["art"].get("info","")
@@ -299,7 +299,7 @@ def RECENTPLAYEDSONGS(limit):
     allItems = []
     json_result = getJSON('AudioLibrary.GetRecentlyPlayedSongs', '{ "properties": [ %s ], "limits":{"end":%d} }' %(fields_songs,limit))
     for item in json_result:
-        item["art"] = getMusicArtwork(item["displayartist"], item["album"])
+        item["art"] = artutils.getMusicArtwork(item["displayartist"], item["album"])
         item["type"] = "song"
         item["extraproperties"] = {"extrafanart": item["art"].get("extrafanart",""), "tracklist":item["art"].get("tracklist","")}
         item['album_description'] = item["art"].get("info","")
@@ -310,7 +310,7 @@ def RECENTSONGS(limit):
     allItems = []
     json_result = getJSON('AudioLibrary.GetRecentlyAddedSongs', '{ "properties": [ %s ], "limits":{"end":%d} }' %(fields_songs,limit))
     for item in json_result:
-        item["art"] = getMusicArtwork(item["displayartist"], item["album"])
+        item["art"] = artutils.getMusicArtwork(item["displayartist"], item["album"])
         item["type"] = "song"
         item["extraproperties"] = {"extrafanart": item["art"].get("extrafanart",""), "tracklist":item["art"].get("tracklist","")}
         item['album_description'] = item["art"].get("info","")
@@ -484,7 +484,7 @@ def RECOMMENDEDALBUMS(limit,browse=False):
             for item in json_result:
                 if count == limit: break
                 if not item["title"] in allTitles and not item["title"] == similartitle and genre in item["genre"]:
-                    item["art"] = getMusicArtwork(item["displayartist"], item["label"])
+                    item["art"] = artutils.getMusicArtwork(item["displayartist"], item["label"])
                     item["type"] = "album"
                     item["extraproperties"] = {"extrafanart": item["art"].get("extrafanart",""), "tracklist":item["art"].get("tracklist","")}
                     item['album_description'] = item["art"].get("info","")
@@ -525,7 +525,7 @@ def RECOMMENDEDSONGS(limit):
             for item in json_result:
                 if count == limit: break
                 if not item["title"] in allTitles and not item["title"] == similartitle:
-                    item["art"] = getMusicArtwork(item["displayartist"], item["album"])
+                    item["art"] = artutils.getMusicArtwork(item["displayartist"], item["album"])
                     item["type"] = "song"
                     item["extraproperties"] = {"extrafanart": item["art"].get("extrafanart",""), "tracklist":item["art"].get("tracklist","")}
                     item['album_description'] = item["art"].get("info","")
@@ -963,7 +963,7 @@ def FAVOURITEMEDIA(limit):
     
 def getExtraFanArt(path):
     #get extrafanarts by passing an artwork cache xml file
-    artwork = getArtworkFromCacheFile(path)
+    artwork = artutils.getArtworkFromCacheFile(path)
     if artwork.get("extrafanarts"):
         extrafanart = eval( artwork.get("extrafanarts") )
         for item in extrafanart:
@@ -1065,9 +1065,9 @@ def getCast(movie=None,tvshow=None,movieset=None,episode=None,downloadThumbs=Fal
         #lookup tmdb if item is requested that is not in local db
         tmdbdetails = {}
         if movie and not allCast and not itemId:
-            tmdbdetails = getTmdbDetails(movie,None,"movie",True)
+            tmdbdetails = artutils.getTmdbDetails(movie,None,"movie",True)
         elif tvshow and not allCast and not itemId:
-            tmdbdetails = getTmdbDetails(tvshow,None,"tv",True)
+            tmdbdetails = artutils.getTmdbDetails(tvshow,None,"tv",True)
         if tmdbdetails:
             allCast = tmdbdetails.get("cast")
         
@@ -1077,7 +1077,7 @@ def getCast(movie=None,tvshow=None,movieset=None,episode=None,downloadThumbs=Fal
             for cast in allCast:
                 if cast.get("thumbnail"): cast["thumbnail"] = getCleanImage(cast.get("thumbnail"))
                 if not cast.get("thumbnail"): 
-                    artwork = getTmdbDetails(cast["name"],None,"person")
+                    artwork = artutils.getTmdbDetails(cast["name"],None,"person")
                     cast["thumbnail"] = artwork.get("thumb","")
 
         #save to cache    

@@ -1,6 +1,5 @@
 import threading
 import InfoDialog
-
 from Utils import *
 
 class SearchDialog(xbmcgui.WindowXMLDialog):

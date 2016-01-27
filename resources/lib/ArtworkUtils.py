@@ -1,23 +1,16 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import requests, urllib
-import base64
-from xml.dom.minidom import Document
-import xml.etree.ElementTree as ET
 from Utils import *
+import requests
+import base64
 import musicbrainzngs as m
-from GoogleImages import *
-
+import BeautifulSoup
+import htmlentitydefs
+import urllib2, re
 
 tmdb_apiKey = base64.b64decode("NDc2N2I0YjJiYjk0YjEwNGZhNTUxNWM1ZmY0ZTFmZWM=")
 m.set_useragent("script.skin.helper.service", "1.0.0", "https://github.com/marcelveldt/script.skin.helper.service")
-
-try:
-    if urllib.urlopen("http://musicbrainzvm:5000").getcode() == 200:
-        m.set_hostname("musicbrainzvm:5000")
-        logMsg("musicbrainzvm is alive - using custom MB server")
-except: pass
 
 def getPVRThumbs(title,channel,type="channels",path="",genre="",ignoreCache=False, manualLookup=False):
     cacheFound = False
@@ -471,15 +464,15 @@ def downloadImage(imageUrl,thumbsPath, filename, allowoverwrite=False):
 
 def createNFO(cachefile, artwork):
     try:
-        tree = ET.ElementTree( ET.Element( "artdetails" ) )
+        tree = xmltree.ElementTree( xmltree.Element( "artdetails" ) )
         root = tree.getroot()
         for key, value in artwork.iteritems():
             if value:
-                child = ET.SubElement( root, key )
+                child = xmltree.SubElement( root, key )
                 child.text = try_decode(value)
         
         indentXML( tree.getroot() )
-        xmlstring = ET.tostring(tree.getroot(), encoding="utf-8")
+        xmlstring = xmltree.tostring(tree.getroot(), encoding="utf-8")
         f = xbmcvfs.File(cachefile, 'w')
         f.write(xmlstring)
         f.close()
@@ -491,7 +484,7 @@ def getArtworkFromCacheFile(cachefile,artwork=None):
     if xbmcvfs.exists(cachefile):
         try:
             f = xbmcvfs.File(cachefile, 'r')
-            root = ET.fromstring(f.read())
+            root = xmltree.fromstring(f.read())
             f.close()
             cacheFound = True
             for child in root:
@@ -569,14 +562,13 @@ def searchChannelLogo(searchphrase):
         return image
 
 def searchGoogleImage(searchphrase1, searchphrase2=""):
-    if searchphrase2: searchphrase = "'%s' '%s'" %(searchphrase1, searchphrase2)
+    if searchphrase2: searchphrase = "'%s'+'%s'" %(searchphrase1, searchphrase2)
     else: searchphrase = searchphrase1
-
+    searchphrase = searchphrase1
     try:
-        api = googleImagesAPI()
-        api.perPage = 5
-        query = api.createQuery(searchphrase)
-        results = api.getImages(query,page=1)
+        results = getGoogleImages(searchphrase)
+        print "searchGoogleImage"
+        print results
         #prefer results with searchphrase in url
         count = 0
         for img in results:
@@ -585,22 +577,11 @@ def searchGoogleImage(searchphrase1, searchphrase2=""):
             return image
             #the below code (to get the bigger image) is not working
             # for now we use the small thumb image provided by google
-            page = img.get("page")
-            images2 = api.getPageImages(page)
+            images2 = getGooglePageImages(img.get("page"))
             for img2 in images2:
                 url = img2["url"]
-                print url
                 if getCompareString(searchphrase1) in getCompareString(url) and ".jpg" in url and not "shrink" in url:
-                    #TODO: improve this and return more results (filter out the mess)
-                    return url
-            
-            # fallback to just JPG files (first results only)
-            for img2 in images2:
-                url = img2["url"]
-                if ".jpg" in url and not "shrink" in url:
-                    #TODO: improve this and return more results (filter out the mess)
-                    return url
-            
+                    return url            
                     
     except Exception as e:
         if "getaddrinfo failed" in str(e):
@@ -609,7 +590,56 @@ def searchGoogleImage(searchphrase1, searchphrase2=""):
         else:
             logMsg("searchGoogleImage - ERROR in searchGoogleImage ! --> " + str(e),0)
     return ""
-        
+
+def getGoogleImages(terms,**kwargs):
+    start = ''
+    page = 1
+    args = ['q={0}'.format(urllib.quote_plus(try_encode(terms)))]
+    for k in kwargs.keys():
+        if kwargs[k]: args.append('{0}={1}'.format(k,kwargs[k]))
+    query = '&'.join(args)
+    start = ''
+    baseURL = 'https://www.google.com/search?hl=en&site=imghp&tbm=isch&tbs=isz:l{start}{query}'
+    perPage = 1
+    if page > 1: start = '&start=%s' % ((page - 1) * self.perPage)
+    url = self.baseURL.format(start=start,query='&' + query)
+    html = self.getPage(url)
+    soup = BeautifulSoup.BeautifulSoup(html)
+    results = []
+    for td in soup.findAll('td'):
+        if td.find('td'): continue
+        br = td.find('br')
+        if br: br.extract()
+        cite = td.find('cite')
+        site = ''
+        if cite:
+            site = cite.string
+            cite.extract()
+        i = td.find('a')
+        if not i: continue
+        if i.text or not '/url?q' in i.get('href',''): continue
+        for match in soup.findAll('b'):
+            match.string = '[COLOR FF00FF00][B]{0}[/B][/COLOR]'.format(str(match.string))
+            match.replaceWithChildren()
+        page = urllib.unquote(i.get('href','').split('q=',1)[-1].split('&',1)[0]).encode('utf-8')
+        tn = ''
+        img = i.find('img')
+        if img: tn = img.get('src')
+        image = tn
+        results.append({'unescapedUrl':image,'page':page})
+    return results
+
+def getGooglePageImages(self,url):
+    opener = urllib2.build_opener()
+    opener.addheaders = [('User-agent', 'Mozilla/5.0')]
+    html = opener.open(url).read()
+    soup = BeautifulSoup.BeautifulSoup(html)
+    results = []
+    for img in soup.findAll('img'):
+        src = img.get('src')
+        if src: results.append({'title':src,'url':urlparse.urljoin(url,src),'file':src.split('/')[-1]})
+    return results
+    
 def searchYoutubeImage(searchphrase, searchphrase2=""):
     image = ""
     if searchphrase2:

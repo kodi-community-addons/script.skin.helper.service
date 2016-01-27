@@ -499,31 +499,15 @@ You can use this to have the music artwork inside a list/panel container.
 ```xml
 <control type="image">
     <!--music artwork-->
-    <texture background="true">http://localhost:52307/getmusicart&amp;dbid=$INFO[Listitem.DBID]&amp;type=banner,clearlogo,discart&amp;contenttype=artists</texture>
+    <texture background="true">http://localhost:52307/getmusicart&amp;artist=$INFO[Listitem.Artist]&amp;track=$INFO[Listitem.Title]&amp;album=$INFO[Listitem.Album]&amp;type=banner,clearlogo,discart</texture>
 </control>
 ```
-The argument to pass is the DBID of the listitem and you must also supply the type= argument to provide the type of image that should be returned.
+The arguments to pass are album, track and artist. You can supply all of them or just a selection (e.g. artist+album)
 Possibilities are banner, clearlogo and discart for music artwork. Fanart and album thumb should be provided by Kodi itself.
-You also need to specify the contenttype for the container: artists, albums or songs
 
 Optional parameter: fallback --> Allows you to set a fallback image if no image was found.
 For example &amp;fallback=$INFO[ListItem.Thumb]
 
-Alternative to get the music artwork --> provide artist name and trackname:
-```xml
-<control type="image">
-    <!--music artwork-->
-    <texture background="true">http://localhost:52307/getmusicart&amp;artist=$INFO[Listitem.Artist]&amp;track=$INFO[Listitem.Title]&amp;type=banner,clearlogo,discart</texture>
-</control>
-```
-
-Alternative to get the music artwork --> provide artist name and albumname:
-```xml
-<control type="image">
-    <!--music artwork-->
-    <texture background="true">http://localhost:52307/getmusicart&amp;artist=$INFO[Listitem.Artist]&amp;album=$INFO[Listitem.Album]&amp;type=banner,clearlogo,discart</texture>
-</control>
-```
 
 ##### Image from skin string or window property inside a panel
 Normally $INFO window properties or skin string can't be used inside a container.

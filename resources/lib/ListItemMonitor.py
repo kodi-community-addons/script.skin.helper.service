@@ -6,7 +6,7 @@ import thread
 import random
 import xml.etree.ElementTree as etree
 from Utils import *
-from ArtworkUtils import *
+import ArtworkUtils as artutils
 from SkinShortcutsIntegration import *
 
 
@@ -769,7 +769,7 @@ class ListItemMonitor(threading.Thread):
             if self.contentType == "tvrecordings": type = "recordings"
             else: type = "channels"
             
-            artwork = getPVRThumbs(title, channel, type, path, genre)
+            artwork = artutils.getPVRThumbs(title, channel, type, path, genre)
             self.pvrArtCache[dbID + "SkinHelper.PVR.Artwork"] = artwork
         
         #return if another listitem was focused in the meanwhile
@@ -911,7 +911,7 @@ class ListItemMonitor(threading.Thread):
             logMsg("setMusicPlayerDetails FOUND CACHE FOR  artist: %s - album: %s - title: %s "%(artist,album,title))
         else:
             logMsg("setMusicPlayerDetails CACHE NOT FOUND FOR  artist: %s - album: %s - title: %s "%(artist,album,title))
-            artwork = getMusicArtwork(artist,album,title)
+            artwork = artutils.getMusicArtwork(artist,album,title)
             if artwork.get("info") and xbmc.getInfoLabel("MusicPlayer.Comment"):
                 artwork["info"] = normalize_string(xbmc.getInfoLabel("MusicPlayer.Comment")).replace('\n', ' ').replace('\r', '').split(" a href")[0] + "  -  " + artwork["info"]
             self.musicArtCache[cacheId + "SkinHelper.Music.Art"] = artwork
@@ -931,7 +931,7 @@ class ListItemMonitor(threading.Thread):
             logMsg("setMusicDetails FOUND CACHE FOR  artist: %s - album: %s - title: %s "%(artist,album,title))
         else:
             logMsg("setMusicDetails CACHE NOT FOUND FOR  artist: %s - album: %s - title: %s "%(artist,album,title))
-            artwork = getMusicArtwork(artist,album,title)
+            artwork = artutils.getMusicArtwork(artist,album,title)
             self.musicArtCache[cacheId + "SkinHelper.Music.Art"] = artwork
         
         #return if another listitem was focused in the meanwhile

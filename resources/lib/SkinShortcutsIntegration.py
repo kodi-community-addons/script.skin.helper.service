@@ -1,6 +1,5 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-
 from Utils import *
 
 #This file contains methods to connect skinhelper to skinshortcuts for smartshortcuts, widgets and backgrounds

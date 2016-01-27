@@ -1,6 +1,5 @@
 from Utils import *
-
-      
+     
 def musicSearch():
     xbmc.executebuiltin( "ActivateWindow(MusicLibrary)" )
     xbmc.executebuiltin( "SendClick(8)" )
