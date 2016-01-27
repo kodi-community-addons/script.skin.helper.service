@@ -154,10 +154,16 @@ def getPVRThumbs(title,channel,type="channels",path="",genre="",ignoreCache=Fals
                         artwork = getTmdbDetails(searchtitle,artwork,"movie")
                     else:
                         artwork = getTmdbDetails(searchtitle,artwork)
-                    
+                
+                #set thumb to fanart or landscape to prevent youtube/google lookups
+                if not artwork.get("thumb") and artwork.get("landscape"):
+                    artwork["thumb"] = artwork.get("landscape")
+                if not artwork.get("thumb") and artwork.get("fanart"):
+                    artwork["thumb"] = artwork.get("fanart")
+                
                 #lookup thumb on google as fallback
                 if not artwork.get("thumb") and channel and WINDOW.getProperty("SkinHelper.useGoogleLookups") == "true":
-                    artwork["thumb"] = searchGoogleImage(searchtitle, channel)
+                    artwork["thumb"] = searchGoogleImage(searchtitle, channel, manualLookup)
                 
                 #lookup thumb on youtube as fallback
                 if not artwork.get("thumb") and channel and WINDOW.getProperty("SkinHelper.useYoutubeLookups") == "true":
@@ -561,35 +567,59 @@ def searchChannelLogo(searchphrase):
         WINDOW.setProperty(searchphrase.encode('utf-8') + "SkinHelper.PVR.ChannelLogo",image)
         return image
 
-def searchGoogleImage(searchphrase1, searchphrase2=""):
-    if searchphrase2: searchphrase = "'%s'+'%s'" %(searchphrase1, searchphrase2)
+def searchGoogleImage(searchphrase1, searchphrase2="",manualLookup=False):
+    if searchphrase2: searchphrase = "'%s' '%s'" %(searchphrase1, searchphrase2)
+    if manualLookup: xbmc.executebuiltin( "ActivateWindow(busydialog)" )
     else: searchphrase = searchphrase1
-    searchphrase = searchphrase1
+    imagesList = []
+    imagesList2 = []
+    image = ""
     try:
         results = getGoogleImages(searchphrase)
-        print "searchGoogleImage"
-        print results
         #prefer results with searchphrase in url
         count = 0
         for img in results:
             count += 1
             image = img.get("unescapedUrl")
-            return image
-            #the below code (to get the bigger image) is not working
-            # for now we use the small thumb image provided by google
-            images2 = getGooglePageImages(img.get("page"))
-            for img2 in images2:
-                url = img2["url"]
-                if getCompareString(searchphrase1) in getCompareString(url) and ".jpg" in url and not "shrink" in url:
-                    return url            
-                    
+            if not manualLookup:
+                #the code to get the bigger image is not working, for now we just use the small thumb image provided by google
+                return image
+            else:
+                #manual lookup, list results and get larger page result
+                listitem = xbmcgui.ListItem(label=image)
+                listitem.setProperty("icon",image)
+                listitem.setProperty("page",img.get("page"))
+                imagesList.append(listitem)
+        
+        if manualLookup and imagesList:
+            import Dialogs as dialogs                
+            w = dialogs.DialogSelectBig( "DialogSelect.xml", ADDON_PATH, listing=imagesList, windowtitle="",multiselect=False )
+            w.doModal()
+            selectedItem = w.result
+            if selectedItem != -1:
+                selectedItem = imagesList[selectedItem]
+                images2 = getGooglePageImages(selectedItem.getProperty("page"))
+                image = selectedItem.getProperty("icon")
+                for img2 in images2:
+                    listitem = xbmcgui.ListItem(label=img2.get("title"))
+                    listitem.setProperty("icon",img2.get("url"))
+                    imagesList2.append(listitem)
+            if imagesList2:
+                w = dialogs.DialogSelectBig( "DialogSelect.xml", ADDON_PATH, listing=imagesList2, windowtitle="",multiselect=False )
+                w.doModal()
+                selectedItem2 = w.result
+                if selectedItem2 != -1:
+                    selectedItem2 = imagesList2[selectedItem2]
+                    image = selectedItem2.getProperty("icon")
+        
     except Exception as e:
         if "getaddrinfo failed" in str(e):
             WINDOW.setProperty("SkinHelper.DisableInternetLookups","disable")
             logMsg("searchGoogleImage - no internet access, disabling internet lookups for now",0)
         else:
             logMsg("searchGoogleImage - ERROR in searchGoogleImage ! --> " + str(e),0)
-    return ""
+    if manualLookup: xbmc.executebuiltin( "Dialog.Close(busydialog)" )
+    return image
 
 def getGoogleImages(terms,**kwargs):
     start = ''
@@ -600,10 +630,11 @@ def getGoogleImages(terms,**kwargs):
     query = '&'.join(args)
     start = ''
     baseURL = 'https://www.google.com/search?hl=en&site=imghp&tbm=isch&tbs=isz:l{start}{query}'
-    perPage = 1
-    if page > 1: start = '&start=%s' % ((page - 1) * self.perPage)
-    url = self.baseURL.format(start=start,query='&' + query)
-    html = self.getPage(url)
+    if page > 1: start = '&start=%s' % ((page - 1) * 1)
+    url = baseURL.format(start=start,query='&' + query)
+    opener = urllib2.build_opener()
+    opener.addheaders = [('User-agent', 'Mozilla/5.0')]
+    html = opener.open(url).read()
     soup = BeautifulSoup.BeautifulSoup(html)
     results = []
     for td in soup.findAll('td'):
@@ -629,15 +660,19 @@ def getGoogleImages(terms,**kwargs):
         results.append({'unescapedUrl':image,'page':page})
     return results
 
-def getGooglePageImages(self,url):
+def getGooglePageImages(url):
+    results = []
     opener = urllib2.build_opener()
     opener.addheaders = [('User-agent', 'Mozilla/5.0')]
-    html = opener.open(url).read()
-    soup = BeautifulSoup.BeautifulSoup(html)
-    results = []
-    for img in soup.findAll('img'):
-        src = img.get('src')
-        if src: results.append({'title':src,'url':urlparse.urljoin(url,src),'file':src.split('/')[-1]})
+    try:
+        html = opener.open(url).read()
+        soup = BeautifulSoup.BeautifulSoup(html)
+        for img in soup.findAll('img'):
+            src = img.get('src')
+            if src: results.append({'title':src,'url':urlparse.urljoin(url,src),'file':src.split('/')[-1]})
+    except:
+        logMsg("getGooglePageImages - ERROR retrieving " + url)
+    
     return results
     
 def searchYoutubeImage(searchphrase, searchphrase2=""):
