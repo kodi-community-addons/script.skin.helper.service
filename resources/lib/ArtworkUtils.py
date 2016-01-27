@@ -17,7 +17,10 @@ def getPVRThumbs(title,channel,type="channels",path="",genre="",ignoreCache=Fals
     ignore = False
     artwork = {}
     pvrThumbPath = None
-
+    
+    #ignore back entry
+    if title == "..": return {}
+    
     if title: title = urllib.unquote(title)
     if channel: channel = urllib.unquote(channel)
         

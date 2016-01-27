@@ -159,6 +159,7 @@ def setView():
     
     #get current content type
     contenttype = getCurrentContentType()
+    if not contenttype: contenttype = "files"
         
     currentView = xbmc.getInfoLabel("Container.Viewmode").decode("utf-8")
     selectedItem = selectView(contenttype, currentView)
