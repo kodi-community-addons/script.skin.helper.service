@@ -219,11 +219,13 @@ class Main:
             elif action == "DIALOGOK":
                 headerMsg = params.get("HEADER")
                 bodyMsg = params.get("MESSAGE")
+                if bodyMsg.startswith(" "): bodyMsg = bodyMsg[1:]
                 xbmcgui.Dialog().ok(heading=headerMsg, line1=bodyMsg)
                 
             elif action == "TEXTVIEWER":
                 headerMsg = params.get("HEADER")
                 bodyMsg = params.get("MESSAGE")
+                if bodyMsg.startswith(" "): bodyMsg = bodyMsg[1:]
                 xbmcgui.Dialog().textviewer(heading=headerMsg, text=bodyMsg)
 
             elif action == "FILEEXISTS":
