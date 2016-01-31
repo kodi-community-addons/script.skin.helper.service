@@ -3,6 +3,7 @@
 import resources.lib.PluginContent as plugincontent
 import resources.lib.SkinShortcutsIntegration as skinshortcuts
 import urlparse
+import xbmcgui,xbmcplugin
 enableProfiling = False
 
 class Main:
@@ -30,7 +31,7 @@ class Main:
                     xbmcplugin.setResolvedUrl(handle=int(sys.argv[1]), succeeded=False, listitem=xbmcgui.ListItem())
                 if action == "PLAYRECORDING":
                     #retrieve the recording and play as listitem to get resume working
-                    json_result = getJSON('PVR.GetRecordingDetails', '{"recordingid": %d, "properties": [ %s ]}' %(int(path),fields_pvrrecordings))
+                    json_result = plugincontent.getJSON('PVR.GetRecordingDetails', '{"recordingid": %d, "properties": [ %s ]}' %(int(path),fields_pvrrecordings))
                     if json_result:
                         xbmc.executeJSONRPC('{ "jsonrpc": "2.0", "method": "Player.Open", "params": { "item": { "recordingid": %d } }, "id": 1 }' % int(path))
                         if json_result["resume"].get("position"):

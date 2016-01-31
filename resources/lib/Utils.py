@@ -226,7 +226,8 @@ def setSkinVersion():
     except Exception as e:
         logMsg("Error in setSkinVersion --> " + str(e), 0)
  
-def correctSkinSettings():     
+def correctSkinSettings():
+    #correct any special skin settings
     settings_file = xbmc.translatePath( 'special://skin/extras/skinsettings.xml' ).decode("utf-8")
     if xbmcvfs.exists( settings_file ):
         doc = parse( settings_file )
@@ -360,9 +361,11 @@ def createListItem(item):
     
     #artwork
     if item.get("art"):
-        liz.setThumbnailImage(item["art"].get("thumb",""))
-        liz.setArt( item.get("art",{}))
-    liz.setIconImage(item.get('icon',''))
+        liz.setArt( item.get("art"))
+    if item.get("icon"):
+        liz.setIconImage(item.get('icon'))
+    if item.get("thumbnail"):
+        liz.setThumbnailImage(item.get('thumbnail'))
 
     return liz
 

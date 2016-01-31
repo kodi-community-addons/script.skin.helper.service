@@ -50,7 +50,7 @@ def getPluginListing(action,limit,refresh=None,optionalParam=None):
         WINDOW.setProperty(cacheStr, repr(allItems).encode("utf-8"))
     
     #Call the correct method to get the content from json when no cache
-    if not allItems:
+    if not allItems or action == "FAVOURITES":
         logMsg("getPluginListing-%s-%s-%s-%s -- no cache, quering json api to get items" %(action,limit,optionalParam,refresh))
         if optionalParam:
             allItems = eval(action)(limit,optionalParam)
@@ -103,28 +103,7 @@ def doMainListing():
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
        
 def FAVOURITES(limit):
-    allItems = []
-    xbmcplugin.setContent(int(sys.argv[1]), 'files')
-    fav_file = xbmc.translatePath( 'special://profile/favourites.xml' ).decode("utf-8")
-    if xbmcvfs.exists( fav_file ):
-        doc = parse( fav_file )
-        listing = doc.documentElement.getElementsByTagName( 'favourite' )
-        for count, favourite in enumerate(listing):
-            label = ""
-            image = "DefaultFile.png"
-            for (name, value) in favourite.attributes.items():
-                if name == "name":
-                    label = value
-                if name == "thumb":
-                    image = value
-            path = favourite.childNodes [ 0 ].nodeValue
-            path="plugin://script.skin.helper.service/?action=launch&path=" + path
-            item = {"label": label, "title": label, "thumbnail":image, "file":path}
-            item["extraproperties"] = {"IsPlayable": "false"}
-            allItems.append(item)
-            if count == limit:
-                break
-    return allItems
+    return FAVOURITEMEDIA(limit,True)
 
 def PVRRECORDINGS(limit):
     allItems = []
@@ -883,27 +862,29 @@ def RECENTMEDIA(limit):
         allItemsDef.append(item[1])
     return allItemsDef
 
-def FAVOURITEMEDIA(limit):
+def FAVOURITEMEDIA(limit,AllKodiFavsOnly=False):
     count = 0
     allItems = []
-    #netflix favorites
-    if xbmc.getCondVisibility("System.HasAddon(plugin.video.netflixbmc) + Skin.HasSetting(SmartShortcuts.netflix)") and WINDOW.getProperty("netflixready") == "ready":
-        json_result = getJSON('Files.GetDirectory', '{ "directory": "plugin://plugin.video.netflixbmc/?mode=listSliderVideos&thumb&type=both&widget=true&url=slider_38", "media": "files", "properties": [ %s ] }' %fields_files)
-        for item in json_result:
-            allItems.append(item)
     
-    #emby favorites
-    if xbmc.getCondVisibility("System.HasAddon(plugin.video.emby) + Skin.HasSetting(SmartShortcuts.emby)"):
-        json_result = getJSON('VideoLibrary.GetMovies', '{ "filter": {"operator":"contains", "field":"tag", "value":"Favorite movies"}, "properties": [ %s ] }' %fields_movies)
-        for item in json_result:
-            allItems.append(item)
+    if not AllKodiFavsOnly:
+        #netflix favorites
+        if xbmc.getCondVisibility("System.HasAddon(plugin.video.netflixbmc) + Skin.HasSetting(SmartShortcuts.netflix)") and WINDOW.getProperty("netflixready") == "ready":
+            json_result = getJSON('Files.GetDirectory', '{ "directory": "plugin://plugin.video.netflixbmc/?mode=listSliderVideos&thumb&type=both&widget=true&url=slider_38", "media": "files", "properties": [ %s ] }' %fields_files)
+            for item in json_result:
+                allItems.append(item)
         
-        json_result = getJSON('VideoLibrary.GetTvShows', '{ "filter": {"operator":"contains", "field":"tag", "value":"Favorite tvshows"}, "properties": [ %s ] }' %fields_tvshows)
-        for item in json_result:
-            tvshowpath = "ActivateWindow(Videos,videodb://tvshows/titles/%s/,return)" %str(item["tvshowid"])
-            tvshowpath="plugin://script.skin.helper.service?action=launch&path=" + tvshowpath
-            item["file"] == tvshowpath
-            allItems.append(item)
+        #emby favorites
+        if xbmc.getCondVisibility("System.HasAddon(plugin.video.emby) + Skin.HasSetting(SmartShortcuts.emby)"):
+            json_result = getJSON('VideoLibrary.GetMovies', '{ "filter": {"operator":"contains", "field":"tag", "value":"Favorite movies"}, "properties": [ %s ] }' %fields_movies)
+            for item in json_result:
+                allItems.append(item)
+            
+            json_result = getJSON('VideoLibrary.GetTvShows', '{ "filter": {"operator":"contains", "field":"tag", "value":"Favorite tvshows"}, "properties": [ %s ] }' %fields_tvshows)
+            for item in json_result:
+                tvshowpath = "ActivateWindow(Videos,videodb://tvshows/titles/%s/,return)" %str(item["tvshowid"])
+                tvshowpath="plugin://script.skin.helper.service?action=launch&path=" + tvshowpath
+                item["file"] == tvshowpath
+                allItems.append(item)
     
     #Kodi favourites
     json_result = getJSON('Favourites.GetFavourites', '{"type": null, "properties": ["path", "thumbnail", "window", "windowparameter"]}')
@@ -958,7 +939,23 @@ def FAVOURITEMEDIA(limit):
                     if item['file'] == path:
                         matchFound = True
                         allItems.append(item)
-                    
+        if not matchFound and AllKodiFavsOnly:
+            #add unknown item in the result...
+            if fav.get("type") == "window":
+                path = 'ActivateWindow(%s,"%s",return)' %(fav.get("window",""),fav.get("windowparameter",""))
+                path="plugin://script.skin.helper.service/?action=launch&path=" + path
+            elif fav.get("type") == "script":
+                path='plugin://script.skin.helper.service/?action=launch&path=RunScript("%s")' %fav.get("path")
+            else:
+                path = fav.get("path")
+            if not fav.get("label"): fav["label"] = fav.get("title")
+            if not fav.get("title"): fav["label"] = fav.get("label")
+            item = {"label": fav.get("label"), "title": fav.get("title"), "thumbnail":fav.get("thumbnail"), "file":path}
+            if fav.get("thumbnail").endswith("icon.png"):
+                item["art"] = {"landscape": fav.get("thumbnail"), "poster": fav.get("thumbnail"), "fanart": fav.get("thumbnail").replace("icon.png","fanart.jpg")}
+            item["extraproperties"] = {"IsPlayable": "false"}
+            allItems.append(item)
+            
     return allItems
     
 def getExtraFanArt(path):

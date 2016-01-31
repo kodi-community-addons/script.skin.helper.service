@@ -1040,7 +1040,6 @@ class ListItemMonitor(threading.Thread):
         lastPath = None
         efaPath = None
         efaFound = False
-        liArt = None
         extraFanArtfiles = []
         filename = xbmc.getInfoLabel("ListItem.FileNameAndPath").decode("utf-8")
         
@@ -1070,20 +1069,21 @@ class ListItemMonitor(threading.Thread):
         #lookup the extrafanart in the media location
         elif (self.liPath != None and self.liPath != self.liPathLast and (xbmc.getCondVisibility("Container.Content(movies) | Container.Content(seasons) | Container.Content(episodes) | Container.Content(tvshows)")) and not "videodb:" in self.liPath):
                            
-            if xbmc.getCondVisibility("Container.Content(episodes)"):
-                liArt = xbmc.getInfoLabel("ListItem.Art(tvshow.fanart)").decode('utf-8')
-            
             # do not set extra fanart for virtuals
             if (("plugin://" in self.liPath) or ("addon://" in self.liPath) or ("sources" in self.liPath) or ("plugin://" in self.folderPath) or ("sources://" in self.folderPath) or ("plugin://" in self.folderPath)):
                 self.extraFanartCache[self.liPath] = "None"
             else:
-                if xbmcvfs.exists(self.liPath + "extrafanart/"):
-                    efaPath = self.liPath + "extrafanart/"
+                
+                if liPath.contains("/"): splitchar = "/"
+                else: splitchar = "\\"
+            
+                if xbmcvfs.exists(self.liPath + "extrafanart"+splitchar):
+                    efaPath = self.liPath + "extrafanart"+splitchar
                 else:
-                    pPath = self.liPath.rpartition("/")[0]
-                    pPath = pPath.rpartition("/")[0]
-                    if xbmcvfs.exists(pPath + "/extrafanart/"):
-                        efaPath = pPath + "/extrafanart/"
+                    pPath = self.liPath.rpartition(splitchar)[0]
+                    pPath = pPath.rpartition(splitchar)[0]
+                    if xbmcvfs.exists(pPath + splitchar + "extrafanart"+splitchar):
+                        efaPath = pPath + splitchar + "extrafanart" + splitchar
                         
                 if xbmcvfs.exists(efaPath):
                     dirs, files = xbmcvfs.listdir(efaPath)
@@ -1122,13 +1122,13 @@ class ListItemMonitor(threading.Thread):
                 result = json.loads(res.content.decode('utf-8','replace'))
                 
                 #get info from TMDB
-                url = 'http://api.themoviedb.org/3/find/%s?external_source=imdb_id&api_key=%s' %(imdbnumber,tmdb_apiKey)
+                url = 'http://api.themoviedb.org/3/find/%s?external_source=imdb_id&api_key=%s' %(imdbnumber,artutils.tmdb_apiKey)
                 response = requests.get(url)
                 data = json.loads(response.content.decode('utf-8','replace'))
                 if data and data.get("movie_results"):
                     data = data.get("movie_results")
                     if len(data) == 1:
-                        url = 'http://api.themoviedb.org/3/movie/%s?api_key=%s' %(data[0].get("id"),tmdb_apiKey)
+                        url = 'http://api.themoviedb.org/3/movie/%s?api_key=%s' %(data[0].get("id"),artutils.tmdb_apiKey)
                         response = requests.get(url)
                         data = json.loads(response.content.decode('utf-8','replace'))
                         

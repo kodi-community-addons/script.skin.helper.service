@@ -72,11 +72,11 @@ class BackgroundsUpdater(threading.Thread):
 
                 # force refresh smart shortcuts when skin settings launched (so user sees any newly added smartshortcuts)
                 if xbmc.getCondVisibility("Window.IsActive(script-skinshortcuts.xml) | Window.IsActive(SkinSettings)"):
-                    if not skinShortcutsActive:
+                    if not self.skinShortcutsActive:
                         try: self.UpdateBackgrounds(refreshSmartshortcuts=True)
                         except Exception as e: logMsg("ERROR in UpdateBackgrounds ! --> " + str(e), 0)
-                        skinShortcutsActive = True
-                else: skinShortcutsActive = False      
+                        self.skinShortcutsActive = True
+                else: self.skinShortcutsActive = False      
                 
                 # Update home backgrounds every interval (if enabled by skinner)
                 if self.backgroundDelay != 0:

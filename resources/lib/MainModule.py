@@ -148,10 +148,11 @@ def setForcedView(contenttype):
     currentView = xbmc.getInfoLabel("Skin.String(SkinHelper.ForcedViews.%s)" %contenttype)
     if not currentView:
         currentView = "0"
-    selectedItem = selectView(contenttype, currentView, True, True)
+    viewid, viewlabel = selectView(contenttype, currentView, True)
     
-    if selectedItem != -1 and selectedItem != None:
-        xbmc.executebuiltin("Skin.SetString(SkinHelper.ForcedViews.%s,%s)" %(contenttype, selectedItem))
+    if viewid != None:
+        xbmc.executebuiltin("Skin.SetString(SkinHelper.ForcedViews.%s,%s)" %(contenttype, viewid))
+        xbmc.executebuiltin("Skin.SetString(SkinHelper.ForcedViews.%s.label,%s)" %(contenttype, viewlabel))
     
 def setView():
     #sets the selected viewmode for the container
@@ -162,23 +163,24 @@ def setView():
     if not contenttype: contenttype = "files"
         
     currentView = xbmc.getInfoLabel("Container.Viewmode").decode("utf-8")
-    selectedItem = selectView(contenttype, currentView)
+    viewid, viewlabel = selectView(contenttype, currentView)
     currentForcedView = xbmc.getInfoLabel("Skin.String(SkinHelper.ForcedViews.%s)" %contenttype)
     
-    #also store forced view    
-    if contenttype and currentForcedView and currentForcedView != "None" and xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.ForcedViews.Enabled)"):
-        xbmc.executebuiltin("Skin.SetString(SkinHelper.ForcedViews.%s,%s)" %(contenttype, selectedItem))
-        WINDOW.setProperty("SkinHelper.ForcedView",selectedItem)
-        if not xbmc.getCondVisibility("Control.HasFocus(%s)" %currentForcedView):
-            xbmc.sleep(100)
-            xbmc.executebuiltin("Container.SetViewMode(%s)" %selectedItem)
-            xbmc.executebuiltin("SetFocus(%s)" %selectedItem)
-    else:
-        WINDOW.clearProperty("SkinHelper.ForcedView")
-    
-    #set view
-    if selectedItem != -1 and selectedItem != None:
-        xbmc.executebuiltin("Container.SetViewMode(%s)" %selectedItem)
+    if viewid != None:
+        #also store forced view    
+        if contenttype and currentForcedView and currentForcedView != "None" and xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.ForcedViews.Enabled)"):
+            xbmc.executebuiltin("Skin.SetString(SkinHelper.ForcedViews.%s,%s)" %(contenttype, viewid))
+            xbmc.executebuiltin("Skin.SetString(SkinHelper.ForcedViews.%s.label,%s)" %(contenttype, viewlabel))
+            WINDOW.setProperty("SkinHelper.ForcedView",viewid)
+            if not xbmc.getCondVisibility("Control.HasFocus(%s)" %currentForcedView):
+                xbmc.sleep(100)
+                xbmc.executebuiltin("Container.SetViewMode(%s)" %viewid)
+                xbmc.executebuiltin("SetFocus(%s)" %viewid)
+        else:
+            WINDOW.clearProperty("SkinHelper.ForcedView")
+        
+        #set view
+        xbmc.executebuiltin("Container.SetViewMode(%s)" %viewid)
     
 def searchYouTube(title,windowHeader=""):
     xbmc.executebuiltin( "ActivateWindow(busydialog)" )
@@ -211,10 +213,11 @@ def searchYouTube(title,windowHeader=""):
         path = allResults[selectedItem].getProperty("path")
         xbmc.executebuiltin("PlayMedia(%s)" %path)
             
-def selectView(contenttype="other", currentView=None, displayNone=False, displayViewId=False):
+def selectView(contenttype="other", currentView=None, displayNone=False):
     import Dialogs as dialogs
     currentViewSelectId = None
-
+    id = None
+    label = ""
     allViews = []
     if displayNone:
         listitem = xbmcgui.ListItem(label="None")
@@ -229,8 +232,7 @@ def selectView(contenttype="other", currentView=None, displayNone=False, display
         for count, view in enumerate(listing):
             label = xbmc.getLocalizedString(int(view.attributes[ 'languageid' ].nodeValue)).encode("utf-8").decode("utf-8")
             id = view.attributes[ 'value' ].nodeValue
-            if displayViewId:
-                label = label + " (" + str(id) + ")"
+            desc = label + " (" + str(id) + ")"
             type = view.attributes[ 'type' ].nodeValue.lower()
             if label.lower() == currentView.lower() or id == currentView:
                 currentViewSelectId = itemcount
@@ -238,7 +240,7 @@ def selectView(contenttype="other", currentView=None, displayNone=False, display
                     currentViewSelectId += 1
             if (type == "all" or contenttype.lower() in type) and not xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.View.Disabled.%s)" %id):
                 image = "special://skin/extras/viewthumbs/%s.jpg" %id
-                listitem = xbmcgui.ListItem(label=label, iconImage=image)
+                listitem = xbmcgui.ListItem(label=label, label2=desc, iconImage=image)
                 listitem.setProperty("id",id)
                 listitem.setProperty("icon",image)
                 allViews.append(listitem)
@@ -250,7 +252,8 @@ def selectView(contenttype="other", currentView=None, displayNone=False, display
     del w
     if selectedItem != -1:
         id = allViews[selectedItem].getProperty("id")
-        return id
+        label = allViews[selectedItem].getLabel()
+    return (id,label)
 
 def waitForSkinShortcutsWindow():
     #wait untill skinshortcuts is active window (because of any animations that may have been applied)

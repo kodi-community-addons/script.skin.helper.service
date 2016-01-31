@@ -288,8 +288,8 @@ def getAddonWidgetListing(addonShortName,skipscan=False):
                     if not "reload=" in content and (addon[0] == "script.skin.helper.service" or addon[0] == "service.library.data.provider"):
                         if "albums" in content or "songs" in content:
                             reloadstr = "&reload=$INFO[Window(Home).Property(widgetreloadmusic)]"
-                        elif "pvr" in content or "media" in content and not "progress" in content:
-                            reloadstr = "&reload=$INFO[Window(Home).Property(widgetreload2)]"
+                        elif ("pvr" in content or "media" in content or "favourite" in content) and not "progress" in content:
+                            reloadstr = "&reload=$INFO[Window(Home).Property(widgetreload)]$INFO[Window(Home).Property(widgetreload2)]"
                         else:
                             reloadstr = "&reload=$INFO[Window(Home).Property(widgetreload)]"
                         content = content + reloadstr
