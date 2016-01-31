@@ -18,8 +18,9 @@ class BackgroundsUpdater(threading.Thread):
     smartShortcuts = {}
     cachePath = None
     SmartShortcutsCachePath = None
-    normalTaskInterval = 30
+    backgroundsTaskInterval = 30
     wallTaskInterval = 30
+    daynightThemeTaskInterval = 30
     backgroundDelay = 0
     wallImagesDelay = 0
     lastWindow = None
@@ -69,10 +70,19 @@ class BackgroundsUpdater(threading.Thread):
                         self.skinShortcutsActive = True
                 else: self.skinShortcutsActive = False      
                 
+                # Update Day/Night theme if enabled
+                if (self.daynightThemeTaskInterval >= 30):
+                    self.daynightThemeTaskInterval = 0
+                    try:
+                        self.setDayNightColorTheme()
+                    except Exception as e:
+                        logMsg("ERROR in setDayNightColorTheme ! --> " + str(e), 0)
+                
+                
                 # Update home backgrounds every interval (if enabled by skinner)
                 if self.backgroundDelay != 0:
-                    if (self.normalTaskInterval >= self.backgroundDelay):
-                        self.normalTaskInterval = 0
+                    if (self.backgroundsTaskInterval >= self.backgroundDelay):
+                        self.backgroundsTaskInterval = 0
                         try:
                             self.UpdateBackgrounds()
                             self.setDayNightColorTheme()
@@ -91,8 +101,9 @@ class BackgroundsUpdater(threading.Thread):
                             
             
             self.monitor.waitForAbort(1)
-            self.normalTaskInterval += 1
+            self.backgroundsTaskInterval += 1
             self.wallTaskInterval += 1
+            self.daynightThemeTaskInterval += 1
     
     def getSkinConfig(self):
         #gets the settings for the script as set by the skinner..
@@ -126,7 +137,7 @@ class BackgroundsUpdater(threading.Thread):
     
     def setDayNightColorTheme(self):
         #check if a colro theme should be conditionally set
-        if xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnableDayNightThemes)"):
+        if xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnableDayNightThemes) + Skin.String(SkinHelper.ColorTheme.Day.time) + Skin.String(SkinHelper.ColorTheme.Night.time)"):
             try:
                 daytime = xbmc.getInfoLabel("Skin.String(SkinHelper.ColorTheme.Day.time)")
                 daytime = datetime(*(time.strptime(daytime, "%H:%M")[0:6])).time()
