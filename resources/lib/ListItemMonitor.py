@@ -152,6 +152,7 @@ class ListItemMonitor(threading.Thread):
                         # monitor listitem props when videolibrary is active
                         elif xbmc.getCondVisibility("Window.IsActive(videos) | Window.IsActive(movieinformation)"):
                             try:
+                                thread.start_new_thread(self.setExtendedMovieInfo, ("","",True))
                                 self.setDuration()
                                 self.setStudioLogo()
                                 self.setGenre()
@@ -160,7 +161,6 @@ class ListItemMonitor(threading.Thread):
                                 self.setMovieSetDetails()
                                 self.setAddonName()
                                 self.setStreamDetails()
-                                self.setExtendedMovieInfo()
                             except Exception as e:
                                 logMsg("ERROR in LibraryMonitor ! --> " + str(e), 0)
                         
@@ -1102,7 +1102,7 @@ class ListItemMonitor(threading.Thread):
         else:
             self.extraFanartCache[cachePath] = ["None",[]]
 
-    def setExtendedMovieInfo(self,imdbnumber="",contenttype=""):
+    def setExtendedMovieInfo(self,imdbnumber="",contenttype="",multiThreaded=False):
         if not imdbnumber:
             imdbnumber = xbmc.getInfoLabel("ListItem.IMDBNumber")
         if not imdbnumber:
@@ -1152,6 +1152,10 @@ class ListItemMonitor(threading.Thread):
                         result["popularity"] = str(data.get("popularity",""))
                 #save to cache
                 if result: self.extendedinfocache[imdbnumber] = result
+            
+            #return if another listitem was focused in the meanwhile
+            if multiThreaded and not (imdbnumber == xbmc.getInfoLabel("ListItem.IMDBNumber").decode('utf-8') or imdbnumber == xbmc.getInfoLabel("ListItem.Property(IMDBNumber)").decode('utf-8')):
+                return
             
             #set the window props
             if result:
