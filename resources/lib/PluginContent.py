@@ -721,14 +721,14 @@ def buildRecommendedMediaListing(limit,ondeckContent=False,recommendedContent=Tr
                 allTitles.append(item["title"])
 
         # NextUp episodes
-        json_result = getJSON('VideoLibrary.GetTVShows', '{ "sort": { "order": "descending", "method": "lastplayed" }, "filter": {"and": [{"operator":"true", "field":"inprogress", "value":""}]}, "properties": [ "title" ] }')
-        for item in json_result:
-            json_query2 = getJSON('VideoLibrary.GetEpisodes', '{ "tvshowid": %d, "sort": {"method":"episode"}, "filter": {"and": [ {"field": "playcount", "operator": "lessthan", "value":"1"}, {"field": "season", "operator": "greaterthan", "value": "0"} ]}, "properties": [ %s ], "limits":{"end":1}}' %(item['tvshowid'], fields_episodes))
-            for item2 in json_query2:
-                lastplayed = item2["lastplayed"]
-                if not item2["title"] in allTitles:
-                    allOndeckItems.append((lastplayed,item2))
-                    allTitles.append(item2["title"])         
+        json_result = getJSON('VideoLibrary.GetTVShows', '{ "sort": { "order": "descending", "method": "lastplayed" }, "filter": {"and": [{"operator":"true", "field":"inprogress", "value":""}]}, "properties": [ "title", "lastplayed" ] }')
+        for show in json_result:
+            json_query2 = getJSON('VideoLibrary.GetEpisodes', '{ "tvshowid": %d, "sort": {"method":"episode"}, "filter": {"and": [ {"field": "playcount", "operator": "lessthan", "value":"1"}, {"field": "season", "operator": "greaterthan", "value": "0"} ]}, "properties": [ %s ], "limits":{"end":1}}' %(show['tvshowid'], fields_episodes))
+            for item in json_query2:
+                lastplayed = sorted([show["lastplayed"], item["dateadded"]], reverse=True)[0]
+                if not item["title"] in allTitles:
+                    allOndeckItems.append((lastplayed,item))
+                    allTitles.append(item["title"])
         
         #sort the list with in progress items by lastplayed date   
         allItems = sorted(allOndeckItems,key=itemgetter(0),reverse=True)

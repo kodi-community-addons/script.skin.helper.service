@@ -26,7 +26,6 @@ class BackgroundsUpdater(threading.Thread):
     manualWallsLoaded = list()
     manualWalls = {}
     skinShortcutsActive = False
-    hasPilModule = True
     
     def __init__(self, *args):
         self.lastPicturesPath = xbmc.getInfoLabel("skin.string(SkinHelper.PicturesBackgroundPath)").decode("utf-8")
@@ -37,15 +36,7 @@ class BackgroundsUpdater(threading.Thread):
         logMsg("BackgroundsUpdater - started")
         self.event =  threading.Event()
         threading.Thread.__init__(self, *args)
-        
-        #PIL fails on Android devices ?
-        try:
-            from PIL import Image
-            im = Image.new("RGB", (1, 1))
-            del im
-        except:
-            self.hasPilModule = False
-    
+
     def stop(self):
         logMsg("BackgroundsUpdater - stop called",0)
         self.saveCacheToFile()
@@ -896,7 +887,18 @@ class BackgroundsUpdater(threading.Thread):
         self.setWallImageFromPath("SkinHelper.AllTvShowsBackground.Poster.Wall","SkinHelper.AllTvShowsBackground","poster")
                 
     def createImageWall(self,images,windowProp,blackwhite=False,type="fanart"):
-        if not self.hasPilModule:
+        
+        #PIL fails on Android devices ?
+        hasPilModule = True
+        try:
+            from PIL import Image
+            im = Image.new("RGB", (1, 1))
+            del im
+        except:
+            hasPilModule = False
+        
+        if not hasPilModule:
+            logMsg("Building WALL background skipped - no PIL module present on this system!",0)
             return []
         
         img_type = "RGBA"
