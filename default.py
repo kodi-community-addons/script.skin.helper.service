@@ -220,13 +220,15 @@ class Main:
                 headerMsg = params.get("HEADER")
                 bodyMsg = params.get("MESSAGE")
                 if bodyMsg.startswith(" "): bodyMsg = bodyMsg[1:]
+                if headerMsg.startswith(" "): headerMsg = headerMsg[1:]
                 xbmcgui.Dialog().ok(heading=headerMsg, line1=bodyMsg)
                 
             elif action == "TEXTVIEWER":
-                headerMsg = params.get("HEADER")
-                bodyMsg = params.get("MESSAGE")
+                headerMsg = params.get("HEADER","")
+                bodyMsg = params.get("MESSAGE","")
                 if bodyMsg.startswith(" "): bodyMsg = bodyMsg[1:]
-                xbmcgui.Dialog().textviewer(heading=headerMsg, text=bodyMsg)
+                if headerMsg.startswith(" "): headerMsg = headerMsg[1:]
+                xbmcgui.Dialog().textviewer(headerMsg, bodyMsg)
 
             elif action == "FILEEXISTS":
                 filename = params.get("FILE")
