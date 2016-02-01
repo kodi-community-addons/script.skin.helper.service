@@ -1074,7 +1074,7 @@ class ListItemMonitor(threading.Thread):
                 self.extraFanartCache[self.liPath] = "None"
             else:
                 
-                if self.liPath.contains("/"): splitchar = "/"
+                if "/" in self.liPath: splitchar = "/"
                 else: splitchar = "\\"
             
                 if xbmcvfs.exists(self.liPath + "extrafanart"+splitchar):
