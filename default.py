@@ -19,7 +19,7 @@ class Main:
                 paramvalue = arg.split('=')[1]
                 params[paramname] = paramvalue
         
-        logMsg("Parameter string: " + str(params))
+        logMsg("Parameter string: " + str(params),0)
         return params
     
     def __init__(self):

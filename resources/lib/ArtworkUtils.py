@@ -252,7 +252,7 @@ def getfanartTVimages(type,id,artwork=None,allowoverwrite=True):
     api_key = "639191cb0774661597f28a47e7e2bad5"
     logMsg("get fanart.tv images for type: %s - id: %s" %(type,id))
     extrafanarts = []
-    if artwork.get("extrafanarts"): extrafanarts = eval(extrafanarts)
+    if artwork.get("extrafanarts"): extrafanarts = eval(artwork.get("extrafanarts"))
     try:
         maxfanarts = WINDOW.getProperty("SkinHelper.maxNumFanArts")
         if maxfanarts: maxfanarts = int(maxfanarts)
