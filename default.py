@@ -19,7 +19,7 @@ class Main:
                 paramvalue = arg.split('=')[1]
                 params[paramname] = paramvalue
         
-        logMsg("Parameter string: " + str(params),0)
+        logMsg("Parameter string: " + str(params))
         return params
     
     def __init__(self):
@@ -249,8 +249,18 @@ class Main:
                 splitchar = params.get("SPLITCHAR")
                 string = params.get("STRING")
                 output = params.get("OUTPUT")
-                string = string.split(splitchar)[0]
+                index = params.get("INDEX",0)
+                string = string.split(splitchar)[int(index)]
                 WINDOW.setProperty(output, string)
+                
+            elif action == "GETPLAYERFILENAME":
+                output = params.get("OUTPUT")
+                filename = xbmc.getInfoLabel("Player.FileNameAndPath")
+                if not filename: filename = xbmc.getInfoLabel("Player.FileName")
+                if "filename=" in filename:
+                    url_params = dict(urlparse.parse_qsl(filename))
+                    filename = url_params.get("filename")
+                WINDOW.setProperty(output, filename)
 
 
 if (__name__ == "__main__"):
