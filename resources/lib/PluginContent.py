@@ -1035,9 +1035,7 @@ def getCast(movie=None,tvshow=None,movieset=None,episode=None,downloadThumbs=Fal
         elif episode and not itemId:
             json_result = getJSON('VideoLibrary.GetEpisodes', '{ "filter": {"operator":"is", "field":"title", "value":"%s"}, "properties": [ "title", "cast" ] }' %episode.encode("utf-8"))
             if json_result and json_result[0].get("cast"): allCast = json_result[0].get("cast")
-        
-        #moviesets
-        if movieset:
+        elif movieset:
             moviesetmovies = []
             if itemId:
                 json_result = getJSON('VideoLibrary.GetMovieSetDetails', '{ "setid": %d, "properties": [ "title" ] }' %itemId)
@@ -1058,6 +1056,9 @@ def getCast(movie=None,tvshow=None,movieset=None,episode=None,downloadThumbs=Fal
                 label2 = xbmc.getInfoLabel("Container(50).ListItemNoWrap(%s).Label2" %i).decode("utf-8")
                 thumb = getCleanImage( xbmc.getInfoLabel("Container(50).ListItemNoWrap(%s).Thumb" %i).decode("utf-8") )
                 allCast.append( { "name": label, "role": label2, "thumbnail": thumb } )
+        else:
+            #no id or title provided, skip...
+            allCast = []
                 
         #lookup tmdb if item is requested that is not in local db
         tmdbdetails = {}
