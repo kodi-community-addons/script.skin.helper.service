@@ -350,12 +350,13 @@ def createListItem(item):
             "year": item.get("year"),
             "tracknumber": item.get("track"),
             "album": item.get("album"),
-            "artist": item.get('artist'),
+            "artist": " / ".join(item.get('artist')),
             "rating": str(item.get("rating",0)),
             "lyrics": item.get("lyrics"),
             "playcount": item.get("playcount")
         }
         if item.get("date"): infolabels["date"] = item.get("date")
+        if item.get("duration"): infolabels["duration"] = item.get("duration")
         if item.get("lastplayed"): infolabels["lastplayed"] = item.get("lastplayed")
         liz.setInfo( type="Music", infoLabels=infolabels)
     
@@ -394,6 +395,7 @@ def prepareListItem(item):
     if item.get('director') and isinstance(item.get('director'), list): item["director"] = " / ".join(item.get('director'))
     if not isinstance(item.get('artist'), list) and item.get('artist'): item["artist"] = [item.get('artist')]
     if not item.get('artist'): item["artist"] = []
+    if item.get('type') == "album" and not item.get('album'): item['album'] = item.get('label')
     if not item.get("duration") and item.get("runtime"): item["duration"] = item.get("runtime")
     if not item.get("tvshowtitle") and item.get("showtitle"): item["tvshowtitle"] = item.get("showtitle")
     if not item.get("premiered") and item.get("firstaired"): item["premiered"] = item.get("firstaired")

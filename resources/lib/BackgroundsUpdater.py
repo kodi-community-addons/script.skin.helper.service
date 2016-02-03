@@ -6,6 +6,7 @@ import random
 import io
 import base64
 import ConditionalBackgrounds as conditionalBackgrounds
+import ArtworkUtils as artutils
 from Utils import *
 
 class BackgroundsUpdater(threading.Thread):
@@ -54,7 +55,8 @@ class BackgroundsUpdater(threading.Thread):
             self.updateWallImages()
         except Exception as e:
             logMsg("ERROR in BackgroundsUpdater ! --> " + str(e), 0)
-            
+        
+        #clear images cache once to get some fresh images
         self.allBackgrounds = {}
         self.smartShortcuts = {}
          
@@ -268,9 +270,11 @@ class BackgroundsUpdater(threading.Thread):
             if customJson:
                 media_array = getJSON(customJson[0],customJson[1])
             else:
-                media_array = getJSON('Files.GetDirectory','{ "properties": ["title","art","thumbnail"], "directory": "%s", "media": "files", "limits": {"end":250}, "sort": { "order": "ascending", "method": "random", "ignorearticle": true } }' %libPath)
+                media_array = getJSON('Files.GetDirectory','{ "properties": ["title","art","thumbnail","fanart","album","artist"], "directory": "%s", "media": "files", "limits": {"end":250}, "sort": { "order": "ascending", "method": "random", "ignorearticle": true } }' %libPath)
             if media_array:
                 for media in media_array:
+                    if "artist" in libPath:
+                        print media
                     image = {}
                     if media.get("thumbnail"):
                         image["thumbnail"] =  media.get("thumbnail")
@@ -288,6 +292,13 @@ class BackgroundsUpdater(threading.Thread):
                     if image:
                         image["title"] = media['title']
                         images.append(image)
+                    if not image and "musicdb" in libPath:
+                        logMsg("get music artwork for libpath: %s  - artist: %s  - album: %s" %(libPath,media.get('artist',''),media.get('album','')))
+                        image = artutils.getMusicArtwork(media.get('artist',''),media.get('album',''))
+                        if image:
+                            image["title"] = media['title']
+                            images.append(image)
+                    
             else:
                 logMsg("media array empty or error so add this path to blacklist..." + libPath)
                 #add path to temporary blacklist
@@ -501,8 +512,8 @@ class BackgroundsUpdater(threading.Thread):
         
         #all music
         if xbmc.getCondVisibility("Library.HasContent(music)"):
-            self.setImageFromPath("SkinHelper.AllMusicBackground","musicdb://artists/","",None)
-            self.setImageFromPath("SkinHelper.AllMusicSongsBackground","musicdb://songs/",None,None)
+            self.setImageFromPath("SkinHelper.AllMusicBackground","musicdb://artists/")
+            self.setImageFromPath("SkinHelper.AllMusicSongsBackground","musicdb://songs/")
             self.setImageFromPath("SkinHelper.RecentMusicBackground","SkinHelper.RecentMusicBackground","",['AudioLibrary.GetRecentlyAddedAlbums','{ "properties": ["title","fanart"], "limits": {"end":50} }'])
         
         #tmdb backgrounds (extendedinfo)
