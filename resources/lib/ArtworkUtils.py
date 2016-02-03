@@ -632,7 +632,7 @@ def getGoogleImages(terms,**kwargs):
         if kwargs[k]: args.append('{0}={1}'.format(k,kwargs[k]))
     query = '&'.join(args)
     start = ''
-    baseURL = 'https://www.google.com/search?hl=en&site=imghp&tbm=isch&tbs=isz:l{start}{query}'
+    baseURL = 'https://www.google.com/search?site=imghp&tbm=isch&tbs=isz:l{start}{query}'
     if page > 1: start = '&start=%s' % ((page - 1) * 1)
     url = baseURL.format(start=start,query='&' + query)
     opener = urllib2.build_opener()
