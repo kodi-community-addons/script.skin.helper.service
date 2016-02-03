@@ -294,7 +294,9 @@ class BackgroundsUpdater(threading.Thread):
                         images.append(image)
                     if not image and "musicdb" in libPath:
                         logMsg("get music artwork for libpath: %s  - artist: %s  - album: %s" %(libPath,media.get('artist',''),media.get('album','')))
-                        image = artutils.getMusicArtwork(media.get('artist',''),media.get('album',''))
+                        if isinstance(media.get('artist'), list) and len(media.get('artist')) > 0: artist = media.get('artist')[0]
+                        else: artist = media.get('artist','')
+                        image = artutils.getMusicArtwork(artist,media.get('album',''))
                         if image:
                             image["title"] = media['title']
                             images.append(image)
