@@ -648,9 +648,11 @@ def createSmartShortcutSubmenu(windowProp,iconimage):
         logMsg("ERROR in createSmartShortcutSubmenu ! --> " + str(e), 0)
 
 def getCurrentContentType():
-    contenttype=""
+    contenttype = xbmc.getInfoLabel("Container.Content")
     
-    if xbmc.getCondVisibility("Container.Content(episodes)"):
+    if contenttype:
+        contenttype = contenttype
+    elif xbmc.getCondVisibility("Container.Content(episodes)"):
         contenttype = "episodes"
     elif xbmc.getCondVisibility("Container.Content(movies) + !substring(Container.FolderPath,setid=)"):
         contenttype = "movies"  

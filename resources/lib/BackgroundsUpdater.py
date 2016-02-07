@@ -61,7 +61,16 @@ class BackgroundsUpdater(threading.Thread):
         self.smartShortcuts = {}
          
         while (self.exit != True):
+        
+            # Update Day/Night theme if enabled
+            if (self.daynightThemeTaskInterval >= 30):
+                self.daynightThemeTaskInterval = 0
+                try:
+                    self.setDayNightColorTheme()
+                except Exception as e:
+                    logMsg("ERROR in setDayNightColorTheme ! --> " + str(e), 0)
             
+            #Process backgrounds
             if xbmc.getCondVisibility("![Window.IsActive(fullscreenvideo) | Window.IsActive(script.pseudotv.TVOverlay.xml) | Window.IsActive(script.pseudotv.live.TVOverlay.xml)] | Window.IsActive(script.pseudotv.live.EPG.xml)") and xbmc.getInfoLabel("skin.string(SkinHelper.RandomFanartDelay)"):
 
                 # force refresh smart shortcuts when skin settings launched (so user sees any newly added smartshortcuts)
@@ -71,16 +80,7 @@ class BackgroundsUpdater(threading.Thread):
                         except Exception as e: logMsg("ERROR in UpdateBackgrounds ! --> " + str(e), 0)
                         self.skinShortcutsActive = True
                 else: self.skinShortcutsActive = False      
-                
-                # Update Day/Night theme if enabled
-                if (self.daynightThemeTaskInterval >= 30):
-                    self.daynightThemeTaskInterval = 0
-                    try:
-                        self.setDayNightColorTheme()
-                    except Exception as e:
-                        logMsg("ERROR in setDayNightColorTheme ! --> " + str(e), 0)
-                
-                
+
                 # Update home backgrounds every interval (if enabled by skinner)
                 if self.backgroundDelay != 0:
                     if (self.backgroundsTaskInterval >= self.backgroundDelay):
@@ -101,7 +101,6 @@ class BackgroundsUpdater(threading.Thread):
                         except Exception as e:
                             logMsg("ERROR in UpdateBackgrounds.updateWallImages ! --> " + str(e), 0)
                             
-            
             self.monitor.waitForAbort(1)
             self.backgroundsTaskInterval += 1
             self.wallTaskInterval += 1
@@ -273,8 +272,6 @@ class BackgroundsUpdater(threading.Thread):
                 media_array = getJSON('Files.GetDirectory','{ "properties": ["title","art","thumbnail","fanart","album","artist"], "directory": "%s", "media": "files", "limits": {"end":250}, "sort": { "order": "ascending", "method": "random", "ignorearticle": true } }' %libPath)
             if media_array:
                 for media in media_array:
-                    if "artist" in libPath:
-                        print media
                     image = {}
                     if media.get("thumbnail"):
                         image["thumbnail"] =  media.get("thumbnail")
@@ -289,17 +286,14 @@ class BackgroundsUpdater(threading.Thread):
                         if media['art'].get('clearlogo'): image["clearlogo"] = media['art']['clearlogo']
                     elif media.get('fanart') and not media['title'].lower() == "next page":
                         image["fanart"] = media['fanart']
-                    if image:
-                        image["title"] = media['title']
-                        images.append(image)
                     if not image and "musicdb" in libPath:
                         logMsg("get music artwork for libpath: %s  - artist: %s  - album: %s" %(libPath,media.get('artist',''),media.get('album','')))
                         if isinstance(media.get('artist'), list) and len(media.get('artist')) > 0: artist = media.get('artist')[0]
                         else: artist = media.get('artist','')
                         image = artutils.getMusicArtwork(artist,media.get('album',''))
-                        if image:
-                            image["title"] = media['title']
-                            images.append(image)
+                    if image:
+                        image["title"] = media['title']
+                        images.append(image)
                     
             else:
                 logMsg("media array empty or error so add this path to blacklist..." + libPath)
