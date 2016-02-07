@@ -648,17 +648,15 @@ def createSmartShortcutSubmenu(windowProp,iconimage):
         logMsg("ERROR in createSmartShortcutSubmenu ! --> " + str(e), 0)
 
 def getCurrentContentType():
-    contenttype = xbmc.getInfoLabel("Container.Content")
+    contenttype = ""
     
-    if contenttype:
-        contenttype = contenttype
-    elif xbmc.getCondVisibility("Container.Content(episodes)"):
+    if xbmc.getCondVisibility("Container.Content(episodes)"):
         contenttype = "episodes"
     elif xbmc.getCondVisibility("Container.Content(movies) + !substring(Container.FolderPath,setid=)"):
         contenttype = "movies"  
     elif xbmc.getCondVisibility("[Container.Content(sets) | StringCompare(Container.Folderpath,videodb://movies/sets/)] + !substring(Container.FolderPath,setid=)"):
         contenttype = "sets"
-    elif xbmc.getCondVisibility("substring(Container.FolderPath,?setid=)"):
+    elif xbmc.getCondVisibility("substring(Container.FolderPath,setid=)"):
         contenttype = "setmovies" 
     elif xbmc.getCondVisibility("Container.Content(tvshows)"):
         contenttype = "tvshows"
@@ -684,6 +682,19 @@ def getCurrentContentType():
         contenttype = "genres"
     elif xbmc.getCondVisibility("Container.Content(files)"):
         contenttype = "files"
+    elif xbmc.getCondVisibility("StringCompare(ListItem.DBTYPE, movie) | StringCompare(ListItem.Property(DBTYPE), movie)"):
+        contenttype = "movies"
+    elif xbmc.getCondVisibility("StringCompare(ListItem.DBTYPE, tvshow) | StringCompare(ListItem.Property(DBTYPE), tvshow)"):
+        contenttype = "tvshows"
+    elif xbmc.getCondVisibility("StringCompare(ListItem.DBTYPE, episode) | StringCompare(ListItem.Property(DBTYPE), episode)"):
+        contenttype = "episodes"
+    elif xbmc.getCondVisibility("StringCompare(ListItem.DBTYPE, musicvideo) | StringCompare(ListItem.Property(DBTYPE), musicvideo)"):
+        contenttype = "musicvideos"
+    elif xbmc.getCondVisibility("StringCompare(ListItem.DBTYPE, musicvideo) | StringCompare(ListItem.Property(DBTYPE), musicvideo)"):
+        contenttype = "musicvideos"
+    elif xbmc.getCondVisibility("!IsEmpty(Container.Content)"):     
+        contenttype = xbmc.getInfoLabel("Container.Content")
+    
     WINDOW.setProperty("contenttype",contenttype)
     return contenttype
          
