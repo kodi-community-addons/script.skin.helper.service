@@ -951,7 +951,7 @@ def FAVOURITEMEDIA(limit,AllKodiFavsOnly=False):
             if not fav.get("label"): fav["label"] = fav.get("title")
             if not fav.get("title"): fav["label"] = fav.get("label")
             item = {"label": fav.get("label"), "title": fav.get("title"), "thumbnail":fav.get("thumbnail"), "file":path}
-            if fav.get("thumbnail").endswith("icon.png"):
+            if fav.get("thumbnail").endswith("icon.png") and xbmcvfs.exists(fav.get("thumbnail").replace("icon.png","fanart.jpg")):
                 item["art"] = {"landscape": fav.get("thumbnail"), "poster": fav.get("thumbnail"), "fanart": fav.get("thumbnail").replace("icon.png","fanart.jpg")}
             item["extraproperties"] = {"IsPlayable": "false"}
             allItems.append(item)
