@@ -1119,7 +1119,7 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
                         downloadImage(fanart,efadir,"fanart%s.jpg"%count)
                         count += 1
                     artistartwork["extrafanart"] = efadir
-                else: artistartwork["extrafanart"] = "plugin://script.skin.helper.service/?action=EXTRAFANART&path=special://profile/addon_data/script.skin.helper.service/musicart/%s.xml" %(artistName)
+                else: artistartwork["extrafanart"] = "plugin://script.skin.helper.service/?action=EXTRAFANART&path=special://profile/addon_data/script.skin.helper.service/musicart/%s.xml" %normalize_string(artistName)
             
         ######################################################### ALBUM LEVEL #########################################################    
         if albumName and albumartwork.get("musicbrainzalbumid") and not albumCacheFound:

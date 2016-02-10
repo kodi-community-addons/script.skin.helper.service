@@ -960,6 +960,11 @@ def FAVOURITEMEDIA(limit,AllKodiFavsOnly=False):
     
 def getExtraFanArt(path):
     #get extrafanarts by passing an artwork cache xml file
+    if not xbmcvfs.exists(path):
+        filepart = path.split("/")[-1]
+        path = path.replace(filepart,"") + normalize_string(filepart)
+        if not xbmcvfs.exists(path):
+            logMsg("getExtraFanArt FAILED for path: %s" %path,0)
     artwork = artutils.getArtworkFromCacheFile(path)
     if artwork.get("extrafanarts"):
         extrafanart = eval( artwork.get("extrafanarts") )
