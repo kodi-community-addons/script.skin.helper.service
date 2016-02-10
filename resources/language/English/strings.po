@@ -656,3 +656,10 @@ msgctxt "#32159"
 msgid "Allow existing artwork to be overwritten with better quality"
 msgstr ""
 
+msgctxt "#32160"
+msgid "Maximum number of wall images to create for each background"
+msgstr ""
+
+msgctxt "#32161"
+msgid "Black & White"
+msgstr ""

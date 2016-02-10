@@ -195,11 +195,20 @@ def getBackgrounds():
     
     #wall backgrounds
     globalBackgrounds.append((ADDON.getLocalizedString(32117), "SkinHelper.AllMoviesBackground.Wall"))
+    globalBackgrounds.append(("%s - %s" %(ADDON.getLocalizedString(32117),ADDON.getLocalizedString(32161)), "SkinHelper.AllMoviesBackground.Wall.BW"))
     globalBackgrounds.append(("%s (%s)" %(ADDON.getLocalizedString(32117),ADDON.getLocalizedString(32156)), "SkinHelper.AllMoviesBackground.Poster.Wall"))
+    globalBackgrounds.append(("%s (%s) - %s" %(ADDON.getLocalizedString(32117),ADDON.getLocalizedString(32156),ADDON.getLocalizedString(32161)), "SkinHelper.AllMoviesBackground.Poster.Wall.BW"))
+    
     globalBackgrounds.append((ADDON.getLocalizedString(32118), "SkinHelper.AllMusicBackground.Wall"))
+    globalBackgrounds.append(("%s - %s" %(ADDON.getLocalizedString(32127),ADDON.getLocalizedString(32161)), "SkinHelper.AllMusicBackground.Wall.BW"))
+    
     globalBackgrounds.append((ADDON.getLocalizedString(32119), "SkinHelper.AllMusicSongsBackground.Wall"))
+    globalBackgrounds.append(("%s - %s" %(ADDON.getLocalizedString(32119),ADDON.getLocalizedString(32161)), "SkinHelper.AllMusicSongsBackground.Wall.BW"))
+    
     globalBackgrounds.append((ADDON.getLocalizedString(32127), "SkinHelper.AllTvShowsBackground.Wall"))
+    globalBackgrounds.append(("%s - %s" %(ADDON.getLocalizedString(32127),ADDON.getLocalizedString(32161)), "SkinHelper.AllTvShowsBackground.Wall.BW"))
     globalBackgrounds.append(("%s (%s)" %(ADDON.getLocalizedString(32127),ADDON.getLocalizedString(32156)), "SkinHelper.AllTvShowsBackground.Poster.Wall"))
+    globalBackgrounds.append(("%s (%s) - %s" %(ADDON.getLocalizedString(32127),ADDON.getLocalizedString(32156),ADDON.getLocalizedString(32161)), "SkinHelper.AllTvShowsBackground.Poster.Wall.BW"))
     
     if xbmc.getCondVisibility("System.HasAddon(script.extendedinfo)"):
         globalBackgrounds.append((xbmc.getInfoLabel("$ADDON[script.extendedinfo 32046]") + " (TheMovieDB)", "SkinHelper.TopRatedMovies"))

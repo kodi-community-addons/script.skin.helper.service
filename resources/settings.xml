@@ -21,7 +21,7 @@
     </category>
     <category label="32121">
         <setting id="enablewallbackgrounds" type="bool" label="32115" default="true" visible="Skin.String(SkinHelper.RandomFanartDelay) + !Skin.String(SkinHelper.RandomFanartDelay,0)"/>
-        <setting id="preferBWwallbackgrounds" type="bool" label="32116" default="false" visible="eq(-1,true) + Skin.String(SkinHelper.RandomFanartDelay) + !Skin.String(SkinHelper.RandomFanartDelay,0)"/>
+        <setting id="maxNumWallImages" type="number" label="32160" default="20"/>
         <setting id="reuseWallBackgrounds" type="bool" label="32128" default="true" visible="eq(-2,true) + Skin.String(SkinHelper.RandomFanartDelay) + !Skin.String(SkinHelper.RandomFanartDelay,0)"/>
         <setting label="32129" type="action" action="RunScript(script.skin.helper.service,action=RESETCACHE,path=wallbackgrounds)"/>
     </category>

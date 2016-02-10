@@ -122,7 +122,6 @@ class BackgroundsUpdater(threading.Thread):
                         if value:
                             limitrange = xbmc.getInfoLabel("Skin.String(%s.EnableWallImages)" %key)
                             if limitrange:
-
                                 self.manualWalls[key] = int(limitrange)
         except Exception as e:
             logMsg("ERROR in UpdateBackgrounds.getSkinConfig ! --> " + str(e), 0)
@@ -164,38 +163,33 @@ class BackgroundsUpdater(threading.Thread):
     
     def setWallImageFromPath(self, windowProp, libPath, type="fanart"):
         image = None
-        blackWhite = False
-        if WINDOW.getProperty("SkinHelper.enablewallbackgrounds") != "true" or self.exit:
-            return
-        if WINDOW.getProperty("SkinHelper.preferBWwallbackgrounds") == "true":
-            windowProp = "BW_" + windowProp
+        windowPropBW = windowProp + ".BW"
         
         #load wall from cache    
         if self.allBackgrounds.get(windowProp):
             image = random.choice(self.allBackgrounds[windowProp])
-            image = image.get("fanart","")
-            if image:
-                if not xbmcvfs.exists(image): 
+            if image.get("wall"):
+                if not xbmcvfs.exists(image.get("wall")): 
                     logMsg("Wall images cleared - starting rebuild...",0)
                     del self.allBackgrounds[windowProp]
                 else:
-                    image = image
-                    WINDOW.setProperty(windowProp, image)
+                    WINDOW.setProperty(windowProp, image.get("wall"))
+                    WINDOW.setProperty(windowPropBW, image.get("wallbw"))
                     return True
                
         #load images for libPath and generate wall
-        if self.allBackgrounds.get(libPath) and not self.allBackgrounds.has_key(windowProp):
+        if self.allBackgrounds.get(libPath):
             images = []
             try:
-                images = self.createImageWall(self.allBackgrounds[libPath],windowProp,blackWhite,type)
+                images = self.createImageWall(self.allBackgrounds[libPath],windowProp,type)
             except Exception as e:
                 logMsg("ERROR in createImageWall ! --> " + str(e), 0)
             self.allBackgrounds[windowProp] = images
             if images:
                 image = random.choice(images)
                 if image:
-                    image = image.get("fanart","")
-                    WINDOW.setProperty(windowProp, image)
+                    WINDOW.setProperty(windowProp, image.get("wall",""))
+                    WINDOW.setProperty(windowPropBW, image.get("wallbw",""))
     
     def setManualWallFromPath(self, windowProp, numItems=20):
         #only continue if the cache is prefilled
@@ -671,7 +665,7 @@ class BackgroundsUpdater(threading.Thread):
             nodes = []
             logMsg("Processing smart shortcuts for plex nodes.... ")
             
-            if self.smartShortcuts.has_key("plex") and not refreshSmartshortcuts:
+            if self.smartShortcuts.get("plex") and not refreshSmartshortcuts:
                 logMsg("get plex entries from cache.... ")
                 nodes = self.smartShortcuts["plex"]
                 for node in nodes:
@@ -904,7 +898,13 @@ class BackgroundsUpdater(threading.Thread):
         self.setWallImageFromPath("SkinHelper.AllTvShowsBackground.Wall","SkinHelper.AllTvShowsBackground")
         self.setWallImageFromPath("SkinHelper.AllTvShowsBackground.Poster.Wall","SkinHelper.AllTvShowsBackground","poster")
                 
-    def createImageWall(self,images,windowProp,blackwhite=False,type="fanart"):
+    def createImageWall(self,images,windowProp,type="fanart"):
+        
+        if SETTING("maxNumWallImages"):
+            numWallImages = int(SETTING("maxNumWallImages"))
+        else: 
+            logMsg("Building WALL background disabled",0)
+            return []
         
         #PIL fails on Android devices ?
         hasPilModule = True
@@ -918,9 +918,6 @@ class BackgroundsUpdater(threading.Thread):
         if not hasPilModule:
             logMsg("Building WALL background skipped - no PIL module present on this system!",0)
             return []
-        
-        img_type = "RGBA"
-        if blackwhite: img_type = "L"
         
         if type=="thumbnail":
             #square images
@@ -953,45 +950,58 @@ class BackgroundsUpdater(threading.Thread):
             #reuse the existing images - do not rebuild
             dirs, files = xbmcvfs.listdir(wallpath)
             for file in files:
-                if file.startswith(windowProp):
-                    return_images.append({"fanart": os.path.join(wallpath.decode("utf-8"),file)})
+                image = {}
+                #return color and bw image combined - only if both are found
+                if file.startswith(windowProp + "_BW.") and xbmcvfs.exists(os.path.join(wallpath.decode("utf-8"),file.replace("_BW",""))):
+                    return_images.append({"wallbw": os.path.join(wallpath.decode("utf-8"),file), "wall": os.path.join(wallpath.decode("utf-8"),file.replace("_BW",""))})
         
-        if return_images: 
-            return return_images
-        
-        logMsg("Building Wall background for %s - this might take a while..." %windowProp,0)
-        images_required = img_columns*img_rows
-        for image in images:
-            image = image.get(type,"")
-            if image and not image.startswith("music@") and not ".mp3" in image:
-                file = xbmcvfs.File(image)
-                try:
-                    img_obj = io.BytesIO(bytearray(file.readBytes()))
-                    img = Image.open(img_obj)
-                    img = img.resize(size)
-                    wall_images.append(img)
-                except: pass
-                finally: file.close()
-        if wall_images:
-            #duplicate images if we don't have enough
-            
-            while len(wall_images) < images_required:
-                wall_images += wall_images
+        #build wall images if we do not already have (enough) images
+        if len(return_images) < numWallImages: 
+            #build the wall images
+            logMsg("Building Wall background for %s - this might take a while..." %windowProp,0)
+            images_required = img_columns*img_rows
+            for image in images:
+                image = image.get(type,"")
+                if image and not image.startswith("music@") and not ".mp3" in image:
+                    file = xbmcvfs.File(image)
+                    try:
+                        img_obj = io.BytesIO(bytearray(file.readBytes()))
+                        img = Image.open(img_obj)
+                        img = img.resize(size)
+                        wall_images.append(img)
+                    except: pass
+                    finally: file.close()
+            if wall_images:
+                #duplicate images if we don't have enough
                 
-            for i in range(40):
-                random.shuffle(wall_images)
-                img_canvas = Image.new(img_type, (img_width * img_columns, img_height * img_rows))
-                out_file = xbmc.translatePath(os.path.join(wallpath.decode("utf-8"),windowProp + "." + str(i) + ".jpg"))
-                if xbmcvfs.exists(out_file):
-                    xbmcvfs.delete(out_file)
+                while len(wall_images) < images_required:
+                    wall_images += wall_images
+                    
+                for i in range(numWallImages):
+                    random.shuffle(wall_images)
+                    img_canvas = Image.new("RGBA", (img_width * img_columns, img_height * img_rows))
+                    counter = 0
+                    for x in range(img_rows):
+                        for y in range(img_columns):
+                            img_canvas.paste(wall_images[counter], (y * img_width, x * img_height))
+                            counter += 1
+                    
+                    #save the files..
+                    out_file = xbmc.translatePath(os.path.join(wallpath.decode("utf-8"),windowProp + "." + str(i) + ".jpg")).decode("utf-8")
+                    if xbmcvfs.exists(out_file): 
+                        xbmcvfs.delete(out_file)
+                        xbmc.sleep(500)
+                    img_canvas.save(out_file, "JPEG")
+                    
+                    out_file_bw = xbmc.translatePath(os.path.join(wallpath.decode("utf-8"),windowProp + "_BW." + str(i) + ".jpg")).decode("utf-8")
+                    if xbmcvfs.exists(out_file_bw): 
+                        xbmcvfs.delete(out_file_bw)
+                        xbmc.sleep(500)
+                    img_canvas_bw = img_canvas.convert("L")
+                    img_canvas_bw.save(out_file_bw, "JPEG")
+                    
+                    #add our images to the dict
+                    return_images.append({"wall": out_file, "wallbw": out_file_bw })
                 
-                counter = 0
-                for x in range(img_rows):
-                    for y in range(img_columns):
-                        img_canvas.paste(wall_images[counter], (y * img_width, x * img_height))
-                        counter += 1
-
-                img_canvas.save(out_file, "JPEG")
-                return_images.append({"fanart": out_file })
         logMsg("Building Wall background %s DONE" %windowProp,0)
-        return return_images                
+        return return_images         

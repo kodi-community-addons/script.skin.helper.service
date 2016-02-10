@@ -176,7 +176,6 @@ def setAddonsettings():
     WINDOW.setProperty("SkinHelper.directory_structure",SETTING("directory_structure"))
     WINDOW.setProperty("SkinHelper.lastUpdate","%s" %datetime.now())    
     WINDOW.setProperty("SkinHelper.enablewallbackgrounds",SETTING("enablewallbackgrounds"))
-    WINDOW.setProperty("SkinHelper.preferBWwallbackgrounds",SETTING("preferBWwallbackgrounds"))
     WINDOW.setProperty("SkinHelper.enableMusicArtScraper",SETTING("enableMusicArtScraper"))
     WINDOW.setProperty("SkinHelper.downloadMusicArt",SETTING("downloadMusicArt"))
     WINDOW.setProperty("SkinHelper.enableLocalMusicArtLookup",SETTING("enableLocalMusicArtLookup"))

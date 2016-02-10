@@ -266,9 +266,16 @@ Set it to 0 or clear the string to disable the backgrounds.
 | Window(Home).Property(SkinHelper.PvrBackground) | Random fanart collected by the PVR thumbs feature|
 | Window(Home).Property(SkinHelper.PicturesBackground) | Random pictures from all picture sources. By default this pulls images from all picture sources the user has configured. It is however possible to provide a custom source from which the images should be pulled from by setting Skin String: SkinHelper.CustomPicturesBackgroundPath|
 | Window(Home).Property(SkinHelper.AllMoviesBackground.Wall) | Collection of Movie fanart images (from the library) as wall prebuilt by the script|
+| Window(Home).Property(SkinHelper.AllMoviesBackground.Wall.BW) | Collection of Movie fanart images (from the library) as wall (black and white) prebuilt by the script|
+| Window(Home).Property(SkinHelper.AllMoviesBackground.Poster.Wall) | Collection of Movie poster images (from the library) as wall prebuilt by the script|
+| Window(Home).Property(SkinHelper.AllMoviesBackground.Poster.Wall.BW) | Collection of Movie poster images (from the library) as wall (black and white) prebuilt by the script|
 | Window(Home).Property(SkinHelper.AllMusicBackground.Wall) | Collection of Artist fanart images (from the library) as wall prebuilt by the script|
+| Window(Home).Property(SkinHelper.AllMusicBackground.Wall.BW) | Collection of Artist fanart images (from the library) as wall (black and white) prebuilt by the script|
 | Window(Home).Property(SkinHelper.AllMusicSongsBackground.Wall) | Collection of Song/Album cover images (from the library) as wall prebuilt by the script|
 | Window(Home).Property(SkinHelper.AllTvShowsBackground.Wall) | Collection of Tv show fanart images (from the library) as wall prebuilt by the script|
+| Window(Home).Property(SkinHelper.AllTvShowsBackground.Wall.BW) | Collection of Tv show fanart images (from the library) as wall (black and white) prebuilt by the script|
+| Window(Home).Property(SkinHelper.AllTvShowsBackground.Wall.Poster) | Collection of Tv show poster images (from the library) as wall prebuilt by the script|
+| Window(Home).Property(SkinHelper.AllTvShowsBackground.Wall.Poster.BW) | Collection of Tv show poster images (from the library) as wall (black and white) prebuilt by the script|
 
 Additional properties available for the backgrounds (e.g. SkinHelper.AllMoviesBackground.Poster)
 
