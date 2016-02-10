@@ -39,15 +39,17 @@ def getPluginListing(action,limit,refresh=None,optionalParam=None):
     
     #try to get from cache first...
     cache = WINDOW.getProperty(cacheStr).decode("utf-8")
-    if cache:
+    if cache and refresh:
         logMsg("getPluginListing-%s-%s-%s-%s -- got data from cache" %(action,limit,optionalParam,refresh))
         allItems = eval(cache)
     
     #get from persistant cache on first boot
-    if not cache and not refresh:
+    if not cache and not WINDOW.getProperty("firstrun-"+cacheStr):
         logMsg("getPluginListing-%s-%s-%s-%s -- initial start, load cache from file" %(action,limit,optionalParam,refresh))
         allItems = getDataFromCacheFile(cachePath)
-        WINDOW.setProperty(cacheStr, repr(allItems).encode("utf-8"))
+        if refresh:
+            WINDOW.setProperty(cacheStr, repr(allItems).encode("utf-8"))
+            WINDOW.setProperty("firstrun-"+cacheStr,"done")
     
     #Call the correct method to get the content from json when no cache
     if not allItems or action == "FAVOURITES":
@@ -101,7 +103,7 @@ def doMainListing():
         addDirectoryItem(ADDON.getLocalizedString(32055), "plugin://script.skin.helper.service/?action=nextairedtvshows&limit=100")
     
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
-       
+    
 def FAVOURITES(limit):
     return FAVOURITEMEDIA(limit,True)
 

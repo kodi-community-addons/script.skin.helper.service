@@ -50,7 +50,6 @@ class Main:
                 elif action == "PLAYALBUM":
                     xbmc.executeJSONRPC('{ "jsonrpc": "2.0", "method": "Player.Open", "params": { "item": { "albumid": %d } }, "id": 1 }' % int(path))
                     xbmcplugin.setResolvedUrl(handle=int(sys.argv[1]), succeeded=False, listitem=xbmcgui.ListItem())
-
                 elif action == "SMARTSHORTCUTS":
                     skinshortcuts.getSmartShortcuts(path)
                 elif action == "BACKGROUNDS":
