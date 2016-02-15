@@ -261,6 +261,16 @@ def correctSkinSettings():
                             default = subdefault
                             additionalactions = item2.getElementsByTagName( 'onselect' )
                             break
+            #process any multiselects
+            if value.startswith("||MULTISELECT||"):
+                options = item.getElementsByTagName( 'option' )
+                for option in options:
+                    skinsetting = option.attributes[ 'id' ].nodeValue
+                    if not xbmc.getInfoLabel("Skin.String(defaultset_%s)" %skinsetting) and option.attributes[ 'default' ].nodeValue.lower() == "true":
+                        xbmc.executebuiltin("Skin.SetBool(%s)" %skinsetting)
+                    #always set additional prop to define the defaults
+                    xbmc.executebuiltin("Skin.SetString(defaultset_%s,defaultset)" %skinsetting)
+                        
             #only correct the label
             if value and value.lower() == curvalue.lower():
                 xbmc.executebuiltin("Skin.SetString(%s.label,%s)" %(id.encode("utf-8"),label.encode("utf-8")))

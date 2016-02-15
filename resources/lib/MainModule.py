@@ -294,7 +294,43 @@ def setSkinShortCutsProperty(setting="",windowHeader="",propertyName=""):
             xbmc.executebuiltin("SetProperty(customProperty,%s.name)" %propertyName.encode("utf-8"))
             xbmc.executebuiltin("SetProperty(customValue,%s)" %label.encode("utf-8"))
             xbmc.executebuiltin("SendClick(404)")
-        
+
+def multiSelect(item,windowHeader=""):
+    import Dialogs as dialogs
+    allOptions = []
+    options = item.getElementsByTagName( 'option' )
+    for option in options:
+        id = option.attributes[ 'id' ].nodeValue
+        label = xbmc.getInfoLabel(option.attributes[ 'label' ].nodeValue).decode("utf-8")
+        default = option.attributes[ 'default' ].nodeValue
+        condition = option.attributes[ 'condition' ].nodeValue
+        if condition and not xbmc.getCondVisibility(condition): continue
+        listitem = xbmcgui.ListItem(label=label)
+        listitem.setProperty("id",id)
+        if xbmc.getCondVisibility("Skin.HasSetting(%s)" %id) or (not xbmc.getInfoLabel("Skin.String(defaultset_%s)" %id) and default.lower() == "true"):
+            listitem.select(selected=True)
+        allOptions.append(listitem)
+    #show select dialog
+    w = dialogs.DialogSelectSmall( "DialogSelect.xml", ADDON_PATH, listing=allOptions, windowtitle=windowHeader,multiselect=True )
+    w.doModal()
+    
+    selectedItems = w.result
+    if selectedItems != -1:
+        itemcount = len(allOptions) -1
+        while (itemcount != -1):
+            skinsetting = allOptions[itemcount].getProperty("id")
+            if itemcount in selectedItems:
+                #option is enabled
+                xbmc.executebuiltin("Skin.SetBool(%s)" %skinsetting)
+            else:
+                #option is disabled
+                xbmc.executebuiltin("Skin.Reset(%s)" %skinsetting)
+            #always set additional prop to define the defaults
+            xbmc.executebuiltin("Skin.SetString(defaultset_%s,defaultset)" %skinsetting)
+            itemcount -= 1    
+    del w                        
+                    
+            
 def setSkinSetting(setting="", windowHeader="", sublevel="", valueOnly=""):
     import Dialogs as dialogs
     curValue = xbmc.getInfoLabel("Skin.String(%s)" %setting).decode("utf-8")
@@ -320,6 +356,7 @@ def setSkinSetting(setting="", windowHeader="", sublevel="", valueOnly=""):
             label = xbmc.getInfoLabel(item.attributes[ 'label' ].nodeValue).decode("utf-8")
             if (not sublevel and id.lower() == setting.lower()) or (sublevel and sublevel.lower() == id.lower()):
                 value = item.attributes[ 'value' ].nodeValue
+                if value == "||MULTISELECT||": return multiSelect(item,windowHeader)
                 condition = item.attributes[ 'condition' ].nodeValue
                 icon = item.attributes[ 'icon' ].nodeValue
                 description = item.attributes[ 'description' ].nodeValue

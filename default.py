@@ -263,6 +263,17 @@ class Main:
                     url_params = dict(urlparse.parse_qsl(filename))
                     filename = url_params.get("filename")
                 WINDOW.setProperty(output, filename)
+                
+            elif action == "GETFILENAME":
+                output = params.get("OUTPUT")
+                filename = xbmc.getInfoLabel("ListItem.FileNameAndPath")
+                if not filename: filename = xbmc.getInfoLabel("ListItem.FileName")
+                if not filename: filename = xbmc.getInfoLabel("Container(999).ListItem.FileName")
+                if not filename: filename = xbmc.getInfoLabel("Container(999).ListItem.FileNameAndPath")
+                if "filename=" in filename:
+                    url_params = dict(urlparse.parse_qsl(filename))
+                    filename = url_params.get("filename")
+                WINDOW.setProperty(output, filename)
 
 
 if (__name__ == "__main__"):
