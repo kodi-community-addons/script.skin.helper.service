@@ -670,7 +670,7 @@ ________________________________________________________________________________
 
 #### Check if file exists
 ```
-RunScript(script.skin.helper.service,action=fileexists&amp;file=[filenamepath]&amp;skinstring=[skinstring to store the result]&amp;windowprop=[windowprop to store the result])
+RunScript(script.skin.helper.service,action=fileexists,file=[filenamepath],skinstring=[skinstring to store the result],windowprop=[windowprop to store the result])
 ```
 This command will check the filesystem if a particular file exists and will write the results to either a skin string or window property.
 If the file exists, the result will be written as EXISTS in the property or skinstring, if it doesn't exist, the property/string will be empty.
@@ -691,7 +691,7 @@ For example:
 <settings>
     <!-- home layout -->
     <setting id="HomeLayout" value="1" label="$LOCALIZE[31309] - 1 row" condition="" icon="" description=""/>
-    <setting id="HomeLayout" value="2" label="$LOCALIZE[31309] - 2 rows" condition="" icon="" description=""/>
+    <setting id="HomeLayout" value="2" label="$LOCALIZE[31309] - 2 rows" condition="" icon="" description="" default="true"/>
     <setting id="HomeLayout" value="3" label="$LOCALIZE[31309] - 3 rows" condition="" icon="" description=""/>
     
     <!-- background setting -->
@@ -712,7 +712,69 @@ If you want to set the Skin String "HomeLayout", you can call the script like th
 This will present DialogSelect with your options. Once the user makes a selection, the value will be written to the Skin String.
 Also the prefix .label will store the label from the select dialog.
 
+Attributes for the XML:
 
+id: name of the setting, required attribute
+value: the value that should be written when selecting this value, required attribute
+label: label for the option (will also be written to setting.label), required attribute
+condition: any kodi condition syntax to make the option show up or not, optional but attribute must be present in the xml
+icon: icon to show in dialogselect, optional but attribute must be present in the xml
+description: description to show in dialogselect (label2), optional but attribute must be present in the xml
+default: if set to "true" this will be the default value for your skin (will be set at skin startup/change/update)
+
+
+#### Working with sublevels
+
+It's possible to have a sublevel in the settings dialog, for example if you have many options for one setting.
+This way you can have layered navigation.
+Syntax:
+
+```
+<settings>
+    <!-- home layout -->
+    <setting id="HomeLayout" value="||SUBLEVEL||HomeLayout_horizontal" label="Horizontal home layouts" condition="" icon="" description="All horizontal homemenu layouts"/>
+    <setting id="HomeLayout" value="tiles" label="Tile based layout" condition="" icon="" description=""/>
+    
+    <!-- sublevel: horizontal home layouts -->
+    <setting id="HomeLayout_horizontal" value="layout1" label="Horizontal layout 1" condition="" icon="" description="" />
+    <setting id="HomeLayout_horizontal" value="layout2" label="Horizontal layout 2" condition="" icon="" description="" />
+
+</settings>
+```
+
+#### Apply other actions when user selects a value
+
+It is possible to apply other settings when the user selects a certain value.
+Syntax:
+
+```
+<settings>
+    <setting id="HomeLayout" value="mylayout" label="My great layout" condition="" icon="" description="">
+        <onselect condition="True">Skin.Reset(OpenSubMenuOnClick)</onselect>
+        <onselect condition="True">Skin.SetString(widgetstyle,landscape)</onselect>
+    </setting>
+
+</settings>
+```
+
+#### Multiselect
+
+If you have some sort of multiple options the user can enable and you don't want to create a whole bunch of radiobuttons (and set default values)..
+Syntax:
+
+```
+    <!-- options to show in videoinfo - multiselect -->
+    <setting id="videoinfo_buttons" value="||MULTISELECT||" label="" condition="" icon="" description="">
+        <option id="videoinfo_button_play" label="$LOCALIZE[208]" condition="" default="true"/>
+        <option id="videoinfo_button_trailer" label="$LOCALIZE[20410]" condition="" default="true"/>
+        <option id="videoinfo_button_cast" label="$LOCALIZE[206]" condition="" default="true"/>
+    </setting>
+```
+
+The ID specified in the option will be set as Skin Bool.
+E.g. if you call the script with RunScript(script.skin.helper.service,action=setskinsetting,setting=videoinfo_buttons,header=Enable buttons in videoinfo)
+If the user enables the playbutton, the command Skin.SetBool(videoinfo_button_play) will be called, otherwise it will be reset.
+With the default attribute you can specify what the default value should be for the setting (applied at skin startup, change or update)
 
 ________________________________________________________________________________________________________
 
