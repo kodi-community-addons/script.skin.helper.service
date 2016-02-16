@@ -155,6 +155,8 @@ def getPVRThumbs(title,channel,type="channels",path="",genre="",ignoreCache=Fals
                 if WINDOW.getProperty("SkinHelper.useTMDBLookups") == "true" or manualLookup:
                     if "movie" in genre.lower():
                         artwork = getTmdbDetails(searchtitle,artwork,"movie")
+                    elif "tv" in genre.lower():
+                        artwork = getTmdbDetails(searchtitle,artwork,"tv")
                     else:
                         artwork = getTmdbDetails(searchtitle,artwork)
                 
@@ -189,7 +191,7 @@ def getPVRThumbs(title,channel,type="channels",path="",genre="",ignoreCache=Fals
                     else: artwork["extrafanart"] = "plugin://script.skin.helper.service/?action=EXTRAFANART&path=%s" %(single_urlencode(try_encode(cachefile)))
                 
                 #create persistant cache pvrdetails.xml file...
-                if title and channel:
+                if title:
                     artwork["title"] = title
                     artwork["channel"] = channel
                     artwork["date_scraped"] = "%s" %datetime.now()
@@ -209,6 +211,7 @@ def getPVRThumbs(title,channel,type="channels",path="",genre="",ignoreCache=Fals
 def getPvrThumbPath(channel,title):
     pvrThumbPath = ""
     comparetitle = getCompareString(title)
+    if not channel: channel = "unknown_channel"
     #lookup existing pvrthumbs paths - try to find a match in custom path
     #images will be looked up or stored to that path
     customlookuppath = WINDOW.getProperty("SkinHelper.customlookuppath").decode("utf-8")

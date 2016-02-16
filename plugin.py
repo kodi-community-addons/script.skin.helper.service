@@ -31,7 +31,7 @@ class Main:
                     xbmcplugin.setResolvedUrl(handle=int(sys.argv[1]), succeeded=False, listitem=xbmcgui.ListItem())
                 if action == "PLAYRECORDING":
                     #retrieve the recording and play as listitem to get resume working
-                    json_result = plugincontent.getJSON('PVR.GetRecordingDetails', '{"recordingid": %d, "properties": [ %s ]}' %(int(path),fields_pvrrecordings))
+                    json_result = plugincontent.getJSON('PVR.GetRecordingDetails', '{"recordingid": %d, "properties": [ %s ]}' %(int(path),plugincontent.fields_pvrrecordings))
                     if json_result:
                         xbmc.executeJSONRPC('{ "jsonrpc": "2.0", "method": "Player.Open", "params": { "item": { "recordingid": %d } }, "id": 1 }' % int(path))
                         if json_result["resume"].get("position"):
@@ -40,7 +40,6 @@ class Main:
                                     break
                                 xbmc.sleep(250)
                             xbmc.Player().seekTime(json_result["resume"].get("position"))
-
                     xbmcplugin.setResolvedUrl(handle=int(sys.argv[1]), succeeded=False, listitem=xbmcgui.ListItem())
                 elif action == "LAUNCH":
                     path = sys.argv[2].split("&path=")[1]

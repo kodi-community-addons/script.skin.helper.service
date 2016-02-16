@@ -157,10 +157,15 @@ class ListItemMonitor(threading.Thread):
                                 self.setStudioLogo()
                                 self.setGenre()
                                 self.setDirector()
-                                self.checkExtraFanArt()
-                                self.setMovieSetDetails()
-                                self.setAddonName()
-                                self.setStreamDetails()
+                                if self.liPath.startswith("plugin://") and not ("plugin.video.emby" in self.liPath or "script.skin.helper.service" in self.liPath):
+                                    #plugins only...
+                                    thread.start_new_thread(self.setAddonDetails, (True,))
+                                    self.setAddonName()
+                                else:
+                                    #library only...
+                                    self.setStreamDetails()
+                                    self.setMovieSetDetails()
+                                    self.checkExtraFanArt()
                             except Exception as e:
                                 logMsg("ERROR in LibraryMonitor ! --> " + str(e), 0)
                         
@@ -1122,6 +1127,7 @@ class ListItemMonitor(threading.Thread):
         if not contenttype:
             contenttype = self.contentType
         result = {}
+        logMsg("setExtendedMovieInfo imdbnumber--> %s  - contenttype: %s" %(imdbnumber,contenttype))
         if (contenttype == "movies" or contenttype=="setmovies") and imdbnumber:
             if self.extendedinfocache.get(imdbnumber):
                 #get data from cache
@@ -1187,7 +1193,40 @@ class ListItemMonitor(threading.Thread):
                 WINDOW.setProperty("SkinHelper.TMDB.homepage",result.get('homepage',""))
                 WINDOW.setProperty("SkinHelper.TMDB.status",result.get('status',""))
                 WINDOW.setProperty("SkinHelper.TMDB.popularity",result.get('popularity',""))
-   
+    
+    def setAddonDetails(self, multiThreaded=False):
+        #try to lookup additional artwork and properties for plugin content
+        title = xbmc.getInfoLabel("ListItem.Title").decode("utf8")
+        contenttype = self.contentType
+        genre = contenttype
+        if contenttype == "seasons" or contenttype == "episodes":
+            genre = "tvshows"
+            title = xbmc.getInfoLabel("ListItem.TvShowTitle").decode("utf8")
+        
+        dbID = title + contenttype
+        logMsg("setAddonDetails dbID--> %s" %dbID)
+        
+        if not contenttype in ["movies", "tvshows", "seasons", "episodes"] or not title or not contenttype:
+            return
+
+        if self.pvrArtCache.has_key(dbID + "SkinHelper.PVR.Artwork"):
+            artwork = self.pvrArtCache[dbID + "SkinHelper.PVR.Artwork"]
+        else:
+            artwork = artutils.getPVRThumbs(title, "", contenttype, "", genre)
+            self.pvrArtCache[dbID + "SkinHelper.PVR.Artwork"] = artwork
+        
+        #return if another listitem was focused in the meanwhile
+        if multiThreaded and not (title == xbmc.getInfoLabel("ListItem.Title").decode('utf-8') or title == xbmc.getInfoLabel("ListItem.TvShowTitle").decode("utf8")):
+            return
+        
+        #set window props
+        for key, value in artwork.iteritems():
+            WINDOW.setProperty("SkinHelper.PVR." + key,value)
+            
+        #set extended movie details
+        if (contenttype == "movies" or contenttype == "setmovies") and artwork.get("imdb_id"):
+            self.setExtendedMovieInfo(artwork.get("imdb_id"),contenttype,False)
+    
     def focusEpisode(self):
         # monitor episodes for auto focus first unwatched - Helix only as it is included in Kodi as of Isengard by default
         if xbmc.getCondVisibility("Skin.HasSetting(AutoFocusUnwatchedEpisode)"):
