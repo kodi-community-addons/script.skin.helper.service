@@ -985,6 +985,7 @@ class ListItemMonitor(threading.Thread):
             if json_result.has_key("streamdetails"):
                 audio = json_result["streamdetails"]['audio']
                 subtitles = json_result["streamdetails"]['subtitle']
+                video = json_result["streamdetails"]['video']
                 allAudio = []
                 allAudioStr = []
                 allSubs = []
@@ -1032,6 +1033,10 @@ class ListItemMonitor(threading.Thread):
                 streamdetails['SkinHelper.ListItemAudioStreams.Count'] = str(len(allAudioStr))
                 streamdetails['SkinHelper.ListItemLanguages'] = " / ".join(allLang)
                 streamdetails['SkinHelper.ListItemLanguages.Count'] = str(len(allLang))
+                if len(video) > 0:
+                    stream = video[0]
+                    streamdetails['SkinHelper.ListItemVideoHeight'] = str(stream.get("height",""))
+                    streamdetails['SkinHelper.ListItemVideoWidth'] = str(stream.get("width",""))
                 
                 self.streamdetailsCache[dbId+contenttype] = streamdetails
                 
