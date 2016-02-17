@@ -94,7 +94,7 @@ class Main:
 
 if (__name__ == "__main__"):
     try:
-        if not plugincontent.WINDOW.getProperty("SkinHelper.KodiExit"):
+        if not xbmc.abortRequested:
             if enableProfiling:
                 import cProfile
                 import pstats
@@ -109,6 +109,8 @@ if (__name__ == "__main__"):
                 p.print_stats()
             else:
                 Main()
+        else:
+            print "kodi exit !"
     except Exception as e:
         plugincontent.logMsg("Error in plugin.py --> " + str(e),0)
 plugincontent.logMsg('finished loading pluginentry')
