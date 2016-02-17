@@ -8,6 +8,8 @@ import musicbrainzngs as m
 import BeautifulSoup
 import htmlentitydefs
 import urllib2, re
+from difflib import SequenceMatcher as SM
+
 
 tmdb_apiKey = base64.b64decode("NDc2N2I0YjJiYjk0YjEwNGZhNTUxNWM1ZmY0ZTFmZWM=")
 m.set_useragent("script.skin.helper.service", "1.0.0", "https://github.com/marcelveldt/script.skin.helper.service")
@@ -635,7 +637,6 @@ def getGoogleImages(terms,**kwargs):
             a = div.find("a")
             if a:
                 page = a.get("href","")
-                print "page-->" + page
                 params = urlparse.parse_qs(page)
                 image = params.get("/imgres?imgurl")
                 if image:
@@ -995,7 +996,13 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
         for song in json_response2:
             if not trackName: trackName = song.get("label","")
             if song.get("album"):
-                if not path and normalize_string(artistName.lower().replace("_","")) in normalize_string(song["file"].lower().replace("_","")): path = song["file"]
+                if not path and song.get("file"):
+                    #get path from song - only if artist level matches...
+                    if "\\" in song.get("file"): delim = "\\"
+                    else: delim = "/"
+                    pathartist = song.get("file").split(delim)[-3]
+                    match =  SM(None, artistName, pathartist).ratio()
+                    if match >= 0.75: path = song.get("file")
                 if not albumName: albumName = song.get("album")
                 if song.get("musicbrainzartistid") and not artistartwork.get("musicbrainzartistid"): artistartwork["musicbrainzartistid"] = song["musicbrainzartistid"]
                 tracklist.append(song["title"])
@@ -1011,10 +1018,9 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
         artistartwork["songcount"] = "%s"%songcount
         if not albumartwork.get("artistname"): albumartwork["artistname"] = artistName
         if not albumartwork.get("albumname"): albumartwork["albumname"] = albumName
-     
+    
     #LOOKUP LOCAL ARTWORK PATH PASED ON SONG FILE PATH
     if path and enableLocalMusicArtLookup and (not artistCacheFound or (albumName and not albumCacheFound)) and localArtistMatch:
-        
         #only use existing path if the artistname is actually in the path 
         if "\\" in path:
             delim = "\\"
@@ -1029,7 +1035,8 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
             artistpath = path.rsplit(delim, 2)[0] + delim #artist level
 
             #lookup existing artwork in the paths (only if artistname in the path, to prevent lookups in various artists/compilations folders)
-            if not normalize_string(artistName.lower().replace("_","")) in normalize_string(artistpath.lower().replace("_","")):
+            match =  SM(None, artistName, artistpath.split(delim)[-2]).ratio()
+            if not match >= 0.75:
                 logMsg("getMusicArtwork - lookup on disk skipped for %s - not correct folder structure (artistname\albumname)" %artistartwork.get("artistname",""))
                 albumpath = ""
                 artistpath = ""
@@ -1054,7 +1061,7 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
                 else: albumpath = ""
        
     #online lookup for details
-    if enableMusicArtScraper and not artistCacheFound or (albumName and not albumCacheFound):
+    if enableMusicArtScraper and (not artistCacheFound or (albumName and not albumCacheFound)):
         #lookup details in musicbrainz
         #retrieve album id and artist id with a combined query of album name and artist name to get an accurate result
         if not albumartwork.get("musicbrainzalbumid") or not artistartwork.get("musicbrainzartistid"):
@@ -1083,7 +1090,7 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
                         downloadImage(fanart,efadir,"fanart%s.jpg"%count)
                         count += 1
                     artistartwork["extrafanart"] = efadir
-                else: artistartwork["extrafanart"] = "plugin://script.skin.helper.service/?action=EXTRAFANART&path=special://profile/addon_data/script.skin.helper.service/musicart/%s.xml" %normalize_string(artistName)
+                elif not artistartwork.get("extrafanart"): artistartwork["extrafanart"] = "plugin://script.skin.helper.service/?action=EXTRAFANART&path=special://profile/addon_data/script.skin.helper.service/musicart/%s.xml" %normalize_string(artistName)
             
         ######################################################### ALBUM LEVEL #########################################################    
         if albumName and albumartwork.get("musicbrainzalbumid") and not albumCacheFound:
