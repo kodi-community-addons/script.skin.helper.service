@@ -802,10 +802,10 @@ class BackgroundsUpdater(threading.Thread):
                 type = "movies"
                 nodes.append( (key, label, content, type, path ) )
                 
-                #netflix tvshows genres
-                key = "netflix.tvshows.genres"
+                #netflix movies genres
+                key = "netflix.movies.genres"
                 label = netflixAddon.getLocalizedString(30100) + " - " + netflixAddon.getLocalizedString(30108)
-                content = "plugin://plugin.video.flix2kodi/?mode=list_genres&thumb&type=show&url&widget=true"
+                content = "plugin://plugin.video.flix2kodi/?mode=list_genres&thumb&type=movie&url&widget=true"
                 path = "ActivateWindow(Videos,%s,return)" %content.replace("&widget=true","")
                 type = "genres"
                 nodes.append( (key, label, content, type, path ) )
