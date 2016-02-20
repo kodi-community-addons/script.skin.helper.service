@@ -790,7 +790,7 @@ class ListItemMonitor(threading.Thread):
             self.pvrArtCache[dbID + "SkinHelper.PVR.Artwork"] = artwork
         
         #return if another listitem was focused in the meanwhile
-        if multiThreaded and title != xbmc.getInfoLabel("ListItem.Title").decode('utf-8'):
+        if multiThreaded and not (title == xbmc.getInfoLabel("ListItem.Title").decode('utf-8') or title == xbmc.getInfoLabel("ListItem.Label").decode('utf-8')):
             return
         
         #set window props
