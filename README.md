@@ -22,7 +22,7 @@ Important settings:
 |SmartShortcuts.favorites | Skin.SetBool(SmartShortcuts.favorites) | Enable smart shortcuts for Kodi favorites |
 |SmartShortcuts.plex | Skin.SetBool(SmartShortcuts.plex) | Enable smart shortcuts for plexbmc addon |
 |SmartShortcuts.emby | Skin.SetBool(SmartShortcuts.emby) | Enable smart shortcuts for emby addon |
-|SmartShortcuts.netflix | Skin.SetBool(SmartShortcuts.netflix) | Enable smart shortcuts for netflixbmc addon |
+|SmartShortcuts.netflix | Skin.SetBool(SmartShortcuts.netflix) | Enable smart shortcuts for flix2kodi addon |
 
 Note about the AutoCloseVideo/MusicOSD: you need to make sure that you've set labels to the controls of your OSD (even if you don't use them). 
 The script tries to determine that the user is actually using the OSD and will than not close the OSD.
@@ -1426,87 +1426,87 @@ ________________________________________________________________________________
 
 
 
-##### Smart shortcuts for Netflix addon (plugin.video.netflixbmc)
+##### Smart shortcuts for Netflix addon (plugin.video.flix2kodi)
 Will only be available if this Skin Bool is true --> SmartShortcuts.netflix
 
-Note that the Netflixbmc addon must be present on the system for this to function.
+Note that the Flix2Kodi addon must be present on the system for this to function.
 
 | property 			| description |
 | :----------------------------	| :----------- |
-| Window(Home).Property(netflix.generic.title) | Title of the main Netflixbmc entry|
-| Window(Home).Property(netflix.generic.path) | Path of the main Netflixbmc entry|
-| Window(Home).Property(netflix.generic.content) | Contentpath of the main Netflixbmc entry (for widgets)|
-| Window(Home).Property(netflix.generic.image) | Rotating Fanart from netflixbmc addon|
+| Window(Home).Property(netflix.generic.title) | Title of the main Netflix entry|
+| Window(Home).Property(netflix.generic.path) | Path of the main Netflix entry|
+| Window(Home).Property(netflix.generic.content) | Contentpath of the main Netflix entry (for widgets)|
+| Window(Home).Property(netflix.generic.image) | Rotating Fanart from Netflix addon|
 | |
-| Window(Home).Property(netflix.generic.mylist.title) | Title of the Netflixbmc My List entry|
-| Window(Home).Property(netflix.generic.mylist.path) | Path of the Netflixbmc My List entry|
-| Window(Home).Property(netflix.generic.mylist.content) | Contentpath of the Netflixbmc My List entry (for widgets)|
-| Window(Home).Property(netflix.generic.mylist.image) | Rotating Fanart from Netflixbmc My List entry|
+| Window(Home).Property(netflix.generic.mylist.title) | Title of the Netflix My List entry|
+| Window(Home).Property(netflix.generic.mylist.path) | Path of the Netflix My List entry|
+| Window(Home).Property(netflix.generic.mylist.content) | Contentpath of the Netflix My List entry (for widgets)|
+| Window(Home).Property(netflix.generic.mylist.image) | Rotating Fanart from Netflix My List entry|
 | |
-| Window(Home).Property(netflix.generic.suggestions.title) | Title of the Netflixbmc Suggestions entry|
-| Window(Home).Property(netflix.generic.suggestions.path) | Path of the Netflixbmc Suggestions entry|
-| Window(Home).Property(netflix.generic.suggestions.content) | Contentpath of the Netflixbmc Suggestions entry (for widgets)|
-| Window(Home).Property(netflix.generic.suggestions.image) | Rotating Fanart from Netflixbmc Suggestions entry|
+| Window(Home).Property(netflix.generic.suggestions.title) | Title of the Netflix Suggestions entry|
+| Window(Home).Property(netflix.generic.suggestions.path) | Path of the Netflix Suggestions entry|
+| Window(Home).Property(netflix.generic.suggestions.content) | Contentpath of the Netflix Suggestions entry (for widgets)|
+| Window(Home).Property(netflix.generic.suggestions.image) | Rotating Fanart from Netflix Suggestions entry|
 | |
-| Window(Home).Property(netflix.generic.inprogress.title) | Title of the Netflixbmc Continue Watching entry|
-| Window(Home).Property(netflix.generic.inprogress.path) | Path of the Netflixbmc Continue Watching entry|
-| Window(Home).Property(netflix.generic.inprogress.content) | Contentpath of the Netflixbmc Continue Watching entry (for widgets)|
-| Window(Home).Property(netflix.generic.inprogress.image) | Rotating Fanart from Netflixbmc Continue Watching entry|
+| Window(Home).Property(netflix.generic.inprogress.title) | Title of the Netflix Continue Watching entry|
+| Window(Home).Property(netflix.generic.inprogress.path) | Path of the Netflix Continue Watching entry|
+| Window(Home).Property(netflix.generic.inprogress.content) | Contentpath of the Netflix Continue Watching entry (for widgets)|
+| Window(Home).Property(netflix.generic.inprogress.image) | Rotating Fanart from Netflix Continue Watching entry|
 | |
-| Window(Home).Property(netflix.generic.recent.title) | Title of the Netflixbmc Latest entry|
-| Window(Home).Property(netflix.generic.recent.path) | Path of the Netflixbmc Latest entry|
-| Window(Home).Property(netflix.generic.recent.content) | Contentpath of the Netflixbmc Latest entry (for widgets)|
-| Window(Home).Property(netflix.generic.recent.image) | Rotating Fanart from Netflixbmc Latest entry|
+| Window(Home).Property(netflix.generic.recent.title) | Title of the Netflix Latest entry|
+| Window(Home).Property(netflix.generic.recent.path) | Path of the Netflix Latest entry|
+| Window(Home).Property(netflix.generic.recent.content) | Contentpath of the Netflix Latest entry (for widgets)|
+| Window(Home).Property(netflix.generic.recent.image) | Rotating Fanart from Netflix Latest entry|
 | |
-| Window(Home).Property(netflix.movies.title) | Title of the Netflixbmc Movies entry|
-| Window(Home).Property(netflix.movies.path) | Path of the Netflixbmc Movies entry|
-| Window(Home).Property(netflix.movies.content) | Contentpath of the Netflixbmc Movies entry (for widgets)|
-| Window(Home).Property(netflix.movies.image) | Rotating Fanart from Netflixbmc Movies entry|
+| Window(Home).Property(netflix.movies.title) | Title of the Netflix Movies entry|
+| Window(Home).Property(netflix.movies.path) | Path of the Netflix Movies entry|
+| Window(Home).Property(netflix.movies.content) | Contentpath of the Netflix Movies entry (for widgets)|
+| Window(Home).Property(netflix.movies.image) | Rotating Fanart from Netflix Movies entry|
 | |
-| Window(Home).Property(netflix.movies.mylist.title) | Title of the Netflixbmc Movies Mylist entry|
-| Window(Home).Property(netflix.movies.mylist.path) | Path of the Netflixbmc Movies Mylist entry|
-| Window(Home).Property(netflix.movies.mylist.content) | Contentpath of the Netflixbmc Movies Mylist entry (for widgets)|
-| Window(Home).Property(netflix.movies.mylist.image) | Rotating Fanart from Netflixbmc Movies Mylist entry|
+| Window(Home).Property(netflix.movies.mylist.title) | Title of the Netflix Movies Mylist entry|
+| Window(Home).Property(netflix.movies.mylist.path) | Path of the Netflix Movies Mylist entry|
+| Window(Home).Property(netflix.movies.mylist.content) | Contentpath of the Netflix Movies Mylist entry (for widgets)|
+| Window(Home).Property(netflix.movies.mylist.image) | Rotating Fanart from Netflix Movies Mylist entry|
 | |
-| Window(Home).Property(netflix.movies.suggestions.title) | Title of the Netflixbmc Movies suggestions entry|
-| Window(Home).Property(netflix.movies.suggestions.path) | Path of the Netflixbmc Movies suggestions entry|
-| Window(Home).Property(netflix.movies.suggestions.content) | Contentpath of the Netflixbmc Movies suggestions entry (for widgets)|
-| Window(Home).Property(netflix.movies.suggestions.image) | Rotating Fanart from Netflixbmc Movies suggestions entry|
+| Window(Home).Property(netflix.movies.suggestions.title) | Title of the Netflix Movies suggestions entry|
+| Window(Home).Property(netflix.movies.suggestions.path) | Path of the Netflix Movies suggestions entry|
+| Window(Home).Property(netflix.movies.suggestions.content) | Contentpath of the Netflix Movies suggestions entry (for widgets)|
+| Window(Home).Property(netflix.movies.suggestions.image) | Rotating Fanart from Netflix Movies suggestions entry|
 | |
-| Window(Home).Property(netflix.movies.inprogress.title) | Title of the Netflixbmc Movies In progress entry|
-| Window(Home).Property(netflix.movies.inprogress.path) | Path of the Netflixbmc Movies In progress entry|
-| Window(Home).Property(netflix.movies.inprogress.content) | Contentpath of the Netflixbmc Movies In progress entry (for widgets)|
-| Window(Home).Property(netflix.movies.inprogress.image) | Rotating Fanart from Netflixbmc Movies In progress entry|
+| Window(Home).Property(netflix.movies.genres.title) | Title of the Netflix Movies genres entry|
+| Window(Home).Property(netflix.movies.genres.path) | Path of the Netflix Movies genres entry|
+| Window(Home).Property(netflix.movies.genres.content) | Contentpath of the Netflix Movies genres entry (for widgets)|
+| Window(Home).Property(netflix.movies.genres.image) | Rotating Fanart from Netflix Movies genres entry|
 | |
-| Window(Home).Property(netflix.movies.recent.title) | Title of the Netflixbmc Latest movies entry|
-| Window(Home).Property(netflix.movies.recent.path) | Path of the Netflixbmc Latest movies entry|
-| Window(Home).Property(netflix.movies.recent.content) | Contentpath of the Netflixbmc Latest movies entry (for widgets)|
-| Window(Home).Property(netflix.movies.recent.image) | Rotating Fanart from Netflixbmc Latest movies entry|
+| Window(Home).Property(netflix.movies.recent.title) | Title of the Netflix Latest movies entry|
+| Window(Home).Property(netflix.movies.recent.path) | Path of the Netflix Latest movies entry|
+| Window(Home).Property(netflix.movies.recent.content) | Contentpath of the Netflix Latest movies entry (for widgets)|
+| Window(Home).Property(netflix.movies.recent.image) | Rotating Fanart from Netflix Latest movies entry|
 | |
-| Window(Home).Property(netflix.tvshows.title) | Title of the Netflixbmc tvshows entry|
-| Window(Home).Property(netflix.tvshows.path) | Path of the Netflixbmc tvshows entry|
-| Window(Home).Property(netflix.tvshows.content) | Contentpath of the Netflixbmc tvshows entry (for widgets)|
-| Window(Home).Property(netflix.tvshows.image) | Rotating Fanart from Netflixbmc tvshows entry|
+| Window(Home).Property(netflix.tvshows.title) | Title of the Netflix tvshows entry|
+| Window(Home).Property(netflix.tvshows.path) | Path of the Netflix tvshows entry|
+| Window(Home).Property(netflix.tvshows.content) | Contentpath of the Netflix tvshows entry (for widgets)|
+| Window(Home).Property(netflix.tvshows.image) | Rotating Fanart from Netflix tvshows entry|
 | |
-| Window(Home).Property(netflix.tvshows.mylist.title) | Title of the Netflixbmc tvshows Mylist entry|
-| Window(Home).Property(netflix.tvshows.mylist.path) | Path of the Netflixbmc tvshows Mylist entry|
-| Window(Home).Property(netflix.tvshows.mylist.content) | Contentpath of the Netflixbmc tvshows Mylist entry (for widgets)|
-| Window(Home).Property(netflix.tvshows.mylist.image) | Rotating Fanart from Netflixbmc tvshows Mylist entry|
+| Window(Home).Property(netflix.tvshows.mylist.title) | Title of the Netflix tvshows Mylist entry|
+| Window(Home).Property(netflix.tvshows.mylist.path) | Path of the Netflix tvshows Mylist entry|
+| Window(Home).Property(netflix.tvshows.mylist.content) | Contentpath of the Netflix tvshows Mylist entry (for widgets)|
+| Window(Home).Property(netflix.tvshows.mylist.image) | Rotating Fanart from Netflix tvshows Mylist entry|
 | |
-| Window(Home).Property(netflix.tvshows.suggestions.title) | Title of the Netflixbmc tvshows suggestions entry|
-| Window(Home).Property(netflix.tvshows.suggestions.path) | Path of the Netflixbmc tvshows suggestions entry|
-| Window(Home).Property(netflix.tvshows.suggestions.content) | Contentpath of the Netflixbmc tvshows suggestions entry (for widgets)|
-| Window(Home).Property(netflix.tvshows.suggestions.image) | Rotating Fanart from Netflixbmc tvshows suggestions entry|
+| Window(Home).Property(netflix.tvshows.suggestions.title) | Title of the Netflix tvshows suggestions entry|
+| Window(Home).Property(netflix.tvshows.suggestions.path) | Path of the Netflix tvshows suggestions entry|
+| Window(Home).Property(netflix.tvshows.suggestions.content) | Contentpath of the Netflix tvshows suggestions entry (for widgets)|
+| Window(Home).Property(netflix.tvshows.suggestions.image) | Rotating Fanart from Netflix tvshows suggestions entry|
 | |
-| Window(Home).Property(netflix.tvshows.inprogress.title) | Title of the Netflixbmc tvshows In progress entry|
-| Window(Home).Property(netflix.tvshows.inprogress.path) | Path of the Netflixbmc tvshows In progress entry|
-| Window(Home).Property(netflix.tvshows.inprogress.content) | Contentpath of the Netflixbmc tvshows In progress entry (for widgets)|
-| Window(Home).Property(netflix.tvshows.inprogress.image) | Rotating Fanart from Netflixbmc tvshows In progress entry|
+| Window(Home).Property(netflix.tvshows.genres.title) | Title of the Netflix tvshows genres entry|
+| Window(Home).Property(netflix.tvshows.genres.path) | Path of the Netflix tvshows genres entry|
+| Window(Home).Property(netflix.tvshows.genres.content) | Contentpath of the Netflix tvshows genres entry (for widgets)|
+| Window(Home).Property(netflix.tvshows.genres.image) | Rotating Fanart from Netflix tvshows genres entry|
 | |
-| Window(Home).Property(netflix.tvshows.recent.title) | Title of the Netflixbmc Latest tvshows entry|
-| Window(Home).Property(netflix.tvshows.recent.path) | Path of the Netflixbmc Latest tvshows entry|
-| Window(Home).Property(netflix.tvshows.recent.content) | Contentpath of the Netflixbmc Latest tvshows entry (for widgets)|
-| Window(Home).Property(netflix.tvshows.recent.image) | Rotating Fanart from Netflixbmc Latest tvshows entry|
+| Window(Home).Property(netflix.tvshows.recent.title) | Title of the Netflix Latest tvshows entry|
+| Window(Home).Property(netflix.tvshows.recent.path) | Path of the Netflix Latest tvshows entry|
+| Window(Home).Property(netflix.tvshows.recent.content) | Contentpath of the Netflix Latest tvshows entry (for widgets)|
+| Window(Home).Property(netflix.tvshows.recent.image) | Rotating Fanart from Netflix Latest tvshows entry|
 | |
 
 

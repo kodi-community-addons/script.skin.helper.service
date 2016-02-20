@@ -74,7 +74,7 @@ def addSmartShortcutsSublevel(entry):
     elif "plex" in entry:
         contentStrings = ["", ".ondeck", ".recent", ".unwatched"]
     elif "netflix" in entry:
-        contentStrings = ["", ".mylist", ".recent", ".inprogress", ".suggestions"]
+        contentStrings = ["", ".mylist", ".recent", ".inprogress", ".suggestions", ".genres"]
         
     for contentString in contentStrings:
         key = entry + contentString
@@ -295,7 +295,7 @@ def getAddonWidgetListing(addonShortName,skipscan=False):
                         continue
                     #add reload param for skinhelper and libraryprovider widgets
                     if not "reload=" in content and (addon[0] == "script.skin.helper.service" or addon[0] == "service.library.data.provider"):
-                        if "albums" in content or "songs" in content:
+                        if "albums" in content or "songs" in content or "artists" in content:
                             reloadstr = "&reload=$INFO[Window(Home).Property(widgetreloadmusic)]"
                         elif ("pvr" in content or "media" in content or "favourite" in content) and not "progress" in content:
                             reloadstr = "&reload=$INFO[Window(Home).Property(widgetreload)]$INFO[Window(Home).Property(widgetreload2)]"

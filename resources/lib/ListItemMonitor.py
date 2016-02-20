@@ -271,10 +271,10 @@ class ListItemMonitor(threading.Thread):
                 self.widgetTaskInterval += 2
     
     def checkNetflixReady(self):
-        if xbmc.getCondVisibility("System.HasAddon(plugin.video.netflixbmc)"):
+        if xbmc.getCondVisibility("System.HasAddon(plugin.video.flix2kodi)"):
             #set windowprop if netflix addon has a username filled in to prevent login loop box
-            nfaddon = xbmcaddon.Addon(id='plugin.video.netflixbmc')
-            if nfaddon.getSetting("username") and nfaddon.getSetting("html5MessageShown"):
+            nfaddon = xbmcaddon.Addon(id='plugin.video.flix2kodi')
+            if nfaddon.getSetting("username") and nfaddon.getSetting("password"):
                 WINDOW.setProperty("netflixready","ready")
             else:
                 WINDOW.clearProperty("netflixready")

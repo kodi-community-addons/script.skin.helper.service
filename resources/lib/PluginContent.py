@@ -668,8 +668,8 @@ def buildRecommendedMediaListing(limit,ondeckContent=False,recommendedContent=Tr
         allOndeckItems = []
 
         #netflix in progress
-        if xbmc.getCondVisibility("System.HasAddon(plugin.video.netflixbmc) + Skin.HasSetting(SmartShortcuts.netflix)") and WINDOW.getProperty("netflixready") == "ready":
-            json_result = getJSON('Files.GetDirectory', '{ "directory": "plugin://plugin.video.netflixbmc/?mode=listSliderVideos&thumb&type=both&widget=true&url=slider_0", "media": "files", "properties": [ %s ] }' %fields_files)
+        if xbmc.getCondVisibility("System.HasAddon(plugin.video.flix2kodi) + Skin.HasSetting(SmartShortcuts.netflix)") and WINDOW.getProperty("netflixready") == "ready":
+            json_result = getJSON('Files.GetDirectory', '{ "directory": "plugin://plugin.video.flix2kodi/?mode=listSliderVideos&thumb&type=both&widget=true&url=slider_0", "media": "files", "properties": [ %s ] }' %fields_files)
             for item in json_result:
                 lastplayed = item["lastplayed"]
                 if not item["title"] in allTitles:
@@ -870,8 +870,8 @@ def FAVOURITEMEDIA(limit,AllKodiFavsOnly=False):
     
     if not AllKodiFavsOnly:
         #netflix favorites
-        if xbmc.getCondVisibility("System.HasAddon(plugin.video.netflixbmc) + Skin.HasSetting(SmartShortcuts.netflix)") and WINDOW.getProperty("netflixready") == "ready":
-            json_result = getJSON('Files.GetDirectory', '{ "directory": "plugin://plugin.video.netflixbmc/?mode=listSliderVideos&thumb&type=both&widget=true&url=slider_38", "media": "files", "properties": [ %s ] }' %fields_files)
+        if xbmc.getCondVisibility("System.HasAddon(plugin.video.flix2kodi) + Skin.HasSetting(SmartShortcuts.netflix)") and WINDOW.getProperty("netflixready") == "ready":
+            json_result = getJSON('Files.GetDirectory', '{ "directory": "plugin://plugin.video.flix2kodi/?mode=listSliderVideos&thumb&type=both&widget=true&url=slider_38", "media": "files", "properties": [ %s ] }' %fields_files)
             for item in json_result:
                 allItems.append(item)
         
