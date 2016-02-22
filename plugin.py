@@ -1,20 +1,21 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 import resources.lib.PluginContent as plugincontent
+import resources.lib.Utils as utils
 import resources.lib.SkinShortcutsIntegration as skinshortcuts
 import urlparse
-import xbmcgui,xbmcplugin
+import xbmc,xbmcgui,xbmcplugin
 enableProfiling = False
 
 class Main:
     
     def __init__(self):
         
-        plugincontent.logMsg('started loading pluginentry')
+        utils.logMsg('started loading pluginentry')
         
         #get params
         params = urlparse.parse_qs(sys.argv[2][1:].decode("utf-8"))
-        plugincontent.logMsg("Parameter string: %s" % sys.argv[2])
+        utils.logMsg("Parameter string: %s" % sys.argv[2])
         
         if params:        
             path=params.get("path",None)
@@ -31,7 +32,7 @@ class Main:
                     xbmcplugin.setResolvedUrl(handle=int(sys.argv[1]), succeeded=False, listitem=xbmcgui.ListItem())
                 if action == "PLAYRECORDING":
                     #retrieve the recording and play as listitem to get resume working
-                    json_result = plugincontent.getJSON('PVR.GetRecordingDetails', '{"recordingid": %d, "properties": [ %s ]}' %(int(path),plugincontent.fields_pvrrecordings))
+                    json_result = utils.getJSON('PVR.GetRecordingDetails', '{"recordingid": %d, "properties": [ %s ]}' %(int(path),plugincontent.fields_pvrrecordings))
                     if json_result:
                         xbmc.executeJSONRPC('{ "jsonrpc": "2.0", "method": "Player.Open", "params": { "item": { "recordingid": %d } }, "id": 1 }' % int(path))
                         if json_result["resume"].get("position"):
@@ -110,7 +111,7 @@ if (__name__ == "__main__"):
             else:
                 Main()
         else:
-            print "kodi exit !"
+            utils.logMsg("plugin.py --> Not forfilling request: Kodi is exiting" ,0)
     except Exception as e:
-        plugincontent.logMsg("Error in plugin.py --> " + str(e),0)
-plugincontent.logMsg('finished loading pluginentry')
+        utils.logMsg("Error in plugin.py --> " + str(e),0)
+utils.logMsg('finished loading pluginentry')

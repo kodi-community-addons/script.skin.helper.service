@@ -24,12 +24,16 @@ def getPluginListing(action,limit,refresh=None,optionalParam=None):
         refresh = WINDOW.getProperty("widgetreload-tvshows")
     elif "MEDIA" in action: 
         type = "movies"
+        refresh = WINDOW.getProperty("widgetreload2")
     elif "PVR" in action: 
         type = "episodes"
+        refresh = WINDOW.getProperty("widgetreload2")
     elif "ALBUM" in action: 
         type = "albums"
+        refresh = WINDOW.getProperty("widgetreloadmusic")
     elif "SONG" in action: 
         type = "songs"
+        refresh = WINDOW.getProperty("widgetreloadmusic")
     else: type = "files"
     
     cacheStr = "skinhelper-%s-%s-%s-%s" %(action,limit,optionalParam,refresh)
@@ -39,17 +43,9 @@ def getPluginListing(action,limit,refresh=None,optionalParam=None):
     
     #try to get from cache first...
     cache = WINDOW.getProperty(cacheStr).decode("utf-8")
-    if cache and refresh:
+    if cache:
         logMsg("getPluginListing-%s-%s-%s-%s -- got data from cache" %(action,limit,optionalParam,refresh))
         allItems = eval(cache)
-    
-    #get from persistant cache on first boot
-    if not cache and not WINDOW.getProperty("firstrun-"+action):
-        WINDOW.setProperty("firstrun-"+action,"done")
-        logMsg("getPluginListing-%s-%s-%s-%s -- initial start, load cache from file" %(action,limit,optionalParam,refresh))
-        allItems = getDataFromCacheFile(cachePath)
-        if refresh:
-            WINDOW.setProperty(cacheStr, repr(allItems).encode("utf-8"))
             
     #Call the correct method to get the content from json when no cache
     if not allItems or action == "FAVOURITES":
@@ -61,7 +57,6 @@ def getPluginListing(action,limit,refresh=None,optionalParam=None):
         #save the cache
         allItems = prepareListItems(allItems)
         WINDOW.setProperty(cacheStr, repr(allItems).encode("utf-8"))
-        saveDataToCacheFile(cachePath,allItems)
     
     #fill that listing...
     for item in allItems:
@@ -524,21 +519,20 @@ def RECOMMENDEDSONGS(limit):
         allItemsDef.append(item[1])
     return allItemsDef
     
-def SIMILARMOVIES(limit,imdbid=""):
+def SIMILARMOVIES(limit,imdbid="",unSorted=False):
     count = 0
     allItems = []
     allTitles = list()
+    json_result = []
     #lookup movie by imdbid or just pick a random watched movie
 
     if imdbid:
-        match = []
         json_result = getJSON('VideoLibrary.GetMovies', '{ "properties": [ "title", "rating", "genre", "imdbnumber"]}')
         for item in json_result:
             if item.get("imdbnumber") == imdbid:
-                match = [item]
+                json_result = [item]
                 break
-        json_result = match
-    else: json_result = getJSON('VideoLibrary.GetMovies', '{ "sort": { "order": "descending", "method": "random" }, "filter": {"operator":"isnot", "field":"playcount", "value":"0"}, "properties": [ "title", "rating", "genre"],"limits":{"end":1}}')
+    if not json_result: json_result = getJSON('VideoLibrary.GetMovies', '{ "sort": { "order": "descending", "method": "random" }, "filter": {"operator":"isnot", "field":"playcount", "value":"0"}, "properties": [ "title", "rating", "genre"],"limits":{"end":1}}')
     for item in json_result:
         if count == limit: break
         genres = item["genre"]
@@ -555,7 +549,8 @@ def SIMILARMOVIES(limit,imdbid=""):
                     allTitles.append(item["title"])
                     count +=1
     
-    #sort the list by rating 
+    #sort the list by rating
+    if unSorted: return allItems
     allItems = sorted(allItems,key=itemgetter(0),reverse=True)
         
     #only return the listitems, we dont care about the sortkey
@@ -592,20 +587,19 @@ def MOVIESFORGENRE(limit,genretitle=""):
         allItemsDef.append(item[1])
     return allItemsDef
 
-def SIMILARSHOWS(limit,imdbid=""):
+def SIMILARSHOWS(limit,imdbid="",unSorted=False):
     count = 0
     allItems = []
     allTitles = list()
+    json_result = []
     #lookup show by imdbid or just pick a random in progress show
     if imdbid: 
-        match = []
         json_result = getJSON('VideoLibrary.GetTVShows', '{ "properties": [ "title", "rating", "genre", "imdbnumber"]}')
         for item in json_result:
             if item.get("imdbnumber") == imdbid:
-                match = [item]
+                json_result = [item]
                 break
-        json_result = match
-    else: json_result = getJSON('VideoLibrary.GetTVShows', '{ "sort": { "order": "descending", "method": "random" }, "filter": {"and": [{"operator":"true", "field":"inprogress", "value":""}]}, "properties": [ "title", "rating", "genre"],"limits":{"end":1}}')
+    if not json_result: json_result = getJSON('VideoLibrary.GetTVShows', '{ "sort": { "order": "descending", "method": "random" }, "filter": {"and": [{"operator":"true", "field":"inprogress", "value":""}]}, "properties": [ "title", "rating", "genre"],"limits":{"end":1}}')
     for item in json_result:
         genres = item["genre"]
         similartitle = item["title"]
@@ -620,7 +614,8 @@ def SIMILARSHOWS(limit,imdbid=""):
                     allItems.append((item["rating"],item))
                     allTitles.append(item["title"])
         
-        #sort the list by rating 
+        #sort the list by rating
+        if unSorted: return allItems
         allItems = sorted(allItems,key=itemgetter(0),reverse=True)
         
     #only return the listitems, we dont care about the sortkey
@@ -629,6 +624,20 @@ def SIMILARSHOWS(limit,imdbid=""):
         allItemsDef.append(item[1])
     return allItemsDef
 
+def SIMILARMEDIA(limit,imdb="")
+    #get similar results for both movies and shows
+    allItems = SIMILARMOVIES(limit,imdb,True)
+    allItems += SIMILARSHOWS(limit,imdb,True)
+    #sort the list by rating
+    allItems = sorted(allItems,key=itemgetter(0),reverse=True)
+        
+    #only return the listitems, we dont care about the sortkey
+    allItemsDef = []
+    for item in allItems:
+        allItemsDef.append(item[1])
+    return allItemsDef
+    
+    
 def SHOWSFORGENRE(limit,genretitle=""):
     count = 0
     allItems = []

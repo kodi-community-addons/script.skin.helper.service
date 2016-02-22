@@ -329,8 +329,7 @@ def multiSelect(item,windowHeader=""):
             xbmc.executebuiltin("Skin.SetString(defaultset_%s,defaultset)" %skinsetting)
             itemcount -= 1    
     del w                        
-                    
-            
+                              
 def setSkinSetting(setting="", windowHeader="", sublevel="", valueOnly=""):
     import Dialogs as dialogs
     curValue = xbmc.getInfoLabel("Skin.String(%s)" %setting).decode("utf-8")
