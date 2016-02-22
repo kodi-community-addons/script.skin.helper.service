@@ -5,9 +5,10 @@ from xml.dom.minidom import parse
 from operator import itemgetter
 from Utils import *
 import ArtworkUtils as artutils
+import random
 
 
-def getPluginListing(action,limit,refresh=None,optionalParam=None):
+def getPluginListing(action,limit,refresh=None,optionalParam=None,randomize=False):
     #general method to get a widget/plugin listing and check cache etc.
     count = 0
     allItems = []
@@ -36,7 +37,7 @@ def getPluginListing(action,limit,refresh=None,optionalParam=None):
         refresh = WINDOW.getProperty("widgetreloadmusic")
     else: type = "files"
     
-    cacheStr = "skinhelper-%s-%s-%s-%s" %(action,limit,optionalParam,refresh)
+    cacheStr = "skinhelper-%s-%s-%s-%s-%s" %(action,limit,optionalParam,refresh,randomize)
     
     #set widget content type
     xbmcplugin.setContent(int(sys.argv[1]), type)
@@ -44,17 +45,18 @@ def getPluginListing(action,limit,refresh=None,optionalParam=None):
     #try to get from cache first...
     cache = WINDOW.getProperty(cacheStr).decode("utf-8")
     if cache:
-        logMsg("getPluginListing-%s-%s-%s-%s -- got data from cache" %(action,limit,optionalParam,refresh))
+        logMsg("getPluginListing-%s-%s-%s-%s-%s -- got data from cache" %(action,limit,optionalParam,refresh,randomize))
         allItems = eval(cache)
             
     #Call the correct method to get the content from json when no cache
     if not allItems or action == "FAVOURITES":
-        logMsg("getPluginListing-%s-%s-%s-%s -- no cache, quering json api to get items" %(action,limit,optionalParam,refresh))
+        logMsg("getPluginListing-%s-%s-%s-%s-%s -- no cache, quering json api to get items" %(action,limit,optionalParam,refresh,randomize))
         if optionalParam:
             allItems = eval(action)(limit,optionalParam)
         else:
             allItems = eval(action)(limit)
         #save the cache
+        if randomize: allItems = random.shuffle(allItems)
         allItems = prepareListItems(allItems)
         WINDOW.setProperty(cacheStr, repr(allItems).encode("utf-8"))
     
@@ -636,8 +638,7 @@ def SIMILARMEDIA(limit,imdb=""):
     for item in allItems:
         allItemsDef.append(item[1])
     return allItemsDef
-    
-    
+       
 def SHOWSFORGENRE(limit,genretitle=""):
     count = 0
     allItems = []

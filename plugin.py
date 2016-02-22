@@ -87,7 +87,10 @@ class Main:
                     if reversed: optionalParam = reversed[0]
                     name=params.get("name","")
                     if name: optionalParam = name[0]
-                    plugincontent.getPluginListing(action,limit,refresh,optionalParam)
+                    randomize=params.get("randomize","")
+                    if randomize: randomize = randomize[0]
+                    randomize = randomize == "true"
+                    plugincontent.getPluginListing(action,limit,refresh,optionalParam,randomize)
     
         else:
             #do plugin main listing...
