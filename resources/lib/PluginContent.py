@@ -55,9 +55,9 @@ def getPluginListing(action,limit,refresh=None,optionalParam=None,randomize=Fals
             allItems = eval(action)(limit,optionalParam)
         else:
             allItems = eval(action)(limit)
-        #save the cache
-        if randomize: allItems = random.shuffle(allItems)
+        if randomize: allItems = sorted(allItems, key=lambda k: random.random())
         allItems = prepareListItems(allItems)
+        #save the cache
         WINDOW.setProperty(cacheStr, repr(allItems).encode("utf-8"))
     
     #fill that listing...
@@ -88,6 +88,7 @@ def doMainListing():
     addDirectoryItem(ADDON.getLocalizedString(32005), "plugin://script.skin.helper.service/?action=recentmedia&limit=100")
     addDirectoryItem(ADDON.getLocalizedString(32006), "plugin://script.skin.helper.service/?action=similarmovies&limit=100")
     addDirectoryItem(ADDON.getLocalizedString(32130), "plugin://script.skin.helper.service/?action=similarshows&limit=100")
+    addDirectoryItem(ADDON.getLocalizedString(32162), "plugin://script.skin.helper.service/?action=similarmedia&limit=100")
     addDirectoryItem(ADDON.getLocalizedString(32086), "plugin://script.skin.helper.service/?action=inprogressmedia&limit=100")
     addDirectoryItem(ADDON.getLocalizedString(32007), "plugin://script.skin.helper.service/?action=inprogressandrecommendedmedia&limit=100")
     addDirectoryItem(xbmc.getLocalizedString(359), "plugin://script.skin.helper.service/?action=recentalbums&limit=100")
