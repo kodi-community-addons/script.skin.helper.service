@@ -200,14 +200,14 @@ class ColorPicker(xbmcgui.WindowXMLDialog):
         if not colorname: colorname = colorstring
         self.createColorSwatchImage(colorstring)
         if self.skinString and (not colorstring or colorstring == "None"):
-            xbmc.executebuiltin("Skin.SetString(%s.name, %s)" %(self.skinString, ADDON.getLocalizedString(32013)))
-            xbmc.executebuiltin("Skin.SetString(%s, None)" %self.skinString)
-            xbmc.executebuiltin("Skin.Reset(%s.base)" %self.skinString)
+            xbmc.executebuiltin("Skin.SetString(%s.name, %s)" %(try_encode(self.skinString), try_encode(ADDON.getLocalizedString(32013))))
+            xbmc.executebuiltin("Skin.SetString(%s, None)" %try_encode(self.skinString))
+            xbmc.executebuiltin("Skin.Reset(%s.base)" %try_encode(self.skinString))
         if self.skinString and colorstring:
-            xbmc.executebuiltin("Skin.SetString(%s.name, %s)" %(self.skinString,colorname))
+            xbmc.executebuiltin("Skin.SetString(%s.name, %s)" %(try_encode(self.skinString),try_encode(colorname)))
             colorbase = "ff" + colorstring[2:]
-            xbmc.executebuiltin("Skin.SetString(%s, %s)" %(self.skinString,colorstring))
-            xbmc.executebuiltin("Skin.SetString(%s.base, %s)" %(self.skinString ,colorbase))
+            xbmc.executebuiltin("Skin.SetString(%s, %s)" %(try_encode(self.skinString),try_encode(colorstring)))
+            xbmc.executebuiltin("Skin.SetString(%s.base, %s)" %(try_encode(self.skinString) ,try_encode(colorbase)))
         elif self.winProperty and colorstring:
             WINDOW.setProperty(self.winProperty, colorstring)
             WINDOW.setProperty(self.winProperty + ".name", colorname)
