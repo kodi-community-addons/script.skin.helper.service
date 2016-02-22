@@ -1194,6 +1194,23 @@ plugin://script.skin.helper.service/?action=similarshows&amp;imdbid=[IMDBID]&amp
 
 ________________________________________________________________________________________________________
 
+#####Similar Media (because you watched...)
+```
+plugin://script.skin.helper.service/?action=similarmedia&amp;limit=[LIMIT]&amp;reload=$INFO[Window(Home).Property(widgetreload2)]
+```
+This will provide a list with both Movies and TV shows that are similar to a random in progress movie or show from the library.
+TIP: The listitem provided by this list will have a property "similartitle" which contains the movie from which this list is generated. That way you can create a "Because you watched $INFO[Container.ListItem.Property(originaltitle)]" label....
+Note: You can optionally provide the widgetreload2 parameter if you want to refresh the widget every 10 minutes. If you want to refresh the widget on other circumstances just provide any changing info with the reload parameter, such as the window title or some window Property which you change on X interval.
+
+The above command will create a similar shows listing based on a random in progress show in the library.
+If you want to specify the movie/show to base the request on yourself you can optionally specify the imdb/tvdb id to the script:
+
+```
+plugin://script.skin.helper.service/?action=similarshows&amp;imdbid=[IMDBID]&amp;limit=[LIMIT]
+```
+
+________________________________________________________________________________________________________
+
 #####Top rated Movies in genre
 ```
 plugin://script.skin.helper.service/?action=moviesforgenre&amp;limit=[LIMIT]&amp;reload=$INFO[Window(Home).Property(widgetreload2)]

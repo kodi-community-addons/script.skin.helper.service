@@ -624,7 +624,7 @@ def SIMILARSHOWS(limit,imdbid="",unSorted=False):
         allItemsDef.append(item[1])
     return allItemsDef
 
-def SIMILARMEDIA(limit,imdb="")
+def SIMILARMEDIA(limit,imdb=""):
     #get similar results for both movies and shows
     allItems = SIMILARMOVIES(limit,imdb,True)
     allItems += SIMILARSHOWS(limit,imdb,True)
