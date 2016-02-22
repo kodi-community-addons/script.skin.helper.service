@@ -203,12 +203,12 @@ class ColorPicker(xbmcgui.WindowXMLDialog):
             xbmc.executebuiltin("Skin.SetString(%s.name, %s)" %(try_encode(self.skinString), try_encode(ADDON.getLocalizedString(32013))))
             xbmc.executebuiltin("Skin.SetString(%s, None)" %try_encode(self.skinString))
             xbmc.executebuiltin("Skin.Reset(%s.base)" %try_encode(self.skinString))
-        if self.skinString and colorstring:
+        elif self.skinString and colorstring:
             xbmc.executebuiltin("Skin.SetString(%s.name, %s)" %(try_encode(self.skinString),try_encode(colorname)))
             colorbase = "ff" + colorstring[2:]
             xbmc.executebuiltin("Skin.SetString(%s, %s)" %(try_encode(self.skinString),try_encode(colorstring)))
             xbmc.executebuiltin("Skin.SetString(%s.base, %s)" %(try_encode(self.skinString) ,try_encode(colorbase)))
-        elif self.winProperty and colorstring:
+        elif self.winProperty:
             WINDOW.setProperty(self.winProperty, colorstring)
             WINDOW.setProperty(self.winProperty + ".name", colorname)
     
@@ -231,13 +231,13 @@ class ColorPicker(xbmcgui.WindowXMLDialog):
             # none button
             self.currentWindow.setProperty("colorstring", "")
             self.setColorSetting()
-            self.closeDialog()
-        elif controlID == 3012:
-            #save button clicked
+        
+        if controlID == 3012 or controlID == 3011:
+            #save button clicked or none
             if self.skinString or self.winProperty:
                 self.closeDialog()
             elif self.shortcutProperty:
-                self.result = (colorstring,colorname)
+                self.result = (self.currentWindow.getProperty("colorstring"),self.currentWindow.getProperty("colorname"))
                 self.closeDialog()
           
         elif controlID == 3015:

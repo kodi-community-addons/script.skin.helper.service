@@ -629,7 +629,7 @@ class BackgroundsUpdater(threading.Thread):
                         WINDOW.setProperty("favorite." + str(favourite[0]) + ".content", favourite[3])
                         if len(favourite) >= 5:
                             WINDOW.setProperty("favorite." + str(favourite[0]) + ".type", favourite[4])
-                        self.setImageFromPath("favorite." + str(favourite[0]) + ".image",path)
+                        self.setImageFromPath("favorite." + str(favourite[0]) + ".image",favourite[2])
                 else:
                     logMsg("no cache - Get favourite entries from json.... ")
                     favourites = []
