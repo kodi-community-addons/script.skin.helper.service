@@ -100,13 +100,13 @@ class Main:
                 from resources.lib.InfoDialog import GUI
                 item = None
                 if params.get("MOVIEID"):
-                    item = utils.getJSON('VideoLibrary.GetMovieDetails', '{ "movieid": %s, "properties": [ %s ] }' %(params.get("MOVIEID"),fields_movies))
+                    item = utils.getJSON('VideoLibrary.GetMovieDetails', '{ "movieid": %s, "properties": [ %s ] }' %(params.get("MOVIEID"),utils.fields_movies))
                     content = "movies"
                 elif params.get("EPISODEID"):
-                    item = utils.getJSON('VideoLibrary.GetEpisodeDetails', '{ "episodeid": %s, "properties": [ %s ] }' %(params.get("EPISODEID"),fields_episodes))
+                    item = utils.getJSON('VideoLibrary.GetEpisodeDetails', '{ "episodeid": %s, "properties": [ %s ] }' %(params.get("EPISODEID"),utils.fields_episodes))
                     content = "episodes"
                 elif params.get("TVSHOWID"):
-                    item = utils.getJSON('VideoLibrary.GetTVShowDetails', '{ "tvshowid": %s, "properties": [ %s ] }' %(params.get("TVSHOWID"),fields_tvshows))
+                    item = utils.getJSON('VideoLibrary.GetTVShowDetails', '{ "tvshowid": %s, "properties": [ %s ] }' %(params.get("TVSHOWID"),utils.fields_tvshows))
                     content = "tvshows"
                 if item:
                     liz = utils.prepareListItem(item)

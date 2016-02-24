@@ -268,7 +268,9 @@ def selectView(contenttype="other", currentView=None, displayNone=False):
     if selectedItem != -1:
         id = allViews[selectedItem].getProperty("id")
         label = allViews[selectedItem].getLabel()
-    return (id,label)
+        return (id,label)
+    else:
+        return (None,None)
 
 def waitForSkinShortcutsWindow():
     #wait untill skinshortcuts is active window (because of any animations that may have been applied)
@@ -307,7 +309,7 @@ def multiSelect(item,windowHeader=""):
         if condition and not xbmc.getCondVisibility(condition): continue
         listitem = xbmcgui.ListItem(label=label)
         listitem.setProperty("id",id)
-        if xbmc.getCondVisibility("Skin.HasSetting(%s)" %id) or (not xbmc.getInfoLabel("Skin.String(defaultset_%s)" %id) and default.lower() == "true"):
+        if xbmc.getCondVisibility("Skin.HasSetting(%s)" %id) or (not xbmc.getInfoLabel("Skin.String(defaultset_%s)" %id) and xbmc.getCondVisibility( default )):
             listitem.select(selected=True)
         allOptions.append(listitem)
     #show select dialog

@@ -611,7 +611,7 @@ class BackgroundsUpdater(threading.Thread):
                                     allSmartShortcuts.append("playlist." + str(playlistCount) )
                                     playlists.append( (playlistCount, label, path, playlist, type ))
                                     playlistCount += 1
-                        except: logMsg("Error while processing smart shortcuts for playlist %s  --> "%label, 0)
+                        except: logMsg("Error while processing smart shortcuts for playlist %s  --> This file seems to be corrupted, please remove it from your system to prevent any further errors."%item["file"], 0)
                 self.smartShortcuts["playlists"] = playlists
                         
         #smart shortcuts --> favorites
