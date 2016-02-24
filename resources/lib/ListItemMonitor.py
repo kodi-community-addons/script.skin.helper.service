@@ -1143,6 +1143,10 @@ class ListItemMonitor(threading.Thread):
                 url = 'http://www.omdbapi.com/?i=%s&plot=short&tomatoes=true&r=json' %imdbnumber
                 res = requests.get(url)
                 result = json.loads(res.content.decode('utf-8','replace'))
+
+                for key, value in result.iteritems():
+                    if value == "N/A":
+                        result[key] = ""
                 
                 #get info from TMDB
                 url = 'http://api.themoviedb.org/3/find/%s?external_source=imdb_id&api_key=%s' %(imdbnumber,artutils.tmdb_apiKey)
@@ -1154,8 +1158,7 @@ class ListItemMonitor(threading.Thread):
                         url = 'http://api.themoviedb.org/3/movie/%s?api_key=%s' %(data[0].get("id"),artutils.tmdb_apiKey)
                         response = requests.get(url)
                         data = json.loads(response.content.decode('utf-8','replace'))
-                        
-                        if data.get("budget","") and data.get("budget") > 0:
+                        if data.get("budget") and data.get("budget") > 0:
                             result["budget"] = str(data.get("budget",""))
                             mln = float(data.get("budget")) / 1000000
                             mln = "%.1f" % mln

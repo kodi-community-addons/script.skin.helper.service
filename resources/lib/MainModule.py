@@ -446,3 +446,42 @@ def show_splash(file,duration=5):
     #startup playlist (if any)
     AutoStartPlayList = xbmc.getInfoLabel("$ESCINFO[Skin.String(AutoStartPlayList)]")
     if AutoStartPlayList: xbmc.executebuiltin("PlayMedia(%s)" %AutoStartPlayList)
+
+def checkResourceAddon(setting, addontype):
+    #check for existing resource addons of this type and set first one found...
+    addonFound = False
+    json_query = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "Addons.GetAddons", "params": {"type": "kodi.resource.images", "properties": ["name", "thumbnail", "path"]}, "id": 1}')
+    json_query = unicode(json_query, 'utf-8', errors='ignore')
+    json_response = json.loads(json_query)
+    if json_response.has_key('result') and (json_response['result'] != None) and json_response['result'].has_key('addons'):
+        addons = json_response['result']['addons']
+        for item in addons:
+            if item['addonid'].startswith(addontype):
+                xbmc.executebuiltin("Skin.SetString(%s.path,resource://%s/)" %(setting,item['addonid']))
+                xbmc.executebuiltin("Skin.SetString(%s.name,%s)" %(setting,item['name']))
+                if ".multi" in item['addonid'] or "animated" in item['addonid']:
+                    xbmc.executebuiltin("Skin.SetBool(%s.multi)" %(setting))
+                return True
+    return False
+    
+def checkResourceAddons(addonslist):
+    addonslist = addonslist.split("|")
+    
+    for item in addonslist:
+        setting = item.split(";")[0]
+        addontype = item.split(";")[1]
+        addontypelabel = item.split(";")[2]
+        skinsetting = xbmc.getInfoLabel("Skin.String(%s.path)" %setting).decode("utf-8")
+        if not skinsetting or ( skinsetting and xbmc.getCondVisibility("!System.HasAddon(%s)" %skinsetting.replace("resource://","").replace("/","")) ):
+            #skin setting is empty or filled with non existing addon...
+            if not checkResourceAddon(setting, addontype):
+                ret = xbmcgui.Dialog().yesno(heading="%s missing!"%addontypelabel, 
+                line1="To get the most out of this skin, it is suggested to install a resource addon for %s. \n Please install the resource addon(s) to your preference in the next dialog. You can always change your preference later in the skin settings." %addontypelabel)
+                xbmc.executebuiltin("Skin.Reset(%s.path)" %setting)
+                if ret:                   
+                    xbmc.executebuiltin("ActivateWindow(AddonBrowser, addons://repository.xbmc.org/kodi.resource.images/)")
+                    #wait untill the addon is installed...
+                    count = 0
+                    while checkResourceAddon(setting, addontype)==False and count !=120:
+                        xbmc.sleep(1000)
+                        if xbmc.abortRequested: return
