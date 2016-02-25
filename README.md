@@ -52,6 +52,7 @@ ________________________________________________________________________________
 |Window(Home).Property(SkinHelper.TotalRadioChannels) | total number of Radio channels in the PVR |
 |Window(Home).Property(SkinHelper.TotalMovieSets) | total number of Movie sets in the library |
 |Window(Home).Property(SkinHelper.TotalMoviesInSets) | total number of Movies belonging to moviesets |
+|Window(Home).Property(SkinHelper.ContentHeader) | Shows the real amount of items (excluding any all* entries) and the content type, for example: "23 albums"|
 ________________________________________________________________________________________________________
 #### Video library window properties
 Some additional window properties that can be used in the video library. 

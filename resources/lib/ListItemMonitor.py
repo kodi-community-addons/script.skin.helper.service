@@ -130,7 +130,7 @@ class ListItemMonitor(threading.Thread):
                     self.resetWindowProps()
                     self.folderPathLast = self.folderPath
                     self.lastListItem = ""
-                    WINDOW.setProperty("curListItem",curListItem)
+                    self.setContentHeader()
                 
                 #only perform actions when the listitem has actually changed
                 if curListItem and curListItem != self.lastListItem and self.contentType:
@@ -728,7 +728,36 @@ class ListItemMonitor(threading.Thread):
                             else:
                                 self.monitor.waitForAbort(1)
                                 fanartcount += 1
-
+    
+    def setContentHeader(self):
+        WINDOW.clearProperty("SkinHelper.ContentHeader")
+        itemscount = xbmc.getInfoLabel("Container.NumItems")
+        if itemscount:
+            if xbmc.getInfoLabel("Container.ListItemNoWrap(0).Label").startswith("*") or xbmc.getInfoLabel("Container.ListItemNoWrap(1).Label").startswith("*"):
+                itemscount = int(itemscount) - 1
+            
+            headerprefix = ""
+            if self.contentType == "movies":
+                headerprefix = xbmc.getLocalizedString(36901)
+            elif self.contentType == "tvshows":
+                headerprefix = xbmc.getLocalizedString(36903)
+            elif self.contentType == "seasons":
+                headerprefix = xbmc.getLocalizedString(36905)
+            elif self.contentType == "episodes":
+                headerprefix = xbmc.getLocalizedString(36907)
+            elif self.contentType == "sets":
+                headerprefix = xbmc.getLocalizedString(36911)
+            elif self.contentType == "albums":
+                headerprefix = xbmc.getLocalizedString(36919)
+            elif self.contentType == "songs":
+                headerprefix = xbmc.getLocalizedString(36921)
+            elif self.contentType == "artists":
+                headerprefix = xbmc.getLocalizedString(36917)
+            
+            if headerprefix:        
+                WINDOW.setProperty("SkinHelper.ContentHeader","%s %s" %(itemscount,headerprefix) )
+        
+    
     def setAddonName(self):
         # set addon name as property
         if not xbmc.Player().isPlayingAudio():
