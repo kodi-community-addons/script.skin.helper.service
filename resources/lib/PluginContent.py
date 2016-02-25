@@ -1005,7 +1005,7 @@ def GETCASTMEDIA(limit,name=""):
                     allItems.append(item)
     return allItems
     
-def getCast(movie=None,tvshow=None,movieset=None,episode=None,downloadThumbs=False):
+def getCast(movie=None,tvshow=None,movieset=None,episode=None,downloadThumbs=False,listOnly=False):
     itemId = None
     item = {}
     allCast = []
@@ -1100,6 +1100,7 @@ def getCast(movie=None,tvshow=None,movieset=None,episode=None,downloadThumbs=Fal
         WINDOW.setProperty(cachedataStr,repr(allCast))
     
     #process listing with the results...
+    if listOnly: return allCast
     for cast in allCast:
         if cast.get("name") not in castNames:
             liz = xbmcgui.ListItem(label=cast.get("name"),label2=cast.get("role"),iconImage=cast.get("thumbnail"))
