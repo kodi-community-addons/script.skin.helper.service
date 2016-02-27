@@ -1,11 +1,13 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-#from resources.lib.Utils import *
-import resources.lib.MainModule as mainmodule
-import resources.lib.Utils as utils
 import urlparse
 import xbmc,xbmcgui,xbmcplugin
+try:
+    import resources.lib.MainModule as mainmodule
+    import resources.lib.Utils as utils
+except:
+    xbmcgui.Dialog().ok(heading="Skin Helper Service", line1="Installation is missing files. Please reinstall the skin helper service addon to fix this issue.")
 
 class Main:
     

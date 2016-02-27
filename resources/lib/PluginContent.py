@@ -679,8 +679,8 @@ def buildRecommendedMediaListing(limit,ondeckContent=False,recommendedContent=Tr
         allOndeckItems = []
 
         #netflix in progress
-        if xbmc.getCondVisibility("System.HasAddon(plugin.video.flix2kodi) + Skin.HasSetting(SmartShortcuts.netflix)") and WINDOW.getProperty("netflixready") == "ready":
-            json_result = getJSON('Files.GetDirectory', '{ "directory": "plugin://plugin.video.flix2kodi/?mode=list_videos&thumb&type=both&url=list%3fc4fad20c-1ebf-40ed-847f-5d54e0c5b819_38520724&widget=true", "media": "files", "properties": [ %s ] }' %fields_files)
+        if WINDOW.getProperty("netflix.generic.inprogress.content"):
+            json_result = getJSON('Files.GetDirectory', '{ "directory": "%s", "media": "files", "properties": [ %s ] }' %(WINDOW.getProperty("netflix.generic.inprogress.content").decode("utf-8"),fields_files))
             for item in json_result:
                 lastplayed = item["lastplayed"]
                 if not item["title"] in allTitles:
@@ -881,8 +881,8 @@ def FAVOURITEMEDIA(limit,AllKodiFavsOnly=False):
     
     if not AllKodiFavsOnly:
         #netflix favorites
-        if xbmc.getCondVisibility("System.HasAddon(plugin.video.flix2kodi) + Skin.HasSetting(SmartShortcuts.netflix)") and WINDOW.getProperty("netflixready") == "ready":
-            json_result = getJSON('Files.GetDirectory', '{ "directory": "plugin://plugin.video.flix2kodi/?mode=list_videos&thumb&type=both&url=list%3ff2065b3e-c16f-4d83-9e60-677fff40af13_38532425%26mylist&widget=true", "media": "files", "properties": [ %s ] }' %fields_files)
+        if WINDOW.getProperty("netflix.generic.mylist.content"):
+            json_result = getJSON('Files.GetDirectory', '{ "directory": "%s", "media": "files", "properties": [ %s ] }' %(WINDOW.getProperty("netflix.generic.mylist.content").decode("utf-8"),fields_files))
             for item in json_result:
                 allItems.append(item)
         

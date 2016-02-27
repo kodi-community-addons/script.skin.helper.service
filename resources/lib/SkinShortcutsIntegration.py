@@ -73,8 +73,10 @@ def addSmartShortcutsSublevel(entry):
         contentStrings = ["", ".recent", ".inprogress", ".unwatched", ".recentepisodes", ".inprogressepisodes", ".nextepisodes", ".recommended"]
     elif "plex" in entry:
         contentStrings = ["", ".ondeck", ".recent", ".unwatched"]
+    elif "netflix.generic.suggestions" in entry:
+        contentStrings = ["", ".0", ".1", ".2", ".3", ".4", ".5", ".6", ".7", ".8", ".9", ".10"]
     elif "netflix" in entry:
-        contentStrings = ["", ".mylist", ".recent", ".inprogress", ".suggestions", ".genres"]
+        contentStrings = ["", ".mylist", ".recent", ".inprogress", ".suggestions", ".genres", ".recommended", ".trending"]
         
     for contentString in contentStrings:
         key = entry + contentString

@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import threading
+import threading, thread
 import random
 import io
 import base64
@@ -28,6 +28,7 @@ class BackgroundsUpdater(threading.Thread):
     manualWallsLoaded = list()
     manualWalls = {}
     skinShortcutsActive = False
+    delayedTaskInterval = 1795
     
     def __init__(self, *args):
         self.lastPicturesPath = xbmc.getInfoLabel("skin.string(SkinHelper.PicturesBackgroundPath)").decode("utf-8")
@@ -53,6 +54,7 @@ class BackgroundsUpdater(threading.Thread):
             self.getSkinConfig()
             self.UpdateBackgrounds()
             self.updateWallImages()
+            thread.start_new_thread(self.getNetflixNodes, ())
         except Exception as e:
             logMsg("ERROR in BackgroundsUpdater ! --> " + str(e), 0)
         
@@ -101,10 +103,16 @@ class BackgroundsUpdater(threading.Thread):
                         except Exception as e:
                             logMsg("ERROR in UpdateBackgrounds.updateWallImages ! --> " + str(e), 0)
                             
+                #do some background stuff every 30 minutes
+                if (self.delayedTaskInterval >= 1800):
+                    thread.start_new_thread(self.getNetflixNodes, ())
+                    self.delayedTaskInterval = 0
+                            
             self.monitor.waitForAbort(1)
             self.backgroundsTaskInterval += 1
             self.wallTaskInterval += 1
             self.daynightThemeTaskInterval += 1
+            self.delayedTaskInterval += 1
     
     def getSkinConfig(self):
         #gets the settings for the script as set by the skinner..
@@ -710,176 +718,34 @@ class BackgroundsUpdater(threading.Thread):
         #smart shortcuts --> netflix nodes
         if xbmc.getCondVisibility("System.HasAddon(plugin.video.flix2kodi) + Skin.HasSetting(SmartShortcuts.netflix)"):
             
+            nodes = []
             if self.smartShortcuts.get("netflix") and not refreshSmartshortcuts:
                 logMsg("get netflix entries from cache.... ")
                 nodes = self.smartShortcuts["netflix"]
-                for node in nodes:
-                    key = node[0]
-                    label = node[1]
-                    content = node[2]
-                    path = node[4]
-                    type = node[3]
-                    if len(node) == 6:
-                        imagespath = node[5]
-                    else:
-                        imagespath = content
-                    self.setImageFromPath(key + ".image",imagespath,"special://home/addons/plugin.video.flix2kodi/fanart.jpg")
-                    WINDOW.setProperty(key + ".title", label)
-                    WINDOW.setProperty(key + ".content", content)
-                    WINDOW.setProperty(key + ".path", path)
-                    WINDOW.setProperty(key + ".type", type)
+            else:
+                nodes = self.getNetflixNodes()
+                if nodes:
+                    allSmartShortcuts.append("netflix.generic")
+                    allSmartShortcuts.append("netflix.generic.suggestions")
+                    allSmartShortcuts.append("netflix.movies")
+                    allSmartShortcuts.append("netflix.tvshows")
+                
+            for node in nodes:
+                key = node[0]
+                label = node[1]
+                content = node[2]
+                path = node[4]
+                type = node[3]
+                if len(node) == 6:
+                    imagespath = node[5]
+                else:
+                    imagespath = content
+                self.setImageFromPath(key + ".image",imagespath,"special://home/addons/plugin.video.flix2kodi/fanart.jpg")
+                WINDOW.setProperty(key + ".title", label)
+                WINDOW.setProperty(key + ".content", content)
+                WINDOW.setProperty(key + ".path", path)
+                WINDOW.setProperty(key + ".type", type)
           
-            elif WINDOW.getProperty("netflixready") == "ready":
-                nodes = []
-                netflixAddon = xbmcaddon.Addon('plugin.video.flix2kodi')
-                logMsg("no cache - Generate netflix entries.... ")
-                
-                #generic netflix shortcut
-                key = "netflix.generic"
-                label = netflixAddon.getAddonInfo('name')
-                content = "plugin://plugin.video.flix2kodi/?mode=main&widget=true&url&widget=true"
-                path = "ActivateWindow(Videos,%s,return)" %content.replace("&widget=true","")
-                imagespath = "plugin://plugin.video.flix2kodi/?mode=list_videos&thumb&type=both&url=list%3f%26mylist&widget=true"
-                type = "media"
-                nodes.append( (key, label, content, type, path, imagespath ) )
-                createSmartShortcutSubmenu("netflix.generic","special://home/addons/plugin.video.flix2kodi/icon.png")
-                
-                #generic netflix mylist
-                key = "netflix.generic.mylist"
-                label = netflixAddon.getLocalizedString(30104)
-                content = "plugin://plugin.video.flix2kodi/?mode=list_videos&thumb&type=both&url=list%3ff2065b3e-c16f-4d83-9e60-677fff40af13_38532425%26mylist&widget=true"
-                path = "ActivateWindow(Videos,%s,return)" %content.replace("&widget=true","")
-                type = "movies"
-                nodes.append( (key, label, content, type, path ) )
-                
-                #generic netflix suggestions
-                key = "netflix.generic.suggestions"
-                label = netflixAddon.getLocalizedString(30102)
-                content = "plugin://plugin.video.flix2kodi/?mode=list_videos&thumb&type=both&url=list%3f06ee6b7d-9dfa-4cae-acad-ab6f64b66c3b_38596034&widget=true"
-                path = "ActivateWindow(Videos,%s,return)" %content.replace("&widget=true","")
-                type = "movies"
-                nodes.append( (key, label, content, type, path ) )
-                
-                #generic netflix inprogress
-                key = "netflix.generic.inprogress"
-                label = netflixAddon.getLocalizedString(30151)
-                content = "plugin://plugin.video.flix2kodi/?mode=list_videos&thumb&type=both&url=list%3fc4fad20c-1ebf-40ed-847f-5d54e0c5b819_38520724&widget=true"
-                path = "ActivateWindow(Videos,%s,return)" %content.replace("&widget=true","")
-                type = "movies"
-                nodes.append( (key, label, content, type, path ) )
-                
-                #generic netflix recent
-                key = "netflix.generic.recent"
-                label = netflixAddon.getLocalizedString(30106)
-                content = "plugin://plugin.video.flix2kodi/?mode=list_videos&thumb&type=both&url=list%3f06ee6b7d-9dfa-4cae-acad-ab6f64b66c3b_38596040&widget=true"
-                path = "ActivateWindow(Videos,%s,return)" %content.replace("&widget=true","")
-                type = "movies"
-                nodes.append( (key, label, content, type, path ) )
-
-                #netflix movies
-                key = "netflix.movies"
-                label = netflixAddon.getAddonInfo('name') + " " + netflixAddon.getLocalizedString(30100)
-                content = "plugin://plugin.video.flix2kodi/?mode=main&thumb&type=movie&url&widget=true"
-                path = "ActivateWindow(Videos,%s,return)" %content.replace("&widget=true","")
-                imagespath = "plugin://plugin.video.flix2kodi/?mode=list_videos&thumb&type=movie&url=list%3f%26mylist&widget=true"
-                type = "movies"
-                nodes.append( (key, label, content, type, path, imagespath ) )
-                createSmartShortcutSubmenu("netflix.movies","special://home/addons/plugin.video.flix2kodi/icon.png")
-                
-                #netflix movies mylist
-                key = "netflix.movies.inprogress"
-                label = netflixAddon.getLocalizedString(30100) + " - " + netflixAddon.getLocalizedString(30104)
-                content = "plugin://plugin.video.flix2kodi/?mode=list_videos&thumb&type=movie&url=list%3f%26mylist&widget=true"
-                path = "ActivateWindow(Videos,%s,return)" %content.replace("&widget=true","")
-                type = "movies"
-                nodes.append( (key, label, content, type, path ) )
-                
-                #netflix movies suggestions
-                key = "netflix.movies.suggestions"
-                label = netflixAddon.getLocalizedString(30100) + " - " + netflixAddon.getLocalizedString(30102)
-                content = "plugin://plugin.video.flix2kodi/?mode=list_videos&thumb&type=movie&url=list%3f06ee6b7d-9dfa-4cae-acad-ab6f64b66c3b_38596034&widget=true"
-                path = "ActivateWindow(Videos,%s,return)" %content.replace("&widget=true","")
-                type = "movies"
-                nodes.append( (key, label, content, type, path ) )
-                
-                #netflix movies genres
-                key = "netflix.movies.genres"
-                label = netflixAddon.getLocalizedString(30100) + " - " + netflixAddon.getLocalizedString(30108)
-                content = "plugin://plugin.video.flix2kodi/?mode=list_genres&thumb&type=movie&url&widget=true"
-                path = "ActivateWindow(Videos,%s,return)" %content.replace("&widget=true","")
-                type = "genres"
-                nodes.append( (key, label, content, type, path ) )
-                
-                #netflix movies recent
-                key = "netflix.movies.recent"
-                label = netflixAddon.getLocalizedString(30100) + " - " + netflixAddon.getLocalizedString(30106)
-                content = "plugin://plugin.video.flix2kodi/?mode=list_videos&thumb&type=movie&url=list%3f06ee6b7d-9dfa-4cae-acad-ab6f64b66c3b_38596040&widget=true"
-                path = "ActivateWindow(Videos,%s,return)" %content.replace("&widget=true","")
-                type = "movies"
-                nodes.append( (key, label, content, type, path ) )
-                
-                #netflix tvshows
-                key = "netflix.tvshows"
-                label = netflixAddon.getAddonInfo('name') + " " + netflixAddon.getLocalizedString(30101)
-                content = "plugin://plugin.video.flix2kodi/?mode=main&thumb&type=show&url&widget=true"
-                path = "ActivateWindow(Videos,%s,return)" %content.replace("&widget=true","")
-                imagespath = "plugin://plugin.video.flix2kodi/?mode=list_videos&thumb&type=show&url=list%3ff2065b3e-c16f-4d83-9e60-677fff40af13_38532425%26mylist&widget=true"
-                type = "tvshows"
-                nodes.append( (key, label, content, type, path, imagespath ) )
-                createSmartShortcutSubmenu("netflix.tvshows","special://home/addons/plugin.video.flix2kodi/icon.png")
-                
-                #netflix tvshows mylist
-                key = "netflix.tvshows.inprogress"
-                label = netflixAddon.getLocalizedString(30101) + " - " + netflixAddon.getLocalizedString(30104)
-                content = "plugin://plugin.video.flix2kodi/?mode=list_videos&thumb&type=show&url=list%3ff2065b3e-c16f-4d83-9e60-677fff40af13_38532425%26mylist&widget=true"
-                path = "ActivateWindow(Videos,%s,return)" %content.replace("&widget=true","")
-                type = "tvshows"
-                nodes.append( (key, label, content, type, path ) )
-                
-                #netflix tvshows suggestions
-                key = "netflix.tvshows.suggestions"
-                label = netflixAddon.getLocalizedString(30101) + " - " + netflixAddon.getLocalizedString(30102)
-                content = "plugin://plugin.video.flix2kodi/?mode=list_videos&thumb&type=show&url=list%3f06ee6b7d-9dfa-4cae-acad-ab6f64b66c3b_38596034&widget=true"
-                path = "ActivateWindow(Videos,%s,return)" %content.replace("&widget=true","")
-                type = "tvshows"
-                nodes.append( (key, label, content, type, path ) )
-
-                #netflix tvshows genres
-                key = "netflix.tvshows.genres"
-                label = netflixAddon.getLocalizedString(30101) + " - " + netflixAddon.getLocalizedString(30108)
-                content = "plugin://plugin.video.flix2kodi/?mode=list_genres&thumb&type=show&url&widget=true"
-                path = "ActivateWindow(Videos,%s,return)" %content.replace("&widget=true","")
-                type = "genres"
-                nodes.append( (key, label, content, type, path ) )
-                
-                #netflix tvshows recent
-                key = "netflix.tvshows.recent"
-                label = netflixAddon.getLocalizedString(30101) + " - " + netflixAddon.getLocalizedString(30106)
-                content = "plugin://plugin.video.flix2kodi/?mode=list_videos&thumb&type=show&url=list%3f06ee6b7d-9dfa-4cae-acad-ab6f64b66c3b_38596040&widget=true"
-                path = "ActivateWindow(Videos,%s,return)" %content.replace("&widget=true","")
-                type = "tvshows"
-                nodes.append( (key, label, content, type, path ) )
-                
-                for node in nodes:
-                    key = node[0]
-                    label = node[1]
-                    content = node[2]
-                    path = node[4]
-                    type = node[3]
-                    if len(node) == 6:
-                        imagespath = node[5]
-                    else:
-                        imagespath = content
-                    self.setImageFromPath(key + ".image",imagespath, "special://home/addons/plugin.video.flix2kodi/fanart.jpg")
-                    WINDOW.setProperty(key + ".title", label)
-                    WINDOW.setProperty(key + ".content", content)
-                    WINDOW.setProperty(key + ".path", path)
-                    WINDOW.setProperty(key + ".type", type) 
-                    
-                self.smartShortcuts["netflix"] = nodes
-                allSmartShortcuts.append("netflix.generic")
-                allSmartShortcuts.append("netflix.movies")
-                allSmartShortcuts.append("netflix.tvshows")
                 
         if allSmartShortcuts:
             self.smartShortcuts["allSmartShortcuts"] = allSmartShortcuts
@@ -895,7 +761,191 @@ class BackgroundsUpdater(threading.Thread):
         self.setWallImageFromPath("SkinHelper.AllMusicSongsBackground.Wall","SkinHelper.AllMusicSongsBackground","thumbnail")
         self.setWallImageFromPath("SkinHelper.AllTvShowsBackground.Wall","SkinHelper.AllTvShowsBackground")
         self.setWallImageFromPath("SkinHelper.AllTvShowsBackground.Poster.Wall","SkinHelper.AllTvShowsBackground","poster")
-                
+    
+    def getNetflixNodes(self):
+        #build a listing of netflix nodes...
+        
+        if not xbmc.getCondVisibility("System.HasAddon(plugin.video.flix2kodi) + Skin.HasSetting(SmartShortcuts.netflix)"):
+            return
+        
+        nodes = []
+        netflixAddon = xbmcaddon.Addon('plugin.video.flix2kodi')
+        profilename = netflixAddon.getSetting('profile_name').decode("utf-8")
+        
+        if profilename and netflixAddon.getSetting("username") and netflixAddon.getSetting("authorization_url"):
+            logMsg("Generating netflix entries for profile %s .... "%profilename)
+            #generic netflix shortcut
+            key = "netflix.generic"
+            label = netflixAddon.getAddonInfo('name')
+            content = "plugin://plugin.video.flix2kodi/?mode=main&widget=true&url&widget=true"
+            path = "ActivateWindow(Videos,%s,return)" %content.replace("&widget=true","")
+            imagespath = "plugin://plugin.video.flix2kodi/?mode=list_videos&thumb&type=both&url=list%3f%26mylist&widget=true"
+            type = "media"
+            nodes.append( (key, label, content, type, path, imagespath ) )
+            createSmartShortcutSubmenu("netflix.generic","special://home/addons/plugin.video.flix2kodi/icon.png")
+            
+            #generic netflix mylist
+            key = "netflix.generic.mylist"
+            label = netflixAddon.getLocalizedString(30104)
+            content = "plugin://plugin.video.flix2kodi/?mode=list_videos&thumb&type=both&url=list%3f%26mylist&widget=true"
+            path = "ActivateWindow(Videos,%s,return)" %content.replace("&widget=true","")
+            type = "movies"
+            nodes.append( (key, label, content, type, path ) )
+            
+            #get mylist items...
+            mylist = []
+            media_array = getJSON('Files.GetDirectory','{ "properties": ["title"], "directory": "plugin://plugin.video.flix2kodi/?mode=list_videos&thumb&type=both&url=list%3f%26mylist&widget=true", "media": "files", "limits": {"end":50} }')
+            for item in media_array:
+                mylist.append(item["label"])
+            
+            #get dynamic entries...
+            media_array = getJSON('Files.GetDirectory','{ "properties": ["title"], "directory": "plugin://plugin.video.flix2kodi/?mode=main&type=dynamic&widget=true", "media": "files", "limits": {"end":50} }')
+            if media_array:
+                itemscount = 0
+                suggestionsNodefound = False
+                for item in media_array:
+                    if ("list_viewing_activity" in item["file"]) or ("mode=search" in item["file"]) or ("mylist" in item["file"]):
+                        continue
+                    elif profilename in item["label"] and not suggestionsNodefound: 
+                        #this is the suggestions node!
+                        suggestionsNodefound = True
+                        #generic suggestions node
+                        key = "netflix.generic.suggestions"
+                        content = item["file"] + "&widget=true"
+                        path = "ActivateWindow(Videos,%s,return)" %item["file"]
+                        nodes.append( (key, item["label"], content, "movies", path ) )
+                        #movies suggestions node
+                        key = "netflix.movies.suggestions"
+                        newpath = item["file"].replace("type=both","type=movie")
+                        content = newpath + "&widget=true"
+                        path = "ActivateWindow(Videos,%s,return)" %newpath
+                        nodes.append( (key, item["label"], content, "movies", path ) )
+                        #tvshows suggestions node
+                        key = "netflix.tvshows.suggestions"
+                        newpath = item["file"].replace("type=both","type=show")
+                        content = newpath + "&widget=true"
+                        path = "ActivateWindow(Videos,%s,return)" %newpath
+                        nodes.append( (key, item["label"], content, "tvshows", path ) )
+                    elif profilename in item["label"] and suggestionsNodefound: 
+                        #this is the continue watching node!
+                        #generic inprogress node
+                        key = "netflix.generic.inprogress"
+                        content = item["file"] + "&widget=true"
+                        path = "ActivateWindow(Videos,%s,return)" %item["file"]
+                        nodes.append( (key, item["label"], content, "movies", path ) )
+                        #movies inprogress node
+                        key = "netflix.movies.inprogress"
+                        newpath = item["file"].replace("type=both","type=movie")
+                        content = newpath + "&widget=true"
+                        path = "ActivateWindow(Videos,%s,return)" %newpath
+                        nodes.append( (key, item["label"], content, "movies", path ) )
+                        #tvshows inprogress node
+                        key = "netflix.tvshows.inprogress"
+                        newpath = item["file"].replace("type=both","type=show")
+                        content = newpath + "&widget=true"
+                        path = "ActivateWindow(Videos,%s,return)" %newpath
+                        nodes.append( (key, item["label"], content, "tvshows", path ) )
+                    elif item["label"].lower().endswith("releases"): 
+                        #this is the recent node!
+                        #generic recent node
+                        key = "netflix.generic.recent"
+                        content = item["file"] + "&widget=true"
+                        path = "ActivateWindow(Videos,%s,return)" %item["file"]
+                        nodes.append( (key, item["label"], content, "movies", path ) )
+                        #movies recent node
+                        key = "netflix.movies.recent"
+                        newpath = item["file"].replace("type=both","type=movie")
+                        content = newpath + "&widget=true"
+                        path = "ActivateWindow(Videos,%s,return)" %newpath
+                        nodes.append( (key, item["label"], content, "movies", path ) )
+                        #tvshows recent node
+                        key = "netflix.tvshows.recent"
+                        newpath = item["file"].replace("type=both","type=show")
+                        content = newpath + "&widget=true"
+                        path = "ActivateWindow(Videos,%s,return)" %newpath
+                        nodes.append( (key, item["label"], content, "tvshows", path ) )
+                    elif item["label"] == "Trending": 
+                        #this is the trending node!
+                        key = "netflix.generic.trending"
+                        content = item["file"] + "&widget=true"
+                        path = "ActivateWindow(Videos,%s,return)" %item["file"]
+                        nodes.append( (key, item["label"], content, "movies", path ) )
+                    else:
+                        key = "netflix.generic.suggestions.%s" %itemscount
+                        content = item["file"] + "&widget=true"
+                        path = "ActivateWindow(Videos,%s,return)" %item["file"]
+                        type = "movies"
+                        nodes.append( (key, item["label"], content, type, path ) )
+                        itemscount += 1
+                        
+                    #get recommended node...
+                    for mylist_item in mylist:
+                        if mylist_item in item["label"]:
+                            key = "netflix.generic.recommended"
+                            content = item["file"] + "&widget=true"
+                            path = "ActivateWindow(Videos,%s,return)" %item["file"]
+                            nodes.append( (key, item["label"], content, "movies", path ) )
+
+            #netflix movies
+            key = "netflix.movies"
+            label = netflixAddon.getAddonInfo('name') + " " + netflixAddon.getLocalizedString(30100)
+            content = "plugin://plugin.video.flix2kodi/?mode=main&thumb&type=movie&url&widget=true"
+            path = "ActivateWindow(Videos,%s,return)" %content.replace("&widget=true","")
+            imagespath = "plugin://plugin.video.flix2kodi/?mode=list_videos&thumb&type=movie&url=list%3f%26mylist&widget=true"
+            type = "movies"
+            nodes.append( (key, label, content, type, path, imagespath ) )
+            createSmartShortcutSubmenu("netflix.movies","special://home/addons/plugin.video.flix2kodi/icon.png")
+            
+            #netflix movies mylist
+            key = "netflix.movies.inprogress"
+            label = netflixAddon.getLocalizedString(30100) + " - " + netflixAddon.getLocalizedString(30104)
+            content = "plugin://plugin.video.flix2kodi/?mode=list_videos&thumb&type=movie&url=list%3f%26mylist&widget=true"
+            path = "ActivateWindow(Videos,%s,return)" %content.replace("&widget=true","")
+            type = "movies"
+            nodes.append( (key, label, content, type, path ) )
+                        
+            #netflix movies genres
+            key = "netflix.movies.genres"
+            label = netflixAddon.getLocalizedString(30100) + " - " + netflixAddon.getLocalizedString(30108)
+            content = "plugin://plugin.video.flix2kodi/?mode=list_genres&thumb&type=movie&url&widget=true"
+            path = "ActivateWindow(Videos,%s,return)" %content.replace("&widget=true","")
+            type = "genres"
+            nodes.append( (key, label, content, type, path ) )
+            
+            #netflix tvshows
+            key = "netflix.tvshows"
+            label = netflixAddon.getAddonInfo('name') + " " + netflixAddon.getLocalizedString(30101)
+            content = "plugin://plugin.video.flix2kodi/?mode=main&thumb&type=show&url&widget=true"
+            path = "ActivateWindow(Videos,%s,return)" %content.replace("&widget=true","")
+            imagespath = "plugin://plugin.video.flix2kodi/?mode=list_videos&thumb&type=show&url=list%3f%26mylist&widget=true"
+            type = "tvshows"
+            nodes.append( (key, label, content, type, path, imagespath ) )
+            createSmartShortcutSubmenu("netflix.tvshows","special://home/addons/plugin.video.flix2kodi/icon.png")
+            
+            #netflix tvshows mylist
+            key = "netflix.tvshows.inprogress"
+            label = netflixAddon.getLocalizedString(30101) + " - " + netflixAddon.getLocalizedString(30104)
+            content = "plugin://plugin.video.flix2kodi/?mode=list_videos&thumb&type=show&url=list%3f%26mylist&widget=true"
+            path = "ActivateWindow(Videos,%s,return)" %content.replace("&widget=true","")
+            type = "tvshows"
+            nodes.append( (key, label, content, type, path ) )
+            
+            #netflix tvshows genres
+            key = "netflix.tvshows.genres"
+            label = netflixAddon.getLocalizedString(30101) + " - " + netflixAddon.getLocalizedString(30108)
+            content = "plugin://plugin.video.flix2kodi/?mode=list_genres&thumb&type=show&url&widget=true"
+            path = "ActivateWindow(Videos,%s,return)" %content.replace("&widget=true","")
+            type = "genres"
+            nodes.append( (key, label, content, type, path ) )
+            
+            logMsg("DONE Generating netflix entries --> %s"%repr(nodes))
+            
+        else:
+            logMsg("SKIP Generating netflix entries - addon is not ready!")
+        
+        self.smartShortcuts["netflix"] = nodes
+        return nodes
+        
     def createImageWall(self,images,windowProp,type="fanart"):
         
         if SETTING("maxNumWallImages"):

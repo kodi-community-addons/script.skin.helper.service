@@ -30,7 +30,6 @@ class ListItemMonitor(threading.Thread):
     allStudioLogos = {}
     allStudioLogosColor = {}
     LastCustomStudioImagesPath = ""
-    delayedTaskInterval = 1795
     widgetTaskInterval = 590
     moviesetCache = {}
     extraFanartCache = {}
@@ -216,7 +215,8 @@ class ListItemMonitor(threading.Thread):
                         curListItem = xbmc.getInfoLabel("Container(%s).ListItem.Label" %widgetContainer)
                         if curListItem and curListItem != self.lastListItem:
                             self.resetWindowProps()
-                            self.setDuration(xbmc.getInfoLabel("Container(%s).ListItem.Duration" %widgetContainer))
+                            if xbmc.getCondVisibility("!IsEmpty(Container(%s).ListItem.Duration)" %widgetContainer):
+                                self.setDuration(xbmc.getInfoLabel("Container(%s).ListItem.Duration" %widgetContainer))
                             self.setStudioLogo(xbmc.getInfoLabel("Container(%s).ListItem.Studio" %widgetContainer).decode('utf-8'))
                             self.setDirector(xbmc.getInfoLabel("Container(%s).ListItem.Director" %widgetContainer).decode('utf-8'))
                             self.setGenre(xbmc.getInfoLabel("Container(%s).ListItem.Genre" %widgetContainer).decode('utf-8'))
@@ -240,13 +240,18 @@ class ListItemMonitor(threading.Thread):
                                 self.setPVRThumbs(xbmc.getInfoLabel("Container(%s).ListItem.Title" %widgetContainer).decode('utf-8'),xbmc.getInfoLabel("Container(%s).ListItem.ChannelName" %widgetContainer).decode('utf-8'),xbmc.getInfoLabel("Container(%s).ListItem.Genre" %widgetContainer).decode('utf-8'))
                             #plugins only...
                             if folderpath.startswith("plugin://") and not ("plugin.video.emby" in folderpath or "script.skin.helper.service" in folderpath):
-                                if xbmc.getInfoLabel("Container(%s).ListItem.TvShowTitle" %widgetContainer):
+                                if xbmc.getInfoLabel("Container(%s).ListItem.TvShowTitle" %widgetContainer) or "series" in xbmc.getInfoLabel("Container(%s).ListItem.Genre" %widgetContainer).decode("utf-8").lower():
                                     title = xbmc.getInfoLabel("Container(%s).ListItem.TvShowTitle" %widgetContainer).decode("utf-8")
+                                    if not title: title = xbmc.getInfoLabel("Container(%s).ListItem.Title" %widgetContainer).decode("utf-8")
+                                    contenttype = "tvshows"
+                                elif "series" in xbmc.getInfoLabel("Container(%s).ListItem.Genre" %widgetContainer).decode("utf-8").lower():
+                                    title = xbmc.getInfoLabel("Container(%s).ListItem.TvShowTitle" %widgetContainer).decode("utf-8")
+                                    if not title: title = xbmc.getInfoLabel("Container(%s).ListItem.Title" %widgetContainer).decode("utf-8")
                                     contenttype = "tvshows"
                                 else:
                                     title = xbmc.getInfoLabel("Container(%s).ListItem.Title" %widgetContainer).decode("utf-8")
                                     contenttype = "movies"
-                                if xbmc.getInfoLabel("Container(%s).ListItem.Year" %widgetContainer) or xbmc.getInfoLabel("Container(%s).ListItem.Rating" %widgetContainer):
+                                if title and ( xbmc.getInfoLabel("Container(%s).ListItem.Year" %widgetContainer) or xbmc.getInfoLabel("Container(%s).ListItem.Rating" %widgetContainer) ):
                                     self.setAddonDetails(title,contenttype)
                             #extrafanart
                             if dbtype:
@@ -291,22 +296,12 @@ class ListItemMonitor(threading.Thread):
                 self.monitor.waitForAbort(2)
                 self.delayedTaskInterval += 2
                 self.widgetTaskInterval += 2
-    
-    def checkNetflixReady(self):
-        if xbmc.getCondVisibility("System.HasAddon(plugin.video.flix2kodi)"):
-            #set windowprop if netflix addon has a username filled in to prevent login loop box
-            nfaddon = xbmcaddon.Addon(id='plugin.video.flix2kodi')
-            if nfaddon.getSetting("username") and nfaddon.getSetting("password"):
-                WINDOW.setProperty("netflixready","ready")
-            else:
-                WINDOW.clearProperty("netflixready")
-                        
+                   
     def doBackgroundWork(self):
         try:
             logMsg("Started Background worker...")
             self.getStudioLogos()
             self.genericWindowProps()
-            self.checkNetflixReady()
             self.updatePlexlinks()
             self.checkNotifications()
             self.saveCacheToFile()
@@ -779,7 +774,6 @@ class ListItemMonitor(threading.Thread):
             if headerprefix:        
                 WINDOW.setProperty("SkinHelper.ContentHeader","%s %s" %(itemscount,headerprefix) )
         
-    
     def setAddonName(self):
         # set addon name as property
         if not xbmc.Player().isPlayingAudio():
