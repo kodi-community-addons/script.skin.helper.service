@@ -159,7 +159,7 @@ class ListItemMonitor(threading.Thread):
                                 self.setDirector()
                                 if self.liPath.startswith("plugin://") and not ("plugin.video.emby" in self.liPath or "script.skin.helper.service" in self.liPath):
                                     #plugins only...
-                                    thread.start_new_thread(self.setAddonDetails, (True,))
+                                    thread.start_new_thread(self.setAddonDetails, ("","",True,))
                                     self.setAddonName()
                                 else:
                                     #library only...
@@ -209,7 +209,7 @@ class ListItemMonitor(threading.Thread):
                         logMsg("ERROR in LibraryMonitor HomeWidget ! --> " + str(e), 0)
                 
                 #monitor listitem props when home active
-                elif xbmc.getCondVisibility("Window.IsActive(Home) + !IsEmpty(Window(home).Property(SkinHelper.WidgetContainer))"):
+                elif xbmc.getCondVisibility("!IsEmpty(Window(home).Property(SkinHelper.WidgetContainer))"):
                     try:                
                         #set listitem window props for widget container
                         widgetContainer = WINDOW.getProperty("SkinHelper.WidgetContainer")
@@ -220,6 +220,15 @@ class ListItemMonitor(threading.Thread):
                             self.setStudioLogo(xbmc.getInfoLabel("Container(%s).ListItem.Studio" %widgetContainer).decode('utf-8'))
                             self.setDirector(xbmc.getInfoLabel("Container(%s).ListItem.Director" %widgetContainer).decode('utf-8'))
                             self.setGenre(xbmc.getInfoLabel("Container(%s).ListItem.Genre" %widgetContainer).decode('utf-8'))
+                            dbtype = xbmc.getInfoLabel("Container(%s).ListItem.DBTYPE" %widgetContainer).decode("utf-8")
+                            if not dbtype: dbtype = xbmc.getInfoLabel("Container(%s).ListItem.Property(DBTYPE)" %widgetContainer).decode("utf-8")
+                            filename = xbmc.getInfoLabel("Container(%s).ListItem.FileNameAndPath" %widgetContainer).decode('utf-8')
+                            folderpath = xbmc.getInfoLabel("Container(%s).ListItem.Property(originalpath)" %widgetContainer).decode('utf-8')
+                            if not folderpath:
+                                folderpath = xbmc.getInfoLabel("Container(%s).ListItem.Path" %widgetContainer).decode('utf-8')
+                                if "/" in folderpath: sep = "/"
+                                else: sep = "\\"
+                                if folderpath: folderpath = folderpath.rsplit(sep,1)[0] + sep
                             #music artwork for music widgets...
                             if xbmc.getInfoLabel("Container(%s).ListItem.Artist" %widgetContainer):
                                 artist = xbmc.getInfoLabel("Container(%s).ListItem.Artist" %widgetContainer).decode('utf-8')
@@ -227,8 +236,21 @@ class ListItemMonitor(threading.Thread):
                                 title = xbmc.getInfoLabel("Container(%s).ListItem.Title" %widgetContainer).decode('utf-8')
                                 self.setMusicDetails(artist,album,title)
                             #pvr artwork if pvr widget...
-                            if "pvr://" in xbmc.getInfoLabel("Container(%s).ListItem.FolderPath" %widgetContainer).decode('utf-8'):
+                            if "pvr://" in folderpath:
                                 self.setPVRThumbs(xbmc.getInfoLabel("Container(%s).ListItem.Title" %widgetContainer).decode('utf-8'),xbmc.getInfoLabel("Container(%s).ListItem.ChannelName" %widgetContainer).decode('utf-8'),xbmc.getInfoLabel("Container(%s).ListItem.Genre" %widgetContainer).decode('utf-8'))
+                            #plugins only...
+                            if folderpath.startswith("plugin://") and not ("plugin.video.emby" in folderpath or "script.skin.helper.service" in folderpath):
+                                if xbmc.getInfoLabel("Container(%s).ListItem.TvShowTitle" %widgetContainer):
+                                    title = xbmc.getInfoLabel("Container(%s).ListItem.TvShowTitle" %widgetContainer).decode("utf-8")
+                                    contenttype = "tvshows"
+                                else:
+                                    title = xbmc.getInfoLabel("Container(%s).ListItem.Title" %widgetContainer).decode("utf-8")
+                                    contenttype = "movies"
+                                if xbmc.getInfoLabel("Container(%s).ListItem.Year" %widgetContainer) or xbmc.getInfoLabel("Container(%s).ListItem.Rating" %widgetContainer):
+                                    self.setAddonDetails(title,contenttype)
+                            #extrafanart
+                            if dbtype:
+                                self.checkExtraFanArt(filename=filename,liPath=folderpath,contenttype=dbtype+"s")
                             self.lastListItem = curListItem
                     except Exception as e:
                         logMsg("ERROR in LibraryMonitor HomeWidget ! --> " + str(e), 0)
@@ -1086,19 +1108,24 @@ class ListItemMonitor(threading.Thread):
         else:
             WINDOW.clearProperty("SkinHelper.ForcedView")
         
-    def checkExtraFanArt(self):
+    def checkExtraFanArt(self,filename="",liPath="",contenttype=""):
         
         lastPath = None
         efaPath = None
         efaFound = False
         extraFanArtfiles = []
-        filename = xbmc.getInfoLabel("ListItem.FileNameAndPath").decode("utf-8")
+        if not filename:
+            filename = xbmc.getInfoLabel("ListItem.FileNameAndPath").decode("utf-8")
+        if not liPath:
+            liPath = self.liPath
+        if not contenttype:
+            contenttype = self.contentType
         
         if xbmc.getCondVisibility("Window.IsActive(movieinformation) | !Skin.HasSetting(SkinHelper.EnableExtraFanart)"):
             return
         
-        cachePath = self.liPath
-        if "plugin.video.emby.movies" in self.liPath or "plugin.video.emby.musicvideos" in self.liPath:
+        cachePath = liPath
+        if "plugin.video.emby.movies" in liPath or "plugin.video.emby.musicvideos" in liPath:
             cachePath = filename
         
         #get the item from cache first
@@ -1114,24 +1141,24 @@ class ListItemMonitor(threading.Thread):
                 return
         
         #support for emby addon
-        if "plugin.video.emby" in self.liPath:
+        if "plugin.video.emby" in liPath:
             efaPath = "plugin://plugin.video.emby/extrafanart?path=" + cachePath
             efaFound = True
         #lookup the extrafanart in the media location
-        elif (self.liPath != None and self.liPath != self.liPathLast and (xbmc.getCondVisibility("Container.Content(movies) | Container.Content(seasons) | Container.Content(episodes) | Container.Content(tvshows)")) and not "videodb:" in self.liPath):
+        elif (liPath != None and liPath != self.liPathLast and (contenttype in ["movies","seasons","episodes","tvshows"] ) and not "videodb:" in liPath):
                            
             # do not set extra fanart for virtuals
-            if (("plugin://" in self.liPath) or ("addon://" in self.liPath) or ("sources" in self.liPath) or ("plugin://" in self.folderPath) or ("sources://" in self.folderPath) or ("plugin://" in self.folderPath)):
-                self.extraFanartCache[self.liPath] = "None"
+            if (("plugin://" in liPath) or ("addon://" in liPath) or ("sources" in liPath) or ("sources://" in self.folderPath)):
+                self.extraFanartCache[liPath] = "None"
             else:
                 
-                if "/" in self.liPath: splitchar = "/"
+                if "/" in liPath: splitchar = "/"
                 else: splitchar = "\\"
             
-                if xbmcvfs.exists(self.liPath + "extrafanart"+splitchar):
-                    efaPath = self.liPath + "extrafanart"+splitchar
+                if xbmcvfs.exists(liPath + "extrafanart"+splitchar):
+                    efaPath = liPath + "extrafanart"+splitchar
                 else:
-                    pPath = self.liPath.rpartition(splitchar)[0]
+                    pPath = liPath.rpartition(splitchar)[0]
                     pPath = pPath.rpartition(splitchar)[0]
                     if xbmcvfs.exists(pPath + splitchar + "extrafanart"+splitchar):
                         efaPath = pPath + splitchar + "extrafanart" + splitchar
@@ -1231,10 +1258,10 @@ class ListItemMonitor(threading.Thread):
                 WINDOW.setProperty("SkinHelper.TMDB.status",result.get('status',""))
                 WINDOW.setProperty("SkinHelper.TMDB.popularity",result.get('popularity',""))
     
-    def setAddonDetails(self, multiThreaded=False):
+    def setAddonDetails(self, title="", contenttype="", multiThreaded=False):
         #try to lookup additional artwork and properties for plugin content
-        title = xbmc.getInfoLabel("ListItem.Title").decode("utf8")
-        contenttype = self.contentType
+        if not title: title = xbmc.getInfoLabel("ListItem.Title").decode("utf8")
+        if not contenttype: contenttype = self.contentType
         genre = contenttype
         if contenttype == "seasons" or contenttype == "episodes":
             genre = "tvshows"

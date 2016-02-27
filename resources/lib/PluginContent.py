@@ -547,7 +547,7 @@ def SIMILARMOVIES(limit,imdbid="",unSorted=False):
             for item in json_result:
                 if count == limit: break
                 if not item["title"] in allTitles and not item["title"] == similartitle:
-                    item["extraproperties"] = {"similartitle": similartitle}
+                    item["extraproperties"] = {"similartitle": similartitle, "originalpath": item["file"]}
                     allItems.append((item["rating"],item))
                     allTitles.append(item["title"])
                     count +=1
@@ -577,7 +577,7 @@ def MOVIESFORGENRE(limit,genretitle=""):
         json_result = getJSON('VideoLibrary.GetMovies', '{ "sort": { "order": "descending", "method": "random" }, "filter": {"and": [{"operator":"is", "field":"genre", "value":"%s"}, {"operator":"is", "field":"playcount", "value":"0"}]}, "properties": [ %s ],"limits":{"end":%d} }' %(genretitle,fields_movies,limit))
         for item in json_result:
             if not item["title"] in allTitles:
-                item["extraproperties"] = {"genretitle": genretitle}
+                item["extraproperties"] = {"genretitle": genretitle, "originalpath": item["file"]}
                 allItems.append((item["rating"],item))
                 allTitles.append(item["title"])
 
@@ -611,7 +611,7 @@ def SIMILARSHOWS(limit,imdbid="",unSorted=False):
             json_result = getJSON('VideoLibrary.GetTVShows', '{ "sort": { "order": "descending", "method": "random" }, "filter": {"and": [{"operator":"is", "field":"genre", "value":"%s"}, {"operator":"is", "field":"playcount", "value":"0"}]}, "properties": [ %s ],"limits":{"end":%d} }' %(genre,fields_tvshows,limit))
             for item in json_result:
                 if not item["title"] in allTitles and not item["title"] == similartitle:
-                    item["extraproperties"] = {"similartitle": similartitle, "IsPlayable": "false"}
+                    item["extraproperties"] = {"similartitle": similartitle, "IsPlayable": "false", "originalpath": item["file"]}
                     tvshowpath = "ActivateWindow(Videos,videodb://tvshows/titles/%s/,return)" %str(item["tvshowid"])
                     item["file"]="plugin://script.skin.helper.service?action=LAUNCH&path=" + tvshowpath
                     allItems.append((item["rating"],item))
@@ -655,7 +655,7 @@ def SHOWSFORGENRE(limit,genretitle=""):
         json_result = getJSON('VideoLibrary.GetTVShows', '{ "sort": { "order": "descending", "method": "random" }, "filter": {"and": [{"operator":"is", "field":"genre", "value":"%s"}, {"operator":"is", "field":"playcount", "value":"0"}]}, "properties": [ %s ],"limits":{"end":%d} }' %(genretitle,fields_tvshows,limit))
         for item in json_result:
             if not item["title"] in allTitles:
-                item["extraproperties"] = {"genretitle": genretitle, "IsPlayable": "false"}
+                item["extraproperties"] = {"genretitle": genretitle, "IsPlayable": "false", "originalpath": item["file"]}
                 tvshowpath = "ActivateWindow(Videos,videodb://tvshows/titles/%s/,return)" %str(item["tvshowid"])
                 item["file"]="plugin://script.skin.helper.service?action=LAUNCH&path=" + tvshowpath
                 allItems.append((item["rating"],item))
