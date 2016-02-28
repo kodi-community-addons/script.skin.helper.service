@@ -259,7 +259,12 @@ class ListItemMonitor(threading.Thread):
                             self.lastListItem = curListItem
                     except Exception as e:
                         logMsg("ERROR in LibraryMonitor HomeWidget ! --> " + str(e), 0)
-                   
+                  
+                #reset window props
+                elif not curListItem and self.lastListItem:
+                    self.resetWindowProps()
+                    self.lastListItem = ""
+                    
                 #do some background stuff every 30 minutes
                 if (self.delayedTaskInterval >= 1800):
                     thread.start_new_thread(self.doBackgroundWork, ())
@@ -505,8 +510,8 @@ class ListItemMonitor(threading.Thread):
                
     def resetWindowProps(self):
         #reset all window props provided by the script...
-        WINDOW.setProperty("SkinHelper.ListItemStudioLogo","")
-        WINDOW.setProperty("SkinHelper.ListItemStudioLogoColor","")
+        WINDOW.clearProperty("SkinHelper.ListItemStudioLogo")
+        WINDOW.clearProperty("SkinHelper.ListItemStudioLogoColor")
         WINDOW.clearProperty("SkinHelper.ListItemStudios")
         WINDOW.clearProperty('SkinHelper.ListItemDuration')
         WINDOW.clearProperty('SkinHelper.ListItemDuration.Hours')
@@ -520,8 +525,7 @@ class ListItemMonitor(threading.Thread):
         WINDOW.clearProperty('SkinHelper.ListItemAudioStreams.Count')
         WINDOW.clearProperty('SkinHelper.ListItemGenres')
         WINDOW.clearProperty('SkinHelper.ListItemDirectors')
-        WINDOW.setProperty("SkinHelper.ExtraFanArtPath","")
-        WINDOW.setProperty("SkinHelper.ExtraFanArtPath","")
+        WINDOW.clearProperty("SkinHelper.ExtraFanArtPath")
         WINDOW.clearProperty("SkinHelper.Music.Banner") 
         WINDOW.clearProperty("SkinHelper.Music.ClearLogo") 
         WINDOW.clearProperty("SkinHelper.Music.DiscArt")
@@ -546,7 +550,7 @@ class ListItemMonitor(threading.Thread):
         WINDOW.clearProperty("SkinHelper.PVR.Plot")
         WINDOW.clearProperty("SkinHelper.PVR.Channel")
         WINDOW.clearProperty("SkinHelper.PVR.Genre")
-        WINDOW.setProperty("SkinHelper.PVR.ExtraFanArt","")
+        WINDOW.clearProperty("SkinHelper.PVR.ExtraFanArt")
         WINDOW.clearProperty("SkinHelper.Player.AddonName")
         WINDOW.clearProperty("SkinHelper.ForcedView")
         WINDOW.clearProperty('SkinHelper.MovieSet.Title')
