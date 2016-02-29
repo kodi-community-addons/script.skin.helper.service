@@ -60,6 +60,9 @@ class ListItemMonitor(threading.Thread):
         playerFile = ""
         lastPlayerItem = ""
         playerItem = ""
+        widgetContainer = ""
+        curListItemWidget = ""
+        lastListItemWidget = ""
 
         while (self.exit != True):
         
@@ -113,8 +116,9 @@ class ListItemMonitor(threading.Thread):
                     self.liPath = xbmc.getInfoLabel("ListItem.Path").decode('utf-8')
                     self.liLabel = xbmc.getInfoLabel("ListItem.Label").decode('utf-8')
                     self.folderPath = xbmc.getInfoLabel("Container.FolderPath").decode('utf-8')
+                    widgetContainer = WINDOW.getProperty("SkinHelper.WidgetContainer")
                     if not self.folderPath and self.liPath.startswith("pvr://guide"): self.folderPath = "pvr://guide"
-                except Exception as e: logMsg(str(e))
+                except Exception as e: logMsg(str(e),0)
                 curListItem = self.liPath + self.liLabel
                 
                 #perform actions if the container path has changed
@@ -208,63 +212,70 @@ class ListItemMonitor(threading.Thread):
                         logMsg("ERROR in LibraryMonitor HomeWidget ! --> " + str(e), 0)
                 
                 #monitor listitem props when home active
-                elif xbmc.getCondVisibility("!IsEmpty(Window(home).Property(SkinHelper.WidgetContainer))"):
+                elif widgetContainer:
                     try:                
-                        #set listitem window props for widget container
-                        widgetContainer = WINDOW.getProperty("SkinHelper.WidgetContainer")
-                        curListItem = xbmc.getInfoLabel("Container(%s).ListItem.Label" %widgetContainer)
-                        if curListItem and curListItem != self.lastListItem:
-                            self.resetWindowProps()
-                            if xbmc.getCondVisibility("!IsEmpty(Container(%s).ListItem.Duration)" %widgetContainer):
-                                self.setDuration(xbmc.getInfoLabel("Container(%s).ListItem.Duration" %widgetContainer))
-                            self.setStudioLogo(xbmc.getInfoLabel("Container(%s).ListItem.Studio" %widgetContainer).decode('utf-8'))
-                            self.setDirector(xbmc.getInfoLabel("Container(%s).ListItem.Director" %widgetContainer).decode('utf-8'))
-                            self.setGenre(xbmc.getInfoLabel("Container(%s).ListItem.Genre" %widgetContainer).decode('utf-8'))
-                            dbtype = xbmc.getInfoLabel("Container(%s).ListItem.DBTYPE" %widgetContainer).decode("utf-8")
-                            if not dbtype: dbtype = xbmc.getInfoLabel("Container(%s).ListItem.Property(DBTYPE)" %widgetContainer).decode("utf-8")
-                            filename = xbmc.getInfoLabel("Container(%s).ListItem.FileNameAndPath" %widgetContainer).decode('utf-8')
-                            folderpath = xbmc.getInfoLabel("Container(%s).ListItem.Property(originalpath)" %widgetContainer).decode('utf-8')
-                            if not folderpath:
-                                folderpath = xbmc.getInfoLabel("Container(%s).ListItem.Path" %widgetContainer).decode('utf-8')
-                                if "/" in folderpath: sep = "/"
-                                else: sep = "\\"
-                                if folderpath: folderpath = folderpath.rsplit(sep,1)[0] + sep
-                            #music artwork for music widgets...
-                            if xbmc.getInfoLabel("Container(%s).ListItem.Artist" %widgetContainer):
-                                artist = xbmc.getInfoLabel("Container(%s).ListItem.Artist" %widgetContainer).decode('utf-8')
-                                album = xbmc.getInfoLabel("Container(%s).ListItem.Album" %widgetContainer).decode('utf-8')
-                                title = xbmc.getInfoLabel("Container(%s).ListItem.Title" %widgetContainer).decode('utf-8')
-                                self.setMusicDetails(artist,album,title)
-                            #pvr artwork if pvr widget...
-                            if "pvr://" in folderpath:
-                                self.setPVRThumbs(xbmc.getInfoLabel("Container(%s).ListItem.Title" %widgetContainer).decode('utf-8'),xbmc.getInfoLabel("Container(%s).ListItem.ChannelName" %widgetContainer).decode('utf-8'),xbmc.getInfoLabel("Container(%s).ListItem.Genre" %widgetContainer).decode('utf-8'))
-                            #plugins only...
-                            if folderpath.startswith("plugin://") and not ("plugin.video.emby" in folderpath or "script.skin.helper.service" in folderpath):
-                                if xbmc.getInfoLabel("Container(%s).ListItem.TvShowTitle" %widgetContainer) or "series" in xbmc.getInfoLabel("Container(%s).ListItem.Genre" %widgetContainer).decode("utf-8").lower():
-                                    title = xbmc.getInfoLabel("Container(%s).ListItem.TvShowTitle" %widgetContainer).decode("utf-8")
-                                    if not title: title = xbmc.getInfoLabel("Container(%s).ListItem.Title" %widgetContainer).decode("utf-8")
-                                    contenttype = "tvshows"
-                                elif "series" in xbmc.getInfoLabel("Container(%s).ListItem.Genre" %widgetContainer).decode("utf-8").lower():
-                                    title = xbmc.getInfoLabel("Container(%s).ListItem.TvShowTitle" %widgetContainer).decode("utf-8")
-                                    if not title: title = xbmc.getInfoLabel("Container(%s).ListItem.Title" %widgetContainer).decode("utf-8")
-                                    contenttype = "tvshows"
-                                else:
-                                    title = xbmc.getInfoLabel("Container(%s).ListItem.Title" %widgetContainer).decode("utf-8")
-                                    contenttype = "movies"
-                                if title and ( xbmc.getInfoLabel("Container(%s).ListItem.Year" %widgetContainer) or xbmc.getInfoLabel("Container(%s).ListItem.Rating" %widgetContainer) ):
-                                    self.setAddonDetails(title,contenttype)
-                            #extrafanart
-                            if dbtype:
-                                self.checkExtraFanArt(filename=filename,liPath=folderpath,contenttype=dbtype+"s")
-                            self.lastListItem = curListItem
+                        
+                        #make sure that widgetcontainer is actually visible
+                        if widgetContainer and xbmc.getCondVisibility("!Control.HasFocus(%s)" %widgetContainer):
+                            widgetContainer = ""
+                            if lastListItemWidget:
+                                self.resetWindowProps()
+                                curListItemWidget = ""
+                                lastListItemWidget = ""
+                        else:
+                            #set listitem window props for widget container
+                            curWidgetLabel = xbmc.getInfoLabel("Container(%s).ListItem.Label" %widgetContainer).decode("utf-8")
+                            curListItemWidget = xbmc.getInfoLabel("System.CurrentControl").decode("utf-8") + widgetContainer + curWidgetLabel
+                            if (curWidgetLabel and curListItemWidget != lastListItemWidget) or (lastListItemWidget and not curWidgetLabel):
+                                self.resetWindowProps()
+                                lastListItemWidget = curListItemWidget
+                                if widgetContainer and curWidgetLabel:
+                                    if xbmc.getCondVisibility("!IsEmpty(Container(%s).ListItem.Duration)" %widgetContainer):
+                                        self.setDuration(xbmc.getInfoLabel("Container(%s).ListItem.Duration" %widgetContainer))
+                                    self.setStudioLogo(xbmc.getInfoLabel("Container(%s).ListItem.Studio" %widgetContainer).decode('utf-8'))
+                                    self.setDirector(xbmc.getInfoLabel("Container(%s).ListItem.Director" %widgetContainer).decode('utf-8'))
+                                    self.setGenre(xbmc.getInfoLabel("Container(%s).ListItem.Genre" %widgetContainer).decode('utf-8'))
+                                    dbtype = xbmc.getInfoLabel("Container(%s).ListItem.DBTYPE" %widgetContainer).decode("utf-8")
+                                    if not dbtype: dbtype = xbmc.getInfoLabel("Container(%s).ListItem.Property(DBTYPE)" %widgetContainer).decode("utf-8")
+                                    filename = xbmc.getInfoLabel("Container(%s).ListItem.FileNameAndPath" %widgetContainer).decode('utf-8')
+                                    folderpath = xbmc.getInfoLabel("Container(%s).ListItem.Property(originalpath)" %widgetContainer).decode('utf-8')
+                                    if not folderpath:
+                                        folderpath = xbmc.getInfoLabel("Container(%s).ListItem.Path" %widgetContainer).decode('utf-8')
+                                        if "/" in folderpath: sep = "/"
+                                        else: sep = "\\"
+                                        if folderpath: folderpath = folderpath.rsplit(sep,1)[0] + sep
+                                    #music artwork for music widgets...
+                                    if xbmc.getInfoLabel("Container(%s).ListItem.Artist" %widgetContainer):
+                                        artist = xbmc.getInfoLabel("Container(%s).ListItem.Artist" %widgetContainer).decode('utf-8')
+                                        album = xbmc.getInfoLabel("Container(%s).ListItem.Album" %widgetContainer).decode('utf-8')
+                                        title = xbmc.getInfoLabel("Container(%s).ListItem.Title" %widgetContainer).decode('utf-8')
+                                        self.setMusicDetails(artist,album,title)
+                                    #pvr artwork if pvr widget...
+                                    if "pvr://" in folderpath:
+                                        self.setPVRThumbs(xbmc.getInfoLabel("Container(%s).ListItem.Title" %widgetContainer).decode('utf-8'),xbmc.getInfoLabel("Container(%s).ListItem.ChannelName" %widgetContainer).decode('utf-8'),xbmc.getInfoLabel("Container(%s).ListItem.Genre" %widgetContainer).decode('utf-8'))
+                                    #plugins only...
+                                    if folderpath.startswith("plugin://") and not ("plugin.video.emby" in folderpath or "script.skin.helper.service" in folderpath):
+                                        if xbmc.getInfoLabel("Container(%s).ListItem.TvShowTitle" %widgetContainer) or "series" in xbmc.getInfoLabel("Container(%s).ListItem.Genre" %widgetContainer).decode("utf-8").lower():
+                                            title = xbmc.getInfoLabel("Container(%s).ListItem.TvShowTitle" %widgetContainer).decode("utf-8")
+                                            if not title: title = xbmc.getInfoLabel("Container(%s).ListItem.Title" %widgetContainer).decode("utf-8")
+                                            contenttype = "tvshows"
+                                        elif "series" in xbmc.getInfoLabel("Container(%s).ListItem.Genre" %widgetContainer).decode("utf-8").lower():
+                                            title = xbmc.getInfoLabel("Container(%s).ListItem.TvShowTitle" %widgetContainer).decode("utf-8")
+                                            if not title: title = xbmc.getInfoLabel("Container(%s).ListItem.Title" %widgetContainer).decode("utf-8")
+                                            contenttype = "tvshows"
+                                        else:
+                                            title = xbmc.getInfoLabel("Container(%s).ListItem.Title" %widgetContainer).decode("utf-8")
+                                            contenttype = "movies"
+                                        if title and ( xbmc.getInfoLabel("Container(%s).ListItem.Year" %widgetContainer) or xbmc.getInfoLabel("Container(%s).ListItem.Rating" %widgetContainer) ):
+                                            self.setAddonDetails(title,contenttype)
+                                    #extrafanart
+                                    if dbtype:
+                                        self.checkExtraFanArt(filename=filename,liPath=folderpath,contenttype=dbtype+"s")
                     except Exception as e:
                         logMsg("ERROR in LibraryMonitor HomeWidget ! --> " + str(e), 0)
-                  
-                #reset window props
-                elif not curListItem and self.lastListItem:
-                    self.resetWindowProps()
-                    self.lastListItem = ""
-                    
+                
+                #WINDOW.setProperty("SkinHelper.debug","%s - %s - %s" %(curListItemWidget,lastListItemWidget,widgetContainer))
+                
                 #do some background stuff every 30 minutes
                 if (self.delayedTaskInterval >= 1800):
                     thread.start_new_thread(self.doBackgroundWork, ())
