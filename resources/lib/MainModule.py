@@ -1,5 +1,7 @@
 from Utils import *
-     
+import Dialogs as dialogs
+
+
 def musicSearch():
     xbmc.executebuiltin( "ActivateWindow(MusicLibrary)" )
     xbmc.executebuiltin( "SendClick(8)" )
@@ -44,8 +46,6 @@ def selectOverlayTexture():
         xbmc.executebuiltin("Skin.Reset(CustomBackgroundOverlayTexture)")
 
 def selectBusyTexture():
-    
-    import Dialogs as dialogs
     spinnersList = []
     
     currentSpinnerTexture = xbmc.getInfoLabel("Skin.String(SkinHelper.SpinnerTexture)")
@@ -110,8 +110,6 @@ def selectBusyTexture():
         xbmc.executebuiltin("Skin.SetString(SkinHelper.SpinnerTexturePath,%s)" % spinnersList[selectedItem].getProperty("icon"))
                 
 def enableViews():
-    import Dialogs as dialogs
-    
     allViews = []   
     views_file = xbmc.translatePath( 'special://skin/extras/views.xml' ).decode("utf-8")
     if xbmcvfs.exists( views_file ):
@@ -119,9 +117,10 @@ def enableViews():
         listing = doc.documentElement.getElementsByTagName( 'view' )
         for count, view in enumerate(listing):
             id = view.attributes[ 'value' ].nodeValue
-            label = xbmc.getLocalizedString(int(view.attributes[ 'languageid' ].nodeValue)) + " (" + str(id) + ")"
+            label = xbmc.getLocalizedString(int(view.attributes[ 'languageid' ].nodeValue))
+            desc = label + " (" + str(id) + ")"
             type = view.attributes[ 'type' ].nodeValue
-            listitem = xbmcgui.ListItem(label=label)
+            listitem = xbmcgui.ListItem(label=label,label2=desc)
             listitem.setProperty("id",id)
             if not xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.View.Disabled.%s)" %id):
                 listitem.select(selected=True)
@@ -156,9 +155,6 @@ def setForcedView(contenttype):
     
 def setView():
     #sets the selected viewmode for the container
-    import Dialogs as dialogs
-    
-    #get current content type
     contenttype = getCurrentContentType()
     if not contenttype: contenttype = "files"
         
@@ -184,7 +180,6 @@ def setView():
     
 def searchYouTube(title,windowHeader="",autoplay="",windowed=""):
     xbmc.executebuiltin( "ActivateWindow(busydialog)" )
-    import Dialogs as dialogs
     libPath = "plugin://plugin.video.youtube/kodion/search/query/?q=" + title
     media_array = None
     allResults = []
@@ -229,7 +224,6 @@ def searchYouTube(title,windowHeader="",autoplay="",windowed=""):
         xbmc.executebuiltin('PlayMedia("%s")' %path)
             
 def selectView(contenttype="other", currentView=None, displayNone=False):
-    import Dialogs as dialogs
     currentViewSelectId = None
     id = None
     label = ""
@@ -245,7 +239,7 @@ def selectView(contenttype="other", currentView=None, displayNone=False):
         listing = doc.documentElement.getElementsByTagName( 'view' )
         itemcount = 0
         for count, view in enumerate(listing):
-            label = xbmc.getLocalizedString(int(view.attributes[ 'languageid' ].nodeValue)).encode("utf-8").decode("utf-8")
+            label = xbmc.getLocalizedString(int(view.attributes[ 'languageid' ].nodeValue)).decode("utf-8")
             id = view.attributes[ 'value' ].nodeValue
             desc = label + " (" + str(id) + ")"
             type = view.attributes[ 'type' ].nodeValue.lower().split(",")
@@ -298,7 +292,6 @@ def setSkinShortCutsProperty(setting="",windowHeader="",propertyName=""):
             xbmc.executebuiltin("SendClick(404)")
 
 def multiSelect(item,windowHeader=""):
-    import Dialogs as dialogs
     allOptions = []
     options = item.getElementsByTagName( 'option' )
     for option in options:
@@ -333,7 +326,6 @@ def multiSelect(item,windowHeader=""):
     del w                        
                               
 def setSkinSetting(setting="", windowHeader="", sublevel="", valueOnly=""):
-    import Dialogs as dialogs
     curValue = xbmc.getInfoLabel("Skin.String(%s)" %setting).decode("utf-8")
     if valueOnly: curValue = valueOnly
     curValueLabel = xbmc.getInfoLabel("Skin.String(%s.label)" %setting).decode("utf-8")
@@ -468,7 +460,6 @@ def checkResourceAddon(setting, addontype):
     
 def checkResourceAddons(addonslist):
     addonslist = addonslist.split("|")
-    
     for item in addonslist:
         setting = item.split(";")[0]
         addontype = item.split(";")[1]
