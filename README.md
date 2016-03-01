@@ -186,7 +186,9 @@ The artwork is detected in the music paths automatically. Also in the addon sett
 | Window(Home).Property(SkinHelper.Music.ExtraFanArt) | Will return the ExtraFanArt path (if exists) for the current selected item in the list, to be used in a multiimage control. |
 | Window(Home).Property(SkinHelper.Music.Info) | Returns the album's description or if empty the artist info. Can be used at both album- and songlevel.  |
 | Window(Home).Property(SkinHelper.Music.TrackList) | Returns all tracks (in the library) for the selected album or artist, separated by [CR] in the format tracknumber - title  |
+| Window(Home).Property(SkinHelper.Music.TrackList.Formatted) | Same as Tracklist, but prefixed with a • character|
 | Window(Home).Property(SkinHelper.Music.Albums) | Returns all albums (in the library) for the selected artist, separated by [CR] |
+| Window(Home).Property(SkinHelper.Music.Albums.Formatted) | Same as Albums, but prefixed with a • character|
 | Window(Home).Property(SkinHelper.Music.SongCount) | Returns the number of songs for the selected artist or album |
 | Window(Home).Property(SkinHelper.Music.AlbumCount) | Returns the number of albums for the selected artist |
 

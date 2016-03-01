@@ -961,6 +961,9 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
             
             #make sure that our results are strings
             albumartwork["tracklist"] = "[CR]".join(tracklist)
+            albumartwork["tracklist.formatted"] = ""
+            for trackitem in tracklist:
+                albumartwork["tracklist.formatted"] += "• %s[CR]" %trackitem
             albumartwork["albumcount"] = "1"
             albumartwork["songcount"] = "%s"%songcount
    
@@ -1013,6 +1016,12 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
         
         #make sure that our results are strings
         artistartwork["albums"] = "[CR]".join(albums)
+        artistartwork["albums.formatted"] = ""
+        for albumitem in albums:
+            artistartwork["albums.formatted"] += "• %s[CR]" %albumitem
+        artistartwork["tracklist.formatted"] = ""
+        for trackitem in tracklist:
+            artistartwork["tracklist.formatted"] += "• %s[CR]" %trackitem
         artistartwork["tracklist"] = "[CR]".join(tracklist)
         artistartwork["albumcount"] = "%s"%albumcount
         artistartwork["songcount"] = "%s"%songcount

@@ -14,7 +14,7 @@ class Main:
     
     lastSkin = ""
 
-    def checkSkinVersion():
+    def checkSkinVersion(self):
         try:
             skin = xbmc.getSkinDir()
             skinLabel = xbmcaddon.Addon(id=skin).getAddonInfo('name').decode("utf-8")
