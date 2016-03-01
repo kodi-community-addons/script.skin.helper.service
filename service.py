@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import resources.lib.Utils as utils
+import resources.lib.MainModule as mainmodule
 from resources.lib.BackgroundsUpdater import BackgroundsUpdater
 from resources.lib.ListItemMonitor import ListItemMonitor
 from resources.lib.KodiMonitor import Kodi_Monitor
@@ -29,7 +30,7 @@ class Main:
             #set skin info
             currentSkin = xbmc.getSkinDir()
             if lastSkin != currentSkin:
-                utils.setSkinVersion()
+                mainmodule.setSkinVersion()
                 lastSkin = currentSkin
             
             KodiMonitor.waitForAbort(10)

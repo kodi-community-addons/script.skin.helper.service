@@ -64,6 +64,11 @@ class Main:
                 windowHeader = params.get("HEADER","")
                 mainmodule.setSkinSetting(setting,windowHeader)
                 
+            elif action == "SETSKINCONSTANT":
+                setting = params.get("SETTING","")
+                windowHeader = params.get("HEADER","")
+                mainmodule.setSkinConstant(setting,windowHeader)
+                
             elif action == "SETSKINSHORTCUTSPROPERTY":
                 setting = params.get("SETTING","")
                 windowHeader = params.get("HEADER","")
@@ -202,7 +207,6 @@ class Main:
                         else:
                             xbmcgui.Dialog().ok(heading=ADDON.getLocalizedString(32089), line1=ADDON.getLocalizedString(32092))
                     
-            
             elif action == "BACKUP":
                 import resources.lib.BackupRestore as backup
                 filter = params.get("FILTER","")
@@ -219,7 +223,7 @@ class Main:
                 import resources.lib.BackupRestore as backup
                 backup.reset()
                 xbmc.Monitor().waitForAbort(2)
-                utils.setSkinVersion()
+                mainmodule.setSkinVersion()
             
             elif action == "DIALOGOK":
                 headerMsg = params.get("HEADER")
