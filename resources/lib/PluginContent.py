@@ -1067,8 +1067,11 @@ def getCast(movie=None,tvshow=None,movieset=None,episode=None,downloadThumbs=Fal
                 json_result = getJSON('VideoLibrary.GetMovieSetDetails', '{ "setid": %d, "properties": [ "title" ] }' %itemId)
                 if json_result.has_key("movies"): moviesetmovies = json_result['movies']
             elif not itemId:
-                json_result = getJSON('VideoLibrary.GetMovieSets', '{ "filter": {"operator":"is", "field":"title", "value":"%s"}, "properties": [ "title" ] }' %movieset.encode("utf-8"))
-                if json_result: moviesetmovies = json_result[0]['movies']
+                json_result = getJSON('VideoLibrary.GetMovieSets', '{ "properties": [ "title" ] }' %movieset.encode("utf-8"))
+                for result in json_result:
+                    if result.get("title") == movieset:
+                        moviesetmovies = result['movies']
+                        break
             if moviesetmovies:
                 for setmovie in moviesetmovies:
                     json_result = getJSON('VideoLibrary.GetMovieDetails', '{ "movieid": %d, "properties": [ "title", "cast" ] }' %setmovie["movieid"])
