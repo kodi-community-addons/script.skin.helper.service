@@ -22,12 +22,12 @@ class Main:
             if self.lastSkin != skinLabel+skinVersion:
                 #auto correct skin settings
                 self.lastSkin = skinLabel+skinVersion
-                WINDOW.setProperty("SkinHelper.skinTitle",skinLabel + " - " + xbmc.getLocalizedString(19114) + ": " + skinVersion)
-                WINDOW.setProperty("SkinHelper.skinVersion",xbmc.getLocalizedString(19114) + ": " + skinVersion)
-                WINDOW.setProperty("SkinHelper.Version",ADDON_VERSION.replace(".",""))
-                correctSkinSettings()
+                utils.WINDOW.setProperty("SkinHelper.skinTitle",skinLabel + " - " + xbmc.getLocalizedString(19114) + ": " + skinVersion)
+                utils.WINDOW.setProperty("SkinHelper.skinVersion",xbmc.getLocalizedString(19114) + ": " + skinVersion)
+                utils.WINDOW.setProperty("SkinHelper.Version",utils.ADDON_VERSION.replace(".",""))
+                mainmodule.correctSkinSettings()
         except Exception as e:
-            logMsg("Error in setSkinVersion --> " + str(e), 0)
+            utils.logMsg("Error in setSkinVersion --> " + str(e), 0)
     
     def __init__(self):
         

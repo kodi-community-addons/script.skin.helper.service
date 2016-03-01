@@ -953,17 +953,17 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
                 for song in json_response2:
                     logMsg("getMusicArtwork found song for album --> " + repr(song))
                     if not path: path = song["file"]
-                    if song.get("track"): tracklist.append("%s - %s" %(song["track"], song["title"]))
+                    if song.get("track"): tracklist.append(u"%s - %s" %(song["track"], song["title"]))
                     else: tracklist.append(song["title"])
                     songcount += 1
             
             if not albumartwork.get("artistname"): albumartwork["artistname"] = artistName
             
             #make sure that our results are strings
-            albumartwork["tracklist"] = "[CR]".join(tracklist)
+            albumartwork["tracklist"] = u"[CR]".join(tracklist)
             albumartwork["tracklist.formatted"] = ""
             for trackitem in tracklist:
-                albumartwork["tracklist.formatted"] += "• %s[CR]" %trackitem
+                albumartwork["tracklist.formatted"] += u"• %s[CR]" %trackitem
             albumartwork["albumcount"] = "1"
             albumartwork["songcount"] = "%s"%songcount
    
@@ -1015,14 +1015,14 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
                     albums.append(song["album"])
         
         #make sure that our results are strings
-        artistartwork["albums"] = "[CR]".join(albums)
+        artistartwork["albums"] = u"[CR]".join(albums)
         artistartwork["albums.formatted"] = ""
         for albumitem in albums:
-            artistartwork["albums.formatted"] += "• %s[CR]" %albumitem
+            artistartwork["albums.formatted"] += u"• %s[CR]" %albumitem
         artistartwork["tracklist.formatted"] = ""
         for trackitem in tracklist:
-            artistartwork["tracklist.formatted"] += "• %s[CR]" %trackitem
-        artistartwork["tracklist"] = "[CR]".join(tracklist)
+            artistartwork["tracklist.formatted"] += u"• %s[CR]" %trackitem
+        artistartwork["tracklist"] = u"[CR]".join(tracklist)
         artistartwork["albumcount"] = "%s"%albumcount
         artistartwork["songcount"] = "%s"%songcount
         if not albumartwork.get("artistname"): albumartwork["artistname"] = artistName
