@@ -7,10 +7,27 @@ from resources.lib.BackgroundsUpdater import BackgroundsUpdater
 from resources.lib.ListItemMonitor import ListItemMonitor
 from resources.lib.KodiMonitor import Kodi_Monitor
 from resources.lib.WebService import WebService
-import xbmc
+import xbmc, xbmcaddon
 
 
 class Main:
+    
+    lastSkin = ""
+
+    def checkSkinVersion():
+        try:
+            skin = xbmc.getSkinDir()
+            skinLabel = xbmcaddon.Addon(id=skin).getAddonInfo('name').decode("utf-8")
+            skinVersion = xbmcaddon.Addon(id=skin).getAddonInfo('version').decode("utf-8")
+            if self.lastSkin != skinLabel+skinVersion:
+                #auto correct skin settings
+                self.lastSkin = skinLabel+skinVersion
+                WINDOW.setProperty("SkinHelper.skinTitle",skinLabel + " - " + xbmc.getLocalizedString(19114) + ": " + skinVersion)
+                WINDOW.setProperty("SkinHelper.skinVersion",xbmc.getLocalizedString(19114) + ": " + skinVersion)
+                WINDOW.setProperty("SkinHelper.Version",ADDON_VERSION.replace(".",""))
+                correctSkinSettings()
+        except Exception as e:
+            logMsg("Error in setSkinVersion --> " + str(e), 0)
     
     def __init__(self):
         
@@ -27,12 +44,7 @@ class Main:
         
         while not KodiMonitor.abortRequested():
             
-            #set skin info
-            currentSkin = xbmc.getSkinDir()
-            if lastSkin != currentSkin:
-                mainmodule.setSkinVersion()
-                lastSkin = currentSkin
-            
+            self.checkSkinVersion()
             KodiMonitor.waitForAbort(10)
         else:
             # Abort was requested while waiting. We should exit

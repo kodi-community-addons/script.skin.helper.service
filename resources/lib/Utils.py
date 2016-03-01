@@ -20,11 +20,11 @@ except:
     import json
 
 ADDON = xbmcaddon.Addon()
-ADDON_ID = ADDON.getAddonInfo('id')
-ADDON_ICON = ADDON.getAddonInfo('icon')
-ADDON_NAME = ADDON.getAddonInfo('name')
+ADDON_ID = ADDON.getAddonInfo('id').decode("utf-8")
+ADDON_ICON = ADDON.getAddonInfo('icon').decode("utf-8")
+ADDON_NAME = ADDON.getAddonInfo('name').decode("utf-8")
 ADDON_PATH = ADDON.getAddonInfo('path').decode("utf-8")
-ADDON_VERSION = ADDON.getAddonInfo('version')
+ADDON_VERSION = ADDON.getAddonInfo('version').decode("utf-8")
 ADDON_DATA_PATH = xbmc.translatePath("special://profile/addon_data/%s" % ADDON_ID).decode("utf-8")
 KODI_VERSION  = int(xbmc.getInfoLabel( "System.BuildVersion" ).split(".")[0])
 WINDOW = xbmcgui.Window(10000)

@@ -557,20 +557,7 @@ def correctSkinSettings():
     if skinconstants:
         print skinconstants
         updateSkinConstants(skinconstants)
-        
-def setSkinVersion():
-    try:
-        skin = xbmc.getSkinDir()
-        skinLabel = xbmcaddon.Addon(id=skin).getAddonInfo('name')
-        skinVersion = xbmcaddon.Addon(id=skin).getAddonInfo('version')
-        WINDOW.setProperty("SkinHelper.skinTitle",skinLabel + " - " + xbmc.getLocalizedString(19114) + ": " + skinVersion)
-        WINDOW.setProperty("SkinHelper.skinVersion",xbmc.getLocalizedString(19114) + ": " + skinVersion)
-        WINDOW.setProperty("SkinHelper.Version",ADDON_VERSION.replace(".",""))
-        #auto correct labels for skin settings
-        correctSkinSettings()
-    except Exception as e:
-        logMsg("Error in setSkinVersion --> " + str(e), 0)
-                    
+                            
 def toggleKodiSetting(settingname):
     #toggle kodi setting
     curValue = xbmc.getCondVisibility("system.getbool(%s)"%settingname)

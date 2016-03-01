@@ -223,7 +223,7 @@ class Main:
                 import resources.lib.BackupRestore as backup
                 backup.reset()
                 xbmc.Monitor().waitForAbort(2)
-                mainmodule.setSkinVersion()
+                mainmodule.correctSkinSettings()
             
             elif action == "DIALOGOK":
                 headerMsg = params.get("HEADER")
