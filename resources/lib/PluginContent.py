@@ -972,18 +972,26 @@ def FAVOURITEMEDIA(limit,AllKodiFavsOnly=False):
     return allItems
     
 def getExtraFanArt(path):
+    extrafanarts = []
+    #get extrafanarts from window property
+    if path.startswith("EFA_FROMWINDOWPROP_"):
+        extrafanarts = eval(WINDOW.getProperty(path).decode("utf-8"))
     #get extrafanarts by passing an artwork cache xml file
-    if not xbmcvfs.exists(path):
-        filepart = path.split("/")[-1]
-        path = path.replace(filepart,"") + normalize_string(filepart)
+    else:
         if not xbmcvfs.exists(path):
-            logMsg("getExtraFanArt FAILED for path: %s" %path,0)
-    artwork = artutils.getArtworkFromCacheFile(path)
-    if artwork.get("extrafanarts"):
-        extrafanart = eval( artwork.get("extrafanarts") )
-        for item in extrafanart:
-            li = xbmcgui.ListItem(item, path=item)
-            xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=item, listitem=li)
+            filepart = path.split("/")[-1]
+            path = path.replace(filepart,"") + normalize_string(filepart)
+            if not xbmcvfs.exists(path):
+                logMsg("getExtraFanArt FAILED for path: %s" %path,0)
+        artwork = artutils.getArtworkFromCacheFile(path)
+        if artwork.get("extrafanarts"):
+            extrafanarts = eval( artwork.get("extrafanarts") )
+            
+    #process extrafanarts
+    for item in extrafanarts:
+        li = xbmcgui.ListItem(item, path=item)
+        li.setProperty('mimetype', 'image/jpeg')
+        xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=item, listitem=li)
     xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
 
 def GETCASTMEDIA(limit,name=""):
