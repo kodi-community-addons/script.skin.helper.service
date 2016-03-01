@@ -239,7 +239,7 @@ def selectView(contenttype="other", currentView=None, displayNone=False):
         listing = doc.documentElement.getElementsByTagName( 'view' )
         itemcount = 0
         for count, view in enumerate(listing):
-            label = xbmc.getLocalizedString(int(view.attributes[ 'languageid' ].nodeValue)).decode("utf-8")
+            label = xbmc.getLocalizedString(int(view.attributes[ 'languageid' ].nodeValue))
             id = view.attributes[ 'value' ].nodeValue
             desc = label + " (" + str(id) + ")"
             type = view.attributes[ 'type' ].nodeValue.lower().split(",")
