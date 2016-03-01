@@ -723,7 +723,7 @@ label: label for the option (will also be written to setting.label), required at
 condition: any kodi condition syntax to make the option show up or not, optional but attribute must be present in the xml
 icon: icon to show in dialogselect, optional but attribute must be present in the xml
 description: description to show in dialogselect (label2), optional but attribute must be present in the xml
-default: if set to "true" this will be the default value for your skin (will be set at skin startup/change/update)
+default: if set to "true" this will be the default value for your skin (will be set at skin startup/change/update), you may use a visibility condition instead of true
 
 
 #### Working with sublevels
@@ -779,6 +779,18 @@ E.g. if you call the script with RunScript(script.skin.helper.service,action=set
 If the user enables the playbutton, the command Skin.SetBool(videoinfo_button_play) will be called, otherwise it will be reset.
 With the default attribute you can specify what the default value should be for the setting (applied at skin startup, change or update)
 
+
+#### Write constants to includes file
+You can use the above described approach for skin settings to write constants to an includes file.
+For this you can use the same settings file with the same xml elements etc.
+Only, instead of calling "setskinsetting", you should call "setskinconstant".
+Any value that is selected by the user will be written to an XML file in your skin directory called script-skin_helper_service-includes.xml
+
+```
+RunScript(script.skin.helper.service,action=setskinconstant,setting=PanelWidth,header=Width for Panel)
+```
+
+On your defined <skinsettings> you may use the additional attribute constantdefault="MyVisibilityCondition" to set your default value at skin install/update.
 ________________________________________________________________________________________________________
 
 
