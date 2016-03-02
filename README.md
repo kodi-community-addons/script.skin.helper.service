@@ -82,11 +82,24 @@ Some additional window properties that can be used in the video library.
 |Window(Home).Property(SkinHelper.ListItemAllAudioStreams) | Will return a formatted list of all audiostreams for the current listitem separated by / |
 |Window(Home).Property(SkinHelper.ListItemVideoHeight) | Will return the height of the video stream for the current listitem |
 |Window(Home).Property(SkinHelper.ListItemVideoWidth) | Will return the width of the video stream for the current listitem |
-|Window(Home).Property(SkinHelper.RottenTomatoesRating) | rating from rotten tomatoes |
+|Window(Home).Property(SkinHelper.RottenTomatoesRating) | rotten tomatoes rating |
+|Window(Home).Property(SkinHelper.RottenTomatoesMeter) | rotten tomatoes meter |
+|Window(Home).Property(SkinHelper.RottenTomatoesFresh) | rotten tomatoes fresh count |
+|Window(Home).Property(SkinHelper.RottenTomatoesRotten) | rotten tomatoes rotten count |
+|Window(Home).Property(SkinHelper.RottenTomatoesImage) | rotten tomatoes image description (e.g. certified) |
+|Window(Home).Property(SkinHelper.RottenTomatoesReviews) | number of official reviews on Rotten tomatoes |
 |Window(Home).Property(SkinHelper.RottenTomatoesConsensus) | critic consensus from rotten tomatoes |
-|Window(Home).Property(SkinHelper.RottenTomatoesAudienceRating) | metascore rating from rotten tomatoes |
+|Window(Home).Property(SkinHelper.RottenTomatoesAudienceMeter) | rotten tomatoes user meter |
+|Window(Home).Property(SkinHelper.RottenTomatoesAudienceRating) | user rating from rotten tomatoes |
+|Window(Home).Property(SkinHelper.RottenTomatoesAudienceReviews) | No. of user reviews on rotten tomatoes |
 |Window(Home).Property(SkinHelper.RottenTomatoesAwards) | awards for the movie |
 |Window(Home).Property(SkinHelper.RottenTomatoesBoxOffice) | amount the film made at box office |
+|Window(Home).Property(SkinHelper.RottenTomatoesDVDRelease) | date of DVD release |
+|Window(Home).Property(SkinHelper.MetaCritic.Rating) | rating from metacritic |
+|Window(Home).Property(SkinHelper.IMDB.Rating) | rating on IMDB |
+|Window(Home).Property(SkinHelper.IMDB.Votes) | No. of votes for rating on IMDB |
+|Window(Home).Property(SkinHelper.IMDB.MPAA) | MPAA rating on IMDB |
+|Window(Home).Property(SkinHelper.IMDB.Runtime) | Runtime on IMDB |
 |Window(Home).Property(SkinHelper.TMDB.Budget) | budget spent to this movie in dollars (from tmdb)|
 |Window(Home).Property(SkinHelper.TMDB.Budget.mln) | budget spent to this movie in millions of dollars|
 |Window(Home).Property(SkinHelper.TMDB.Budget.formatted) | Same as Budget.mln but formatted as $ 123 mln.|
@@ -97,8 +110,19 @@ Some additional window properties that can be used in the video library.
 |Window(Home).Property(SkinHelper.TMDB.Homepage) | homepage for this movie (from tmdb) |
 |Window(Home).Property(SkinHelper.TMDB.Status) | status for this movie, e.g. released (from tmdb) |
 |Window(Home).Property(SkinHelper.TMDB.Popularity) | popularity for this movie (from tmdb) |
-________________________________________________________________________________________________________
 
+
+________________________________________________________________________________________________________
+#### Animated Posters
+Provides animated poster in window property (cached locally)
+For info, see: http://forum.kodi.tv/showthread.php?tid=215727
+
+Only available when enabled as skin setting --> Skin.SetBool(SkinHelper.EnableAnimatedPosters)
+
+| property 			| description |
+|:-----------------------------	| :----------- |
+|Window(Home).Property(SkinHelper.AnimatedPoster) | Animated (gif) Movie poster image -if available-  |
+|Window(Home).Property(SkinHelper.AnimatedPoster.Thumb) | Thumb/small version of the animated poster  |
 
 ________________________________________________________________________________________________________
 #### Studio Logos
