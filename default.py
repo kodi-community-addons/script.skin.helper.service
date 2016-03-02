@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import urlparse
-import xbmc,xbmcgui,xbmcplugin
+import xbmc,xbmcgui,xbmcplugin,xbmcvfs
 try:
     import resources.lib.MainModule as mainmodule
     import resources.lib.Utils as utils
