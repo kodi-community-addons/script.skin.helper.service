@@ -268,6 +268,14 @@ See below in this readme...
 
 ________________________________________________________________________________________________________
 
+#### window properties for Home widgets or custom containers
+All above described window props can also be used for a custom container, like widgets on the home screen.
+The script will automatically figure out what content is in your widget and provide the appropriate window props (e.g. pvr properties, music or video).
+What you need to do is set a window property with the ID of your widget container: SetProperty(SkinHelper.WidgetContainer,510,Home) (replace 510 with your container ID)
+For example set that in the onload of your home window if you only have 1 focusable widget control or set it as onfocus action on the widgetcontainer itself with the correct ID.
+
+
+________________________________________________________________________________________________________
 
 
 #### Backgrounds provided by the script

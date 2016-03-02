@@ -17,17 +17,13 @@ class ListItemMonitor(threading.Thread):
     delayedTaskInterval = 1795
     lastWeatherNotificationCheck = None
     lastNextAiredNotificationCheck = None
+    widgetContainer = ""
     liPath = ""
-    liPathLast = ""
     liLabel = ""
     liDbId = ""
-    liLabelLast = ""
-    folderPath = ""
-    folderPathLast = ""
+    liImdb = ""
     unwatched = 1
-    lastpvrDbId = ""
     contentType = ""
-    lastListItem = ""
     allStudioLogos = {}
     allStudioLogosColor = {}
     LastCustomStudioImagesPath = ""
@@ -61,9 +57,12 @@ class ListItemMonitor(threading.Thread):
         playerFile = ""
         lastPlayerItem = ""
         playerItem = ""
-        widgetContainer = ""
-        curListItemWidget = ""
-        lastListItemWidget = ""
+        liPathLast = ""
+        liLabelLast = ""
+        curFolder = ""
+        curFolderLast = ""
+        lastListItem = ""
+        nextairedActive = False
 
         while (self.exit != True):
         
@@ -114,179 +113,102 @@ class ListItemMonitor(threading.Thread):
         
                 #set some globals
                 try:
-                    self.liPath = xbmc.getInfoLabel("ListItem.Path").decode('utf-8')
-                    self.liLabel = xbmc.getInfoLabel("ListItem.Label").decode('utf-8')
-                    self.folderPath = xbmc.getInfoLabel("Container.FolderPath").decode('utf-8')
-                    self.liDbId = xbmc.getInfoLabel("ListItem.DBID").decode('utf-8')
-                    if not self.liDbId or self.liDbId == "-1":
-                        self.liDbId = xbmc.getInfoLabel("ListItem.Property(DBID)").decode('utf-8')
-                    if self.liDbId == "-1": self.liDbId = ""
-                    widgetContainer = WINDOW.getProperty("SkinHelper.WidgetContainer")
-                    if not self.folderPath and self.liPath.startswith("pvr://guide"): self.folderPath = "pvr://guide"
-                except Exception as e: logMsg(str(e),0)
+                    #widget support
+                    if xbmc.getCondVisibility("IsEmpty(ListItem.label)"):
+                        if xbmc.getCondVisibility("Window.IsActive(script-skin_helper_service-CustomInfo.xml)"):
+                            self.widgetContainer = "999"
+                        else:
+                            self.widgetContainer = WINDOW.getProperty("SkinHelper.WidgetContainer").decode('utf-8')
+                        if xbmc.getCondVisibility("IsEmpty(Container(%s).ListItem.label)" %self.widgetContainer):
+                            self.widgetContainer = ""
+                    else: self.widgetContainer = ""
+                    #global properties
+                    self.liLabel = xbmc.getInfoLabel("Container(%s).ListItem.Label" %self.widgetContainer).decode('utf-8')                    
+                    self.liPath = xbmc.getInfoLabel("Container(%s).ListItem.Path" %self.widgetContainer).decode('utf-8')
+                    curFolder = xbmc.getInfoLabel("$INFO[Container.FolderPath]-$INFO[System.CurrentWindow]-$INFO[Container(%s).NumItems]"%self.widgetContainer).decode('utf-8') + self.widgetContainer
+                except Exception as e: 
+                    logMsg(str(e),0)
+                
                 curListItem = self.liPath + self.liLabel
                 
                 #perform actions if the container path has changed
-                if self.folderPath != self.folderPathLast:
-                    #always wait for the contenttype because plugins can be slow
+                if curFolder != curFolderLast:
+                    #always wait for the self.contentType because plugins can be slow
                     for i in range(20):
-                        self.contentType = getCurrentContentType()
+                        self.contentType = getCurrentContentType(self.widgetContainer)
                         if self.contentType: break
                         else: xbmc.sleep(250)
-                    self.setForcedView()
-                    self.focusEpisode()
+                    if not self.widgetContainer:
+                        self.setForcedView()
+                        self.focusEpisode()
+                        self.setContentHeader()
                     self.resetWindowProps()
-                    self.folderPathLast = self.folderPath
-                    self.lastListItem = ""
-                    self.setContentHeader()
-                
-                #only perform actions when the listitem has actually changed
-                if curListItem and curListItem != self.lastListItem and self.contentType:
+                    curFolderLast = curFolder
+                    lastListItem = ""
                     
-                    WINDOW.setProperty("curListItem",curListItem)
+                #only perform actions when the listitem has actually changed
+                if curListItem and curListItem != lastListItem and self.contentType:
                     
                     #clear all window props first
                     self.resetWindowProps()
                     
+                    #generic props
+                    self.liDbId = xbmc.getInfoLabel("Container(%s).ListItem.DBID"%self.widgetContainer).decode('utf-8')
+                    if not self.liDbId or self.liDbId == "-1": self.liDbId = xbmc.getInfoLabel("Container(%s).ListItem.Property(DBID)"%self.widgetContainer).decode('utf-8')
+                    if self.liDbId == "-1": self.liDbId = ""
+                    self.liImdb = xbmc.getInfoLabel("Container(%s).ListItem.IMDBNumber"%self.widgetContainer).decode('utf-8')
+                    if not self.liImdb: self.liImdb = xbmc.getInfoLabel("Container(%s).ListItem.Property(IMDBNumber)"%self.widgetContainer).decode('utf-8')
+                    
                     if not self.liLabel == "..":
-                        # monitor listitem props when musiclibrary is active
+                        # monitor listitem props for music content
                         if self.contentType in ["albums","artists","songs"]:
                             try:
-                                thread.start_new_thread(self.setMusicDetails, (xbmc.getInfoLabel("ListItem.Artist").decode('utf-8'),xbmc.getInfoLabel("ListItem.Album").decode('utf-8'),xbmc.getInfoLabel("ListItem.Title").decode('utf-8'),True,))
+                                thread.start_new_thread(self.setMusicDetails, (True,))
                                 self.setGenre()
                             except Exception as e:
                                 logMsg("ERROR in setMusicDetails ! --> " + str(e), 0)
                                     
-                        # monitor listitem props when videolibrary is active
-                        elif xbmc.getCondVisibility("Window.IsActive(videos) | Window.IsActive(movieinformation)"):
+                        # monitor listitem props for video content
+                        elif self.contentType in ["movies","setmovies","tvshows","seasons","episodes","sets"]:
                             try:
-                                thread.start_new_thread(self.setExtendedMovieInfo, ("","",True))
-                                thread.start_new_thread(self.setAnimatedPoster, ("","",True))
+                                thread.start_new_thread(self.setExtendedMovieInfo, (True,))
+                                thread.start_new_thread(self.setAnimatedPoster, (True,))
                                 self.setDuration()
                                 self.setStudioLogo()
                                 self.setGenre()
                                 self.setDirector()
                                 if self.liPath.startswith("plugin://") and not ("plugin.video.emby" in self.liPath or "script.skin.helper.service" in self.liPath):
                                     #plugins only...
-                                    thread.start_new_thread(self.setAddonDetails, ("","",True,))
+                                    thread.start_new_thread(self.setAddonDetails, (True,))
                                     self.setAddonName()
                                 else:
                                     #library only...
                                     self.setStreamDetails()
-                                    self.setMovieSetDetails(self.liPath, self.liDbId, self.liLabel)
+                                    self.setMovieSetDetails()
                                     self.checkExtraFanArt()
+                                #nextaired workaround for info dialog
+                                if self.widgetContainer and xbmc.getCondVisibility("!IsEmpty(Container(%s).ListItem.TvShowTitle) + System.HasAddon(script.tv.show.next.aired)" %self.widgetContainer):
+                                    xbmc.executebuiltin("RunScript(script.tv.show.next.aired,tvshowtitle=%s)" %xbmc.getInfoLabel("Container(%s).ListItem.TvShowTitle"%self.widgetContainer))
+                                    nextairedActive = True
+                                elif nextairedActive:
+                                    nextairedActive = False
+                                    xbmc.executebuiltin("RunScript(script.tv.show.next.aired,tvshowtitle=165628787629692696)")
                             except Exception as e:
                                 logMsg("ERROR in LibraryMonitor ! --> " + str(e), 0)
                         
                         # monitor listitem props when PVR is active
-                        elif self.contentType == "tvchannels" or self.contentType == "tvrecordings":
+                        elif self.contentType in ["tvchannels","tvrecordings"]:
                             try:
                                 self.setDuration()
-                                thread.start_new_thread(self.setPVRThumbs, ("","","","",True,))
+                                thread.start_new_thread(self.setPVRThumbs, (True,))
                                 self.setGenre()
                             except Exception as e:
                                 logMsg("ERROR in LibraryMonitor ! --> " + str(e), 0)
                             
                     #set some globals
-                    self.liPathLast = self.liPath
-                    self.liLabelLast = self.liLabel
-                    self.lastListItem = curListItem
-                
-                #monitor listitem props when special info active
-                elif xbmc.getCondVisibility("Window.IsActive(script-skin_helper_service-CustomInfo.xml)"):
-                    try:                
-                        self.resetWindowProps()
-                        self.setDuration(xbmc.getInfoLabel("Container(999).ListItem.Duration"))
-                        self.setStudioLogo(xbmc.getInfoLabel("Container(999).ListItem.Studio").decode('utf-8'))
-                        self.setDirector(xbmc.getInfoLabel("Container(999).ListItem.Director").decode('utf-8'))
-                        self.setGenre(xbmc.getInfoLabel("Container(999).ListItem.Genre").decode('utf-8'))
-                        self.setStreamDetails(xbmc.getInfoLabel("Container(999).ListItem.Property(dbid)"),xbmc.getInfoLabel("Container(999).ListItem.Property(contenttype)"))
-                        self.setExtendedMovieInfo(xbmc.getInfoLabel("Container(999).ListItem.Property(imdbnumber)"),xbmc.getInfoLabel("Container(999).ListItem.Property(contenttype)"))
-                        self.setAnimatedPoster(xbmc.getInfoLabel("Container(999).ListItem.Property(imdbnumber)"),xbmc.getInfoLabel("Container(999).ListItem.Property(contenttype)"))
-                        #for tv show items, trigger nextaired addon
-                        nextaired = False
-                        if xbmc.getInfoLabel("Container(999).ListItem.TvShowTitle") and xbmc.getCondVisibility("System.HasAddon(script.tv.show.next.aired)"):
-                            xbmc.executebuiltin("RunScript(script.tv.show.next.aired,tvshowtitle=%s)" %xbmc.getInfoLabel("Container(999).ListItem.TvShowTitle"))
-                            nextaired = True
-                        #wait untill the dialog is closed again
-                        while xbmc.getCondVisibility("Window.IsActive(script-skin_helper_service-CustomInfo.xml)") and not self.exit:
-                            xbmc.sleep(150)
-                        self.resetWindowProps()
-                        if nextaired:
-                            #fake show id to flush nextaired props
-                            xbmc.executebuiltin("RunScript(script.tv.show.next.aired,tvshowtitle=165628787629692696)")
-                    except Exception as e:
-                        logMsg("ERROR in LibraryMonitor HomeWidget ! --> " + str(e), 0)
-                
-                #monitor listitem props when home active
-                elif widgetContainer:
-                    try:                
-                        
-                        #make sure that widgetcontainer is actually visible
-                        if widgetContainer and xbmc.getCondVisibility("!Control.HasFocus(%s)" %widgetContainer):
-                            widgetContainer = ""
-                            if lastListItemWidget:
-                                self.resetWindowProps()
-                                curListItemWidget = ""
-                                lastListItemWidget = ""
-                        else:
-                            #set listitem window props for widget container
-                            curWidgetLabel = xbmc.getInfoLabel("Container(%s).ListItem.Label" %widgetContainer).decode("utf-8")
-                            curListItemWidget = xbmc.getInfoLabel("System.CurrentControl").decode("utf-8") + widgetContainer + curWidgetLabel
-                            if (curWidgetLabel and curListItemWidget != lastListItemWidget) or (lastListItemWidget and not curWidgetLabel):
-                                self.resetWindowProps()
-                                lastListItemWidget = curListItemWidget
-                                if widgetContainer and curWidgetLabel:
-                                    #get infolabels...
-                                    dbtype = xbmc.getInfoLabel("Container(%s).ListItem.DBTYPE" %widgetContainer).decode("utf-8")
-                                    if not dbtype: dbtype = xbmc.getInfoLabel("Container(%s).ListItem.Property(DBTYPE)" %widgetContainer).decode("utf-8")
-                                    dbid = xbmc.getInfoLabel("Container(%s).ListItem.DBID" %widgetContainer).decode("utf-8")
-                                    if not dbid: dbid = xbmc.getInfoLabel("Container(%s).ListItem.Property(DBID)" %widgetContainer).decode("utf-8")
-                                    filename = xbmc.getInfoLabel("Container(%s).ListItem.FileNameAndPath" %widgetContainer).decode('utf-8')
-                                    folderpath = xbmc.getInfoLabel("Container(%s).ListItem.Property(originalpath)" %widgetContainer).decode('utf-8')
-                                    if not folderpath:
-                                        folderpath = xbmc.getInfoLabel("Container(%s).ListItem.Path" %widgetContainer).decode('utf-8')
-                                        if "/" in folderpath: sep = "/"
-                                        else: sep = "\\"
-                                        if folderpath: folderpath = folderpath.rsplit(sep,1)[0] + sep
-                                    if xbmc.getCondVisibility("!IsEmpty(Container(%s).ListItem.Duration)" %widgetContainer):
-                                        self.setDuration(xbmc.getInfoLabel("Container(%s).ListItem.Duration" %widgetContainer))
-                                    #set generic props
-                                    self.setStudioLogo(xbmc.getInfoLabel("Container(%s).ListItem.Studio" %widgetContainer).decode('utf-8'))
-                                    self.setDirector(xbmc.getInfoLabel("Container(%s).ListItem.Director" %widgetContainer).decode('utf-8'))
-                                    self.setGenre(xbmc.getInfoLabel("Container(%s).ListItem.Genre" %widgetContainer).decode('utf-8'))
-                                    self.setMovieSetDetails(folderpath, dbid, curWidgetLabel)
-                                    #music artwork for music widgets...
-                                    if xbmc.getInfoLabel("Container(%s).ListItem.Artist" %widgetContainer):
-                                        artist = xbmc.getInfoLabel("Container(%s).ListItem.Artist" %widgetContainer).decode('utf-8')
-                                        album = xbmc.getInfoLabel("Container(%s).ListItem.Album" %widgetContainer).decode('utf-8')
-                                        title = xbmc.getInfoLabel("Container(%s).ListItem.Title" %widgetContainer).decode('utf-8')
-                                        self.setMusicDetails(artist,album,title)
-                                    #pvr artwork if pvr widget...
-                                    if "pvr://" in folderpath:
-                                        self.setPVRThumbs(xbmc.getInfoLabel("Container(%s).ListItem.Title" %widgetContainer).decode('utf-8'),xbmc.getInfoLabel("Container(%s).ListItem.ChannelName" %widgetContainer).decode('utf-8'),xbmc.getInfoLabel("Container(%s).ListItem.Genre" %widgetContainer).decode('utf-8'))
-                                    #plugins only...
-                                    if folderpath.startswith("plugin://") and not ("plugin.video.emby" in folderpath or "script.skin.helper.service" in folderpath):
-                                        if xbmc.getInfoLabel("Container(%s).ListItem.TvShowTitle" %widgetContainer) or "series" in xbmc.getInfoLabel("Container(%s).ListItem.Genre" %widgetContainer).decode("utf-8").lower():
-                                            title = xbmc.getInfoLabel("Container(%s).ListItem.TvShowTitle" %widgetContainer).decode("utf-8")
-                                            if not title: title = xbmc.getInfoLabel("Container(%s).ListItem.Title" %widgetContainer).decode("utf-8")
-                                            contenttype = "tvshows"
-                                        elif "series" in xbmc.getInfoLabel("Container(%s).ListItem.Genre" %widgetContainer).decode("utf-8").lower():
-                                            title = xbmc.getInfoLabel("Container(%s).ListItem.TvShowTitle" %widgetContainer).decode("utf-8")
-                                            if not title: title = xbmc.getInfoLabel("Container(%s).ListItem.Title" %widgetContainer).decode("utf-8")
-                                            contenttype = "tvshows"
-                                        else:
-                                            title = xbmc.getInfoLabel("Container(%s).ListItem.Title" %widgetContainer).decode("utf-8")
-                                            contenttype = "movies"
-                                        if title and ( xbmc.getInfoLabel("Container(%s).ListItem.Year" %widgetContainer) or xbmc.getInfoLabel("Container(%s).ListItem.Rating" %widgetContainer) ):
-                                            self.setAddonDetails(title,contenttype)
-                                    #extrafanart
-                                    if dbtype:
-                                        self.checkExtraFanArt(filename=filename,liPath=folderpath,contenttype=dbtype+"s")
-                    except Exception as e:
-                        logMsg("ERROR in LibraryMonitor HomeWidget ! --> " + str(e), 0)
-                
-                #WINDOW.setProperty("SkinHelper.debug","%s - %s - %s" %(curListItemWidget,lastListItemWidget,widgetContainer))
+                    liPathLast = self.liPath
+                    liLabelLast = self.liLabel
+                    lastListItem = curListItem
                 
                 #do some background stuff every 30 minutes
                 if (self.delayedTaskInterval >= 1800):
@@ -342,7 +264,7 @@ class ListItemMonitor(threading.Thread):
         libraryCache["SetsCache"] = self.moviesetCache
         libraryCache["streamdetailsCache"] = self.streamdetailsCache
         libraryCache["extendedinfocache"] = self.extendedinfocache
-        widgetcache = WINDOW.getProperty("skinhelper-widgetcontenttype").decode("utf-8")
+        widgetcache = WINDOW.getProperty("skinhelper-widgetself.contentType").decode("utf-8")
         if widgetcache: libraryCache["widgetcache"] = eval(widgetcache)
         saveDataToCacheFile(self.cachePath,libraryCache)
         actorcache = WINDOW.getProperty("SkinHelper.ActorImages").decode("utf-8")
@@ -359,7 +281,7 @@ class ListItemMonitor(threading.Thread):
         if data.has_key("extendedinfocache"):
             self.extendedinfocache = data["extendedinfocache"]
         if data.has_key("widgetcache"):
-            WINDOW.setProperty("skinhelper-widgetcontenttype",repr(data["widgetcache"]).encode("utf-8"))
+            WINDOW.setProperty("skinhelper-widgetself.contentType",repr(data["widgetcache"]).encode("utf-8"))
             
         #actorimagescache
         data = getDataFromCacheFile(self.ActorImagesCachePath)
@@ -648,19 +570,19 @@ class ListItemMonitor(threading.Thread):
                 break
             WINDOW.clearProperty('SkinHelper.ExtraFanArt.' + str(i))
             
-    def setMovieSetDetails(self, liPath="", liDbId="", liLabel=""):
+    def setMovieSetDetails(self):
         #get movie set details -- thanks to phil65 - used this idea from his skin info script
         allProperties = []
-        if not liDbId or not liPath: return
-        if liPath.startswith("videodb://movies/sets/"):
+        if not self.liDbId or not self.liPath: return
+        if self.liPath.startswith("videodb://movies/sets/"):
             #try to get from cache first
-            cacheStr = liLabel+liDbId
+            cacheStr = self.liLabel+self.liDbId
             if self.moviesetCache.get(cacheStr):
                 allProperties = self.moviesetCache.get(cacheStr)
                 
-            if liDbId and not allProperties:
+            if self.liDbId and not allProperties:
                 #get values from json api
-                json_response = getJSON('VideoLibrary.GetMovieSetDetails', '{"setid": %s, "properties": [ "thumbnail" ], "movies": { "properties":  [ "rating", "art", "file", "year", "director", "writer", "playcount", "genre" , "thumbnail", "runtime", "studio", "plotoutline", "plot", "country", "streamdetails"], "sort": { "order": "ascending",  "method": "year" }} }' % liDbId)
+                json_response = getJSON('VideoLibrary.GetMovieSetDetails', '{"setid": %s, "properties": [ "thumbnail" ], "movies": { "properties":  [ "rating", "art", "file", "year", "director", "writer", "playcount", "genre" , "thumbnail", "runtime", "studio", "plotoutline", "plot", "country", "streamdetails"], "sort": { "order": "ascending",  "method": "year" }} }' % self.liDbId)
                 if json_response:
                     count = 0
                     unwatchedcount = 0
@@ -820,9 +742,8 @@ class ListItemMonitor(threading.Thread):
                 AddonName = xbmcaddon.Addon(AddonName).getAddonInfo('name')
                 WINDOW.setProperty("SkinHelper.Player.AddonName", AddonName)
     
-    def setGenre(self, genre=None):
-        if not genre:
-            genre = xbmc.getInfoLabel('ListItem.Genre').decode('utf-8')
+    def setGenre(self,genre=""):
+        if not genre: genre = xbmc.getInfoLabel('Container(%s).ListItem.Genre' %self.widgetContainer).decode('utf-8')
         genres = []
         if "/" in genre:
             genres = genre.split(" / ")
@@ -834,9 +755,8 @@ class ListItemMonitor(threading.Thread):
             WINDOW.setProperty("SkinHelper.ListItemGenre." + str(count),genre)
             count +=1
     
-    def setDirector(self, director=None):
-        if not director:
-            director = xbmc.getInfoLabel('ListItem.Director').decode('utf-8')
+    def setDirector(self, director=""):
+        if not director: director = xbmc.getInfoLabel('Container(%s).ListItem.Director'%self.widgetContainer).decode('utf-8')
         directors = []
         if "/" in director:
             directors = director.split(" / ")
@@ -845,18 +765,19 @@ class ListItemMonitor(threading.Thread):
         
         WINDOW.setProperty('SkinHelper.ListItemDirectors', "[CR]".join(directors))
        
-    def setPVRThumbs(self,title="",channel="",path="",genre="", multiThreaded=False):
+    def setPVRThumbs(self, multiThreaded=False):
                 
-        if not title: title = xbmc.getInfoLabel("ListItem.Title").decode('utf-8')
-        if not channel: channel = xbmc.getInfoLabel("ListItem.ChannelName").decode('utf-8')
-        if not path: path = xbmc.getInfoLabel("ListItem.FileNameAndPath").decode('utf-8')
-        if not genre: genre = xbmc.getInfoLabel("ListItem.Genre").decode('utf-8')
+        title = xbmc.getInfoLabel("Container(%s).ListItem.Title"%self.widgetContainer).decode('utf-8')
+        channel = xbmc.getInfoLabel("Container(%s).ListItem.ChannelName"%self.widgetContainer).decode('utf-8')
+        #path = xbmc.getInfoLabel("Container(%s).ListItem.FileNameAndPath"%self.widgetContainer).decode('utf-8')
+        path = self.liPath
+        genre = xbmc.getInfoLabel("Container(%s).ListItem.Genre"%self.widgetContainer).decode('utf-8')
         
-        if xbmc.getCondVisibility("ListItem.IsFolder") and not channel and not title:
-            #assume grouped recordings folderPath
-            title = xbmc.getInfoLabel("ListItem.Label").decode('utf-8')
+        if xbmc.getCondVisibility("Container(%s).ListItem.IsFolder"%self.widgetContainer) and not channel and not title:
+            #assume grouped recordings curFolder
+            title = self.liLabel
         
-        if not xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnablePVRThumbs)") or not title or xbmc.getInfoLabel("ListItem.Label").decode('utf-8') == "..":
+        if not xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnablePVRThumbs)") or not title or self.liLabel == "..":
             return
         
         cacheStr = title + channel + "SkinHelper.PVR.Artwork"
@@ -872,21 +793,17 @@ class ListItemMonitor(threading.Thread):
             self.pvrArtCache[cacheStr] = artwork
         
         #return if another listitem was focused in the meanwhile
-        if multiThreaded and not (title == xbmc.getInfoLabel("ListItem.Title").decode('utf-8') or title == xbmc.getInfoLabel("ListItem.Label").decode('utf-8')):
+        if multiThreaded and not (title == xbmc.getInfoLabel("Container(%s).ListItem.Title"%self.widgetContainer).decode('utf-8') or title == xbmc.getInfoLabel("Container(%s).ListItem.Label"%self.widgetContainer).decode('utf-8')):
             return
         
         #set window props
         for key, value in artwork.iteritems():
             WINDOW.setProperty("SkinHelper.PVR." + key,value)
 
-    def setStudioLogo(self, studio=None):
+    def setStudioLogo(self,studio=""):
         
-        if xbmc.getCondVisibility("Container.Content(studios)"):
-            studio = self.liLabel
-        
-        if not studio:
-            studio = xbmc.getInfoLabel('ListItem.Studio').decode('utf-8')
-        
+        if not studio: studio = xbmc.getInfoLabel('Container(%s).ListItem.Studio'%self.widgetContainer).decode('utf-8')
+
         studios = []
         if "/" in studio:
             studios = studio.split(" / ")
@@ -940,9 +857,9 @@ class ListItemMonitor(threading.Thread):
             WINDOW.setProperty("SkinHelper.allStudioLogos",repr(self.allStudioLogos))
             WINDOW.setProperty("SkinHelper.allStudioLogosColor",repr(self.allStudioLogosColor))
     
-    def setDuration(self,currentDuration=None):
+    def setDuration(self,currentDuration=""):
         if not currentDuration:
-            currentDuration = xbmc.getInfoLabel("ListItem.Duration")
+            currentDuration = xbmc.getInfoLabel("Container(%s).ListItem.Duration"%self.widgetContainer)
         
         if ":" in currentDuration:
             durLst = currentDuration.split(":")
@@ -1019,8 +936,11 @@ class ListItemMonitor(threading.Thread):
         for key, value in artwork.iteritems():
             WINDOW.setProperty("SkinHelper.Player.Music." + key,value.encode("utf-8"))
     
-    def setMusicDetails(self,artist,album,title, multiThreaded=False):
+    def setMusicDetails(self,multiThreaded=False):
         artwork = {}
+        artist = xbmc.getInfoLabel("Container(%s).ListItem.Artist"%self.widgetContainer).decode('utf-8')
+        album = xbmc.getInfoLabel("Container(%s).ListItem.Album"%self.widgetContainer).decode('utf-8')
+        title = xbmc.getInfoLabel("Container(%s).ListItem.Title"%self.widgetContainer).decode('utf-8')
         cacheId = artist+album
         logMsg("setMusicDetails artist: %s - album: %s - title: %s "%(artist,album,title))
         
@@ -1034,33 +954,30 @@ class ListItemMonitor(threading.Thread):
             self.musicArtCache[cacheId + "SkinHelper.Music.Art"] = artwork
         
         #return if another listitem was focused in the meanwhile
-        if multiThreaded and title != xbmc.getInfoLabel("ListItem.Title").decode('utf-8'):
+        if multiThreaded and title != xbmc.getInfoLabel("Container(%s).ListItem.Title"%self.widgetContainer).decode('utf-8'):
             return
         
         #set properties
         for key, value in artwork.iteritems():
             WINDOW.setProperty("SkinHelper.Music." + key,value)
               
-    def setStreamDetails(self,dbId="",contenttype=""):
+    def setStreamDetails(self):
         streamdetails = {}
-        if not dbId: dbId = self.liDbId
-        if not contenttype:
-            contenttype = self.contentType
-            
-        if not dbId or dbId == "-1": return
+        if not self.liDbId: return
         
-        if self.streamdetailsCache.get(dbId+contenttype):
+        cacheStr = self.liDbId + self.contentType
+        if self.streamdetailsCache.get(cacheStr):
             #get data from cache
-            streamdetails = self.streamdetailsCache[dbId+contenttype]
+            streamdetails = self.streamdetailsCache[cacheStr]
         else:
             json_result = {}
             # get data from json
-            if "movies" in contenttype and dbId:
-                json_result = getJSON('VideoLibrary.GetMovieDetails', '{ "movieid": %d, "properties": [ "title", "streamdetails" ] }' %int(dbId))
-            elif contenttype == "episodes" and dbId:
-                json_result = getJSON('VideoLibrary.GetEpisodeDetails', '{ "episodeid": %d, "properties": [ "title", "streamdetails" ] }' %int(dbId))
-            elif contenttype == "musicvideos" and dbId:
-                json_result = getJSON('VideoLibrary.GetMusicVideoDetails', '{ "musicvideoid": %d, "properties": [ "title", "streamdetails" ] }' %int(dbId))       
+            if "movies" in self.contentType and self.liDbId:
+                json_result = getJSON('VideoLibrary.GetMovieDetails', '{ "movieid": %d, "properties": [ "title", "streamdetails" ] }' %int(self.liDbId))
+            elif self.contentType == "episodes" and self.liDbId:
+                json_result = getJSON('VideoLibrary.GetEpisodeDetails', '{ "episodeid": %d, "properties": [ "title", "streamdetails" ] }' %int(self.liDbId))
+            elif self.contentType == "musicvideos" and self.liDbId:
+                json_result = getJSON('VideoLibrary.GetMusicVideoDetails', '{ "musicvideoid": %d, "properties": [ "title", "streamdetails" ] }' %int(self.liDbId))       
             if json_result.has_key("streamdetails"):
                 audio = json_result["streamdetails"]['audio']
                 subtitles = json_result["streamdetails"]['subtitle']
@@ -1117,7 +1034,7 @@ class ListItemMonitor(threading.Thread):
                     streamdetails['SkinHelper.ListItemVideoHeight'] = str(stream.get("height",""))
                     streamdetails['SkinHelper.ListItemVideoWidth'] = str(stream.get("width",""))
                 
-                self.streamdetailsCache[dbId+contenttype] = streamdetails
+                self.streamdetailsCache[cacheStr] = streamdetails
                 
         if streamdetails:
             #set the window properties
@@ -1126,7 +1043,7 @@ class ListItemMonitor(threading.Thread):
           
     def setForcedView(self):
         currentForcedView = xbmc.getInfoLabel("Skin.String(SkinHelper.ForcedViews.%s)" %self.contentType)
-        if self.contentType and currentForcedView and currentForcedView != "None" and xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.ForcedViews.Enabled)") and self.folderPath != "pvr://guide":
+        if self.contentType and currentForcedView and currentForcedView != "None" and xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.ForcedViews.Enabled)") and curFolder != "pvr://guide":
             WINDOW.setProperty("SkinHelper.ForcedView",currentForcedView)
             xbmc.executebuiltin("Container.SetViewMode(%s)" %currentForcedView)
             if not xbmc.getCondVisibility("Control.HasFocus(%s)" %currentForcedView):
@@ -1136,24 +1053,17 @@ class ListItemMonitor(threading.Thread):
         else:
             WINDOW.clearProperty("SkinHelper.ForcedView")
         
-    def checkExtraFanArt(self,filename="",liPath="",contenttype=""):
-        
-        lastPath = None
+    def checkExtraFanArt(self):
         efaPath = None
         efaFound = False
         extraFanArtfiles = []
-        if not filename:
-            filename = xbmc.getInfoLabel("ListItem.FileNameAndPath").decode("utf-8")
-        if not liPath:
-            liPath = self.liPath
-        if not contenttype:
-            contenttype = self.contentType
+        filename = xbmc.getInfoLabel("Container(%s).ListItem.FileNameAndPath"%self.widgetContainer).decode("utf-8")
         
         if xbmc.getCondVisibility("Window.IsActive(movieinformation) | !Skin.HasSetting(SkinHelper.EnableExtraFanart)"):
             return
         
-        cachePath = liPath
-        if "plugin.video.emby.movies" in liPath or "plugin.video.emby.musicvideos" in liPath:
+        cachePath = self.liPath
+        if "plugin.video.emby.movies" in self.liPath or "plugin.video.emby.musicvideos" in self.liPath:
             cachePath = filename
         
         #get the item from cache first
@@ -1169,24 +1079,24 @@ class ListItemMonitor(threading.Thread):
                 return
         
         #support for emby addon
-        if "plugin.video.emby" in liPath:
+        if "plugin.video.emby" in self.liPath:
             efaPath = "plugin://plugin.video.emby/extrafanart?path=" + cachePath
             efaFound = True
         #lookup the extrafanart in the media location
-        elif (liPath != None and liPath != self.liPathLast and (contenttype in ["movies","seasons","episodes","tvshows"] ) and not "videodb:" in liPath):
+        elif (self.liPath != None and (self.contentType in ["movies","seasons","episodes","tvshows"] ) and not "videodb:" in self.liPath):
                            
             # do not set extra fanart for virtuals
-            if (("plugin://" in liPath) or ("addon://" in liPath) or ("sources" in liPath) or ("sources://" in self.folderPath)):
-                self.extraFanartCache[liPath] = "None"
+            if "plugin://" in self.liPath or "addon://" in self.liPath or "sources" in self.liPath:
+                self.extraFanartCache[self.liPath] = "None"
             else:
                 
-                if "/" in liPath: splitchar = "/"
+                if "/" in self.liPath: splitchar = "/"
                 else: splitchar = "\\"
             
-                if xbmcvfs.exists(liPath + "extrafanart"+splitchar):
-                    efaPath = liPath + "extrafanart"+splitchar
+                if xbmcvfs.exists(self.liPath + "extrafanart"+splitchar):
+                    efaPath = self.liPath + "extrafanart"+splitchar
                 else:
-                    pPath = liPath.rpartition(splitchar)[0]
+                    pPath = self.liPath.rpartition(splitchar)[0]
                     pPath = pPath.rpartition(splitchar)[0]
                     if xbmcvfs.exists(pPath + splitchar + "extrafanart"+splitchar):
                         efaPath = pPath + splitchar + "extrafanart" + splitchar
@@ -1208,59 +1118,49 @@ class ListItemMonitor(threading.Thread):
         else:
             self.extraFanartCache[cachePath] = ["None",[]]
     
-    def setAnimatedPoster(self,imdbnumber="",contenttype="",multiThreaded=False):
+    def setAnimatedPoster(self,multiThreaded=False,liImdb=""):
         #check animated posters
-        if not xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnableAnimatedPosters)"):
+        if not liImdb: liImdb = self.liImdb
+        if not xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnableAnimatedPosters)") or not liImdb:
             return
-        if not imdbnumber:
-            imdbnumber = xbmc.getInfoLabel("ListItem.IMDBNumber")
-        if not imdbnumber:
-            imdbnumber = xbmc.getInfoLabel("ListItem.Property(IMDBNumber)")
-        if not contenttype:
-            contenttype = self.contentType
-        logMsg("setAnimatedPoster imdbnumber--> %s  - contenttype: %s" %(imdbnumber,contenttype))
-        if (contenttype == "movies" or contenttype=="setmovies") and imdbnumber:
+        logMsg("setAnimatedPoster liImdb--> %s  - self.contentType: %s" %(liImdb,self.contentType))
+        if (self.contentType == "movies" or self.contentType=="setmovies"):
             #check cache first
-            if self.extendedinfocache.has_key("animatedposter"+imdbnumber):
-                result = self.extendedinfocache["animatedposter"+imdbnumber]
+            if self.extendedinfocache.has_key("animatedposter"+liImdb):
+                result = self.extendedinfocache["animatedposter"+liImdb]
             else:
                 result = {}
-                if xbmcvfs.exists("special://thumbnails/animatedgifs/%s_poster_0.gif"%imdbnumber):
-                    result["animated_poster"] = "special://thumbnails/animatedgifs/%s_poster_0_original.gif"%imdbnumber
-                    result["animated_poster_thumb"] = "special://thumbnails/animatedgifs/%s_poster_0.gif"%imdbnumber
-                elif xbmcvfs.exists("http://www.consiliumb.com/animatedgifs/%s_poster_0.gif" %imdbnumber):
+                if xbmcvfs.exists("special://thumbnails/animatedgifs/%s_poster_0.gif"%liImdb):
+                    result["animated_poster"] = "special://thumbnails/animatedgifs/%s_poster_0_original.gif"%liImdb
+                    result["animated_poster_thumb"] = "special://thumbnails/animatedgifs/%s_poster_0.gif"%liImdb
+                elif xbmcvfs.exists("http://www.consiliumb.com/animatedgifs/%s_poster_0.gif" %liImdb):
                     if not xbmcvfs.exists("special://thumbnails/animatedgifs/"): xbmcvfs.mkdir("special://thumbnails/animatedgifs/")
-                    xbmcvfs.copy("http://www.consiliumb.com/animatedgifs/%s_poster_0_original.gif" %imdbnumber, "special://thumbnails/animatedgifs/%s_poster_0_original.gif"%imdbnumber)
-                    xbmcvfs.copy("http://www.consiliumb.com/animatedgifs/%s_poster_0.gif" %imdbnumber, "special://thumbnails/animatedgifs/%s_poster_0.gif"%imdbnumber)
+                    xbmcvfs.copy("http://www.consiliumb.com/animatedgifs/%s_poster_0_original.gif" %liImdb, "special://thumbnails/animatedgifs/%s_poster_0_original.gif"%liImdb)
+                    xbmcvfs.copy("http://www.consiliumb.com/animatedgifs/%s_poster_0.gif" %liImdb, "special://thumbnails/animatedgifs/%s_poster_0.gif"%liImdb)
                     for i in range(40):
-                        if xbmcvfs.exists("special://thumbnails/animatedgifs/%s_poster_0.gif"%imdbnumber): break
+                        if xbmcvfs.exists("special://thumbnails/animatedgifs/%s_poster_0.gif"%liImdb): break
                         else: xbmc.sleep(250)
-                    result["animated_poster"] = "special://thumbnails/animatedgifs/%s_poster_0_original.gif"%imdbnumber
-                    result["animated_poster_thumb"] = "special://thumbnails/animatedgifs/%s_poster_0.gif"%imdbnumber
-                self.extendedinfocache["animatedposter"+imdbnumber] = result
+                    result["animated_poster"] = "special://thumbnails/animatedgifs/%s_poster_0_original.gif"%liImdb
+                    result["animated_poster_thumb"] = "special://thumbnails/animatedgifs/%s_poster_0.gif"%liImdb
+                self.extendedinfocache["animatedposter"+liImdb] = result
             #return if another listitem was focused in the meanwhile
-            if multiThreaded and not (imdbnumber == xbmc.getInfoLabel("ListItem.IMDBNumber").decode('utf-8') or imdbnumber == xbmc.getInfoLabel("ListItem.Property(IMDBNumber)").decode('utf-8')):
+            if multiThreaded and not (liImdb == xbmc.getInfoLabel("Container(%s).ListItem.IMDBNumber"%self.widgetContainer).decode('utf-8') or liImdb == xbmc.getInfoLabel("Container(%s).ListItem.Property(IMDBNumber)"%self.widgetContainer).decode('utf-8')):
                 return
             WINDOW.setProperty("SkinHelper.AnimatedPoster",result.get('animated_poster',""))
             WINDOW.setProperty("SkinHelper.AnimatedPoster.Thumb",result.get('animated_poster_thumb',""))
         
-    def setExtendedMovieInfo(self,imdbnumber="",contenttype="",multiThreaded=False):
-        if not imdbnumber:
-            imdbnumber = xbmc.getInfoLabel("ListItem.IMDBNumber")
-        if not imdbnumber:
-            imdbnumber = xbmc.getInfoLabel("ListItem.Property(IMDBNumber)")
-        if not contenttype:
-            contenttype = self.contentType
+    def setExtendedMovieInfo(self,multiThreaded=False,liImdb=""):
         result = {}
-        logMsg("setExtendedMovieInfo imdbnumber--> %s  - contenttype: %s" %(imdbnumber,contenttype))
-        if (contenttype == "movies" or contenttype=="setmovies") and imdbnumber:
-            if self.extendedinfocache.get(imdbnumber):
+        if not liImdb: liImdb = self.liImdb
+        if (self.contentType == "movies" or self.contentType=="setmovies") and liImdb:
+            logMsg("setExtendedMovieInfo self.liImdb--> %s  - self.contentType: %s" %(liImdb,self.contentType))
+            if self.extendedinfocache.get(liImdb):
                 #get data from cache
-                result = self.extendedinfocache[imdbnumber]
+                result = self.extendedinfocache[liImdb]
             elif not WINDOW.getProperty("SkinHelper.DisableInternetLookups"):
             
                 #get info from OMDB 
-                url = 'http://www.omdbapi.com/?i=%s&plot=short&tomatoes=true&r=json' %imdbnumber
+                url = 'http://www.omdbapi.com/?i=%s&plot=short&tomatoes=true&r=json' %liImdb
                 res = requests.get(url)
                 result = json.loads(res.content.decode('utf-8','replace'))
 
@@ -1269,7 +1169,7 @@ class ListItemMonitor(threading.Thread):
                         result[key] = ""
                 
                 #get info from TMDB
-                url = 'http://api.themoviedb.org/3/find/%s?external_source=imdb_id&api_key=%s' %(imdbnumber,artutils.tmdb_apiKey)
+                url = 'http://api.themoviedb.org/3/find/%s?external_source=imdb_id&api_key=%s' %(liImdb,artutils.tmdb_apiKey)
                 response = requests.get(url)
                 data = json.loads(response.content.decode('utf-8','replace'))
                 if data and data.get("movie_results"):
@@ -1298,10 +1198,10 @@ class ListItemMonitor(threading.Thread):
                         result["popularity"] = str(data.get("popularity",""))
                 
                 #save to cache
-                if result: self.extendedinfocache[imdbnumber] = result
+                if result: self.extendedinfocache[self.liImdb] = result
             
             #return if another listitem was focused in the meanwhile
-            if multiThreaded and not (imdbnumber == xbmc.getInfoLabel("ListItem.IMDBNumber").decode('utf-8') or imdbnumber == xbmc.getInfoLabel("ListItem.Property(IMDBNumber)").decode('utf-8')):
+            if multiThreaded and not (liImdb == xbmc.getInfoLabel("Container(%s).ListItem.IMDBNumber"%self.widgetContainer).decode('utf-8') or liImdb == xbmc.getInfoLabel("Container(%s).ListItem.Property(IMDBNumber)"%self.widgetContainer).decode('utf-8')):
                 return
             
             #set the window props
@@ -1316,16 +1216,14 @@ class ListItemMonitor(threading.Thread):
                 WINDOW.setProperty("SkinHelper.RottenTomatoesAwards",result.get('Awards',""))
                 WINDOW.setProperty("SkinHelper.RottenTomatoesBoxOffice",result.get('BoxOffice',""))
                 WINDOW.setProperty("SkinHelper.RottenTomatoesDVDRelease",result.get('DVD',""))
-                WINDOW.setProperty("SkinHelper.MetaCritic.Score",result.get('Metascore',""))
+                WINDOW.setProperty("SkinHelper.RottenTomatoesAudienceMeter",result.get('tomatoUserMeter',""))
+                WINDOW.setProperty("SkinHelper.RottenTomatoesAudienceRating",result.get('tomatoUserRating',""))
+                WINDOW.setProperty("SkinHelper.RottenTomatoesAudienceReviews",result.get('tomatoUserReviews',""))
+                WINDOW.setProperty("SkinHelper.MetaCritic.Rating",result.get('Metascore',""))
                 WINDOW.setProperty("SkinHelper.IMDB.Rating",result.get('imdbRating',""))
                 WINDOW.setProperty("SkinHelper.IMDB.Votes",result.get('imdbVotes',""))
                 WINDOW.setProperty("SkinHelper.IMDB.MPAA",result.get('Rated',""))
                 WINDOW.setProperty("SkinHelper.IMDB.Runtime",result.get('Runtime',""))
-                
-                WINDOW.setProperty("SkinHelper.RottenTomatoesAudienceMeter",result.get('tomatoUserMeter',""))
-                WINDOW.setProperty("SkinHelper.RottenTomatoesAudienceRating",result.get('tomatoUserRating',""))
-                WINDOW.setProperty("SkinHelper.RottenTomatoesAudienceReviews",result.get('tomatoUserReviews',""))
-                
                 WINDOW.setProperty("SkinHelper.TMDB.Budget",result.get('budget',""))
                 WINDOW.setProperty("SkinHelper.TMDB.Budget.formatted",result.get('budget.formatted',""))
                 WINDOW.setProperty("SkinHelper.TMDB.Budget.mln",result.get('budget.mln',""))
@@ -1337,29 +1235,29 @@ class ListItemMonitor(threading.Thread):
                 WINDOW.setProperty("SkinHelper.TMDB.status",result.get('status',""))
                 WINDOW.setProperty("SkinHelper.TMDB.popularity",result.get('popularity',""))
     
-    def setAddonDetails(self, title="", contenttype="", multiThreaded=False):
+    def setAddonDetails(self, multiThreaded=False):
         #try to lookup additional artwork and properties for plugin content
-        if not title: title = xbmc.getInfoLabel("ListItem.Title").decode("utf8")
-        if not contenttype: contenttype = self.contentType
-        genre = contenttype
-        if contenttype == "seasons" or contenttype == "episodes":
-            genre = "tvshows"
-            title = xbmc.getInfoLabel("ListItem.TvShowTitle").decode("utf8")
+        genre = self.contentType
+        title = xbmc.getInfoLabel("Container(%s).ListItem.Title"%self.widgetContainer).decode("utf8")
         
-        cacheStr = title + contenttype + "SkinHelper.PVR.Artwork"
-        logMsg("setAddonDetails cacheStr--> %s" %cacheStr)
-        
-        if not contenttype in ["movies", "tvshows", "seasons", "episodes"] or not title or not contenttype:
+        if not self.contentType in ["movies", "tvshows", "seasons", "episodes"] or not title or not self.contentType:
             return
+
+        if xbmc.getCondVisibility("!IsEmpty(Container(%s).ListItem.TvShowTitle)" %self.widgetContainer):
+            genre = "tvshows"
+            title = xbmc.getInfoLabel("Container(%s).ListItem.TvShowTitle"%self.widgetContainer).decode("utf8")
+        
+        cacheStr = title + self.contentType + "SkinHelper.PVR.Artwork"
+        logMsg("setAddonDetails cacheStr--> %s" %cacheStr)
 
         if self.pvrArtCache.has_key(cacheStr):
             artwork = self.pvrArtCache[cacheStr]
         else:
-            artwork = artutils.getPVRThumbs(title, "", contenttype, "", genre)
+            artwork = artutils.getPVRThumbs(title, "", self.contentType, "", genre)
             self.pvrArtCache[cacheStr] = artwork
         
         #return if another listitem was focused in the meanwhile
-        if multiThreaded and not (title == xbmc.getInfoLabel("ListItem.Title").decode('utf-8') or title == xbmc.getInfoLabel("ListItem.TvShowTitle").decode("utf8")):
+        if multiThreaded and not (title == xbmc.getInfoLabel("Container(%s).ListItem.Title"%self.widgetContainer).decode("utf8") or title == xbmc.getInfoLabel("Container(%s).ListItem.TvShowTitle"%self.widgetContainer).decode("utf8")):
             return
         
         #set window props
@@ -1367,8 +1265,9 @@ class ListItemMonitor(threading.Thread):
             WINDOW.setProperty("SkinHelper.PVR." + key,value)
             
         #set extended movie details
-        if (contenttype == "movies" or contenttype == "setmovies") and artwork.get("imdb_id"):
-            self.setExtendedMovieInfo(artwork.get("imdb_id"),contenttype,False)
+        if (self.contentType == "movies" or self.contentType == "setmovies") and artwork.get("imdb_id"):
+            self.setExtendedMovieInfo(False,artwork.get("imdb_id"))
+            self.setAnimatedPoster(False,artwork.get("imdb_id"))
     
     def focusEpisode(self):
         # monitor episodes for auto focus first unwatched - Helix only as it is included in Kodi as of Isengard by default

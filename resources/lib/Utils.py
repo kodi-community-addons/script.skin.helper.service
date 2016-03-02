@@ -582,8 +582,8 @@ def createSmartShortcutSubmenu(windowProp,iconimage):
     except Exception as e:
         logMsg("ERROR in createSmartShortcutSubmenu ! --> " + str(e), 0)
 
-def getCurrentContentType():
-    contenttype = ""
+def getCurrentContentType(containerid=""):
+    contenttype = "unknown"
     
     if xbmc.getCondVisibility("Container.Content(episodes)"):
         contenttype = "episodes"
@@ -617,18 +617,25 @@ def getCurrentContentType():
         contenttype = "genres"
     elif xbmc.getCondVisibility("Container.Content(files)"):
         contenttype = "files"
-    elif xbmc.getCondVisibility("StringCompare(ListItem.DBTYPE, movie) | StringCompare(ListItem.Property(DBTYPE), movie)"):
-        contenttype = "movies"
-    elif xbmc.getCondVisibility("StringCompare(ListItem.DBTYPE, tvshow) | StringCompare(ListItem.Property(DBTYPE), tvshow)"):
-        contenttype = "tvshows"
-    elif xbmc.getCondVisibility("StringCompare(ListItem.DBTYPE, episode) | StringCompare(ListItem.Property(DBTYPE), episode)"):
-        contenttype = "episodes"
-    elif xbmc.getCondVisibility("StringCompare(ListItem.DBTYPE, musicvideo) | StringCompare(ListItem.Property(DBTYPE), musicvideo)"):
-        contenttype = "musicvideos"
-    elif xbmc.getCondVisibility("StringCompare(ListItem.DBTYPE, musicvideo) | StringCompare(ListItem.Property(DBTYPE), musicvideo)"):
-        contenttype = "musicvideos"
     elif xbmc.getCondVisibility("!IsEmpty(Container.Content)"):     
         contenttype = xbmc.getInfoLabel("Container.Content")
+    #try to determine type by the listitem properties
+    elif xbmc.getCondVisibility("!IsEmpty(Container(%s).ListItem.DBTYPE)" %containerid):
+        contenttype = xbmc.getInfoLabel("Container(%s).ListItem.DBTYPE" %containerid) + "s"
+    elif xbmc.getCondVisibility("!IsEmpty(Container(%s).ListItem.Property(DBTYPE))" %containerid):
+        contenttype = xbmc.getInfoLabel("Container(%s).ListItem.Property(DBTYPE)" %containerid) + "s"
+    elif xbmc.getCondVisibility("SubString(Container(%s).ListItem.FileNameAndPath,playrecording) | SubString(Container(%s).ListItem.FileNameAndPath,tvtimer)" %(containerid,containerid)):
+        contenttype = "tvrecordings"
+    elif xbmc.getCondVisibility("SubString(Container(%s).ListItem.FolderPath,pvr://channels)" %containerid):
+        contenttype = "tvchannels"
+    elif xbmc.getCondVisibility("StringCompare(Container(%s).ListItem.Label,Container(%s).ListItem.Artist)" %(containerid,containerid)):
+        contenttype = "artists"
+    elif xbmc.getCondVisibility("StringCompare(Container(%s).ListItem.Label,Container(%s).ListItem.TvShowTitle)" %(containerid,containerid)):
+        contenttype = "tvshows"
+    elif xbmc.getCondVisibility("SubString(Container(%s).ListItem.FolderPath,flix2kodi) + SubString(Container(%s).ListItem.Genre,Series)" %(containerid,containerid)):
+        contenttype = "tvshows"
+    elif xbmc.getCondVisibility("SubString(Container(%s).ListItem.FolderPath,flix2kodi)" %(containerid)):
+        contenttype = "movies"
     
     WINDOW.setProperty("contenttype",contenttype)
     return contenttype
