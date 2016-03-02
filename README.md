@@ -422,6 +422,14 @@ Note that ListItem.DBID and ListItem.DBTYPE can only be used for "real" library 
 
 ________________________________________________________________________________________________________
 
+#### Yes/No Dialog (dialogYesNo)
+```
+RunScript(script.skin.helper.service,action=dialogyesno,header[yourheadertext],message=[your message body],action=[your action])
+```
+This command will open Kodi's YesNo dialog with the text you supplied.
+If the user presses YES, the action will be executed you supplied. To provide multiple actions, seperate by | 
+________________________________________________________________________________________________________
+
 
 #### Message Dialog (dialogOK)
 ```

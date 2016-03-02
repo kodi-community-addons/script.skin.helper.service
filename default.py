@@ -232,6 +232,16 @@ class Main:
                 if headerMsg.startswith(" "): headerMsg = headerMsg[1:]
                 xbmcgui.Dialog().ok(heading=headerMsg, line1=bodyMsg)
                 
+            elif action == "DIALOGYESNO":
+                headerMsg = params.get("HEADER")
+                bodyMsg = params.get("MESSAGE")
+                actions = params.get("ACTION").split("|")
+                if bodyMsg.startswith(" "): bodyMsg = bodyMsg[1:]
+                if headerMsg.startswith(" "): headerMsg = headerMsg[1:]
+                if xbmcgui.Dialog().yesno(heading=headerMsg, line1=bodyMsg):
+                    for action in actions:
+                        xbmc.executebuiltin(action.encode("utf-8"))
+                
             elif action == "TEXTVIEWER":
                 headerMsg = params.get("HEADER","")
                 bodyMsg = params.get("MESSAGE","")
