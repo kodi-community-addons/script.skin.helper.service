@@ -83,35 +83,24 @@ class ListItemMonitor(threading.Thread):
             
             if xbmc.getCondVisibility("Window.IsActive(videoosd) | Window.IsActive(musicosd)"):
                 #auto close OSD after X seconds of inactivity
-                secondsToDisplay = 0
-                window = "videoosd"
-                try:
-                    if xbmc.getCondVisibility("Window.IsActive(VideoOSD.xml)"):
-                        secondsToDisplay = int(xbmc.getInfoLabel("Skin.String(SkinHelper.AutoCloseVideoOSD)"))
-                        window = "videoosd"
-                    if xbmc.getCondVisibility("Window.IsActive(MusicOSD.xml)"):
-                        secondsToDisplay = int(xbmc.getInfoLabel("Skin.String(SkinHelper.AutoCloseMusicOSD)"))
-                        window = "musicosd"
-                except: pass
-                if secondsToDisplay != 0:
-                    currentcount = 0
-                    secondsToDisplay = secondsToDisplay*4
-                    liControlLast = ""
-                    while secondsToDisplay >= currentcount:
-                        #reset the count if user changed focused control, close osd when control didn't change in the given amount of seconds
-                        liControl = xbmc.getInfoLabel("System.CurrentControl").decode('utf-8')
-                        if liControl == liControlLast: currentcount += 1
-                        else: currentcount = 0
-                        xbmc.sleep(250)
-                        liControlLast = liControl
-                    
-                    #only auto close osd if no osd related dialogs are opened
-                    if not xbmc.getCondVisibility("Window.IsActive(visualisationpresetlist) | Window.IsActive(osdvideosettings) | Window.IsActive(osdaudiosettings) | Window.IsActive(videobookmarks) | Window.IsActive(videobookmarks)"):
-                        xbmc.executebuiltin("Dialog.Close(%s)"%window)
+                if xbmc.getCondVisibility("Window.IsActive(videoosd)"):
+                    secondsToDisplay = xbmc.getInfoLabel("Skin.String(SkinHelper.AutoCloseVideoOSD)")
+                    window = "videoosd"
+                elif xbmc.getCondVisibility("Window.IsActive(musicosd)"):
+                    secondsToDisplay = xbmc.getInfoLabel("Skin.String(SkinHelper.AutoCloseMusicOSD)")
+                    window = "musicosd"
+                else:
+                    secondsToDisplay = ""
+                
+                if secondsToDisplay:
+                    while xbmc.getCondVisibility("Window.IsActive(%s)"%window):
+                        if xbmc.getCondVisibility("System.IdleTime(%s)" %secondsToDisplay):
+                            xbmc.executebuiltin("Dialog.Close(%s)"%window)
+                        else:
+                            xbmc.sleep(250)
                 
             if not xbmc.getCondVisibility("Window.IsActive(fullscreenvideo) | Window.IsActive(script.pseudotv.TVOverlay.xml) | Window.IsActive(script.pseudotv.live.TVOverlay.xml)"):
-        
-                #set some globals
+
                 try:
                     #widget support
                     if xbmc.getCondVisibility("IsEmpty(ListItem.label)"):
@@ -257,7 +246,7 @@ class ListItemMonitor(threading.Thread):
             self.saveCacheToFile()
             logMsg("Ended Background worker...")
         except Exception as e:
-            logMsg("ERROR in HomeMonitor doBackgroundWork ! --> " + str(e), 0)
+            logMsg("ERROR in ListitemMonitor doBackgroundWork ! --> " + str(e), 0)
     
     def saveCacheToFile(self):
         libraryCache = {}
@@ -380,22 +369,23 @@ class ListItemMonitor(threading.Thread):
             logMsg("update plexlinks ended...")
 
     def checkNotifications(self):
-        
-        currentHour = time.strftime("%H")
-        
-        #weather notifications
-        winw = xbmcgui.Window(12600)
-        if (winw.getProperty("Alerts.RSS") and winw.getProperty("Current.Condition") and currentHour != self.lastWeatherNotificationCheck):
-            dialog = xbmcgui.Dialog()
-            dialog.notification(xbmc.getLocalizedString(31294), winw.getProperty("Alerts"), xbmcgui.NOTIFICATION_WARNING, 8000)
-            self.lastWeatherNotificationCheck = currentHour
-        
-        #nextaired notifications
-        if (xbmc.getCondVisibility("Skin.HasSetting(EnableNextAiredNotifications) + System.HasAddon(script.tv.show.next.aired)") and currentHour != self.lastNextAiredNotificationCheck):
-            if (WINDOW.getProperty("NextAired.TodayShow")):
+        try:
+            currentHour = time.strftime("%H")
+            #weather notifications
+            winw = xbmcgui.Window(12600)
+            if xbmc.getCondVisibility("Skin.HasSetting(EnableWeatherNotifications) + !IsEmpty(Window(Weather).Property(Alerts.RSS)) + !IsEmpty(Window(Weather).Property(Current.Condition))") and currentHour != self.lastWeatherNotificationCheck:
                 dialog = xbmcgui.Dialog()
-                dialog.notification(xbmc.getLocalizedString(31295), WINDOW.getProperty("NextAired.TodayShow"), xbmcgui.NOTIFICATION_WARNING, 8000)
-                self.lastNextAiredNotificationCheck = currentHour
+                dialog.notification(xbmc.getLocalizedString(31294), winw.getProperty("Alerts"), xbmcgui.NOTIFICATION_WARNING, 8000)
+                self.lastWeatherNotificationCheck = currentHour
+            
+            #nextaired notifications
+            if (xbmc.getCondVisibility("Skin.HasSetting(EnableNextAiredNotifications) + System.HasAddon(script.tv.show.next.aired)") and currentHour != self.lastNextAiredNotificationCheck):
+                if (WINDOW.getProperty("NextAired.TodayShow")):
+                    dialog = xbmcgui.Dialog()
+                    dialog.notification(xbmc.getLocalizedString(31295), WINDOW.getProperty("NextAired.TodayShow"), xbmcgui.NOTIFICATION_WARNING, 8000)
+                    self.lastNextAiredNotificationCheck = currentHour
+        except Exception as e:
+            logMsg("ERROR in checkNotifications ! --> " + str(e), 0)
     
     def genericWindowProps(self):
         
