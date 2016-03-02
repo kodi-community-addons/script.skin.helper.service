@@ -161,6 +161,7 @@ class ListItemMonitor(threading.Thread):
                         elif xbmc.getCondVisibility("Window.IsActive(videos) | Window.IsActive(movieinformation)"):
                             try:
                                 thread.start_new_thread(self.setExtendedMovieInfo, ("","",True))
+                                thread.start_new_thread(self.setAnimatedPoster, ("","",True))
                                 self.setDuration()
                                 self.setStudioLogo()
                                 self.setGenre()
@@ -201,6 +202,7 @@ class ListItemMonitor(threading.Thread):
                         self.setGenre(xbmc.getInfoLabel("Container(999).ListItem.Genre").decode('utf-8'))
                         self.setStreamDetails(xbmc.getInfoLabel("Container(999).ListItem.Property(dbid)"),xbmc.getInfoLabel("Container(999).ListItem.Property(contenttype)"))
                         self.setExtendedMovieInfo(xbmc.getInfoLabel("Container(999).ListItem.Property(imdbnumber)"),xbmc.getInfoLabel("Container(999).ListItem.Property(contenttype)"))
+                        self.setAnimatedPoster(xbmc.getInfoLabel("Container(999).ListItem.Property(imdbnumber)"),xbmc.getInfoLabel("Container(999).ListItem.Property(contenttype)"))
                         #for tv show items, trigger nextaired addon
                         nextaired = False
                         if xbmc.getInfoLabel("Container(999).ListItem.TvShowTitle") and xbmc.getCondVisibility("System.HasAddon(script.tv.show.next.aired)"):
@@ -589,11 +591,29 @@ class ListItemMonitor(threading.Thread):
         WINDOW.clearProperty('SkinHelper.MovieSet.Count')
         WINDOW.clearProperty('SkinHelper.MovieSet.Plot')
         WINDOW.clearProperty('SkinHelper.MovieSet.ExtendedPlot')
+        WINDOW.clearProperty('SkinHelper.RottenTomatoesMeter')
         WINDOW.clearProperty('SkinHelper.RottenTomatoesRating')
         WINDOW.clearProperty('SkinHelper.RottenTomatoesAudienceRating')
         WINDOW.clearProperty('SkinHelper.RottenTomatoesConsensus')
         WINDOW.clearProperty('SkinHelper.RottenTomatoesAwards')
         WINDOW.clearProperty('SkinHelper.RottenTomatoesBoxOffice')
+        WINDOW.clearProperty('SkinHelper.RottenTomatoesFresh')
+        WINDOW.clearProperty('SkinHelper.RottenTomatoesRotten')
+        WINDOW.clearProperty('SkinHelper.RottenTomatoesImage')
+        WINDOW.clearProperty('SkinHelper.RottenTomatoesAudienceMeter')
+        WINDOW.clearProperty('SkinHelper.RottenTomatoesDVDRelease')
+        WINDOW.clearProperty('SkinHelper.MetaCritic.Rating')
+        WINDOW.clearProperty('SkinHelper.IMDB.Rating')
+        WINDOW.clearProperty('SkinHelper.IMDB.Votes')
+        WINDOW.clearProperty('SkinHelper.TMDB.Budget')
+        WINDOW.clearProperty('SkinHelper.Budget.formatted')
+        WINDOW.clearProperty('SkinHelper.TMDB.Budget.mln')
+        WINDOW.clearProperty('SkinHelper.TMDB.Budget.mln')
+        WINDOW.clearProperty('SkinHelper.TMDB.Budget.mln')
+        WINDOW.clearProperty('SkinHelper.TMDB.Budget.mln')
+        WINDOW.clearProperty('SkinHelper.AnimatedPoster')
+        WINDOW.clearProperty('SkinHelper.AnimatedPoster.Thumb')
+        
         totalNodes = 50
         for i in range(totalNodes):
             if not WINDOW.getProperty('SkinHelper.MovieSet.' + str(i) + '.Title'): break
@@ -1187,7 +1207,43 @@ class ListItemMonitor(threading.Thread):
             self.extraFanartCache[cachePath] = [efaPath, extraFanArtfiles]     
         else:
             self.extraFanartCache[cachePath] = ["None",[]]
-
+    
+    def setAnimatedPoster(self,imdbnumber="",contenttype="",multiThreaded=False):
+        #check animated posters
+        if not xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnableAnimatedPosters)"):
+            return
+        if not imdbnumber:
+            imdbnumber = xbmc.getInfoLabel("ListItem.IMDBNumber")
+        if not imdbnumber:
+            imdbnumber = xbmc.getInfoLabel("ListItem.Property(IMDBNumber)")
+        if not contenttype:
+            contenttype = self.contentType
+        logMsg("setAnimatedPoster imdbnumber--> %s  - contenttype: %s" %(imdbnumber,contenttype))
+        if (contenttype == "movies" or contenttype=="setmovies") and imdbnumber:
+            #check cache first
+            if self.extendedinfocache.has_key("animatedposter"+imdbnumber):
+                result = self.extendedinfocache["animatedposter"+imdbnumber]
+            else:
+                result = {}
+                if xbmcvfs.exists("special://thumbnails/animatedgifs/%s_poster_0.gif"%imdbnumber):
+                    result["animated_poster"] = "special://thumbnails/animatedgifs/%s_poster_0_original.gif"%imdbnumber
+                    result["animated_poster_thumb"] = "special://thumbnails/animatedgifs/%s_poster_0.gif"%imdbnumber
+                elif xbmcvfs.exists("http://www.consiliumb.com/animatedgifs/%s_poster_0.gif" %imdbnumber):
+                    if not xbmcvfs.exists("special://thumbnails/animatedgifs/"): xbmcvfs.mkdir("special://thumbnails/animatedgifs/")
+                    xbmcvfs.copy("http://www.consiliumb.com/animatedgifs/%s_poster_0_original.gif" %imdbnumber, "special://thumbnails/animatedgifs/%s_poster_0_original.gif"%imdbnumber)
+                    xbmcvfs.copy("http://www.consiliumb.com/animatedgifs/%s_poster_0.gif" %imdbnumber, "special://thumbnails/animatedgifs/%s_poster_0.gif"%imdbnumber)
+                    for i in range(40):
+                        if xbmcvfs.exists("special://thumbnails/animatedgifs/%s_poster_0.gif"%imdbnumber): break
+                        else: xbmc.sleep(250)
+                    result["animated_poster"] = "special://thumbnails/animatedgifs/%s_poster_0_original.gif"%imdbnumber
+                    result["animated_poster_thumb"] = "special://thumbnails/animatedgifs/%s_poster_0.gif"%imdbnumber
+                self.extendedinfocache["animatedposter"+imdbnumber] = result
+            #return if another listitem was focused in the meanwhile
+            if multiThreaded and not (imdbnumber == xbmc.getInfoLabel("ListItem.IMDBNumber").decode('utf-8') or imdbnumber == xbmc.getInfoLabel("ListItem.Property(IMDBNumber)").decode('utf-8')):
+                return
+            WINDOW.setProperty("SkinHelper.AnimatedPoster",result.get('animated_poster',""))
+            WINDOW.setProperty("SkinHelper.AnimatedPoster.Thumb",result.get('animated_poster_thumb',""))
+        
     def setExtendedMovieInfo(self,imdbnumber="",contenttype="",multiThreaded=False):
         if not imdbnumber:
             imdbnumber = xbmc.getInfoLabel("ListItem.IMDBNumber")
@@ -1240,6 +1296,7 @@ class ListItemMonitor(threading.Thread):
                         result["homepage"] = data.get("homepage","")
                         result["status"] = data.get("status","")
                         result["popularity"] = str(data.get("popularity",""))
+                
                 #save to cache
                 if result: self.extendedinfocache[imdbnumber] = result
             
@@ -1249,11 +1306,25 @@ class ListItemMonitor(threading.Thread):
             
             #set the window props
             if result:
-                WINDOW.setProperty("SkinHelper.RottenTomatoesRating",result.get('tomatoMeter',""))
-                WINDOW.setProperty("SkinHelper.RottenTomatoesAudienceRating",result.get('Metascore',""))
+                WINDOW.setProperty("SkinHelper.RottenTomatoesRating",result.get('tomatoRating',""))
+                WINDOW.setProperty("SkinHelper.RottenTomatoesMeter",result.get('tomatoMeter',""))
+                WINDOW.setProperty("SkinHelper.RottenTomatoesFresh",result.get('tomatoFresh',""))
+                WINDOW.setProperty("SkinHelper.RottenTomatoesReviews",result.get('tomatoReviews',""))
+                WINDOW.setProperty("SkinHelper.RottenTomatoesRotten",result.get('tomatoRotten',""))
+                WINDOW.setProperty("SkinHelper.RottenTomatoesImage",result.get('tomatoImage',""))
                 WINDOW.setProperty("SkinHelper.RottenTomatoesConsensus",result.get('tomatoConsensus',""))
                 WINDOW.setProperty("SkinHelper.RottenTomatoesAwards",result.get('Awards',""))
                 WINDOW.setProperty("SkinHelper.RottenTomatoesBoxOffice",result.get('BoxOffice',""))
+                WINDOW.setProperty("SkinHelper.RottenTomatoesDVDRelease",result.get('DVD',""))
+                WINDOW.setProperty("SkinHelper.MetaCritic.Score",result.get('Metascore',""))
+                WINDOW.setProperty("SkinHelper.IMDB.Rating",result.get('imdbRating',""))
+                WINDOW.setProperty("SkinHelper.IMDB.Votes",result.get('imdbVotes',""))
+                WINDOW.setProperty("SkinHelper.IMDB.MPAA",result.get('Rated',""))
+                WINDOW.setProperty("SkinHelper.IMDB.Runtime",result.get('Runtime',""))
+                
+                WINDOW.setProperty("SkinHelper.RottenTomatoesAudienceMeter",result.get('tomatoUserMeter',""))
+                WINDOW.setProperty("SkinHelper.RottenTomatoesAudienceRating",result.get('tomatoUserRating',""))
+                WINDOW.setProperty("SkinHelper.RottenTomatoesAudienceReviews",result.get('tomatoUserReviews',""))
                 
                 WINDOW.setProperty("SkinHelper.TMDB.Budget",result.get('budget',""))
                 WINDOW.setProperty("SkinHelper.TMDB.Budget.formatted",result.get('budget.formatted',""))
