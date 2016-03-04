@@ -127,7 +127,7 @@ class ListItemMonitor(threading.Thread):
                         self.contentType = getCurrentContentType(self.widgetContainer)
                         if self.contentType: break
                         else: xbmc.sleep(250)
-                    if not self.widgetContainer:
+                    if not self.widgetContainer and self.contentType:
                         self.setForcedView()
                         self.focusEpisode()
                         self.setContentHeader()
