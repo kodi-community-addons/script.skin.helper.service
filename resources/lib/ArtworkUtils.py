@@ -1005,7 +1005,7 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
                     else: delim = "/"
                     pathartist = song.get("file").split(delim)[-3]
                     match =  SM(None, artistName, pathartist).ratio()
-                    if match >= 0.75: path = song.get("file")
+                    if match >= 0.50: path = song.get("file")
                 if not albumName: albumName = song.get("album")
                 if song.get("musicbrainzartistid") and not artistartwork.get("musicbrainzartistid"): artistartwork["musicbrainzartistid"] = song["musicbrainzartistid"]
                 tracklist.append(song["title"])
@@ -1045,7 +1045,7 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
 
             #lookup existing artwork in the paths (only if artistname in the path, to prevent lookups in various artists/compilations folders)
             match =  SM(None, artistName, artistpath.split(delim)[-2]).ratio()
-            if not match >= 0.75:
+            if not match >= 0.50:
                 logMsg("getMusicArtwork - lookup on disk skipped for %s - not correct folder structure (artistname\albumname)" %artistartwork.get("artistname",""))
                 albumpath = ""
                 artistpath = ""
