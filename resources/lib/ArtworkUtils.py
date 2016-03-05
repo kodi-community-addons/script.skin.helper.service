@@ -10,9 +10,8 @@ import htmlentitydefs
 import urllib2, re
 from difflib import SequenceMatcher as SM
 
-
-tmdb_apiKey = base64.b64decode("NDc2N2I0YjJiYjk0YjEwNGZhNTUxNWM1ZmY0ZTFmZWM=")
 m.set_useragent("script.skin.helper.service", "1.0.0", "https://github.com/marcelveldt/script.skin.helper.service")
+tmdb_apiKey = "ae06df54334aa653354e9a010f4b81cb"
 
 def getPVRThumbs(title,channel,type="channels",path="",genre="",ignoreCache=False, manualLookup=False):
     cacheFound = False
