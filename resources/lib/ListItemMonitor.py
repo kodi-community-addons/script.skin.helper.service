@@ -129,18 +129,20 @@ class ListItemMonitor(threading.Thread):
                     
                 #perform actions if the container path has changed
                 if (curFolder != curFolderLast):
-                    #always wait for the contentType because plugins can be slow
-                    for i in range(20):
-                        if self.liLabel:
-                            self.contentType = getCurrentContentType(self.widgetContainer)
-                        if self.contentType: break
-                        else: xbmc.sleep(250)
-                    if not self.widgetContainer and self.contentType:
-                        self.setForcedView()
-                        self.focusEpisode()
-                        self.setContentHeader()
                     self.resetWindowProps()
+                    self.contentType = ""
                     curFolderLast = curFolder
+                    if curFolder:
+                        #always wait for the contentType because plugins can be slow
+                        for i in range(20):
+                            if self.liLabel:
+                                self.contentType = getCurrentContentType(self.widgetContainer)
+                            if self.contentType: break
+                            else: xbmc.sleep(250)
+                        if not self.widgetContainer and self.contentType:
+                            self.setForcedView()
+                            self.focusEpisode()
+                            self.setContentHeader()
 
                 #only perform actions when the listitem has actually changed
                 if curListItem and curListItem != lastListItem and self.contentType:
@@ -1242,7 +1244,7 @@ class ListItemMonitor(threading.Thread):
         genre = self.contentType
         title = self.liTitle
         
-        if not self.contentType in ["movies", "tvshows", "seasons", "episodes"] or not title or not self.contentType:
+        if not self.contentType in ["movies", "tvshows", "seasons", "episodes"] or not title or not self.contentType or not xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnableAddonsLookups)"):
             return
 
         if xbmc.getCondVisibility("!IsEmpty(Container(%s).ListItem.TvShowTitle)" %self.widgetContainer):

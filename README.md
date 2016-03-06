@@ -147,9 +147,6 @@ The script handles this logic to locate the fanart:
 |Window(Home).Property(SkinHelper.ListItemStudio) | Will just return the first studio of the listitem if you want to locate the images yourself. |
 |Window(Home).Property(SkinHelper.ListItemStudios) | Will return all studios seperated by [CR] |
 
-Note: If you also want to have the Studio logo and Duration Properties for your homescreen widgets, you need to set a Window Property "SkinHelper.WidgetContainer" with the ID of your widget container:
-For example in home.xml: <onload>SetProperty(SkinHelper.WidgetContainer,301)</onload>
-
 
 #### Movie sets window properties
 If the selected listitem in the videolibrary is a movie set, some additional window properties are provided:
@@ -274,6 +271,16 @@ The script will automatically figure out what content is in your widget and prov
 What you need to do is set a window property with the ID of your widget container: SetProperty(SkinHelper.WidgetContainer,510,Home) (replace 510 with your container ID)
 For example set that in the onload of your home window if you only have 1 focusable widget control or set it as onfocus action on the widgetcontainer itself with the correct ID.
 
+
+________________________________________________________________________________________________________
+
+#### window properties for addons
+By default all additional window properties (TMDB info, rotten tomatoes etc.) will ONLY be returned for items in the library.
+If you want to use these properties for addon provided content too, like plexbmc or trailers, you will have to enable a skin setting:
+Skin.SetBool(SkinHelper.EnableAddonsLookups)
+
+If that bool is set, the script will also lookup any items provided by an addon, including artwork.
+For the artwork, the same mechanism is used as for the pvr artwork feature, so the artwork is returned in the pvr properties.
 
 ________________________________________________________________________________________________________
 
