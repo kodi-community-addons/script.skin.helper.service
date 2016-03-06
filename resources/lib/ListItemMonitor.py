@@ -1130,28 +1130,41 @@ class ListItemMonitor(threading.Thread):
         logMsg("setAnimatedPoster liImdb--> %s  - self.contentType: %s" %(liImdb,self.contentType))
         if (self.contentType == "movies" or self.contentType=="setmovies"):
             #check cache first
-            if self.extendedinfocache.has_key("animatedposter"+liImdb):
-                result = self.extendedinfocache["animatedposter"+liImdb]
+            cacheStr = "animatedart-%s"%liImdb
+            if self.extendedinfocache.has_key(cacheStr):
+                result = self.extendedinfocache[cacheStr]
             else:
                 result = {}
-                if xbmcvfs.exists("special://thumbnails/animatedgifs/%s_poster_0.gif"%liImdb):
+                #create local thumbs directory
+                if not xbmcvfs.exists("special://thumbnails/animatedgifs/"):
+                    xbmcvfs.mkdir("special://thumbnails/animatedgifs/")
+                
+                #animated poster
+                if xbmcvfs.exists("special://thumbnails/animatedgifs/%s_poster_0_original.gif"%liImdb):
                     result["animated_poster"] = "special://thumbnails/animatedgifs/%s_poster_0_original.gif"%liImdb
-                    result["animated_poster_thumb"] = "special://thumbnails/animatedgifs/%s_poster_0.gif"%liImdb
-                elif xbmcvfs.exists("http://www.consiliumb.com/animatedgifs/%s_poster_0.gif" %liImdb):
-                    if not xbmcvfs.exists("special://thumbnails/animatedgifs/"): xbmcvfs.mkdir("special://thumbnails/animatedgifs/")
+                elif xbmcvfs.exists("http://www.consiliumb.com/animatedgifs/%s_poster_0_original.gif" %liImdb):
                     xbmcvfs.copy("http://www.consiliumb.com/animatedgifs/%s_poster_0_original.gif" %liImdb, "special://thumbnails/animatedgifs/%s_poster_0_original.gif"%liImdb)
-                    xbmcvfs.copy("http://www.consiliumb.com/animatedgifs/%s_poster_0.gif" %liImdb, "special://thumbnails/animatedgifs/%s_poster_0.gif"%liImdb)
                     for i in range(40):
-                        if xbmcvfs.exists("special://thumbnails/animatedgifs/%s_poster_0.gif"%liImdb): break
+                        if xbmcvfs.exists("special://thumbnails/animatedgifs/%s_poster_0_original.gif"%liImdb): break
                         else: xbmc.sleep(250)
                     result["animated_poster"] = "special://thumbnails/animatedgifs/%s_poster_0_original.gif"%liImdb
-                    result["animated_poster_thumb"] = "special://thumbnails/animatedgifs/%s_poster_0.gif"%liImdb
-                self.extendedinfocache["animatedposter"+liImdb] = result
+                
+                #animated fanart
+                if xbmcvfs.exists("special://thumbnails/animatedgifs/%s_background_0.gif"%liImdb):
+                    result["animated_fanart"] = "special://thumbnails/animatedgifs/%s_background_0_original.gif"%liImdb
+                elif xbmcvfs.exists("http://www.consiliumb.com/animatedgifs/%s_poster_0_background.gif" %liImdb):
+                    xbmcvfs.copy("http://www.consiliumb.com/animatedgifs/%s_poster_0_background.gif" %liImdb, "special://thumbnails/animatedgifs/%s_background_0_original.gif"%liImdb)
+                    for i in range(40):
+                        if xbmcvfs.exists("special://thumbnails/animatedgifs/%s_background_0_original.gif"%liImdb): break
+                        else: xbmc.sleep(250)
+                    result["animated_fanart"] = "special://thumbnails/animatedgifs/%s_background_0_original.gif"%liImdb
+                    
+                self.extendedinfocache[cacheStr] = result
             #return if another listitem was focused in the meanwhile
-            if multiThreaded and not (liImdb == xbmc.getInfoLabel("Container(%s).ListItem.IMDBNumber"%self.widgetContainer).decode('utf-8') or liImdb == xbmc.getInfoLabel("Container(%s).ListItem.Property(IMDBNumber)"%self.widgetContainer).decode('utf-8')):
+            if multiThreaded and not liImdb == self.liImdb:
                 return
             WINDOW.setProperty("SkinHelper.AnimatedPoster",result.get('animated_poster',""))
-            WINDOW.setProperty("SkinHelper.AnimatedPoster.Thumb",result.get('animated_poster_thumb',""))
+            WINDOW.setProperty("SkinHelper.AnimatedFanart",result.get('animated_fanart',""))
         
     def setExtendedMovieInfo(self,multiThreaded=False,liImdb=""):
         result = {}

@@ -17,15 +17,15 @@ Important settings:
 |SkinHelper.AutoCloseVideoOSD	| Skin.SetNumeric(SkinHelper.AutoCloseVideoOSD)	| Auto close the Video OSD panel when activated by the user after number of seconds (0 or empty disables this) |
 |SkinHelper.AutoCloseMusicOSD	| Skin.SetNumeric(SkinHelper.AutoCloseMusicOSD)	| Auto close the Music OSD panel when activated by the user after number of seconds (0 or empty disables this) |
 |SkinHelper.RandomFanartDelay	| Skin.SetNumeric(SkinHelper.RandomFanartDelay)	| Sets the time in seconds for the interval of the rotating backgrounds provided by the script (0 or empty disable the backgrounds by this script completely) |
-|CustomPicturesBackgroundPath	| Skin.SetPath(CustomPicturesBackgroundPath)	| Sets a custom path from which the global pictures background should be pulled from. (when empty uses all picture sources) |
+|SkinHelper.CustomPicturesBackgroundPath	| Skin.SetPath(SkinHelper.CustomPicturesBackgroundPath)	| Sets a custom path from which the global pictures background should be pulled from. (when empty uses all picture sources) |
 |SmartShortcuts.playlists | Skin.SetBool(SmartShortcuts.playlists) | Enable smart shortcuts for Kodi playlists |
 |SmartShortcuts.favorites | Skin.SetBool(SmartShortcuts.favorites) | Enable smart shortcuts for Kodi favorites |
 |SmartShortcuts.plex | Skin.SetBool(SmartShortcuts.plex) | Enable smart shortcuts for plexbmc addon |
 |SmartShortcuts.emby | Skin.SetBool(SmartShortcuts.emby) | Enable smart shortcuts for emby addon |
 |SmartShortcuts.netflix | Skin.SetBool(SmartShortcuts.netflix) | Enable smart shortcuts for flix2kodi addon |
+|SkinHelper.EnableAddonsLookups	| Skin.ToggleSetting(SkinHelper.EnableAddonsLookups)	| enables the background scanner for addons artwork and additional properties |
+|SkinHelper.EnablePVRThumbs	| Skin.ToggleSetting(SkinHelper.EnablePVRThumbs)	| enables the background scanner for PVR artwork |
 
-Note about the AutoCloseVideo/MusicOSD: you need to make sure that you've set labels to the controls of your OSD (even if you don't use them). 
-The script tries to determine that the user is actually using the OSD and will than not close the OSD.
 ________________________________________________________________________________________________________
 ________________________________________________________________________________________________________
 
@@ -122,7 +122,7 @@ Only available when enabled as skin setting --> Skin.SetBool(SkinHelper.EnableAn
 | property 			| description |
 |:-----------------------------	| :----------- |
 |Window(Home).Property(SkinHelper.AnimatedPoster) | Animated (gif) Movie poster image -if available-  |
-|Window(Home).Property(SkinHelper.AnimatedPoster.Thumb) | Thumb/small version of the animated poster  |
+|Window(Home).Property(SkinHelper.AnimatedFanart) | Animated (gif) Movie fanart image -if available-  |
 
 ________________________________________________________________________________________________________
 #### Studio Logos
