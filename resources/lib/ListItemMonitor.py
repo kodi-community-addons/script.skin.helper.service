@@ -101,7 +101,7 @@ class ListItemMonitor(threading.Thread):
                         else:
                             xbmc.sleep(250)
                 
-            if not xbmc.getCondVisibility("Window.IsActive(fullscreenvideo) | Window.IsActive(script.pseudotv.TVOverlay.xml) | Window.IsActive(script.pseudotv.live.TVOverlay.xml) | Window.IsActive(movieinformation)"):
+            if not xbmc.getCondVisibility("Window.IsActive(fullscreenvideo) | Window.IsActive(script.pseudotv.TVOverlay.xml) | Window.IsActive(script.pseudotv.live.TVOverlay.xml) | Window.IsActive(movieinformation) | Window.IsActive(visualisation)"):
 
                 try:
                     #widget support
@@ -124,8 +124,8 @@ class ListItemMonitor(threading.Thread):
                 except Exception as e: 
                     logMsg(str(e),0)
                 
-                curListItem = self.liFile + self.liLabel + self.liTitle
-                WINDOW.setProperty("curlistitem",curListItem)
+                curListItem = curFolder + self.liLabel + self.liTitle
+                #WINDOW.setProperty("curlistitem",curListItem)
                     
                 #perform actions if the container path has changed
                 if (curFolder != curFolderLast):

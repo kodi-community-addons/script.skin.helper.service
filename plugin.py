@@ -98,7 +98,7 @@ class Main:
 
 if (__name__ == "__main__"):
     try:
-        if not xbmc.abortRequested:
+        if not utils.WINDOW.getProperty("SkinHelperShutdownRequested"):
             if enableProfiling:
                 import cProfile
                 import pstats

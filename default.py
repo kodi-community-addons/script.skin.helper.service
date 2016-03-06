@@ -300,7 +300,7 @@ class Main:
 
 if (__name__ == "__main__"):
     xbmc.executebuiltin( "Dialog.Close(busydialog)" )
-    if not xbmc.abortRequested:
+    if not utils.WINDOW.getProperty("SkinHelperShutdownRequested"):
         Main()
     
 utils.logMsg('finished loading script entry')

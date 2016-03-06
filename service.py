@@ -38,6 +38,7 @@ class Main:
         lastSkin = None
                    
         #start the extra threads
+        utils.WINDOW.clearProperty("SkinHelperShutdownRequested")
         listItemMonitor.start()
         backgroundsUpdater.start()
         webService.start()
@@ -48,6 +49,7 @@ class Main:
             KodiMonitor.waitForAbort(10)
         else:
             # Abort was requested while waiting. We should exit
+            utils.WINDOW.setProperty("SkinHelperShutdownRequested","shutdown")
             utils.logMsg('Shutdown requested !',0)
             #stop the extra threads
             backgroundsUpdater.stop()
