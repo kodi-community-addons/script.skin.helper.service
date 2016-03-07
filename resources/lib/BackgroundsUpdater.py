@@ -54,7 +54,6 @@ class BackgroundsUpdater(threading.Thread):
             self.getSkinConfig()
             self.UpdateBackgrounds()
             self.updateWallImages()
-            thread.start_new_thread(self.getNetflixNodes, ())
         except Exception as e:
             logMsg("ERROR in BackgroundsUpdater ! --> " + str(e), 0)
         
@@ -472,7 +471,7 @@ class BackgroundsUpdater(threading.Thread):
         if self.allBackgrounds:
             #get images from the global cache...
             for key, value in self.allBackgrounds.iteritems():
-                if (key in keys or windowProp == "SkinHelper.GlobalFanartBackground") and not "wall" in key.lower():
+                if key in keys or (windowProp == "SkinHelper.GlobalFanartBackground" and not "wall" in key.lower() and not "pvr" in key.lower() and not "netflix" in key.lower() ):
                     images += value
             #pick a random image from the collection of images
             if images:  
@@ -693,7 +692,7 @@ class BackgroundsUpdater(threading.Thread):
                     path = node[2]
                     self.setImageFromPath(key + ".background",node[2])
                     self.setImageFromPath(key + ".image",node[2])
-            elif WINDOW.getProperty("plexbmc.0.title"):
+            elif WINDOW.getProperty("plexbmc.0.content"):
                 logMsg("no cache - Get plex entries from file.... ")                      
                 contentStrings = ["", ".ondeck", ".recent", ".unwatched"]
                 if WINDOW.getProperty("plexbmc.0.title"):

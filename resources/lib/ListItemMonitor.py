@@ -1256,8 +1256,9 @@ class ListItemMonitor(threading.Thread):
         #try to lookup additional artwork and properties for plugin content
         genre = self.contentType
         title = self.liTitle
+        year = xbmc.getInfoLabel("Container(%s).ListItem.Year"%self.widgetContainer).decode("utf8")
         
-        if not self.contentType in ["movies", "tvshows", "seasons", "episodes"] or not title or not self.contentType or not xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnableAddonsLookups)"):
+        if not self.contentType in ["movies", "tvshows", "seasons", "episodes"] or not title or not self.contentType or not year or not xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnableAddonsLookups)"):
             return
 
         if xbmc.getCondVisibility("!IsEmpty(Container(%s).ListItem.TvShowTitle)" %self.widgetContainer):
