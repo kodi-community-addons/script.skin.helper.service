@@ -470,15 +470,15 @@ def setSkinSetting(setting="", windowHeader="", sublevel="", valueOnly=""):
                     value = xbmcgui.Dialog().input( label,curValue, 1).decode("utf-8")
                 if value == "||PROMPTSTRING||":
                     value = xbmcgui.Dialog().input( label,curValue, 0).decode("utf-8")
-                    #write skin strings
-                    if not valueOnly and value != "||SKIPSTRING||":
-                        xbmc.executebuiltin("Skin.SetString(%s,%s)" %(setting.encode("utf-8"),value.encode("utf-8")))
-                        xbmc.executebuiltin("Skin.SetString(%s.label,%s)" %(setting.encode("utf-8"),label.encode("utf-8")))
-                    #process additional actions
-                    additionalactions = allValues[selectedItem].getProperty("additionalactions").split(" || ")
-                    for action in additionalactions:
-                        xbmc.executebuiltin(action)
-                    return (value,label)
+                #write skin strings
+                if not valueOnly and value != "||SKIPSTRING||":
+                    xbmc.executebuiltin("Skin.SetString(%s,%s)" %(setting.encode("utf-8"),value.encode("utf-8")))
+                    xbmc.executebuiltin("Skin.SetString(%s.label,%s)" %(setting.encode("utf-8"),label.encode("utf-8")))
+                #process additional actions
+                additionalactions = allValues[selectedItem].getProperty("additionalactions").split(" || ")
+                for action in additionalactions:
+                    xbmc.executebuiltin(action)
+                return (value,label)
         else: return (None,None)
 
 def correctSkinSettings():
