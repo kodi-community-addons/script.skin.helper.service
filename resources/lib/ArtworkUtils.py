@@ -687,7 +687,7 @@ def getMusicBrainzId(artist, album="", track=""):
             if not MBalbum and artist and album:
                 MBalbums = m.search_release_groups(query=single_urlencode(try_encode(album)),limit=1,offset=None, strict=False, artist=single_urlencode(try_encode(artist)))
                 if MBalbums and MBalbums.get("release-group-list"): MBalbum = MBalbums.get("release-group-list")[0]
-            elif not MBalbum and artist and track:
+            if not MBalbum and artist and track:
                 MBalbums = m.search_recordings(query=single_urlencode(try_encode(track)),limit=1,offset=None, strict=False, artist=single_urlencode(try_encode(artist)))
                 if MBalbums and MBalbums.get("recording-list"): MBalbum = MBalbums.get("recording-list")[0]
             if MBalbum:

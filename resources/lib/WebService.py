@@ -174,19 +174,19 @@ class StoppableHttpRequestHandler (SimpleHTTPServer.SimpleHTTPRequestHandler):
         
         elif action == "getmoviegenreimages" or action == "gettvshowgenreimages":
             artwork = {}
-            cachestr = action+title
+            cachestr = ("%s-%s" %(action,title)).encode("utf-8")
             cache = WINDOW.getProperty(cachestr).decode("utf-8")
             if cache: 
                 artwork = eval(cache)
             else:
                 if action == "gettvshowgenreimages": 
-                    json_result = json_result = getJSON('VideoLibrary.GetTvshows', '{ "sort": { "order": "descending", "method": "random" }, "filter": {"operator":"is", "field":"genre", "value":"%s"}, "properties": [ %s ],"limits":{"end":%d} }' %(title,fields_tvshows,5))
+                    json_result = getJSON('VideoLibrary.GetTvshows', '{ "sort": { "order": "descending", "method": "random" }, "filter": {"operator":"is", "field":"genre", "value":"%s"}, "properties": [ %s ],"limits":{"end":%d} }' %(title,fields_tvshows,5))
                 else:
                     json_result = getJSON('VideoLibrary.GetMovies', '{ "sort": { "order": "descending", "method": "random" }, "filter": {"operator":"is", "field":"genre", "value":"%s"}, "properties": [ %s ],"limits":{"end":%d} }' %(title,fields_movies,5))
                 for count, item in enumerate(json_result):
                     artwork["poster.%s" %count] = item["art"].get("poster","")
                     artwork["fanart.%s" %count] = item["art"].get("fanart","")
-                WINDOW.setProperty(cachestr,repr(artwork))
+                WINDOW.setProperty(cachestr,repr(artwork).encode("utf-8"))
             if artwork:
                 preferred_type = params.get("type","")
                 if preferred_type: 
