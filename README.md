@@ -794,6 +794,22 @@ Syntax:
 </settings>
 ```
 
+#### Special values to use as the value argument
+
+Instead of a predefined value you can also have an option to let the user input the value himself.
+In that case you have to use a special syntax as the value:
+
+||PROMPTNUMERIC|| --> Asks the user for a numeric input
+
+||PROMPTSTRING|| --> Asks the user for a string input
+
+||BROWSEIMAGE|| --> Asks the user to select a single image or imagepath
+
+||BROWSESINGLEIMAGE|| --> Asks the user to select a single image
+
+||SKIPSTRING|| --> Do not write the results to a skin string (can be used if you only use the script with the onselect actions)
+
+
 #### Apply other actions when user selects a value
 
 It is possible to apply other settings when the user selects a certain value.
@@ -1386,8 +1402,11 @@ plugin://script.skin.helper.service/?action=browsegenres&amp;type=movie&amp;limi
 plugin://script.skin.helper.service/?action=browsegenres&amp;type=tvshow&amp;limit=1000
 ```
 Provides the genres listing for movies or tvshows with artwork properties from movies/shows with the genre so you can build custom genre icons.
+
 ListItem.Art(poster.X) --> poster for movie/show X (start counting at 0) in the genre
+
 ListItem.Art(fanart.X) --> fanart for movie/show X (start counting at 0) in the genre
+
 
 For each genre, only 5 movies/tvshows are retrieved.
 ________________________________________________________________________________________________________

@@ -462,14 +462,21 @@ def setSkinSetting(setting="", windowHeader="", sublevel="", valueOnly=""):
             else:
                 if value == "||BROWSEIMAGE||":
                     if xbmcgui.Dialog().yesno( label, ADDON.getLocalizedString(32064), yeslabel=ADDON.getLocalizedString(32065), nolabel=ADDON.getLocalizedString(32066) ):
-                        value = xbmcgui.Dialog().browse( 2 , label, 'files')
+                        value = xbmcgui.Dialog().browse( 2 , label, 'files').decode("utf-8")
                     else: value = xbmcgui.Dialog().browse( 0 , ADDON.getLocalizedString(32067), 'files')
+                if value == "||BROWSESINGLEIMAGE||":
+                    value = xbmcgui.Dialog().browse( 2 , label, 'files').decode("utf-8")
+                if value == "||PROMPTNUMERIC||":
+                    value = xbmcgui.Dialog().input( label,curValue, 1).decode("utf-8")
+                if value == "||PROMPTSTRING||":
+                    value = xbmcgui.Dialog().input( label,curValue, 0).decode("utf-8")
                 if value:
                     if valueOnly: 
                         return (value,label)
                     else:
-                        xbmc.executebuiltin("Skin.SetString(%s,%s)" %(setting.encode("utf-8"),value.encode("utf-8")))
-                        xbmc.executebuiltin("Skin.SetString(%s.label,%s)" %(setting.encode("utf-8"),label.encode("utf-8")))
+                        if value != "||SKIPSTRING||":
+                            xbmc.executebuiltin("Skin.SetString(%s,%s)" %(setting.encode("utf-8"),value.encode("utf-8")))
+                            xbmc.executebuiltin("Skin.SetString(%s.label,%s)" %(setting.encode("utf-8"),label.encode("utf-8")))
                         additionalactions = allValues[selectedItem].getProperty("additionalactions").split(" || ")
                         for action in additionalactions:
                             xbmc.executebuiltin(action)
