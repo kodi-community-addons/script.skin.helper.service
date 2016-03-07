@@ -1137,7 +1137,8 @@ RunScript(script.skin.helper.service,action=restore,silent=mypath\backup.zip)
 ```
 RunScript(script.skin.helper.service,action=reset)             
 ```
-This will reset ALL skin settings
+This will reset ALL skin settings.
+Both the filter and silent arguments will also work with the reset feature.
 
 ________________________________________________________________________________________________________
 ________________________________________________________________________________________________________

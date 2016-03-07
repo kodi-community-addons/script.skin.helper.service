@@ -221,7 +221,9 @@ class Main:
             
             elif action == "RESET":
                 import resources.lib.BackupRestore as backup
-                backup.reset()
+                filter = params.get("FILTER","")
+                silent = params.get("SILENT","") == "true"
+                backup.reset(filter,silent)
                 xbmc.Monitor().waitForAbort(2)
                 mainmodule.correctSkinSettings()
             
