@@ -845,7 +845,7 @@ def getAlbumArtwork(musicbrainzalbumid, artwork=None, allowoverwrite=True):
             if artwork.get("info"): artwork["info"] = normalize_string(artwork["info"]).replace('\n', ' ').replace('\r', '')
     
     #get lastFM info for artist  (and use as spare for artwork)
-    if not artwork.get("info") or not artwork.get("folder") and artwork.get("artistname") and artwork.get("albumname"):
+    if (not artwork.get("info") or not artwork.get("folder")) and artwork.get("artistname") and artwork.get("albumname"):
         try:
             lastfm_url = 'http://ws.audioscrobbler.com/2.0/?method=album.getInfo&format=json&api_key=1869cecbff11c2715934b45b721e6fb0&artist=%s&album=%s' %(artwork["artistname"],artwork["albumname"])
             response = requests.get(lastfm_url)
