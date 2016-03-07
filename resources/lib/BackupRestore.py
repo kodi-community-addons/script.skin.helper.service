@@ -355,8 +355,7 @@ def reset(filterString="",proceed=False):
         settingsList = getSkinSettings(filter)
         for setting in settingsList:
             xbmc.executebuiltin("Skin.Reset(%s)" %try_encode(setting[1]) )
-        
-             
+         
 def save_to_file(content, filename, path=""):
     if path == "":
         text_file_path = get_browse_dialog() + filename + ".txt"

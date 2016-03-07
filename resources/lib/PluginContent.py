@@ -593,7 +593,7 @@ def MOVIESFORGENRE(limit,genretitle=""):
     for item in allItems:
         allItemsDef.append(item[1])
     return allItemsDef
-
+   
 def BROWSEGENRES(limit, type="movie"):
     count = 0
     allItems = []

@@ -587,11 +587,28 @@ At the moment it is not possible to use this approach for the new resource image
 http://localhost:52307/getvarimage&amp;title=$INFO{Skin.String(MyCustomPath)}/logo.png
 
 
+
+##### Genre images
+You can use this to create a custom view for movie/tvshow genres with posters/fanart from the genre
+
+```xml
+<texture background="true">http://localhost:52307/getmoviegenreimages&amp;title=$INFO[Listitem.Label]&amp;type=poster.0&amp;fallback=DefaultGenre.png</texture>
+<texture background="true">http://localhost:52307/gettvshowgenreimages&amp;title=$INFO[Listitem.Label]&amp;type=poster.0&amp;fallback=DefaultGenre.png</texture>
+<texture background="true">http://localhost:52307/getmoviegenreimages&amp;title=$INFO[Listitem.Label]&amp;type=fanart.0&amp;fallback=DefaultGenre.png</texture>
+<texture background="true">http://localhost:52307/gettvshowgenreimages&amp;title=$INFO[Listitem.Label]&amp;type=fanart.0&amp;fallback=DefaultGenre.png</texture>
+```
+Possible types are poster.X and fanart.X (replace X with count, only 0-4 are available)
+
+
+
+##### Webservice optional params
+
 Optional parameter: fallback --> Allows you to set a fallback image if no image was found.
 For example &amp;fallback=$INFO[ListItem.Thumb]
 
 Optional parameter: refresh --> By default the textures are cached by Kodi's texture cache which can be sticky when the underlying image was changed. Use an refresh param to force refresh.
-For example &amp;refresh=$INFO[System.Time(mm)]
+For example &amp;refresh=$INFO[System.Time(hh)]
+
 ________________________________________________________________________________________________________
 
 
