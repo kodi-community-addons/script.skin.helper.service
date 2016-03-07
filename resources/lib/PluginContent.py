@@ -38,7 +38,14 @@ def getPluginListing(action,limit,refresh=None,optionalParam=None,randomize=Fals
     elif "BROWSEGENRE" in action: 
         type = "genres"
         refresh = WINDOW.getProperty("widgetreload2")
+        xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_LABEL)
     else: type = "files"
+    if "RECENT" in action:
+        xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATEADDED)
+    elif "SIMILAR" in action:
+        xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_RATING)
+    else:
+        xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_UNSORTED)
     
     cacheStr = "skinhelper-%s-%s-%s-%s-%s" %(action,limit,optionalParam,refresh,randomize)
     
@@ -84,6 +91,7 @@ def addDirectoryItem(label, path, folder=True):
 
 def doMainListing():
     xbmcplugin.setContent(int(sys.argv[1]), 'files')
+    addDirectoryItem("genres", "plugin://script.skin.helper.service/?action=BROWSEGENRES&type=movie&limit=100")
     addDirectoryItem(ADDON.getLocalizedString(32000), "plugin://script.skin.helper.service/?action=favourites&limit=100")
     addDirectoryItem(ADDON.getLocalizedString(32001), "plugin://script.skin.helper.service/?action=favouritemedia&limit=100")
     addDirectoryItem(ADDON.getLocalizedString(32002), "plugin://script.skin.helper.service/?action=nextepisodes&limit=100")
@@ -599,7 +607,7 @@ def BROWSEGENRES(limit, type="movie"):
     allItems = []
 
     #get all genres
-    json_result = getJSON('VideoLibrary.GetGenres', '{"type": "%s"}' %type)
+    json_result = getJSON('VideoLibrary.GetGenres', '{"type": "%s", "sort": { "order": "ascending", "method": "title" }}' %type)
     for genre in json_result:
         #for each genre we get 5 random items from the library
         genre["art"] = {}
