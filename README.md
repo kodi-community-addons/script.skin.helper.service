@@ -1378,6 +1378,18 @@ You can use the name of the item or the DBID to perform the lookup.
 There will also a Window Property be set when you use the above query to the script: SkinHelper.ListItemCast --> It will return the cast list seperated by [CR]
 
 Optional parameter: downloadthumbs=true --> will auto download any missing actor thumbs from IMDB
+
+
+#####Browse Genres
+```
+plugin://script.skin.helper.service/?action=browsegenres&amp;type=movie&amp;limit=1000
+plugin://script.skin.helper.service/?action=browsegenres&amp;type=tvshow&amp;limit=1000
+```
+Provides the genres listing for movies or tvshows with artwork properties from movies/shows with the genre so you can build custom genre icons.
+ListItem.Art(poster.X) --> poster for movie/show X (start counting at 0) in the genre
+ListItem.Art(fanart.X) --> fanart for movie/show X (start counting at 0) in the genre
+
+For each genre, only 5 movies/tvshows are retrieved.
 ________________________________________________________________________________________________________
 ________________________________________________________________________________________________________
 

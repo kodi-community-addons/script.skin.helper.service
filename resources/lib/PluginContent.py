@@ -35,6 +35,9 @@ def getPluginListing(action,limit,refresh=None,optionalParam=None,randomize=Fals
     elif "SONG" in action: 
         type = "songs"
         refresh = WINDOW.getProperty("widgetreloadmusic")
+    elif "BROWSEGENRE" in action: 
+        type = "genres"
+        refresh = WINDOW.getProperty("widgetreload2")
     else: type = "files"
     
     cacheStr = "skinhelper-%s-%s-%s-%s-%s" %(action,limit,optionalParam,refresh,randomize)
@@ -63,7 +66,8 @@ def getPluginListing(action,limit,refresh=None,optionalParam=None,randomize=Fals
     #fill that listing...
     for item in allItems:
         liz = createListItem(item)
-        xbmcplugin.addDirectoryItem(int(sys.argv[1]), item['file'], liz, False)
+        isFolder = item.get("isFolder",False)
+        xbmcplugin.addDirectoryItem(int(sys.argv[1]), item['file'], liz, isFolder)
         count += 1
         if count == limit:
             break
@@ -590,6 +594,31 @@ def MOVIESFORGENRE(limit,genretitle=""):
         allItemsDef.append(item[1])
     return allItemsDef
 
+def BROWSEGENRES(limit, type="movie"):
+    count = 0
+    allItems = []
+
+    #get all genres
+    json_result = getJSON('VideoLibrary.GetGenres', '{"type": "%s"}' %type)
+    for genre in json_result:
+        #for each genre we get 5 random items from the library
+        genre["art"] = {}
+        if type== "tvshow":
+            genre["file"] = "videodb://tvshows/genres/%s/"%genre["genreid"]
+            json_result = getJSON('VideoLibrary.GetTvshows', '{ "sort": { "order": "descending", "method": "random" }, "filter": {"operator":"is", "field":"genre", "value":"%s"}, "properties": [ %s ],"limits":{"end":%d} }' %(genre["label"],fields_tvshows,5))
+        else:
+            genre["file"] = "videodb://movies/genres/%s/"%genre["genreid"]
+            json_result = getJSON('VideoLibrary.GetMovies', '{ "sort": { "order": "descending", "method": "random" }, "filter": {"operator":"is", "field":"genre", "value":"%s"}, "properties": [ %s ],"limits":{"end":%d} }' %(genre["label"],fields_movies,5))
+        for count, item in enumerate(json_result):
+            genre["art"]["poster.%s" %count] = item["art"].get("poster","")
+            genre["art"]["fanart.%s" %count] = item["art"].get("fanart","")
+        genre["isFolder"] = True
+        genre["IsPlayable"] = "false"
+        genre["thumbnail"] = "DefaultGenre.png"
+        allItems.append(genre)
+
+    return allItems
+    
 def SIMILARSHOWS(limit,imdbid="",unSorted=False):
     count = 0
     allItems = []

@@ -214,7 +214,7 @@ def try_decode(text, encoding="utf-8"):
  
 def createListItem(item):
     liz = xbmcgui.ListItem(label=item.get("label",""),label2=item.get("label2",""))
-    liz.setProperty('IsPlayable', 'true')
+    liz.setProperty('IsPlayable', item.get('IsPlayable','true'))
     liz.setPath(item.get('file'))
     
     nodetype = "Video"
