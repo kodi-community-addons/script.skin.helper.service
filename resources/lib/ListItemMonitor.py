@@ -535,7 +535,7 @@ class ListItemMonitor(threading.Thread):
         WINDOW.clearProperty('SkinHelper.TMDB.Budget.mln')
         WINDOW.clearProperty('SkinHelper.TMDB.Budget.mln')
         WINDOW.clearProperty('SkinHelper.AnimatedPoster')
-        WINDOW.clearProperty('SkinHelper.AnimatedPoster.Thumb')
+        WINDOW.clearProperty('SkinHelper.AnimatedFanart')
         
         totalNodes = 50
         for i in range(totalNodes):
@@ -1130,7 +1130,7 @@ class ListItemMonitor(threading.Thread):
         logMsg("setAnimatedPoster liImdb--> %s  - self.contentType: %s" %(liImdb,self.contentType))
         if (self.contentType == "movies" or self.contentType=="setmovies"):
             #check cache first
-            cacheStr = "animatedart-%s"%liImdb
+            cacheStr = "animatedartwork-%s"%liImdb
             if self.extendedinfocache.has_key(cacheStr):
                 result = self.extendedinfocache[cacheStr]
             else:
@@ -1139,25 +1139,16 @@ class ListItemMonitor(threading.Thread):
                 if not xbmcvfs.exists("special://thumbnails/animatedgifs/"):
                     xbmcvfs.mkdir("special://thumbnails/animatedgifs/")
                 
-                #animated poster
-                if xbmcvfs.exists("special://thumbnails/animatedgifs/%s_poster_0_original.gif"%liImdb):
-                    result["animated_poster"] = "special://thumbnails/animatedgifs/%s_poster_0_original.gif"%liImdb
-                elif xbmcvfs.exists("http://www.consiliumb.com/animatedgifs/%s_poster_0_original.gif" %liImdb):
-                    xbmcvfs.copy("http://www.consiliumb.com/animatedgifs/%s_poster_0_original.gif" %liImdb, "special://thumbnails/animatedgifs/%s_poster_0_original.gif"%liImdb)
-                    for i in range(40):
-                        if xbmcvfs.exists("special://thumbnails/animatedgifs/%s_poster_0_original.gif"%liImdb): break
-                        else: xbmc.sleep(250)
-                    result["animated_poster"] = "special://thumbnails/animatedgifs/%s_poster_0_original.gif"%liImdb
-                
-                #animated fanart
-                if xbmcvfs.exists("special://thumbnails/animatedgifs/%s_background_0.gif"%liImdb):
-                    result["animated_fanart"] = "special://thumbnails/animatedgifs/%s_background_0_original.gif"%liImdb
-                elif xbmcvfs.exists("http://www.consiliumb.com/animatedgifs/%s_poster_0_background.gif" %liImdb):
-                    xbmcvfs.copy("http://www.consiliumb.com/animatedgifs/%s_poster_0_background.gif" %liImdb, "special://thumbnails/animatedgifs/%s_background_0_original.gif"%liImdb)
-                    for i in range(40):
-                        if xbmcvfs.exists("special://thumbnails/animatedgifs/%s_background_0_original.gif"%liImdb): break
-                        else: xbmc.sleep(250)
-                    result["animated_fanart"] = "special://thumbnails/animatedgifs/%s_background_0_original.gif"%liImdb
+                # retrieve animated poster and fanart
+                for img in [("animated_fanart","%s_background_0_original.gif" %liImdb), ("animated_poster","%s_poster_0_original.gif" %liImdb)]:
+                    if xbmcvfs.exists("special://thumbnails/animatedgifs/%s"%img[1]):
+                        result[img[0]] = "special://thumbnails/animatedgifs/%s"%img[1]
+                    elif xbmcvfs.exists("http://www.consiliumb.com/animatedgifs/%s" %img[1]):
+                        xbmcvfs.copy("http://www.consiliumb.com/animatedgifs/%s"%img[1], "special://thumbnails/animatedgifs/%s"%img[1])
+                        for i in range(40):
+                            if xbmcvfs.exists("special://thumbnails/animatedgifs/%s"%img[1]): break
+                            else: xbmc.sleep(250)
+                        result[img[0]] = "special://thumbnails/animatedgifs/%s"%img[1]
                     
                 self.extendedinfocache[cacheStr] = result
             #return if another listitem was focused in the meanwhile
