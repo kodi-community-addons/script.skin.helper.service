@@ -91,7 +91,6 @@ def addDirectoryItem(label, path, folder=True):
 
 def doMainListing():
     xbmcplugin.setContent(int(sys.argv[1]), 'files')
-    addDirectoryItem("genres", "plugin://script.skin.helper.service/?action=BROWSEGENRES&type=movie&limit=100")
     addDirectoryItem(ADDON.getLocalizedString(32000), "plugin://script.skin.helper.service/?action=favourites&limit=100")
     addDirectoryItem(ADDON.getLocalizedString(32001), "plugin://script.skin.helper.service/?action=favouritemedia&limit=100")
     addDirectoryItem(ADDON.getLocalizedString(32002), "plugin://script.skin.helper.service/?action=nextepisodes&limit=100")

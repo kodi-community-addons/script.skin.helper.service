@@ -806,8 +806,6 @@ def resetMusicWidgetWindowProps(data="",resetAll=False):
     
 def resetVideoWidgetWindowProps(data="",resetAll=False):
     #clear the cache for the video widgets
-    print "resetVideoWidgetWindowProps"
-    print data
     type = "unknown"
     if data:
         data = eval(data.replace("true","True").replace("false","False"))
