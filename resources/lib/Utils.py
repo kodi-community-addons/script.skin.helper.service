@@ -619,21 +619,25 @@ def getCurrentContentType(containerid=""):
     elif xbmc.getCondVisibility("!IsEmpty(Container.Content)"):     
         contenttype = xbmc.getInfoLabel("Container.Content")
     #try to determine type by the listitem properties
-    elif xbmc.getCondVisibility("!IsEmpty(Container(%s).ListItem.DBTYPE)" %containerid):
-        contenttype = xbmc.getInfoLabel("Container(%s).ListItem.DBTYPE" %containerid) + "s"
-    elif xbmc.getCondVisibility("!IsEmpty(Container(%s).ListItem.Property(DBTYPE))" %containerid):
-        contenttype = xbmc.getInfoLabel("Container(%s).ListItem.Property(DBTYPE)" %containerid) + "s"
-    elif xbmc.getCondVisibility("SubString(Container(%s).ListItem.FileNameAndPath,playrecording) | SubString(Container(%s).ListItem.FileNameAndPath,tvtimer)" %(containerid,containerid)):
+    elif xbmc.getCondVisibility("!IsEmpty(Container(%s).ListItem(1).DBTYPE)" %containerid):
+        contenttype = xbmc.getInfoLabel("Container(%s).ListItem(1).DBTYPE" %containerid) + "s"
+    elif xbmc.getCondVisibility("!IsEmpty(Container(%s).ListItem(1).Property(DBTYPE))" %containerid):
+        contenttype = xbmc.getInfoLabel("Container(%s).ListItem(1).Property(DBTYPE)" %containerid) + "s"
+    elif xbmc.getCondVisibility("SubString(Container(%s).ListItem(1).FileNameAndPath,playrecording) | SubString(Container(%s).ListItem(1).FileNameAndPath,tvtimer)" %(containerid,containerid)):
         contenttype = "tvrecordings"
-    elif xbmc.getCondVisibility("SubString(Container(%s).ListItem.FolderPath,pvr://channels)" %containerid):
+    elif xbmc.getCondVisibility("SubString(Container(%s).ListItem(1).FolderPath,pvr://channels)" %containerid):
         contenttype = "tvchannels"
-    elif xbmc.getCondVisibility("StringCompare(Container(%s).ListItem.Label,Container(%s).ListItem.Artist)" %(containerid,containerid)):
+    elif xbmc.getCondVisibility("StringCompare(Container(%s).ListItem(1).Label,Container(%s).ListItem(1).Artist)" %(containerid,containerid)):
         contenttype = "artists"
-    elif xbmc.getCondVisibility("StringCompare(Container(%s).ListItem.Label,Container(%s).ListItem.TvShowTitle)" %(containerid,containerid)):
+    elif xbmc.getCondVisibility("StringCompare(Container(%s).ListItem(1).Label,Container(%s).ListItem(1).Album)" %(containerid,containerid)):
+        contenttype = "albums"
+    elif xbmc.getCondVisibility("!IsEmpty(Container(%s).ListItem(1).Artist) + !IsEmpty(Container(%s).ListItem(1).Album)" %(containerid,containerid)):
+        contenttype = "songs"
+    elif xbmc.getCondVisibility("StringCompare(Container(%s).ListItem(1).Label,Container(%s).ListItem(1).TvShowTitle)" %(containerid,containerid)):
         contenttype = "tvshows"
-    elif xbmc.getCondVisibility("SubString(Container(%s).ListItem.FolderPath,flix2kodi) + SubString(Container(%s).ListItem.Genre,Series)" %(containerid,containerid)):
+    elif xbmc.getCondVisibility("SubString(Container(%s).ListItem(1).FolderPath,flix2kodi) + SubString(Container(%s).ListItem(1).Genre,Series)" %(containerid,containerid)):
         contenttype = "tvshows"
-    elif xbmc.getCondVisibility("SubString(Container(%s).ListItem.FolderPath,flix2kodi)" %(containerid)):
+    elif xbmc.getCondVisibility("SubString(Container(%s).ListItem(1).FolderPath,flix2kodi)" %(containerid)):
         contenttype = "movies"
     
     WINDOW.setProperty("contenttype",contenttype)

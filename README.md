@@ -803,6 +803,8 @@ In that case you have to use a special syntax as the value:
 
 ||PROMPTSTRING|| --> Asks the user for a string input
 
+||PROMPTSTRINGASNUMERIC|| --> Asks the user for a string which must be numeric (allows having negative numbers)
+
 ||BROWSEIMAGE|| --> Asks the user to select a single image or imagepath
 
 ||BROWSESINGLEIMAGE|| --> Asks the user to select a single image

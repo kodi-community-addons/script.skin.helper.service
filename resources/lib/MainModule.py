@@ -441,15 +441,22 @@ def setSkinSetting(setting="", windowHeader="", sublevel="", valueOnly=""):
                 listitem.setProperty("additionalactions"," || ".join(additionalactions))
                 allValues.append(listitem)
                 itemcount +=1
-        if useRichLayout:
-            w = dialogs.DialogSelectBig( "DialogSelect.xml", ADDON_PATH, listing=allValues, windowtitle=windowHeader,multiselect=False )
+        if not allValues:
+            selectedItem = -1
+        elif len(allValues) > 1:
+            #only use select dialog if we have muliple values
+            if useRichLayout:
+                w = dialogs.DialogSelectBig( "DialogSelect.xml", ADDON_PATH, listing=allValues, windowtitle=windowHeader,multiselect=False )
+            else:
+                w = dialogs.DialogSelectSmall( "DialogSelect.xml", ADDON_PATH, listing=allValues, windowtitle=windowHeader,multiselect=False )
+            if selectId > 0 and sublevel: selectId += 1
+            w.autoFocusId = selectId
+            w.doModal()
+            selectedItem = w.result
+            del w
         else:
-            w = dialogs.DialogSelectSmall( "DialogSelect.xml", ADDON_PATH, listing=allValues, windowtitle=windowHeader,multiselect=False )
-        if selectId > 0 and sublevel: selectId += 1
-        w.autoFocusId = selectId
-        w.doModal()
-        selectedItem = w.result
-        del w
+            selectedItem = 0
+        #process the results
         if selectedItem != -1:
             value = try_decode( allValues[selectedItem].getProperty("value") )
             label = try_decode( allValues[selectedItem].getLabel() )
@@ -470,6 +477,16 @@ def setSkinSetting(setting="", windowHeader="", sublevel="", valueOnly=""):
                     value = xbmcgui.Dialog().input( label,curValue, 1).decode("utf-8")
                 if value == "||PROMPTSTRING||":
                     value = xbmcgui.Dialog().input( label,curValue, 0).decode("utf-8")
+                if value == "||PROMPTSTRINGASNUMERIC||":
+                    validInput = False
+                    while not validInput:
+                        try:
+                            value = xbmcgui.Dialog().input( label,curValue, 0).decode("utf-8")
+                            valueint = int(value)
+                            validInput = True
+                        except:
+                            value = xbmcgui.Dialog().notification( "Invalid input", "Please enter a number...")
+                            
                 #write skin strings
                 if not valueOnly and value != "||SKIPSTRING||":
                     xbmc.executebuiltin("Skin.SetString(%s,%s)" %(setting.encode("utf-8"),value.encode("utf-8")))
