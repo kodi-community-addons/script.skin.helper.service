@@ -598,7 +598,7 @@ You can use this to create a custom view for movie/tvshow genres with posters/fa
 <texture background="true">http://localhost:52307/gettvshowgenreimages&amp;title=$INFO[Listitem.Label]&amp;type=fanart.0&amp;fallback=DefaultGenre.png</texture>
 ```
 Possible types are poster.X and fanart.X (replace X with count, only 0-4 are available)
-
+Replace getmoviegenreimages with getmoviegenreimagesrandom to have the artwork items be randomly pulled from the db
 
 
 ##### Webservice optional params

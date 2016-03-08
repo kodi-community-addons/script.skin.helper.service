@@ -172,17 +172,21 @@ class StoppableHttpRequestHandler (SimpleHTTPServer.SimpleHTTPRequestHandler):
                 if artwork.get("thumb"): image = artwork.get("thumb")
                 if artwork.get("fanart"): image = artwork.get("fanart")
         
-        elif action == "getmoviegenreimages" or action == "gettvshowgenreimages":
+        elif "getmoviegenreimages" in action or "gettvshowgenreimages" in action:
             artwork = {}
             cachestr = ("%s-%s" %(action,title)).encode("utf-8")
             cache = WINDOW.getProperty(cachestr).decode("utf-8")
             if cache: 
                 artwork = eval(cache)
             else:
+                sort = '"order": "ascending", "method": "title"'
+                if "random" in action:
+                    sort = '"order": "descending", "method": "random"'
+                    action = action.replace("random","")
                 if action == "gettvshowgenreimages": 
-                    json_result = getJSON('VideoLibrary.GetTvshows', '{ "sort": { "order": "descending", "method": "random" }, "filter": {"operator":"is", "field":"genre", "value":"%s"}, "properties": [ %s ],"limits":{"end":%d} }' %(title,fields_tvshows,5))
+                    json_result = getJSON('VideoLibrary.GetTvshows', '{ "sort": { %s }, "filter": {"operator":"is", "field":"genre", "value":"%s"}, "properties": [ %s ],"limits":{"end":%d} }' %(sort,title,fields_tvshows,5))
                 else:
-                    json_result = getJSON('VideoLibrary.GetMovies', '{ "sort": { "order": "descending", "method": "random" }, "filter": {"operator":"is", "field":"genre", "value":"%s"}, "properties": [ %s ],"limits":{"end":%d} }' %(title,fields_movies,5))
+                    json_result = getJSON('VideoLibrary.GetMovies', '{ "sort": { %s }, "filter": {"operator":"is", "field":"genre", "value":"%s"}, "properties": [ %s ],"limits":{"end":%d} }' %(sort,title,fields_movies,5))
                 for count, item in enumerate(json_result):
                     artwork["poster.%s" %count] = item["art"].get("poster","")
                     artwork["fanart.%s" %count] = item["art"].get("fanart","")
