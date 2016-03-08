@@ -179,7 +179,7 @@ class StoppableHttpRequestHandler (SimpleHTTPServer.SimpleHTTPRequestHandler):
             if cache: 
                 artwork = eval(cache)
             else:
-                sort = '"order": "ascending", "method": "title"'
+                sort = '"order": "ascending", "method": "sorttitle"'
                 if "random" in action:
                     sort = '"order": "descending", "method": "random"'
                     action = action.replace("random","")
