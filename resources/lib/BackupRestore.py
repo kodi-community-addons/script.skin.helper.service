@@ -1,21 +1,7 @@
-import xbmc
-import xbmcaddon
-import xbmcgui
-import xbmcvfs
-import xbmcplugin
-import os
-import json
-import shutil
-import hashlib
-import urllib
-import time
-import zipfile
-import shutil
 from Utils import *
 import random
 from xml.dom.minidom import parse
 
-doDebugLog = False
 
 def getSkinSettings(filter=None):
     newlist = []
@@ -24,7 +10,7 @@ def getSkinSettings(filter=None):
     else:
         #workaround - reload skin to get guisettings
         xbmc.executebuiltin("Reloadskin")
-        xbmc.sleep(1500)
+        xbmc.Monitor().waitForAbort(1.5)
         guisettings_path = xbmc.translatePath('special://profile/addon_data/%s/settings.xml' %xbmc.getSkinDir()).decode("utf-8")
     if xbmcvfs.exists(guisettings_path):
         logMsg("guisettings.xml found")
@@ -78,9 +64,11 @@ def backup(filterString="",silent=None,promptfilename="false"):
         backup_path = silent
         if not backup_path:
             backup_path = get_browse_dialog(dlg_type=3,heading=ADDON.getLocalizedString(32018)).decode("utf-8")
+            if not backup_path or backup_path=="protocol://": return
         if promptfilename == "true":
             dialog = xbmcgui.Dialog()
             backup_name = dialog.input(ADDON.getLocalizedString(32068), type=xbmcgui.INPUT_ALPHANUM)
+            if not backup_name: return
         else:
             from datetime import datetime
             i = datetime.now()
@@ -88,126 +76,129 @@ def backup(filterString="",silent=None,promptfilename="false"):
             
         if backup_path and backup_path != "protocol://":
             
-                #get the skinsettings
-                newlist = getSkinSettings(filter)
+            #get the skinsettings
+            newlist = getSkinSettings(filter)
 
-                if not xbmcvfs.exists(backup_path) and not silent:
-                    xbmcvfs.mkdir(backup_path)
+            if not xbmcvfs.exists(backup_path) and not silent:
+                xbmcvfs.mkdir(backup_path)
+            
+            #create temp path
+            temp_path = xbmc.translatePath('special://temp/skinbackup/').decode("utf-8")
+            if xbmcvfs.exists(temp_path):
+                recursiveDelete(temp_path)
+            xbmcvfs.mkdir(temp_path)
                 
-                #create temp path
-                temp_path = xbmc.translatePath('special://temp/skinbackup/').decode("utf-8")
-                if xbmcvfs.exists(temp_path):
-                    shutil.rmtree(temp_path)
-                xbmcvfs.mkdir(temp_path)
-                    
-                #get skinshortcuts preferences
-                skinshortcuts_path = temp_path + "skinshortcuts/"
-                skinshortcuts_path_source = xbmc.translatePath('special://profile/addon_data/script.skinshortcuts/').decode("utf-8")
-                logMsg(skinshortcuts_path_source)
-                if xbmcvfs.exists(skinshortcuts_path_source) and (not filterString or filterString.lower() == "skinshortcutsonly"):
-                    if not xbmcvfs.exists(skinshortcuts_path):
-                        xbmcvfs.mkdir(skinshortcuts_path)
-                    dirs, files = xbmcvfs.listdir(skinshortcuts_path_source)
-                    for file in files:
-                        sourcefile = skinshortcuts_path_source + file
-                        destfile = skinshortcuts_path + file
-                        logMsg("source --> " + sourcefile)
-                        logMsg("destination --> " + destfile)
+            #get skinshortcuts preferences
+            skinshortcuts_path = temp_path + "skinshortcuts/"
+            skinshortcuts_path_source = xbmc.translatePath('special://profile/addon_data/script.skinshortcuts/').decode("utf-8")
+            logMsg(skinshortcuts_path_source)
+            if xbmcvfs.exists(skinshortcuts_path_source) and (not filterString or filterString.lower() == "skinshortcutsonly"):
+                if not xbmcvfs.exists(skinshortcuts_path):
+                    xbmcvfs.mkdir(skinshortcuts_path)
+                dirs, files = xbmcvfs.listdir(skinshortcuts_path_source)
+                for file in files:
+                    sourcefile = skinshortcuts_path_source + file.decode("utf-8")
+                    destfile = skinshortcuts_path + file.decode("utf-8")
+                    if xbmc.getCondVisibility("SubString(Skin.String(skinshortcuts-sharedmenu),false)"):
+                        # User is not sharing menu, so strip the skin name out of the destination file
+                        destfile = destfile.replace("%s." %(xbmc.getSkinDir()), "")
+                    logMsg("source --> " + sourcefile)
+                    logMsg("destination --> " + destfile)
 
-                        if file.endswith(".DATA.xml"):
-                            xbmcvfs.copy(sourcefile,destfile)
-                            #parse shortcuts file and look for any images - if found copy them to addon folder
-                            doc = parse( destfile )
-                            listing = doc.documentElement.getElementsByTagName( 'shortcut' )
-                            for shortcut in listing:               
-                                defaultID = shortcut.getElementsByTagName( 'defaultID' )
+                    if file.endswith(".DATA.xml") and (not xbmc.getCondVisibility("SubString(Skin.String(skinshortcuts-sharedmenu),false)") or file.startswith(xbmc.getSkinDir())):
+                        xbmcvfs.copy(sourcefile,destfile)
+                        #parse shortcuts file and look for any images - if found copy them to addon folder
+                        doc = parse( destfile )
+                        listing = doc.documentElement.getElementsByTagName( 'shortcut' )
+                        for shortcut in listing:               
+                            defaultID = shortcut.getElementsByTagName( 'defaultID' )
+                            if defaultID:
+                                defaultID = defaultID[0].firstChild
                                 if defaultID:
-                                    defaultID = defaultID[0].firstChild
-                                    if defaultID:
-                                        defaultID = defaultID.data
-                                    if not defaultID: 
-                                        defaultID = shortcut.getElementsByTagName( 'label' )[0].firstChild.data
-                                    thumb = shortcut.getElementsByTagName( 'thumb' )
+                                    defaultID = defaultID.data
+                                if not defaultID: 
+                                    defaultID = shortcut.getElementsByTagName( 'label' )[0].firstChild.data
+                                thumb = shortcut.getElementsByTagName( 'thumb' )
+                                if thumb:
+                                    thumb = thumb[0].firstChild
                                     if thumb:
-                                        thumb = thumb[0].firstChild
-                                        if thumb:
-                                            thumb = thumb.data
-                                            if thumb and(".jpg" in thumb or ".png" in thumb) and not xbmc.getSkinDir() in thumb and not thumb.startswith("$") and not thumb.startswith("androidapp"):
-                                                thumb = getCleanImage(thumb) 
-                                                extension = thumb.split(".")[-1]
-                                                newthumb = os.path.join(skinshortcuts_path,"%s-thumb-%s.%s" %(xbmc.getSkinDir(),normalize_string(defaultID),extension))
-                                                newthumb_vfs = "special://profile/addon_data/script.skinshortcuts/%s-thumb-%s.%s"%(xbmc.getSkinDir(),normalize_string(defaultID),extension)
-                                                if xbmcvfs.exists(thumb):
-                                                    xbmcvfs.copy(thumb,newthumb)
-                                                    shortcut.getElementsByTagName( 'thumb' )[0].firstChild.data = newthumb_vfs
-                            with open(destfile, 'w') as f:
-                                f.write(doc.toxml(encoding='utf-8'))
-                                                
-                        elif file.endswith(".properties"):
-                            if xbmc.getSkinDir() in file:
-                                destfile = skinshortcuts_path + file.replace(xbmc.getSkinDir(), "SKINPROPERTIES")
-                                xbmcvfs.copy(sourcefile,destfile)
-                                #look for any backgrounds and translate them
-                                with open(destfile, 'r') as f:
-                                    data = f.read()
-                                allprops = eval(data)
-                                count = 0
-                                for prop in allprops:
-                                    if prop[2] == "background":
-                                        background = prop[3]
-                                        defaultID = prop[1]
-                                        if background and (".jpg" in background or ".png" in background) and not xbmc.getSkinDir() in background and not background.startswith("$") and not background.startswith("androidapp"):
-                                            background = getCleanImage(background)
-                                            extension = background.split(".")[-1]
-                                            newthumb = os.path.join(skinshortcuts_path,"%s-background-%s.%s" %(xbmc.getSkinDir(),normalize_string(defaultID),extension))
-                                            newthumb_vfs = "special://profile/addon_data/script.skinshortcuts/%s-background-%s.%s"%(xbmc.getSkinDir(),normalize_string(defaultID),extension)
-                                            if xbmcvfs.exists(background):
-                                                xbmcvfs.copy(background,newthumb)
-                                                allprops[count] = [prop[0],prop[1],prop[2],newthumb_vfs]
-                                    if prop[2] == "backgroundName":
-                                        background = prop[3]
-                                        defaultID = prop[1]
-                                        if "." in background and not background.startswith("special://") and not background.startswith("$") and not background.startswith("androidapp"):
-                                            if "/" in background:
-                                                delim = "/"
-                                            else:
-                                                delim = "\\"
-                                            newthumb = background.split(delim)[-1]
-                                            if xbmcvfs.exists(background):
-                                                allprops[count] = [prop[0],prop[1],prop[2],newthumb]
-                                    count += 1
-                                with open(destfile, 'w') as f:
-                                    f.write(repr(allprops))
-                        else:
-                            #just copy the remaining files
+                                        thumb = thumb.data
+                                        if thumb and(".jpg" in thumb.lower() or ".png" in thumb.lower()) and not xbmc.getSkinDir() in thumb and not thumb.startswith("$") and not thumb.startswith("androidapp"):
+                                            thumb = getCleanImage(thumb) 
+                                            extension = thumb.split(".")[-1]
+                                            newthumb = os.path.join(skinshortcuts_path,"%s-thumb-%s.%s" %(xbmc.getSkinDir(),normalize_string(defaultID),extension))
+                                            newthumb_vfs = "special://profile/addon_data/script.skinshortcuts/%s-thumb-%s.%s"%(xbmc.getSkinDir(),normalize_string(defaultID),extension)
+                                            if xbmcvfs.exists(thumb):
+                                                xbmcvfs.copy(thumb,newthumb)
+                                                shortcut.getElementsByTagName( 'thumb' )[0].firstChild.data = newthumb_vfs
+                        with open(destfile, 'w') as f:
+                            f.write(doc.toxml(encoding='utf-8'))
+                                            
+                    elif file.endswith(".properties"):
+                        if xbmc.getSkinDir() in file:
+                            destfile = skinshortcuts_path + file.replace(xbmc.getSkinDir(), "SKINPROPERTIES")
                             xbmcvfs.copy(sourcefile,destfile)
-                        
-                if not filterString.lower() == "skinshortcutsonly":
-                    #save guisettings
-                    text_file_path = os.path.join(temp_path, "guisettings.txt")
+                            #look for any backgrounds and translate them
+                            with open(destfile, 'r') as f:
+                                data = f.read()
+                            allprops = eval(data)
+                            count = 0
+                            for prop in allprops:
+                                if prop[2] == "background":
+                                    background = prop[3]
+                                    defaultID = prop[1]
+                                    if background and (".jpg" in background.lower() or ".png" in background.lower()) and not xbmc.getSkinDir() in background and not background.startswith("$") and not background.startswith("androidapp"):
+                                        background = getCleanImage(background)
+                                        extension = background.split(".")[-1]
+                                        newthumb = os.path.join(skinshortcuts_path,"%s-background-%s.%s" %(xbmc.getSkinDir(),normalize_string(defaultID),extension))
+                                        newthumb_vfs = "special://profile/addon_data/script.skinshortcuts/%s-background-%s.%s"%(xbmc.getSkinDir(),normalize_string(defaultID),extension)
+                                        if xbmcvfs.exists(background):
+                                            xbmcvfs.copy(background,newthumb)
+                                            allprops[count] = [prop[0],prop[1],prop[2],newthumb_vfs]
+                                if prop[2] == "backgroundName":
+                                    background = prop[3]
+                                    defaultID = prop[1]
+                                    if "." in background and not background.startswith("special://") and not background.startswith("$") and not background.startswith("androidapp"):
+                                        if "/" in background:
+                                            delim = "/"
+                                        else:
+                                            delim = "\\"
+                                        newthumb = background.split(delim)[-1]
+                                        if xbmcvfs.exists(background):
+                                            allprops[count] = [prop[0],prop[1],prop[2],newthumb]
+                                count += 1
+                            with open(destfile, 'w') as f:
+                                f.write(repr(allprops))
+                    else:
+                        #just copy the remaining files
+                        xbmcvfs.copy(sourcefile,destfile)
                     
-                    with open(text_file_path, 'w') as f:
-                        f.write(repr(newlist))
+            if not filterString.lower() == "skinshortcutsonly":
+                #save guisettings
+                text_file_path = os.path.join(temp_path, "guisettings.txt")
                 
-                #zip the backup
-                zip_temp = xbmc.translatePath('special://temp/' + backup_name).decode("utf-8")
-                zip(temp_path,zip_temp)
-                
-                if silent:
-                    zip_final = silent
-                else:
-                    zip_final = backup_path + backup_name + ".zip"
-                
-                #copy to final location
-                if xbmcvfs.exists(zip_final):
-                    xbmcvfs.delete(zip_final)
-                if not xbmcvfs.copy(zip_temp + ".zip", zip_final):
-                    error = True
-                    e = "Problem creating file in destination folder"
-                
-                #cleanup temp
-                shutil.rmtree(temp_path)
-                xbmcvfs.delete(zip_temp + ".zip")
+                with open(text_file_path, 'w') as f:
+                    f.write(repr(newlist))
+            
+            #zip the backup
+            zip_temp = xbmc.translatePath('special://temp/' + backup_name).decode("utf-8")
+            zip(temp_path,zip_temp)
+            
+            if silent:
+                zip_final = silent
+            else:
+                zip_final = backup_path + backup_name + ".zip"
+            
+            #copy to final location
+            if xbmcvfs.exists(zip_final):
+                xbmcvfs.delete(zip_final)
+            if not xbmcvfs.copy(zip_temp + ".zip", zip_final):
+                error = True
+                e = "Problem creating file in destination folder"
+            
+            #cleanup temp
+            recursiveDelete(temp_path)
+            xbmcvfs.delete(zip_temp + ".zip")
 
     except Exception as e:
         error = True
@@ -217,13 +208,59 @@ def backup(filterString="",silent=None,promptfilename="false"):
         if not silent: xbmcgui.Dialog().ok(ADDON.getLocalizedString(32028), ADDON.getLocalizedString(32030), str(e))
     elif not silent:
         xbmcgui.Dialog().ok(ADDON.getLocalizedString(32028), ADDON.getLocalizedString(32029))
-        
-def restore(silent=None):
 
+def restoreSkinSettings(filename, progressDialog=None):
+    if xbmcvfs.exists(filename):
+        f = xbmcvfs.File(filename, 'r')
+        importstring = eval(f.read())
+        f.close()
+        xbmc.sleep(200)
+        for count, skinsetting in enumerate(importstring):
+        
+            if progressDialog:
+                if progressDialog.iscanceled():
+                    return
+            setting = skinsetting[1]
+            settingvalue = skinsetting[2]
+
+            try: setting = setting.encode('utf-8')
+            except: pass
+            
+            try: settingvalue = settingvalue.encode('utf-8')
+            except: pass
+
+            if progressDialog:
+                progressDialog.update((count * 100) / len(importstring), ADDON.getLocalizedString(32033) + ' %s' % setting.decode("utf-8"))
+
+            if skinsetting[0] == "string":
+                if settingvalue:
+                    xbmc.executebuiltin("Skin.SetString(%s,%s)" % (setting, settingvalue))
+                else:
+                    xbmc.executebuiltin("Skin.Reset(%s)" % setting)
+            elif skinsetting[0] == "bool":
+                if settingvalue == "true":
+                    xbmc.executebuiltin("Skin.SetBool(%s)" % setting)
+                else:
+                    xbmc.executebuiltin("Skin.Reset(%s)" % setting)
+            xbmc.sleep(30)
+
+def restore(silent=None):
+    #return if silent file doesn't exist
     if silent and not xbmcvfs.exists(silent):
-        logMsg("ERROR while creating backup ! --> Path invalid. Make sure you provide the FULL path, for example special://skin/extras/mybackup.zip", 0)
+        logMsg("ERROR while restoring backup ! --> Path invalid. Make sure you provide the FULL path, for example special://skin/extras/mybackup.zip", 0)
         return
-    
+    #if silent file submitted is not zipfile, treat as skinsettings only
+    if silent and not silent.lower().endswith("zip"):
+        xbmc.executebuiltin( "ActivateWindow(busydialog)" )
+        try:
+            restoreSkinSettings(silent)
+        except: logMsg("ERROR while restoring backup !",0)
+        xbmc.executebuiltin( "Dialog.Close(busydialog)" )
+    else:
+        #perform full restore
+        restoreFull(silent)
+
+def restoreFull(silent=None):
     try:
         zip_path = silent
         progressDialog = None
@@ -237,11 +274,13 @@ def restore(silent=None):
                 progressDialog = xbmcgui.DialogProgress(ADDON.getLocalizedString(32032))
                 progressDialog.create(ADDON.getLocalizedString(32032))
                 progressDialog.update(0, "unpacking backup...")
+            else:
+                xbmc.executebuiltin( "ActivateWindow(busydialog)" )
             
             #create temp path
             temp_path = xbmc.translatePath('special://temp/skinbackup/').decode("utf-8")
             if xbmcvfs.exists(temp_path):
-                shutil.rmtree(temp_path)
+                recursiveDelete(temp_path)
             xbmcvfs.mkdir(temp_path)
             
             #unzip to temp
@@ -252,9 +291,7 @@ def restore(silent=None):
             
             zip_temp = xbmc.translatePath('special://temp/' + zip_path.split(delim)[-1]).decode("utf-8")
             xbmcvfs.copy(zip_path,zip_temp)
-            zfile = zipfile.ZipFile(zip_temp)
-            zfile.extractall(temp_path)
-            zfile.close()
+            unzip(zip_temp,temp_path)
             xbmcvfs.delete(zip_temp)
             
             #copy skinshortcuts preferences
@@ -263,96 +300,62 @@ def restore(silent=None):
                 
                 skinshortcuts_path_source = temp_path + "skinshortcuts/"
                 skinshortcuts_path_dest = xbmc.translatePath('special://profile/addon_data/script.skinshortcuts/').decode("utf-8")
-                
-                if xbmcvfs.exists(skinshortcuts_path_dest):
-                    shutil.rmtree(skinshortcuts_path_dest)
-                xbmcvfs.mkdir(skinshortcuts_path_dest)
             
-                dirs, files = xbmcvfs.listdir(skinshortcuts_path_source)
+                dirs, files = xbmcvfs.listdir(skinshortcuts_path_source.encode("utf-8"))
                 for file in files:
-                    sourcefile = skinshortcuts_path_source + file
-                    destfile = skinshortcuts_path_dest + file  
+                    sourcefile = skinshortcuts_path_source.encode("utf-8") + file
+                    destfile = skinshortcuts_path_dest.encode("utf-8") + file  
                     if file == "SKINPROPERTIES.properties":
                         destfile = skinshortcuts_path_dest + file.replace("SKINPROPERTIES",xbmc.getSkinDir())
+                    elif xbmc.getCondVisibility("SubString(Skin.String(skinshortcuts-sharedmenu),false)"):
+                        destfile = "%s-" %(xbmc.getSkinDir())
                     logMsg("source --> " + sourcefile)
                     logMsg("destination --> " + destfile)
+                    if xbmcvfs.exists(destfile):
+                        xbmcvfs.delete(destfile)
                     xbmcvfs.copy(sourcefile,destfile)
                         
-            #read guisettings
-            if xbmcvfs.exists(os.path.join(temp_path, "guisettings.txt")):
-                text_file_path = os.path.join(temp_path, "guisettings.txt")
-                with open(text_file_path, 'r') as f:
-                    importstring = eval(f.read())
-            
-                xbmc.sleep(200)
-                for count, skinsetting in enumerate(importstring):
-                
-                    if progressDialog:
-                        if progressDialog.iscanceled():
-                            return
-                    setting = skinsetting[1]
-                    settingvalue = skinsetting[2]
-                    
-                    #some legacy...
-                    setting = setting.replace("TITANSKIN.helix", "").replace("TITANSKIN.", "")
+            #restore guisettings
+            skinsettingsfile = os.path.join(temp_path, "guisettings.txt")
+            if xbmcvfs.exists(skinsettingsfile):
+                restoreSkinSettings(skinsettingsfile, progressDialog)
 
-                    try: setting = setting.encode('utf-8')
-                    except: pass
-                    
-                    try: settingvalue = settingvalue.encode('utf-8')
-                    except: pass
-
-                    if progressDialog:
-                        progressDialog.update((count * 100) / len(importstring), ADDON.getLocalizedString(32033) + ' %s' % setting.decode("utf-8"))
-
-                    if skinsetting[0] == "string":
-                        if settingvalue:
-                            xbmc.executebuiltin("Skin.SetString(%s,%s)" % (setting, settingvalue))
-                        else:
-                            xbmc.executebuiltin("Skin.Reset(%s)" % setting)
-                    elif skinsetting[0] == "bool":
-                        if settingvalue == "true":
-                            xbmc.executebuiltin("Skin.SetBool(%s)" % setting)
-                        else:
-                            xbmc.executebuiltin("Skin.Reset(%s)" % setting)
-                    xbmc.sleep(30)
-            
             #cleanup temp
-            xbmc.sleep(500)
-            shutil.rmtree(temp_path)
+            xbmc.Monitor().waitForAbort(0.5)
+            recursiveDelete(temp_path)
             if not silent:
                 xbmcgui.Dialog().ok(ADDON.getLocalizedString(32032), ADDON.getLocalizedString(32034))
+            else:
+                xbmc.executebuiltin( "Dialog.Close(busydialog)" )
     
     except Exception as e:
         if not silent:
             xbmcgui.Dialog().ok(ADDON.getLocalizedString(32032), ADDON.getLocalizedString(32035), str(e))
         logMsg("ERROR while restoring backup ! --> " + str(e), 0)
-        
-def zip(src, dst):
-    zf = zipfile.ZipFile("%s.zip" % (dst), "w", zipfile.ZIP_DEFLATED)
-    abs_src = os.path.abspath(src)
-    for dirname, subdirs, files in os.walk(src):
-        for filename in files:
-            absname = os.path.abspath(os.path.join(dirname, filename))
-            arcname = absname[len(abs_src) + 1:]
-            logMsg('zipping %s as %s' % (os.path.join(dirname, filename),
-                                        arcname))
-            zf.write(absname, arcname)
-    zf.close()
        
-def reset():
-    yeslabel=xbmc.getLocalizedString(107)
-    nolabel=xbmc.getLocalizedString(106)
-    dialog = xbmcgui.Dialog()
-    
-    ret = dialog.yesno(heading=ADDON.getLocalizedString(32036), line1=ADDON.getLocalizedString(32037), nolabel=nolabel, yeslabel=yeslabel)
-    if ret:
+def reset(filterString="",proceed=False):
+    if not proceed:
+        yeslabel=xbmc.getLocalizedString(107)
+        nolabel=xbmc.getLocalizedString(106)   
+        proceed = xbmcgui.Dialog().yesno(heading=ADDON.getLocalizedString(32036), line1=ADDON.getLocalizedString(32037), nolabel=nolabel, yeslabel=yeslabel)
+    if proceed and not filterString:
         xbmc.executebuiltin("RunScript(script.skinshortcuts,type=resetall&warning=false)")
         xbmc.sleep(250)
         xbmc.executebuiltin("Skin.ResetSettings")
         xbmc.sleep(250)
         xbmc.executebuiltin("ReloadSkin")
-             
+    if proceed and filterString:
+        #only reset the filtered options
+        if "|" in filterString:
+            filter = filterString.split("|")
+        else:
+            filter = []
+            filter.append(filterString)
+        
+        settingsList = getSkinSettings(filter)
+        for setting in settingsList:
+            xbmc.executebuiltin("Skin.Reset(%s)" %try_encode(setting[1]) )
+         
 def save_to_file(content, filename, path=""):
     if path == "":
         text_file_path = get_browse_dialog() + filename + ".txt"
@@ -379,5 +382,5 @@ def read_from_file(path=""):
        
 def get_browse_dialog(default="protocol://", heading="Browse", dlg_type=3, shares="files", mask="", use_thumbs=False, treat_as_folder=False):
     dialog = xbmcgui.Dialog()
-    value = dialog.browse(dlg_type, heading, shares, mask, use_thumbs, treat_as_folder, default)
+    value = dialog.browse(dlg_type, heading, shares, mask, use_thumbs, treat_as_folder)
     return value

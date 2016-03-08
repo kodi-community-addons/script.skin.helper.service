@@ -1,23 +1,21 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-
-import sys
-import xbmc
-import xbmcplugin
-import xbmcgui
-
-from resources.lib.Utils import *
-from resources.lib.PluginContent import *
+import resources.lib.PluginContent as plugincontent
+import resources.lib.Utils as utils
+import resources.lib.SkinShortcutsIntegration as skinshortcuts
+import urlparse
+import xbmc,xbmcgui,xbmcplugin
+enableProfiling = False
 
 class Main:
     
     def __init__(self):
         
-        logMsg('started loading pluginentry')
+        utils.logMsg('started loading pluginentry')
         
         #get params
         params = urlparse.parse_qs(sys.argv[2][1:].decode("utf-8"))
-        logMsg("Parameter string: %s" % sys.argv[2])
+        utils.logMsg("Parameter string: %s" % sys.argv[2])
         
         if params:        
             path=params.get("path",None)
@@ -28,49 +26,40 @@ class Main:
             action=params.get("action",None)
             if action: action = action[0].upper()
         
-            if action:           
-                if action == "NEXTEPISODES":
-                    getNextEpisodes(limit)
-                if action == "NEXTAIREDTVSHOWS":
-                    getNextAiredTvShows(limit)
-                elif action == "RECOMMENDEDMOVIES":
-                    getRecommendedMovies(limit)
-                elif action == "RECOMMENDEDMEDIA":
-                    getRecommendedMedia(limit)
-                elif action == "RECENTMEDIA":
-                    getRecentMedia(limit)
-                elif action == "SIMILARMOVIES":
-                    getSimilarMovies(limit)
-                elif action == "INPROGRESSMEDIA":
-                    getInProgressMedia(limit) 
-                elif action == "INPROGRESSANDRECOMMENDEDMEDIA":
-                    getInProgressAndRecommendedMedia(limit)
-                elif action == "FAVOURITEMEDIA":
-                    getFavouriteMedia(limit)
-                elif action == "PVRCHANNELS":
-                    getPVRChannels(limit)
-                elif action == "RECENTALBUMS":
-                    getRecentAlbums(limit)
-                elif action == "RECENTSONGS":
-                    getRecentSongs(limit)
-                elif action == "RECENTPLAYEDALBUMS":
-                    getRecentPlayedAlbums(limit)
-                elif action == "RECENTPLAYEDSONGS":
-                    getRecentPlayedSongs(limit)
-                elif action == "PVRRECORDINGS":
-                    getPVRRecordings(limit)
-                elif action == "FAVOURITES":
-                    getFavourites(limit)
+            if action:
+                if action == "LAUNCHPVR":
+                    xbmc.executeJSONRPC('{ "jsonrpc": "2.0", "id": 0, "method": "Player.Open", "params": { "item": {"channelid": %d} } }' %int(path))
+                    xbmcplugin.setResolvedUrl(handle=int(sys.argv[1]), succeeded=False, listitem=xbmcgui.ListItem())
+                if action == "PLAYRECORDING":
+                    #retrieve the recording and play as listitem to get resume working
+                    json_result = utils.getJSON('PVR.GetRecordingDetails', '{"recordingid": %d, "properties": [ %s ]}' %(int(path),plugincontent.fields_pvrrecordings))
+                    if json_result:
+                        xbmc.executeJSONRPC('{ "jsonrpc": "2.0", "method": "Player.Open", "params": { "item": { "recordingid": %d } }, "id": 1 }' % int(path))
+                        if json_result["resume"].get("position"):
+                            for i in range(25):
+                                if xbmc.getCondVisibility("Player.HasVideo"):
+                                    break
+                                xbmc.sleep(250)
+                            xbmc.Player().seekTime(json_result["resume"].get("position"))
+                    xbmcplugin.setResolvedUrl(handle=int(sys.argv[1]), succeeded=False, listitem=xbmcgui.ListItem())
+                elif action == "LAUNCH":
+                    path = sys.argv[2].split("&path=")[1]
+                    xbmc.executebuiltin("Action(Close)")
+                    xbmc.executebuiltin(path)
+                    xbmcplugin.setResolvedUrl(handle=int(sys.argv[1]), succeeded=False, listitem=xbmcgui.ListItem())
+                elif action == "PLAYALBUM":
+                    xbmc.executeJSONRPC('{ "jsonrpc": "2.0", "method": "Player.Open", "params": { "item": { "albumid": %d } }, "id": 1 }' % int(path))
+                    xbmcplugin.setResolvedUrl(handle=int(sys.argv[1]), succeeded=False, listitem=xbmcgui.ListItem())
                 elif action == "SMARTSHORTCUTS":
-                    getSmartShortcuts(path)
+                    skinshortcuts.getSmartShortcuts(path)
                 elif action == "BACKGROUNDS":
-                    getBackgrounds()
+                    skinshortcuts.getBackgrounds()
                 elif action == "WIDGETS":
-                    getWidgets(path)
+                    skinshortcuts.getWidgets(path)
                 elif action == "GETTHUMB":
-                    getThumb(try_decode(path))
-                elif action == "WIDGETS":
-                    getWidgets(path)
+                    plugincontent.getThumb(path)
+                elif action == "EXTRAFANART":
+                    plugincontent.getExtraFanArt(path)
                 elif action == "GETCAST":
                     movie=params.get("movie",None)
                     if movie: movie = movie[0]
@@ -78,19 +67,56 @@ class Main:
                     if tvshow: tvshow = tvshow[0]
                     movieset=params.get("movieset",None)
                     if movieset: movieset = movieset[0]
-                    getCast(movie,tvshow,movieset)
-                elif action == "LAUNCHPVR":
-                    if path:
-                        xbmc.executeJSONRPC('{ "jsonrpc": "2.0", "id": 0, "method": "Player.Open", "params": { "item": {"channelid": ' + path + '} } }')
-                elif action == "LAUNCH":
-                    path = sys.argv[2].split("&path=")[1]
-                    if path:
-                        xbmc.executebuiltin(path)
+                    episode=params.get("episode",None)
+                    if episode: episode = episode[0]
+                    downloadthumbs=params.get("downloadthumbs",False)
+                    if downloadthumbs: downloadthumbs = downloadthumbs[0]=="true"
+                    plugincontent.getCast(movie,tvshow,movieset,episode,downloadthumbs)
+                else:
+                    #get a widget listing
+                    refresh=params.get("reload",None)
+                    if refresh: refresh = refresh[0].upper()
+                    optionalParam = None
+                    imdbid=params.get("imdbid","")
+                    if imdbid: optionalParam = imdbid[0]
+                    genre=params.get("genre","")
+                    if genre: optionalParam = genre[0]
+                    browse=params.get("browse","")
+                    if browse: optionalParam = browse[0]
+                    reversed=params.get("reversed","")
+                    if reversed: optionalParam = reversed[0]
+                    type=params.get("type","")
+                    if type: optionalParam = type[0]
+                    name=params.get("name","")
+                    if name: optionalParam = name[0]
+                    randomize=params.get("randomize","")
+                    if randomize: randomize = randomize[0]
+                    randomize = randomize == "true"
+                    plugincontent.getPluginListing(action,limit,refresh,optionalParam,randomize)
     
         else:
             #do plugin main listing...
-            doMainListing()
+            plugincontent.doMainListing()
 
 if (__name__ == "__main__"):
-    Main()
-logMsg('finished loading pluginentry')
+    try:
+        if not utils.WINDOW.getProperty("SkinHelperShutdownRequested"):
+            if enableProfiling:
+                import cProfile
+                import pstats
+                import random
+                from time import gmtime, strftime
+                filename = os.path.join( ADDON_DATA_PATH, strftime( "%Y%m%d%H%M%S",gmtime() ) + "-" + str( random.randrange(0,100000) ) + ".log" )
+                cProfile.run( 'Main()', filename )
+                stream = open( filename + ".txt", 'w')
+                stream.write(sys.argv[2])
+                p = pstats.Stats( filename, stream = stream )
+                p.sort_stats( "cumulative" )
+                p.print_stats()
+            else:
+                Main()
+        else:
+            utils.logMsg("plugin.py --> Not forfilling request: Kodi is exiting" ,0)
+    except Exception as e:
+        utils.logMsg("Error in plugin.py --> " + str(e),0)
+utils.logMsg('finished loading pluginentry')

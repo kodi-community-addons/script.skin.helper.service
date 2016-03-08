@@ -1,19 +1,14 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
 import SimpleHTTPServer, BaseHTTPServer, httplib
 import threading
 import thread
-import json
-import os
-import sys
-import xbmc
-import xbmcplugin
-import xbmcaddon
-import xbmcgui
-import xbmcvfs
-import urllib
 from Utils import *
+import ArtworkUtils as artutils
 
 #port is hardcoded as there is no way in Kodi to pass a INFO-label inside a panel, 
-#otherwise the portnumber could be passed to the skin though a skin setting or window prop
+#otherwise the portnumber could be passed to the skin through a skin setting or window prop
 port = 52307
 
 class WebService(threading.Thread):
@@ -21,21 +16,26 @@ class WebService(threading.Thread):
     exit = False
     
     def __init__(self, *args):
-        logMsg("WebService - started")
+        logMsg("WebService - start helper webservice on port " + str(port),0)
         self.event =  threading.Event()
         threading.Thread.__init__(self, *args)
     
     def stop(self):
-        logMsg("WebService - stop called")
-        conn = httplib.HTTPConnection("localhost:%d" % port)
-        conn.request("QUIT", "/")
-        conn.getresponse()
-        self.exit = True
-        self.event.set()
+        try:
+            logMsg("WebService - stop called",0)
+            conn = httplib.HTTPConnection("127.0.0.1:%d" % port)
+            conn.request("QUIT", "/")
+            conn.getresponse()
+            self.exit = True
+            self.event.set()
+        except Exception as e: logMsg("WebServer exception occurred " + str(e),0)
 
     def run(self):
-        server = StoppableHttpServer(('localhost', port), StoppableHttpRequestHandler)
-        server.serve_forever()
+        try:
+            server = StoppableHttpServer(('127.0.0.1', port), StoppableHttpRequestHandler)
+            server.serve_forever()
+        except Exception as e: logMsg("WebServer exception occurred " + str(e),0)
+            
 
 
 class Request(object):
@@ -59,15 +59,15 @@ class Request(object):
 
         
 class StoppableHttpRequestHandler (SimpleHTTPServer.SimpleHTTPRequestHandler):
-    """http request handler with QUIT stopping the server"""
+    #http request handler with QUIT stopping the server
     
     def __init__(self, request, client_address, server):
         try:
             SimpleHTTPServer.SimpleHTTPRequestHandler.__init__(self, request, client_address, server)
-        except Exception as e: logMsg("WebServer error occurred " + str(e))
+        except Exception as e: logMsg("WebServer error in request --> " + str(e))
     
     def do_QUIT (self):
-        """send 200 OK response, and set server.stop to True"""
+        #send 200 OK response, and set server.stop to True
         self.send_response(200)
         self.end_headers()
         self.server.stop = True
@@ -77,82 +77,161 @@ class StoppableHttpRequestHandler (SimpleHTTPServer.SimpleHTTPRequestHandler):
     
     def parse_request(self):
         #hack to accept non url encoded strings to pass listitem details from Kodi to webservice
-        if ("GET /getthumb" in self.raw_requestline or "HEAD /getthumb" in self.raw_requestline) and not "%20" in self.raw_requestline and "title=" in self.raw_requestline and "channel=" in self.raw_requestline:
-            if self.raw_requestline.startswith("HEAD"): command = "HEAD /getthumb"
-            else: command = "GET /getthumb"
-            self.raw_requestline = self.raw_requestline.replace(command,"").replace(" HTTP/1.1","")
-            title = self.raw_requestline.split("&channel=")[0].replace("&title=","")
-            channel = self.raw_requestline.split("&channel=")[1].replace("\r\n","")
-            type = None
-            if "&type=" in channel:
-                channeltemp = channel
-                channel = channeltemp.split("&type=")[0]
-                type = "&type=" + channeltemp.split("&type=")[1]           
-            title = single_urlencode(try_encode(title))
-            channel = single_urlencode(try_encode(channel))
-            if type:
-                self.raw_requestline = "%s&title=%s&channel=%s&type=%s HTTP/1.1" %(command,title,channel,type)
-            else:
-                self.raw_requestline = "%s&title=%s&channel=%s HTTP/1.1" %(command,title,channel)
+        #strip the passed arguments apart, urlencode them and pass them back as new requestline properly formatted
+        if "GET /" in self.raw_requestline or "HEAD /" in self.raw_requestline:
+            if self.raw_requestline.startswith("HEAD"): command = "HEAD /"
+            else: command = "GET /"
+            action = self.raw_requestline.split("&")[0].replace(command,"")
+            temp_requestline = self.raw_requestline.replace(command,"").replace(" HTTP/1.1","").replace("\r\n","").replace(action,"")
+            old_params = temp_requestline.split("&")
+            new_params = {"action": action}
+            for param in old_params:
+                if param and len(param.split("=")) > 1:
+                    key = param.split("=")[0]
+                    value = param.split("=")[1]
+                    new_params[key] = value
+            paramstring = urllib.urlencode(new_params)
+            self.raw_requestline = "%s%s&%s HTTP/1.1" %(command,action,paramstring)
         retval = SimpleHTTPServer.SimpleHTTPRequestHandler.parse_request(self)
         self.request = Request(self.path, self.headers, self.rfile)
         return retval
     
     def do_HEAD(self):
-        image = self.send_headers()
+        image, multi = self.send_headers()
         if image: image.close()
         return
     
     def send_headers(self):
         image = None
+        images = None
         preferred_type = None
-        params = urlparse.parse_qs(self.path)       
+        org_params = urlparse.parse_qs(self.path)
+        params = {}
+        
+        for key, value in org_params.iteritems():
+            if value:
+                value = value[0]
+                if "%" in value: value = urllib.unquote(value)
+                params[key] = value.decode("utf-8")
+        action = params.get("action","")
         title = params.get("title","")
-        channel = params.get("channel","")
-        preferred_type = params.get("type","")
-        if title: title = title[0].decode("utf-8")
-        if channel: channel = channel[0].decode("utf-8")
-        if preferred_type: preferred_type = preferred_type[0]        
-        if title and title != "..":
-            if not channel or channel=="None":
-                image = searchGoogleImage(title)
-            else:
-                if xbmc.getCondVisibility("Window.IsActive(MyPVRRecordings.xml)"): type = "recordings"
-                else: type = "channels"
-                artwork = getPVRThumbs(title, channel, type)
-                if preferred_type:
-                    preferred_types = preferred_type.split(" ")
-                    for preftype in preferred_types:
-                        if artwork.get(preftype):
-                            image = artwork.get(preftype)
-                            break
+        fallback = params.get("fallback","")
+        if fallback.startswith("Default"): fallback = u"special://skin/media/" + fallback
+
+        if action == "getthumb":
+            image = artutils.searchThumb(title)
+        
+        elif action == "getvarimage":
+            title = title.replace("{","[").replace("}","]")
+            image_tmp = xbmc.getInfoLabel(title)
+            if xbmcvfs.exists(image_tmp):
+                if image_tmp.startswith("resource://"):
+                    #texture packed resource images are failing: http://trac.kodi.tv/ticket/16366
+                    logMsg("WebService ERROR --> resource images are currently not supported due to a bug in Kodi" ,0)
                 else:
-                    if artwork.get("thumb"): image = artwork.get("thumb")
-                    if artwork.get("fanart"): image = artwork.get("fanart")
-                    if artwork.get("landscape"): image = artwork.get("landscape")
-        if image:
-            self.send_response(200)
-            if ".jpg" in image:
-                self.send_header('Content-type','image/jpeg')
+                    image = image_tmp
+        
+        elif action == "getpvrthumb":
+            channel = params.get("channel","")
+            preferred_type = params.get("type","")
+            if xbmc.getCondVisibility("Window.IsActive(MyPVRRecordings.xml)"): type = "recordings"
+            else: type = "channels"
+            artwork = artutils.getPVRThumbs(title, channel, type)
+            if preferred_type:
+                preferred_types = preferred_type.split(",")
+                for preftype in preferred_types:
+                    if artwork.get(preftype):
+                        image = artwork.get(preftype)
+                        break
             else:
-                self.send_header('Content-type','image/png')
-            self.send_header('Last-Modified',WINDOW.getProperty("SkinHelper.lastUpdate"))
+                if artwork.get("thumb"): image = artwork.get("thumb")
+                if artwork.get("fanart"): image = artwork.get("fanart")
+                if artwork.get("landscape"): image = artwork.get("landscape")
+
+        elif action == "getallpvrthumb":
+            channel = params.get("channel","")
+            images = artutils.getPVRThumbs(title, channel, "recordings")
+            # Ensure no unicode in images...
+            for key, value in images.iteritems():
+                images[key] = unicode(value).encode('utf-8')
+            images = urllib.urlencode(images)
+        
+        elif action == "getmusicart":
+            preferred_type = params.get("type","")
+            artist = params.get("artist","")
+            album = params.get("album","")
+            track = params.get("track","")
+            artwork = artutils.getMusicArtwork(artist, album, track)
+            if preferred_type:
+                preferred_types = preferred_type.split(",")
+                for preftype in preferred_types:
+                    if artwork.get(preftype):
+                        image = artwork.get(preftype)
+                        break
+            else:
+                if artwork.get("thumb"): image = artwork.get("thumb")
+                if artwork.get("fanart"): image = artwork.get("fanart")
+        
+        elif "getmoviegenreimages" in action or "gettvshowgenreimages" in action:
+            artwork = {}
+            cachestr = ("%s-%s" %(action,title)).encode("utf-8")
+            cache = WINDOW.getProperty(cachestr).decode("utf-8")
+            if cache: 
+                artwork = eval(cache)
+            else:
+                sort = '"order": "ascending", "method": "title"'
+                if "random" in action:
+                    sort = '"order": "descending", "method": "random"'
+                    action = action.replace("random","")
+                if action == "gettvshowgenreimages": 
+                    json_result = getJSON('VideoLibrary.GetTvshows', '{ "sort": { %s }, "filter": {"operator":"is", "field":"genre", "value":"%s"}, "properties": [ %s ],"limits":{"end":%d} }' %(sort,title,fields_tvshows,5))
+                else:
+                    json_result = getJSON('VideoLibrary.GetMovies', '{ "sort": { %s }, "filter": {"operator":"is", "field":"genre", "value":"%s"}, "properties": [ %s ],"limits":{"end":%d} }' %(sort,title,fields_movies,5))
+                for count, item in enumerate(json_result):
+                    artwork["poster.%s" %count] = item["art"].get("poster","")
+                    artwork["fanart.%s" %count] = item["art"].get("fanart","")
+                WINDOW.setProperty(cachestr,repr(artwork).encode("utf-8"))
+            if artwork:
+                preferred_type = params.get("type","")
+                if preferred_type: 
+                    image = artwork.get(preferred_type,"")
+        
+        #set fallback image if nothing else worked
+        if not image and fallback: image = fallback
+        
+        if images:
+            self.send_response(200)
+            self.send_header('Content-type','text/plaintext')
+            self.send_header('Content-Length',len(images))
+            self.end_headers()
+            return images, True
+        elif image:
+            self.send_response(200)
+            if ".jpg" in image: self.send_header('Content-type','image/jpeg')
+            else: self.send_header('Content-type','image/png')
             logMsg("found image for request %s  --> %s" %(try_encode(self.path),try_encode(image)))
+            st = xbmcvfs.Stat(image)
+            modified = st.st_mtime()
+            self.send_header('Last-Modified',"%s" %modified)
             image = xbmcvfs.File(image)
             size = image.size()
             self.send_header('Content-Length',str(size))
             self.end_headers() 
         else:
             self.send_error(404)
-        return image
+        return image, None
 
     def do_GET(self):
-        image = self.send_headers()
-        if image:
+        image, multi = self.send_headers()
+        if image and not multi:
             #send the image to the client
             logMsg("WebService -- sending image for --> " + try_encode(self.path))
             self.wfile.write(image.readBytes())
             image.close()
+        elif image:
+            #send multiple images to the client (plaintext)
+            logMsg("WebService -- sending multiple images for --> " + try_encode(self.path))
+            self.wfile.write(image)
         return
 
 class StoppableHttpServer (BaseHTTPServer.HTTPServer):

@@ -1,9 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+import Utils as utils
 import xbmc
-from datetime import datetime
-from random import randint
-from Utils import *
 
 class Kodi_Monitor(xbmc.Monitor):
     
@@ -11,78 +9,56 @@ class Kodi_Monitor(xbmc.Monitor):
         xbmc.Monitor.__init__(self)
     
     def onSettingsChanged(self):
-        setAddonsettings()
-        logMsg("onNotification - Addon settings changed!")
-        WINDOW.setProperty("resetPvrArtCache","reset")
-
-    def resetMusicWidgets(self):
-        #clear the cache for the music widgets
-        WINDOW.clearProperty("skinhelper-recentalbums")
-        WINDOW.clearProperty("skinhelper-recentplayedalbums")
-        WINDOW.clearProperty("skinhelper-recentplayedsongs")
-        WINDOW.clearProperty("skinhelper-recentsongs")
-    
-    def resetVideoWidgets(self):
-        #clear the cache for the video widgets
-        WINDOW.clearProperty("skinhelper-recommendedmovies")
-        WINDOW.clearProperty("skinhelper-InProgressAndRecommendedMedia")
-        WINDOW.clearProperty("skinhelper-InProgressMedia")
-        WINDOW.clearProperty("skinhelper-RecommendedMedia")
-        WINDOW.clearProperty("skinhelper-nextepisodes")
-        WINDOW.clearProperty("skinhelper-similarmovies")
-        WINDOW.clearProperty("skinhelper-recentmedia")
-        WINDOW.clearProperty("skinhelper-favouritemedia")
+        utils.setAddonsettings()
+        utils.logMsg("onNotification - Addon settings changed!")
+        utils.WINDOW.setProperty("resetPvrArtCache","reset")
     
     def onDatabaseUpdated(self,database):
+        utils.logMsg("Kodi_Monitor: onDatabaseUpdated: " + database,0)
         if database == "video":
-            self.resetVideoWidgets()
-            WINDOW.setProperty("widgetreload", datetime.now().strftime('%Y-%m-%d %H:%M:%S') + str(randint(0,9)))
-            WINDOW.setProperty("resetVideoDbCache","reset")
+            utils.resetVideoWidgetWindowProps("",True)
         if database == "music" :
-            self.resetMusicWidgets()
-            WINDOW.setProperty("widgetreloadmusic", datetime.now().strftime('%Y-%m-%d %H:%M:%S') + str(randint(0,9)))
-            WINDOW.setProperty("resetMusicArtCache","reset")
+            utils.resetMusicWidgetWindowProps("",True)
            
     def onNotification(self,sender,method,data):
         
-        logMsg("Kodi_Monitor: sender %s - method: %s  - data: %s"%(sender,method,data))
+        utils.logMsg("Kodi_Monitor: sender %s - method: %s  - data: %s"%(sender,method,data))
                
         if method == "VideoLibrary.OnUpdate":
-            #update nextup list when library has changed
-            self.resetVideoWidgets()
-            WINDOW.setProperty("widgetreload", datetime.now().strftime('%Y-%m-%d %H:%M:%S') + str(randint(0,9)))
-            #refresh some widgets when library has changed
-            WINDOW.setProperty("resetVideoDbCache","reset")
+            if not xbmc.getCondVisibility("Library.IsScanningVideo"):
+                utils.resetVideoWidgetWindowProps(data)
+
+        if method == "AudioLibrary.OnUpdate":
+            if not xbmc.getCondVisibility("Library.IsScanningMusic"):
+                utils.resetMusicWidgetWindowProps()
         
-        elif method == "AudioLibrary.OnUpdate":
-            self.resetMusicWidgets()
-            WINDOW.setProperty("widgetreloadmusic", datetime.now().strftime('%Y-%m-%d %H:%M:%S') + str(randint(0,9)))
-            #refresh some widgets when library has changed
-            WINDOW.setProperty("resetMusicArtCache","reset")
-        
-        elif method == "Player.OnStop":
-            WINDOW.clearProperty("Skinhelper.PlayerPlaying")
-        
-        elif method == "Player.OnPlay":
-            
+        if method == "Player.OnStop":
+            utils.WINDOW.clearProperty("Skinhelper.PlayerPlaying")
+            utils.WINDOW.clearProperty("TrailerPlaying")
+            if xbmc.getCondVisibility("Skin.String(videoinfo_traileraction,fullscreen) + !IsEmpty(Window(Home).Property(TrailerPlaying)) + !Window.IsActive(movieinformation)"): xbmc.executebuiltin("Action(info)")
+            utils.resetPlayerWindowProps()
+            utils.resetVideoWidgetWindowProps(data)
+            utils.resetMusicWidgetWindowProps(data)
+
+        if method == "Player.OnPlay":
             #skip if the player is already playing
-            if WINDOW.getProperty("Skinhelper.PlayerPlaying") == "playing": return
+            if utils.WINDOW.getProperty("Skinhelper.PlayerPlaying") == "playing": return
             try: secondsToDisplay = int(xbmc.getInfoLabel("Skin.String(SkinHelper.ShowInfoAtPlaybackStart)"))
             except: return
             
-            logMsg("onNotification - ShowInfoAtPlaybackStart - number of seconds: " + str(secondsToDisplay))
-            WINDOW.setProperty("Skinhelper.PlayerPlaying","playing")
+            utils.logMsg("onNotification - ShowInfoAtPlaybackStart - number of seconds: " + str(secondsToDisplay))
+            utils.WINDOW.setProperty("Skinhelper.PlayerPlaying","playing")
             #Show the OSD info panel on playback start
             if secondsToDisplay != 0:
                 tryCount = 0
-                if WINDOW.getProperty("VideoScreensaverRunning") != "true":
-                    while tryCount !=50 and xbmc.getCondVisibility("!Window.IsActive(fullscreeninfo)"):
+                if utils.WINDOW.getProperty("VideoScreensaverRunning") != "true":
+                    while tryCount !=50 and xbmc.getCondVisibility("!Player.ShowInfo"):
                         xbmc.sleep(100)
-                        if xbmc.getCondVisibility("!Window.IsActive(fullscreeninfo) + Window.IsActive(fullscreenvideo)"):
+                        if xbmc.getCondVisibility("!Player.ShowInfo + Window.IsActive(fullscreenvideo)"):
                             xbmc.executebuiltin('Action(info)')
                         tryCount += 1
                     
                     # close info again
-                    xbmc.sleep(secondsToDisplay*1000)
-                    if xbmc.getCondVisibility("Window.IsActive(fullscreeninfo)"):
+                    self.waitForAbort(secondsToDisplay)
+                    if xbmc.getCondVisibility("Player.ShowInfo"):
                         xbmc.executebuiltin('Action(info)')

@@ -1,16 +1,6 @@
 # script.skin.helper.service
 a helper service for Kodi skins
 
-This is the first version of this script, currently only available as beta on Git. Once tested by a few skinners I will submit it to the official Kodi repo.
-
-If you run into any issues , have some feedback or feature requests, feel free to ask and please report bugs !
-
-Thanks all for testing!
-
-Regards,
-
-Marcel
-
 ________________________________________________________________________________________________________
 
 ### Settings for the script
@@ -23,14 +13,19 @@ Important settings:
 |:-------------- | :--------------- | :---------------------------------------- |
 |SkinHelper.EnableExtraFanart	| Skin.ToggleSetting(SkinHelper.EnableExtraFanart)	| enables the extrafanart background scanner |
 |SkinHelper.CustomStudioImagesPath | Skin.SetString(SkinHelper.CustomStudioImagesPath,[PATH])| if you want the user (or yourself as skinner) be able to set the path to the studio logos. If empty it will try to locate the images (later to be replaced with the new image resource packs in Kodi 16)|
-|SkinHelper.ShowInfoAtPlaybackStart	| Skin.SetNumeric(SkinHelper.ShowInfoAtPlaybackStart)	| Show OSD info panel at playback start for number of seconds (0 disables this) |
-|SkinHelper.RandomFanartDelay	| Skin.SetNumeric(SkinHelper.RandomFanartDelay)	| Sets the time in seconds for the interval of the rotating backgrounds provided by the script (0 disables this) |
-|CustomPicturesBackgroundPath	| Skin.SetPath(CustomPicturesBackgroundPath)	| Sets a custom path from which the global pictures background should be pulled from. (empty uses all picture sources) |
+|SkinHelper.ShowInfoAtPlaybackStart	| Skin.SetNumeric(SkinHelper.ShowInfoAtPlaybackStart)	| Show OSD info panel at playback start for number of seconds (0 or empty disables this) |
+|SkinHelper.AutoCloseVideoOSD	| Skin.SetNumeric(SkinHelper.AutoCloseVideoOSD)	| Auto close the Video OSD panel when activated by the user after number of seconds (0 or empty disables this) |
+|SkinHelper.AutoCloseMusicOSD	| Skin.SetNumeric(SkinHelper.AutoCloseMusicOSD)	| Auto close the Music OSD panel when activated by the user after number of seconds (0 or empty disables this) |
+|SkinHelper.RandomFanartDelay	| Skin.SetNumeric(SkinHelper.RandomFanartDelay)	| Sets the time in seconds for the interval of the rotating backgrounds provided by the script (0 or empty disable the backgrounds by this script completely) |
+|SkinHelper.CustomPicturesBackgroundPath	| Skin.SetPath(SkinHelper.CustomPicturesBackgroundPath)	| Sets a custom path from which the global pictures background should be pulled from. (when empty uses all picture sources) |
 |SmartShortcuts.playlists | Skin.SetBool(SmartShortcuts.playlists) | Enable smart shortcuts for Kodi playlists |
 |SmartShortcuts.favorites | Skin.SetBool(SmartShortcuts.favorites) | Enable smart shortcuts for Kodi favorites |
 |SmartShortcuts.plex | Skin.SetBool(SmartShortcuts.plex) | Enable smart shortcuts for plexbmc addon |
 |SmartShortcuts.emby | Skin.SetBool(SmartShortcuts.emby) | Enable smart shortcuts for emby addon |
-|SmartShortcuts.netflix | Skin.SetBool(SmartShortcuts.netflix) | Enable smart shortcuts for netflixbmc addon |
+|SmartShortcuts.netflix | Skin.SetBool(SmartShortcuts.netflix) | Enable smart shortcuts for flix2kodi addon |
+|SkinHelper.EnableAddonsLookups	| Skin.ToggleSetting(SkinHelper.EnableAddonsLookups)	| enables the background scanner for addons artwork and additional properties |
+|SkinHelper.EnablePVRThumbs	| Skin.ToggleSetting(SkinHelper.EnablePVRThumbs)	| enables the background scanner for PVR artwork |
+
 ________________________________________________________________________________________________________
 ________________________________________________________________________________________________________
 
@@ -55,6 +50,9 @@ ________________________________________________________________________________
 |Window(Home).Property(SkinHelper.TotalFavourites) | total number of favourites |
 |Window(Home).Property(SkinHelper.TotalTVChannels) | total number of TV channels in the PVR |
 |Window(Home).Property(SkinHelper.TotalRadioChannels) | total number of Radio channels in the PVR |
+|Window(Home).Property(SkinHelper.TotalMovieSets) | total number of Movie sets in the library |
+|Window(Home).Property(SkinHelper.TotalMoviesInSets) | total number of Movies belonging to moviesets |
+|Window(Home).Property(SkinHelper.ContentHeader) | Shows the real amount of items (excluding any all* entries) and the content type, for example: "23 albums"|
 ________________________________________________________________________________________________________
 #### Video library window properties
 Some additional window properties that can be used in the video library. 
@@ -72,20 +70,59 @@ Some additional window properties that can be used in the video library.
 |Window(Home).Property(SkinHelper.ListItemGenre.X) | Will return all genres of the current listitem. Start counting from 0|
 |Window(Home).Property(SkinHelper.ListItemDirectors) | Will return all directors of the current listitem seperated by [CR] |
 |Window(Home).Property(SkinHelper.ListItemSubtitles) | Will return all subtitles of the current listitem seperated by / |
+|Window(Home).Property(SkinHelper.ListItemSubtitles.Count) | Will return the number of Subtitles |
 |Window(Home).Property(SkinHelper.ListItemLanguages) | Will return all audio languages of the current listitem seperated by / |
+|Window(Home).Property(SkinHelper.ListItemLanguages.Count) | Will return the number of Languages |
 |Window(Home).Property(SkinHelper.ListItemSubtitles.X) | Will return subtitle X of the current listitem. Start counting from 0 |
+|Window(Home).Property(SkinHelper.ListItemAudioStreams.Count) | Will return the number of Audio streams |
 |Window(Home).Property(SkinHelper.ListItemAudioStreams.X) | Will return the language-codec-channels of audiostream X for the current listitem. Start counting from 0 |
 |Window(Home).Property(SkinHelper.ListItemAudioStreams.X.Language) | Will return the language of audiostream X for the current listitem. Start counting from 0 |
 |Window(Home).Property(SkinHelper.ListItemAudioStreams.X.AudioCodec) | Will return the AudioCodec of audiostream X for the current listitem. Start counting from 0 |
 |Window(Home).Property(SkinHelper.ListItemAudioStreams.X.AudioChannels) | Will return the AudioChannels of audiostream X for the current listitem. Start counting from 0 |
 |Window(Home).Property(SkinHelper.ListItemAllAudioStreams) | Will return a formatted list of all audiostreams for the current listitem separated by / |
-|Window(Home).Property(SkinHelper.RottenTomatoesRating) | rating from rotten tomatoes |
+|Window(Home).Property(SkinHelper.ListItemVideoHeight) | Will return the height of the video stream for the current listitem |
+|Window(Home).Property(SkinHelper.ListItemVideoWidth) | Will return the width of the video stream for the current listitem |
+|Window(Home).Property(SkinHelper.RottenTomatoesRating) | rotten tomatoes rating |
+|Window(Home).Property(SkinHelper.RottenTomatoesMeter) | rotten tomatoes meter |
+|Window(Home).Property(SkinHelper.RottenTomatoesFresh) | rotten tomatoes fresh count |
+|Window(Home).Property(SkinHelper.RottenTomatoesRotten) | rotten tomatoes rotten count |
+|Window(Home).Property(SkinHelper.RottenTomatoesImage) | rotten tomatoes image description (e.g. certified) |
+|Window(Home).Property(SkinHelper.RottenTomatoesReviews) | number of official reviews on Rotten tomatoes |
 |Window(Home).Property(SkinHelper.RottenTomatoesConsensus) | critic consensus from rotten tomatoes |
-|Window(Home).Property(SkinHelper.RottenTomatoesAudienceRating) | metascore rating from rotten tomatoes |
+|Window(Home).Property(SkinHelper.RottenTomatoesAudienceMeter) | rotten tomatoes user meter |
+|Window(Home).Property(SkinHelper.RottenTomatoesAudienceRating) | user rating from rotten tomatoes |
+|Window(Home).Property(SkinHelper.RottenTomatoesAudienceReviews) | No. of user reviews on rotten tomatoes |
 |Window(Home).Property(SkinHelper.RottenTomatoesAwards) | awards for the movie |
 |Window(Home).Property(SkinHelper.RottenTomatoesBoxOffice) | amount the film made at box office |
-________________________________________________________________________________________________________
+|Window(Home).Property(SkinHelper.RottenTomatoesDVDRelease) | date of DVD release |
+|Window(Home).Property(SkinHelper.MetaCritic.Rating) | rating from metacritic |
+|Window(Home).Property(SkinHelper.IMDB.Rating) | rating on IMDB |
+|Window(Home).Property(SkinHelper.IMDB.Votes) | No. of votes for rating on IMDB |
+|Window(Home).Property(SkinHelper.IMDB.MPAA) | MPAA rating on IMDB |
+|Window(Home).Property(SkinHelper.IMDB.Runtime) | Runtime on IMDB |
+|Window(Home).Property(SkinHelper.TMDB.Budget) | budget spent to this movie in dollars (from tmdb)|
+|Window(Home).Property(SkinHelper.TMDB.Budget.mln) | budget spent to this movie in millions of dollars|
+|Window(Home).Property(SkinHelper.TMDB.Budget.formatted) | Same as Budget.mln but formatted as $ 123 mln.|
+|Window(Home).Property(SkinHelper.TMDB.Revenue) | revenue for this movie in dollars (from tmdb) |
+|Window(Home).Property(SkinHelper.TMDB.Revenue.mln) | Revenue for this movie in millions of dollars|
+|Window(Home).Property(SkinHelper.TMDB.Revenue.formatted) | Same as Revenue.mln but formatted as $ 123 mln.|
+|Window(Home).Property(SkinHelper.TMDB.Tagline) | tagline for this movie (from tmdb) |
+|Window(Home).Property(SkinHelper.TMDB.Homepage) | homepage for this movie (from tmdb) |
+|Window(Home).Property(SkinHelper.TMDB.Status) | status for this movie, e.g. released (from tmdb) |
+|Window(Home).Property(SkinHelper.TMDB.Popularity) | popularity for this movie (from tmdb) |
 
+
+________________________________________________________________________________________________________
+#### Animated Posters
+Provides animated poster in window property (cached locally)
+For info, see: http://forum.kodi.tv/showthread.php?tid=215727
+
+Only available when enabled as skin setting --> Skin.SetBool(SkinHelper.EnableAnimatedPosters)
+
+| property 			| description |
+|:-----------------------------	| :----------- |
+|Window(Home).Property(SkinHelper.AnimatedPoster) | Animated (gif) Movie poster image -if available-  |
+|Window(Home).Property(SkinHelper.AnimatedFanart) | Animated (gif) Movie fanart image -if available-  |
 
 ________________________________________________________________________________________________________
 #### Studio Logos
@@ -110,8 +147,6 @@ The script handles this logic to locate the fanart:
 |Window(Home).Property(SkinHelper.ListItemStudio) | Will just return the first studio of the listitem if you want to locate the images yourself. |
 |Window(Home).Property(SkinHelper.ListItemStudios) | Will return all studios seperated by [CR] |
 
-Note: If you also want to have the Studio logo and Duration Properties for your homescreen widgets, you need to set a Window Property "SkinHelper.WidgetContainer" with the ID of your widget container:
-For example in home.xml: <onload>SetProperty(SkinHelper.WidgetContainer,301)</onload>
 
 #### Movie sets window properties
 If the selected listitem in the videolibrary is a movie set, some additional window properties are provided:
@@ -160,22 +195,42 @@ ________________________________________________________________________________
 
 
 #### Music library window properties
-Some additional window properties that can be used in the music library. 
+Some additional window properties that can be used in the music library.
+The artwork is detected in the music paths automatically. Also in the addon settings for the skinhelper addon, you can enable a scraper for music artwork.
 
 | property 			| description |
 | :----------------------------	| :----------- |
-| Window(Home).Property(SkinHelper.ExtraFanArtPath) | will return the extrafanart path for the artist, empty if none is found. This window property is only available when the following Skin Bool is true: SkinHelper.EnableExtraFanart|
-| Window(Home).Property(SkinHelper.Music.BannerArt) | Will return the Artist's banner image for the current selected item in the list. |
-| Window(Home).Property(SkinHelper.Music.LogoArt) | Will return the Artist's logo image for the current selected item in the list. |
+| Window(Home).Property(SkinHelper.Music.Banner) | Will return the Artist's banner image for the current selected item in the list. |
+| Window(Home).Property(SkinHelper.Music.FanArt) | Will return the Artist's fanart image for the current selected item in the list. |
+| Window(Home).Property(SkinHelper.Music.ClearLogo) | Will return the Artist's logo image for the current selected item in the list. |
 | Window(Home).Property(SkinHelper.Music.DiscArt) | Will return the Album's cd art image for the current selected item in the list. |
+| Window(Home).Property(SkinHelper.Music.ExtraFanArt) | Will return the ExtraFanArt path (if exists) for the current selected item in the list, to be used in a multiimage control. |
 | Window(Home).Property(SkinHelper.Music.Info) | Returns the album's description or if empty the artist info. Can be used at both album- and songlevel.  |
-| Window(Home).Property(SkinHelper.Music.TrackList) | Returns all tracks for the selected album or artist, separated by [CR] in the format tracknumber - title  |
-| Window(Home).Property(SkinHelper.Music.AlbumList) | Returns all albums for the selected artist, separated by [CR] |
+| Window(Home).Property(SkinHelper.Music.TrackList) | Returns all tracks (in the library) for the selected album or artist, separated by [CR] in the format tracknumber - title  |
+| Window(Home).Property(SkinHelper.Music.TrackList.Formatted) | Same as Tracklist, but prefixed with a • character|
+| Window(Home).Property(SkinHelper.Music.Albums) | Returns all albums (in the library) for the selected artist, separated by [CR] |
+| Window(Home).Property(SkinHelper.Music.Albums.Formatted) | Same as Albums, but prefixed with a • character|
 | Window(Home).Property(SkinHelper.Music.SongCount) | Returns the number of songs for the selected artist or album |
 | Window(Home).Property(SkinHelper.Music.AlbumCount) | Returns the number of albums for the selected artist |
 
 Note: If you also want to have the Music Properties for your homescreen widgets, you need to set a Window Property "SkinHelper.WidgetContainer" with the ID of your widget container:
 For example in home.xml: <onload>SetProperty(SkinHelper.WidgetContainer,301)</onload>
+
+##### Music artwork/properties for music player
+The music properties are also available for the player:
+
+| property 			| description |
+| :----------------------------	| :----------- |
+| Window(Home).Property(SkinHelper.Player.Music.Banner) | Will return the Artist's banner image (if found). |
+| Window(Home).Property(SkinHelper.Player.Music.FanArt) | Will return the Artist's fanart image (if found). |
+| Window(Home).Property(SkinHelper.Player.Music.ClearLogo) | Will return the Artist's logo image (if found). |
+| Window(Home).Property(SkinHelper.Player.Music.DiscArt) | Will return the Album's cd art image (if found). |
+| Window(Home).Property(SkinHelper.Player.Music.ExtraFanArt) | Will return the ExtraFanArt path for the artist (if found). |
+| Window(Home).Property(SkinHelper.Player.Music.Info) | Returns the album's description or if empty the artist info. (if found).  |
+| Window(Home).Property(SkinHelper.Player.Music.TrackList) | Returns all tracks (in the library) for the selected album or artist  |
+| Window(Home).Property(SkinHelper.Player.Music.Albums) | Returns all albums (in the library) for the selected artist, separated by [CR] |
+| Window(Home).Property(SkinHelper.Player.Music.SongCount) | Returns the number of songs for the selected artist or album |
+| Window(Home).Property(SkinHelper.Player.Music.AlbumCount) | Returns the number of albums for the selected artist |
 
 ________________________________________________________________________________________________________
 
@@ -192,53 +247,57 @@ The properties will also be available for your homescreen widgets if you set the
 | Window(Home).Property(SkinHelper.PVR.FanArt) | Will return the IMDB fanart image for the currently selected show/movie (only if found) |
 | Window(Home).Property(SkinHelper.PVR.Thumb) | Will return the thumb for the currently selected show/movie (only if found) |
 | Window(Home).Property(SkinHelper.PVR.ActualThumb) | Will return the thumb returned by the PVR addon itself (if supported) |
-| Window(Home).Property(SkinHelper.PVR.Logo) | Will return the clearlogo for the currently selected show/movie (only if found) |
+| Window(Home).Property(SkinHelper.PVR.ClearLogo) | Will return the clearlogo for the currently selected show/movie (only if found) |
 | Window(Home).Property(SkinHelper.PVR.Landscape) | Will return the landscape art for the currently selected show/movie (only if found) |
 | Window(Home).Property(SkinHelper.PVR.ClearArt) | Will return the ClearArt for the currently selected show/movie (only if found) |
 | Window(Home).Property(SkinHelper.PVR.DiscArt) | Will return the DiscArt for the currently selected show/movie (only if found) |
 | Window(Home).Property(SkinHelper.PVR.CharacterArt) | Will return the CharacterArt for the currently selected show/movie (only if found) |
 | Window(Home).Property(SkinHelper.PVR.Banner) | Will return the Banner for the currently selected show/movie (only if found) |
 | Window(Home).Property(SkinHelper.PVR.ChannelLogo) | Will return the channel logo for the currently selected channel (only if found) |
+| Window(Home).Property(SkinHelper.PVR.ExtraFanArt) | Will return the ExtraFanArt path (if exists) for the current selected item in the list, to be used in a multiimage control. |
 
 NOTE: The images will only be scraped if you have set the following Skin Bool to true --> SkinHelper.EnablePVRThumbs
 
 Also note that the addon-settings for this addon will allow fine-tuning of the PVR thumbs feature
 
+If you want to use the PVR thumbs inside a Kodi list/panel container you can do that by using the scripts webservice.
+See below in this readme...
 
-##### PVR images inside lists
-All Windows properties of the script are only provided for the current selected listitem.
-If you have a panel container in the PVR windows and you want to show the PVR artwork, the script has a little helper-webservice to deliver the artwork:
-
-```xml
-<control type="image">
-    <!--pvr thumb image-->
-    <texture background="true">http://localhost:52307/getthumb&title=$INFO[Listitem.Title]&channel=$INFO[ListItem.ChannelName]</texture>
-    <visible>Skin.HasSetting(SkinHelper.EnablePVRThumbs) + SubString(ListItem.FolderPath,pvr://)</visible>
-</control>
-```
-The above example will return the PVR artwork, in general the landscape, fanart or thumb is returned.
-If you prefer a specific art-type you can specify that with type=[kodi artwork type]
-For example:
-
-http://localhost:52307/getthumb&title=$VAR[ListTitlePVR]&channel=$INFO[ListItem.ChannelName]&type=poster
-
-You can also supply multiple arttypes by using + as a seperator. In that case the script will supply the image for the first arttype found.
-Example type=landscape+fanart+thumb
 ________________________________________________________________________________________________________
 
+#### window properties for Home widgets or custom containers
+All above described window props can also be used for a custom container, like widgets on the home screen.
+The script will automatically figure out what content is in your widget and provide the appropriate window props (e.g. pvr properties, music or video).
+What you need to do is set a window property with the ID of your widget container: SetProperty(SkinHelper.WidgetContainer,510,Home) (replace 510 with your container ID)
+For example set that in the onload of your home window if you only have 1 focusable widget control or set it as onfocus action on the widgetcontainer itself with the correct ID.
 
+
+________________________________________________________________________________________________________
+
+#### window properties for addons
+By default all additional window properties (TMDB info, rotten tomatoes etc.) will ONLY be returned for items in the library.
+If you want to use these properties for addon provided content too, like plexbmc or trailers, you will have to enable a skin setting:
+Skin.SetBool(SkinHelper.EnableAddonsLookups)
+
+If that bool is set, the script will also lookup any items provided by an addon, including artwork.
+For the artwork, the same mechanism is used as for the pvr artwork feature, so the artwork is returned in the pvr properties.
+
+________________________________________________________________________________________________________
 
 
 #### Backgrounds provided by the script
 The script has a background scanner to provide some rotating fanart backgrounds which can be used in your skin as backgrounds. The backgrounds are available in window properties.
 
-Note: the default interval for the backgrounds is set at 30 seconds. If you want to change this interval you can set a Skin String "SkinHelper.RandomFanartDelay" with the number of seconds as value.
+Note: You must set the skin string SkinHelper.RandomFanartDelay to enable the backgrounds. 
+If you want to change this interval you can set a Skin String "SkinHelper.RandomFanartDelay" with the number of seconds as value.
+Set it to 0 or clear the string to disable the backgrounds.
 
 | property 			| description |
 | :----------------------------	| :----------- |
 | Window(Home).Property(SkinHelper.AllMoviesBackground) | Random fanart of movies in video database|
 | Window(Home).Property(SkinHelper.AllTvShowsBackground) | Random fanart of TV shows in video database|
 | Window(Home).Property(SkinHelper.AllMusicVideosBackground) | Random fanart of music videos in video database|
+| Window(Home).Property(SkinHelper.RecentMusicBackground) | Random fanart of recently added music|
 | Window(Home).Property(SkinHelper.AllMusicBackground) | Random fanart of music artists in database|
 | Window(Home).Property(SkinHelper.GlobalFanartBackground) | Random fanart of all media types|
 | Window(Home).Property(SkinHelper.InProgressMoviesBackground) | Random fanart of in progress movies|
@@ -246,9 +305,100 @@ Note: the default interval for the backgrounds is set at 30 seconds. If you want
 | Window(Home).Property(SkinHelper.UnwatchedMoviesBackground) | Random fanart of unwatched movies|
 | Window(Home).Property(SkinHelper.InProgressShowsBackground) | Random fanart of in progress tv shows|
 | Window(Home).Property(SkinHelper.RecentEpisodesBackground) | Random fanart of recently added episodes|
+| Window(Home).Property(SkinHelper.GlobalFanartBackground) | Random fanart of all media types|
+| Window(Home).Property(SkinHelper.AllVideosBackground) | Random videos background (movie/show/musicvideo)|
+| Window(Home).Property(SkinHelper.RecentVideosBackground) | Recent videos background (movie or tvshow)|
+| Window(Home).Property(SkinHelper.InProgressVideosBackground) | In progress videos background (movie or tvshow)|
 | Window(Home).Property(SkinHelper.PvrBackground) | Random fanart collected by the PVR thumbs feature|
 | Window(Home).Property(SkinHelper.PicturesBackground) | Random pictures from all picture sources. By default this pulls images from all picture sources the user has configured. It is however possible to provide a custom source from which the images should be pulled from by setting Skin String: SkinHelper.CustomPicturesBackgroundPath|
-________________________________________________________________________________________________________
+| Window(Home).Property(SkinHelper.AllMoviesBackground.Wall) | Collection of Movie fanart images (from the library) as wall prebuilt by the script|
+| Window(Home).Property(SkinHelper.AllMoviesBackground.Wall.BW) | Collection of Movie fanart images (from the library) as wall (black and white) prebuilt by the script|
+| Window(Home).Property(SkinHelper.AllMoviesBackground.Poster.Wall) | Collection of Movie poster images (from the library) as wall prebuilt by the script|
+| Window(Home).Property(SkinHelper.AllMoviesBackground.Poster.Wall.BW) | Collection of Movie poster images (from the library) as wall (black and white) prebuilt by the script|
+| Window(Home).Property(SkinHelper.AllMusicBackground.Wall) | Collection of Artist fanart images (from the library) as wall prebuilt by the script|
+| Window(Home).Property(SkinHelper.AllMusicBackground.Wall.BW) | Collection of Artist fanart images (from the library) as wall (black and white) prebuilt by the script|
+| Window(Home).Property(SkinHelper.AllMusicSongsBackground.Wall) | Collection of Song/Album cover images (from the library) as wall prebuilt by the script|
+| Window(Home).Property(SkinHelper.AllTvShowsBackground.Wall) | Collection of Tv show fanart images (from the library) as wall prebuilt by the script|
+| Window(Home).Property(SkinHelper.AllTvShowsBackground.Wall.BW) | Collection of Tv show fanart images (from the library) as wall (black and white) prebuilt by the script|
+| Window(Home).Property(SkinHelper.AllTvShowsBackground.Wall.Poster) | Collection of Tv show poster images (from the library) as wall prebuilt by the script|
+| Window(Home).Property(SkinHelper.AllTvShowsBackground.Wall.Poster.BW) | Collection of Tv show poster images (from the library) as wall (black and white) prebuilt by the script|
+
+Additional properties available for the backgrounds (e.g. SkinHelper.AllMoviesBackground.Poster)
+
+| property 			| description |
+| :----------------------------	| :----------- |
+| Window(Home).Property(SkinHelper.BACKGROUNDNAME.poster) | Poster image for the background (if available)|
+| Window(Home).Property(SkinHelper.BACKGROUNDNAME.clearlogo) | Clearlogo image for the background (if available)|
+| Window(Home).Property(SkinHelper.BACKGROUNDNAME.landscape) | Landscape image for the background (if available)|
+| Window(Home).Property(SkinHelper.BACKGROUNDNAME.title) | Title for the background (if available)|
+
+NOTE: the generation of wall images is experimental and might have impact on the cpu while creating them (at startup only). The feature can be disabled in the addon settings.
+
+
+#### Individual random images for creating image walls yourself in your skin
+If you want to create a wall with images yourself in your skin and you need randomly changing images, there is a way to let the script provide these images for you.
+
+First of all you need to enable this by setting the delay in a skin string: Skin.SetString(SkinHelper.WallImagesDelay, 10)
+0 disables the feature completely, any other number controls the amount of seconds that the wall will rotate a random image.
+
+Secondly you will have to enable the generation of wall images for each SkinHelper provided background by setting a skin string:
+Skin.SetString(BACKGROUNDNAME.EnableWallImages, 20)
+This value controls the number of images that should be provided by the script, if empty or 0 there will be no images generated.
+Once both the global delay and the item-specific limit skinstrings are set, the images will be available like this: 
+Window(Home).Property(BACKGROUNDNAME.Wall.X) (where X is the number of the image, start counting from 0)
+
+You should be able to enable the wall-images feature for any rotating skinhelper background, including those from the smart shortcuts.
+Also note that the additional properties will also be available e.g. Window(Home).Property(SkinHelper.AllMoviesBackground.Wall.1.Poster)
+
+Examples...
+
+To get a collection of 10 images from the AllMoviesBackground provided by skinhelper:
+
+Skin.SetString(SkinHelper.AllMoviesBackground.EnableWallImages, 10)
+
+And to get e.g. fanart image 5 from the collection: Window(Home).Property(SkinHelper.AllMoviesBackground.Wall.5)
+
+Or the poster: Window(Home).Property(SkinHelper.AllMoviesBackground.Wall.5.Poster)
+
+
+
+Or to get the images for one of the plex smart shortcuts:
+Skin.SetString(plexbmc.0.image.EnableWallImages, 10)  --> enable it for 10 images
+
+And to get for example the first fanart image of the collection: Window(Home).Property(plexbmc.0.image.Wall.0)
+
+
+Last example, get the images for playlists (smart shortcuts for playlists should be enabled!)
+
+Skin.SetString(playlist.0.image.EnableWallImages, 10)  --> enable it for the first playlist and we want 10 images
+
+And to get for example the second fanart image of the collection: Window(Home).Property(playlist.0.image.Wall.1)
+
+
+The dynamic backgrounds for the smartshortcuts (e.g. playlist.X.image) should be set individually.
+
+It should be pretty safe if you just enable them for all available options, the script checks if the smartshortcuts actually exists.
+
+So ,you should be fine if you do this:
+
+Skin.SetString(playlist.0.image.EnableWallImages, 10)
+
+Skin.SetString(playlist.1.image.EnableWallImages, 10)
+
+Skin.SetString(playlist.2.image.EnableWallImages, 10)
+
+Skin.SetString(playlist.3.image.EnableWallImages, 10)
+
+etc. etc.
+
+
+CAUTION: The script uses the already cached in memory collections of images to provide you the individual images to build your wall, it does add a little overhead but it should not be noticeable.
+What you do have to realize is that if you show for example a wall of 20 fanart images in your skin, all 20 fanart images will be cached by Kodi in memory, this WILL impact the performance.
+You might run into problems when using this approach on a low powered platform such as the Raspberry Pi.
+
+To have the least impact on performance as possible, you can use the prebuilt wall images that are provided by this script.
+These are already resized into 1 image so that Kodi will only have to load 1 fanart image in memory.
+
 ________________________________________________________________________________________________________
 
 ### Tools and actions provided by the script
@@ -275,6 +425,43 @@ This command will open the special search window in the script. It has a onscree
 ________________________________________________________________________________________________________
 
 
+#### Special Info Dialog
+```
+RunScript(script.skin.helper.service,action=showinfo,movieid=&amp;INFO[ListItem.DBID])
+RunScript(script.skin.helper.service,action=showinfo,tvshowid=&amp;INFO[ListItem.DBID])
+RunScript(script.skin.helper.service,action=showinfo,episodeid=&amp;INFO[ListItem.DBID])
+```
+It is possible to show the infodialog provided by the script (see video library search command), for example if you want to call that info screen from your widgets.
+In that case run the command above. In the info dialog will also all special properties be available from the script.
+Note that ListItem.DBID and ListItem.DBTYPE can only be used for "real" library items, for widgets provided by this script, use ListItem.Property(DBID) and ListItem.Property(type) instead.
+
+________________________________________________________________________________________________________
+
+#### Yes/No Dialog (dialogYesNo)
+```
+RunScript(script.skin.helper.service,action=dialogyesno,header[yourheadertext],message=[your message body],action=[your action])
+```
+This command will open Kodi's YesNo dialog with the text you supplied.
+If the user presses YES, the action will be executed you supplied. To provide multiple actions, seperate by | 
+________________________________________________________________________________________________________
+
+
+#### Message Dialog (dialogOK)
+```
+RunScript(script.skin.helper.service,action=dialogok,header[yourheadertext],message=[your message body])
+```
+This command will open Kodi's dialog OK window with the text you supplied
+________________________________________________________________________________________________________
+
+
+#### Message Dialog (textviewer)
+```
+RunScript(script.skin.helper.service,action=textviewer,header[yourheadertext],message=[your message body])
+```
+This command will open Kodi's TextViewer window with the text you supplied (NOTE: textviewer is available as of Kodi Jarvis 16)
+________________________________________________________________________________________________________
+
+
 
 #### Color Picker
 ```
@@ -285,16 +472,20 @@ This command will open the color picker of the script. After the user selected a
 
 In your skin you can just use the skin string to color a control, example: <textcolor>$INFO[Skin.String(defaultLabelColor)]</textcolor>
 
-Note: If you want to display the name of the selected color, add a prefix .name to your skin string.
+Notes: 
+1) If you want to display the name of the selected color, add a prefix .name to your skin string.
 For example: <label>Default color for labels: $INFO[Skin.String(defaultLabelColor.name)]</label>
 
-If you want to customize the look and feel of the color picker window, make sure to include script-skin_helper_service-ColorPicker.xml in your skin and skin it to your needs.
+2) If you want to customize the look and feel of the color picker window, make sure to include script-skin_helper_service-ColorPicker.xml in your skin and skin it to your needs.
 
-TIP: By default the colorpicker will provide a list of available colors.
+3) If you want to specify the header title of the color picker, make sure to include a label with ID 1 in the XML and add the header= parameter when you launch the script.
+For example: RunScript(script.skin.helper.service,action=colorpicker,skinstring=MySkinString,header=Set the OSD Foreground Color)
+
+4) By default the colorpicker will provide a list of available colors.
 If you want to provide that list yourself, create a file "colors.xml" in skin\extras\colors\colors.xml
 See the default colors file in the script's location, subfolder resources\colors
 
-Additional use cases of the color picker:
+##### Set a skinshortcuts property with the color
 If you want to set a Window(home) Property instead of a skin settings:
 RunScript(script.skin.helper.service,action=colorpicker,winproperty=XXX)
 
@@ -303,37 +494,122 @@ include a button in your script-skinshortcuts.xml with this onclick-action:
 
 RunScript(script.skin.helper.service,action=colorpicker,shortcutproperty=XXX)
 
+
+##### Multiple color palettes
+The color picker supports having multiple color palettes in your colors.xml.
+The structure of your colors.xml file will then be layered, like this:
+'''xml
+<colors>
+    <palette name="mypalette1">
+        <color name="color1">ffffffff</color>
+    </palette>
+</colors>
+'''
+If you do not create the palette sublevel in your colors.xml, the script will just display all <color> tags.
+If you have specified multiple palettes you can use a button with ID 3030 to switch between color palettes.
+Also it is possible to launch the color picker with a specific palette, in that case supply the palette= parameter when you open the picker, for example:
+
+RunScript(script.skin.helper.service,action=colorpicker,skinstring=MySkinString,palette=mypalette1)
+
 ________________________________________________________________________________________________________
 
 
+#### Webservice --> $INFO images inside list/panel containers and image lookups
+This script comes with a little web-helper service to retrieve images that are normally only available as window property and/or only available for the current focused listitem, such as the pvr artwork or music artwork.
+NOTE: The scripts webservice runs on tcp port 52307. This is currently hardcoded because there is no way to pass the port as an variable to the skin inside a list (which was the whole purpose of the webservice in the first place)
 
-#### Auto thumb generator
-The script has a feature to automatically retrieve a thumb/image for a specific search query
-It will first query TMDB, if that fails Google images and if that fails it will try youtube to get a thumb.
-This might come in handy if you want to provide a thumb for the currently selected show in the PVR channel list for example.
-Note 1: The script will build a cache in the background to prevent too many queries to google/youtube.
-Note 2: There is no way to guarantee which aspect ratio the retrieved image has, so use scale or keep as aspect ratio to display the images.
+The following use-cases are currently supported:
 
-How to use ?
-You must use a multiimage control for this thing to work, as that accepts a plugin path as the texturepath.
-Use the path property to define the searchquery, the more info you supply, the more accurate the resulting image will be.
-Note that if you want the TMDB poster to be returned the show or movie title has to be exact.
-For example to display a thumb of the selected TV program in MyPVRChannels.xml:
-
+##### PVR images inside lists
+All Windows properties for the PVR-thumbs feature only provided for the current selected listitem.
+If you want to use them inside a panel (so you can list all channels with correct artwork), you can use the webservice:
 
 ```xml
-<control type="multiimage">
-	<width>300</width>
-	<height>300</height>
-	<imagepath>plugin://script.skin.helper.service/?action=getthumb&path=$INFO[ListItem.Title] $INFO[ListItem.ChannelName]</imagepath>
-	<aspectratio>keep</aspectratio>
+<control type="image">
+    <!--pvr thumb image-->
+    <texture background="true">http://localhost:52307/getpvrthumb&amp;title=$INFO[Listitem.Title]&amp;channel=$INFO[ListItem.ChannelName]&amp;type=poster</texture>
+    <visible>Skin.HasSetting(SkinHelper.EnablePVRThumbs) + SubString(ListItem.FolderPath,pvr://)</visible>
+</control>
+```
+The above example will return the PVR artwork, you can specify the type that should be returned with type=[kodi artwork type]
+You can also supply multiple arttypes by using , (comma) as a seperator. In that case the script will supply the image for the first arttype found.
+
+Optional parameter: fallback --> Allows you to set a fallback image if no image was found.
+For example &amp;fallback=$INFO[ListItem.Icon]
+
+##### General thumb/image for searchphrase
+You can use this to search for a general thumb using google images. For example to get a actor thumb.
+
+```xml
+<control type="image">
+    <!--thumb image-->
+    <texture background="true">http://localhost:52307/getthumb&amp;title=$INFO[Listitem.Label]</texture>
+</control>
+```
+The argument to pass is title which will be the searchphrase. In the above example replace $INFO[Listitem.Label] with any other infolabel or text.
+For example inside DialogVideoInfo.xml to supply a thumb of the director:
+
+<texture background="true">http://localhost:52307/getthumb&amp;title=$INFO[Listitem.Director] IMDB</texture>
+
+Optional parameter: fallback --> Allows you to set a fallback image if no image was found.
+For example &amp;fallback=DefaultDirector.png
+
+##### Music Artwork
+You can use this to have the music artwork inside a list/panel container.
+
+```xml
+<control type="image">
+    <!--music artwork-->
+    <texture background="true">http://localhost:52307/getmusicart&amp;artist=$INFO[Listitem.Artist]&amp;track=$INFO[Listitem.Title]&amp;album=$INFO[Listitem.Album]&amp;type=banner,clearlogo,discart</texture>
+</control>
+```
+The arguments to pass are album, track and artist. You can supply all of them or just a selection (e.g. artist+album)
+Possibilities are banner, clearlogo and discart for music artwork. Fanart and album thumb should be provided by Kodi itself.
+
+Optional parameter: fallback --> Allows you to set a fallback image if no image was found.
+For example &amp;fallback=$INFO[ListItem.Thumb]
+
+
+##### Image from skin string or window property inside a panel
+Normally $INFO window properties or skin string can't be used inside a container.
+With this little workaround you can also use them inside containers...
+
+```xml
+<control type="image">
+    <!--music artwork-->
+    <texture background="true">http://localhost:52307/getvarimage&amp;title=$INFO{Window(Home).Property(MyCustomWindowProp)}</texture>
 </control>
 ```
 
-When the script is called it will also fill a window property with the image: SkinHelper.ListItemThumb
+You provide the window property (or any other $INFO label as the title param. Note that you must replace the normal [] brackets with {}
+At the moment it is not possible to use this approach for the new resource images addons due to a bug in Kodi: http://trac.kodi.tv/ticket/16366
+
+http://localhost:52307/getvarimage&amp;title=$INFO{Skin.String(MyCustomPath)}/logo.png
+
+
+
+##### Genre images
+You can use this to create a custom view for movie/tvshow genres with posters/fanart from the genre
+
+```xml
+<texture background="true">http://localhost:52307/getmoviegenreimages&amp;title=$INFO[Listitem.Label]&amp;type=poster.0&amp;fallback=DefaultGenre.png</texture>
+<texture background="true">http://localhost:52307/gettvshowgenreimages&amp;title=$INFO[Listitem.Label]&amp;type=poster.0&amp;fallback=DefaultGenre.png</texture>
+<texture background="true">http://localhost:52307/getmoviegenreimages&amp;title=$INFO[Listitem.Label]&amp;type=fanart.0&amp;fallback=DefaultGenre.png</texture>
+<texture background="true">http://localhost:52307/gettvshowgenreimages&amp;title=$INFO[Listitem.Label]&amp;type=fanart.0&amp;fallback=DefaultGenre.png</texture>
+```
+Possible types are poster.X and fanart.X (replace X with count, only 0-4 are available)
+Replace getmoviegenreimages with getmoviegenreimagesrandom to have the artwork items be randomly pulled from the db
+
+
+##### Webservice optional params
+
+Optional parameter: fallback --> Allows you to set a fallback image if no image was found.
+For example &amp;fallback=$INFO[ListItem.Thumb]
+
+Optional parameter: refresh --> By default the textures are cached by Kodi's texture cache which can be sticky when the underlying image was changed. Use an refresh param to force refresh.
+For example &amp;refresh=$INFO[System.Time(hh)]
 
 ________________________________________________________________________________________________________
-
 
 
 
@@ -360,6 +636,10 @@ example 2: Search for artist videos in DialogAlbumInfo.xml
 ```
 RunScript(script.skin.helper.service,action=searchyoutube,title=$INFO[ListItem.Artist], header=Videos for $INFO[ListItem.Artist])             
 ```
+
+Optional parameters:
+windowed=true --> plays the selected video windowed instead of fullscreen
+autoplay=true --> just automatically play the first video that is found (no dialog is shown)
 
 ________________________________________________________________________________________________________
 
@@ -432,7 +712,217 @@ You must supply the name of the setting as can be found in guisettings.xml or th
 
 ________________________________________________________________________________________________________
 
+#### Strip string
+Can be used to strip/split a string, the results will be stored to a window property.
 
+```
+RunScript(script.skin.helper.service,action=stripstring,splitchar=[splitter text],string=[your string],output=[your window prop])             
+```
+
+Example:
+
+<onload>RunScript(script.skin.helper.service,action=stripstrin,splitchar=.,string=$INFO[System.BuildVersion],output=kodiversion_main)</onload>
+
+The above command will take the Kodi Buildversion Info string and split it on the "." character. The result is the main Kodi version, e.g. "15" or "16".
+You can access the result in your skin as a window property, in the above example kodiversion_main:
+$INFO[Window(Home).Property(kodiversion_main)]
+
+Optional argument: index
+Used to specify which part to return after splitting the string, start counting at 0|
+For example:
+
+<onload>RunScript(script.skin.helper.service,action=stripstrin,splitchar=#,string=this#is#a#test,output=kodiversion_main,index=1)</onload>
+will return "is" in the result
+
+________________________________________________________________________________________________________
+
+
+#### Check if file exists
+```
+RunScript(script.skin.helper.service,action=fileexists,file=[filenamepath],skinstring=[skinstring to store the result],windowprop=[windowprop to store the result])
+```
+This command will check the filesystem if a particular file exists and will write the results to either a skin string or window property.
+If the file exists, the result will be written as EXISTS in the property or skinstring, if it doesn't exist, the property/string will be empty.
+________________________________________________________________________________________________________
+
+
+
+
+#### Set skin setting
+Can be used to present a select dialog to specify a certain skin setting.
+Prevents you from creating all kinds of toggle options.
+
+
+You need to create the file skinsettings.xml in your extras folder (special://skin/extras/skinsettings.xml).
+Inside that xml file you define all options that a user can choose when setting a specific skin string.
+For example:
+```xml
+<settings>
+    <!-- home layout -->
+    <setting id="HomeLayout" value="1" label="$LOCALIZE[31309] - 1 row" condition="" icon="" description=""/>
+    <setting id="HomeLayout" value="2" label="$LOCALIZE[31309] - 2 rows" condition="" icon="" description="" default="true"/>
+    <setting id="HomeLayout" value="3" label="$LOCALIZE[31309] - 3 rows" condition="" icon="" description=""/>
+    
+    <!-- background setting -->
+    <setting id="CustomBackgroundSetting" value="default" label="$LOCALIZE[31023]" condition="" icon="special://skin/extras/backgrounds/global.jpg" description=""/>
+    <setting id="CustomBackgroundSetting" value="weather" label="$LOCALIZE[31025]" condition="" icon="$VAR[WeatherFanArtPath]$INFO[Window(Weather).Property(current.fanartCode)]/weather.jpg" description=""/>
+    <setting id="CustomBackgroundSetting" value="||BROWSEIMAGE||" label="Custom image" condition="" description=""/>
+</settings>
+```
+
+If you want to set the Skin String "HomeLayout", you can call the script like this:
+
+```
+<control type="button" id="423003">
+    <label>[B]$LOCALIZE[31121]:[/B] $INFO[Skin.String(HomeLayout.label)]</label>
+    <onclick>RunScript(script.skin.helper.service,action=setskinsetting,setting=HomeLayout,header=$LOCALIZE[31124])</onclick>
+</control>         
+```
+This will present DialogSelect with your options. Once the user makes a selection, the value will be written to the Skin String.
+Also the prefix .label will store the label from the select dialog.
+
+Attributes for the XML:
+
+id: name of the setting, required attribute
+value: the value that should be written when selecting this value, required attribute
+label: label for the option (will also be written to setting.label), required attribute
+condition: any kodi condition syntax to make the option show up or not, optional but attribute must be present in the xml
+icon: icon to show in dialogselect, optional but attribute must be present in the xml
+description: description to show in dialogselect (label2), optional but attribute must be present in the xml
+default: if set to "true" this will be the default value for your skin (will be set at skin startup/change/update), you may use a visibility condition instead of true
+
+
+#### Working with sublevels
+
+It's possible to have a sublevel in the settings dialog, for example if you have many options for one setting.
+This way you can have layered navigation.
+Syntax:
+
+```
+<settings>
+    <!-- home layout -->
+    <setting id="HomeLayout" value="||SUBLEVEL||HomeLayout_horizontal" label="Horizontal home layouts" condition="" icon="" description="All horizontal homemenu layouts"/>
+    <setting id="HomeLayout" value="tiles" label="Tile based layout" condition="" icon="" description=""/>
+    
+    <!-- sublevel: horizontal home layouts -->
+    <setting id="HomeLayout_horizontal" value="layout1" label="Horizontal layout 1" condition="" icon="" description="" />
+    <setting id="HomeLayout_horizontal" value="layout2" label="Horizontal layout 2" condition="" icon="" description="" />
+
+</settings>
+```
+
+#### Special values to use as the value argument
+
+Instead of a predefined value you can also have an option to let the user input the value himself.
+In that case you have to use a special syntax as the value:
+
+||PROMPTNUMERIC|| --> Asks the user for a numeric input
+
+||PROMPTSTRING|| --> Asks the user for a string input
+
+||PROMPTSTRINGASNUMERIC|| --> Asks the user for a string which must be numeric (allows having negative numbers)
+
+||BROWSEIMAGE|| --> Asks the user to select a single image or imagepath
+
+||BROWSESINGLEIMAGE|| --> Asks the user to select a single image
+
+||SKIPSTRING|| --> Do not write the results to a skin string (can be used if you only use the script with the onselect actions)
+
+
+#### Apply other actions when user selects a value
+
+It is possible to apply other settings when the user selects a certain value.
+Syntax:
+
+```
+<settings>
+    <setting id="HomeLayout" value="mylayout" label="My great layout" condition="" icon="" description="">
+        <onselect condition="True">Skin.Reset(OpenSubMenuOnClick)</onselect>
+        <onselect condition="True">Skin.SetString(widgetstyle,landscape)</onselect>
+    </setting>
+
+</settings>
+```
+
+#### Multiselect
+
+If you have some sort of multiple options the user can enable and you don't want to create a whole bunch of radiobuttons (and set default values)..
+Syntax:
+
+```
+    <!-- options to show in videoinfo - multiselect -->
+    <setting id="videoinfo_buttons" value="||MULTISELECT||" label="" condition="" icon="" description="">
+        <option id="videoinfo_button_play" label="$LOCALIZE[208]" condition="" default="true"/>
+        <option id="videoinfo_button_trailer" label="$LOCALIZE[20410]" condition="" default="true"/>
+        <option id="videoinfo_button_cast" label="$LOCALIZE[206]" condition="" default="true"/>
+    </setting>
+```
+
+The ID specified in the option will be set as Skin Bool.
+E.g. if you call the script with RunScript(script.skin.helper.service,action=setskinsetting,setting=videoinfo_buttons,header=Enable buttons in videoinfo)
+If the user enables the playbutton, the command Skin.SetBool(videoinfo_button_play) will be called, otherwise it will be reset.
+With the default attribute you can specify what the default value should be for the setting (applied at skin startup, change or update)
+
+
+#### Write constants to includes file
+You can use the above described approach for skin settings to write constants to an includes file.
+For this you can use the same settings file with the same xml elements etc.
+Only, instead of calling "setskinsetting", you should call "setskinconstant".
+Any value that is selected by the user will be written to an XML file in your skin directory called script-skin_helper_service-includes.xml
+
+```
+RunScript(script.skin.helper.service,action=setskinconstant,setting=PanelWidth,header=Width for Panel)
+```
+
+On your defined <skinsettings> you may use the additional attribute constantdefault="MyVisibilityCondition" to set your default value at skin install/update.
+________________________________________________________________________________________________________
+
+
+#### Splash screen / skin intro 
+Can be used to easily provide a splash/intro option to your skin.
+Supports all media files: music, video or photo.
+
+First, set the setting somewhere in your skin settings, for example with this code:
+
+```
+control type="radiobutton">
+    <label>Enable splash screen (photo, video or music)</label>
+    <onclick condition="!Skin.String(SplashScreen)">Skin.SetFile(SplashScreen)</onclick>
+    <onclick condition="Skin.String(SplashScreen)">Skin.Reset(SplashScreen)</onclick>
+    <selected>Skin.String(SplashScreen)</selected>
+</control>
+```
+
+Secondly you have to adjust your Startup.xml from your skin to support the splash intro:
+
+```
+<onload condition="Skin.String(SplashScreen)">RunScript(script.skin.helper.service,action=splashscreen,file=$INFO[Skin.String(SplashScreen)],duration=5)</onload>
+<onload condition="!Skin.String(SplashScreen)">ReplaceWindow($INFO[System.StartupWindow])</onload>         
+```
+
+and you need to add both a videowindow and image control to your startup.xml:
+
+```
+<!-- video control for splash -->
+<control type="videowindow">
+    <width>100%</width>
+    <height>100%</height>
+</control>
+<!-- image control for splash -->
+<control type="image">
+    <width>100%</width>
+    <height>100%</height>
+    <aspectratio>keep</aspectratio>
+    <texture background="true">$INFO[Window(Home).Property(SkinHelper.SplashScreen)]</texture>
+</control>
+```
+
+Offcourse make sure to remove any other references which replaces the window...
+The duration parameter is optional, this will set the amount of seconds that an image will be shown as splash, defaults to 5 seconds if ommitted.
+Music and video files always default to play to the end before closing the splash screen.
+
+
+________________________________________________________________________________________________________
 
 #### Views selector
 ```
@@ -470,8 +960,10 @@ RunScript(script.skin.helper.service,action=enableviews)
 This will present a selection dialog to the user to enable (or disable) views. It uses the views.xml file to display the available views (see above). When a view is disabled it will be hidden from the view selection dialog. Also, a Skin String will be set so you can check in your skin if the view has been disabled (and not include it or set a visiblity condition).
 The name of the Skin String that will be set by the script is: SkinHelper.View.Disabled.[VIEWID] where [VIEWID] is the numerical ID of the view.
 
-Example: <include condition="!Skin.HasSetting(SkinHelper.View.Disabled.55)">View_55_BannerList</include>
-
+Example: 
+```xml
+<include condition="!Skin.HasSetting(SkinHelper.View.Disabled.55)">View_55_BannerList</include>
+```
 ________________________________________________________________________________________________________
 
 
@@ -664,7 +1156,8 @@ RunScript(script.skin.helper.service,action=restore,silent=mypath\backup.zip)
 ```
 RunScript(script.skin.helper.service,action=reset)             
 ```
-This will reset ALL skin settings
+This will reset ALL skin settings.
+Both the filter and silent arguments will also work with the reset feature.
 
 ________________________________________________________________________________________________________
 ________________________________________________________________________________________________________
@@ -673,14 +1166,10 @@ ________________________________________________________________________________
 The script also has a plugin entrypoint to provide some dynamic content that can be used for example in widgets.
 use the parameter [LIMIT] to define the number of items to show in the list. defaults to 25 if the parameter is not supplied.
 
-```
-Important Note: If you want to use these commands in the skinshortcuts overrides.xml,
-you have to replace & with &amp;
-```
 
 #####Next Episodes
 ```
-plugin://script.skin.helper.service/?action=nextepisodes&limit=[LIMIT]&reload=$INFO[Window(Home).Property(widgetreload)]
+plugin://script.skin.helper.service/?action=nextepisodes&amp;limit=[LIMIT]&amp;reload=$INFO[Window(Home).Property(widgetreload)]
 ```
 Provides a list of the nextup episodes. This can be the first episode in progress from a tv show or the next unwatched from a in progress show.
 Note: the reload parameter is needed to auto refresh the widget when the content has changed.
@@ -689,7 +1178,7 @@ ________________________________________________________________________________
 
 #####Recommended Movies
 ```
-plugin://script.skin.helper.service/?action=recommendedmovies&limit=[LIMIT]&reload=$INFO[Window(Home).Property(widgetreload)]
+plugin://script.skin.helper.service/?action=recommendedmovies&amp;limit=[LIMIT]&amp;reload=$INFO[Window(Home).Property(widgetreload)]
 ```
 Provides a list of the in progress movies AND recommended movies based on rating.
 Note: the reload parameter is needed to auto refresh the widget when the content has changed.
@@ -698,17 +1187,70 @@ ________________________________________________________________________________
 
 #####Recommended Media
 ```
-plugin://script.skin.helper.service/?action=recommendedmedia&limit=[LIMIT]
+plugin://script.skin.helper.service/?action=recommendedmedia&amp;limit=[LIMIT]&amp;reload=$INFO[Window(Home).Property(widgetreload2)]
 ```
 Provides a list of recommended media (movies, tv shows, music)
 Note: You can optionally provide the reload= parameter if you want to refresh the widget on library changes.
 
+________________________________________________________________________________________________________
 
+#####Recent albums
+```
+plugin://script.skin.helper.service/?action=recentalbums&amp;limit=[LIMIT]&amp;reload=$INFO[Window(Home).Property(widgetreloadmusic)]
+```
+Provides a list of recently added albums, including the artwork provided by this script as ListItem.Art(xxxx)
+Note: You can optionally provide the reload= parameter if you want to refresh the widget on library changes.
+
+Optional argument: browse=true --> will open/browse the album instead of playing it
+________________________________________________________________________________________________________
+
+#####Recently played albums
+```
+plugin://script.skin.helper.service/?action=recentplayedalbums&amp;limit=[LIMIT]&amp;reload=$INFO[Window(Home).Property(widgetreloadmusic)]
+```
+Provides a list of recently played albums, including the artwork provided by this script as ListItem.Art(xxxx)
+Note: You can optionally provide the reload= parameter if you want to refresh the widget on library changes.
+
+Optional argument: browse=true --> will open/browse the album instead of playing it
+________________________________________________________________________________________________________
+
+#####Recommended albums
+```
+plugin://script.skin.helper.service/?action=recommendedalbums&amp;limit=[LIMIT]&amp;reload=$INFO[Window(Home).Property(widgetreloadmusic)]
+```
+Provides a list of recommended albums, including the artwork provided by this script as ListItem.Art(xxxx)
+Note: You can optionally provide the reload= parameter if you want to refresh the widget on library changes.
+
+Optional argument: browse=true --> will open/browse the album instead of playing it
+________________________________________________________________________________________________________
+
+#####Recent songs
+```
+plugin://script.skin.helper.service/?action=recentsongs&amp;limit=[LIMIT]&amp;reload=$INFO[Window(Home).Property(widgetreloadmusic)]
+```
+Provides a list of recently added songs, including the artwork provided by this script as ListItem.Art(xxxx)
+Note: You can optionally provide the reload= parameter if you want to refresh the widget on library changes.
+________________________________________________________________________________________________________
+
+#####Recently played songs
+```
+plugin://script.skin.helper.service/?action=recentplayedsongs&amp;limit=[LIMIT]&amp;reload=$INFO[Window(Home).Property(widgetreloadmusic)]
+```
+Provides a list of recently played songs, including the artwork provided by this script as ListItem.Art(xxxx)
+Note: You can optionally provide the reload= parameter if you want to refresh the widget on library changes.
+________________________________________________________________________________________________________
+
+#####Recommended songs
+```
+plugin://script.skin.helper.service/?action=recommendedsongs&amp;limit=[LIMIT]&amp;reload=$INFO[Window(Home).Property(widgetreloadmusic)]
+```
+Provides a list of recommended songs, including the artwork provided by this script as ListItem.Art(xxxx)
+Note: You can optionally provide the reload= parameter if you want to refresh the widget on library changes.
 ________________________________________________________________________________________________________
 
 #####Recent Media
 ```
-plugin://script.skin.helper.service/?action=recentmedia&limit=[LIMIT]
+plugin://script.skin.helper.service/?action=recentmedia&amp;limit=[LIMIT]&amp;reload=$INFO[Window(Home).Property(widgetreload2)]
 ```
 Provides a list of recently added media (movies, tv shows, music, tv recordings, musicvideos)
 Note: You can optionally provide the reload= parameter if you want to refresh the widget on library changes.
@@ -718,18 +1260,79 @@ ________________________________________________________________________________
 
 #####Similar Movies (because you watched...)
 ```
-plugin://script.skin.helper.service/?action=similarmovies&limit=[LIMIT]
+plugin://script.skin.helper.service/?action=similarmovies&amp;limit=[LIMIT]&amp;reload=$INFO[Window(Home).Property(widgetreload2)]
 ```
 This will provide a list with movies that are similar to a random watched movie from the library.
 TIP: The listitem provided by this list will have a property "similartitle" which contains the movie from which this list is generated. That way you can create a "Because you watched $INFO[Container.ListItem.Property(originaltitle)]" label....
-Note: You can optionally provide the reload= parameter if you want to refresh the widget on library changes. If you want to refresh the widget on other circumstances just provide any changing info with the reload parameter, such as the window title or some window Property which you change on X interval.
+Note: You can optionally provide the widgetreload2 parameter if you want to refresh the widget every 10 minutes. If you want to refresh the widget on other circumstances just provide any changing info with the reload parameter, such as the window title or some window Property which you change on X interval.
 
+The above command will create a similar movies listing based on a random watched movie in the library.
+If you want to specify the movie to base the request on yourself you can optionally specify the imdb id to the script:
+
+```
+plugin://script.skin.helper.service/?action=similarmovies&amp;imdbid=[IMDBID]&amp;limit=[LIMIT]
+```
 
 ________________________________________________________________________________________________________
 
+#####Similar Tv Shows (because you watched...)
+```
+plugin://script.skin.helper.service/?action=similarshows&amp;limit=[LIMIT]&amp;reload=$INFO[Window(Home).Property(widgetreload2)]
+```
+This will provide a list with TV shows that are similar to a random in progress show from the library.
+TIP: The listitem provided by this list will have a property "similartitle" which contains the movie from which this list is generated. That way you can create a "Because you watched $INFO[Container.ListItem.Property(originaltitle)]" label....
+Note: You can optionally provide the widgetreload2 parameter if you want to refresh the widget every 10 minutes. If you want to refresh the widget on other circumstances just provide any changing info with the reload parameter, such as the window title or some window Property which you change on X interval.
+
+The above command will create a similar shows listing based on a random in progress show in the library.
+If you want to specify the show to base the request on yourself you can optionally specify the imdb/tvdb id to the script:
+
+```
+plugin://script.skin.helper.service/?action=similarshows&amp;imdbid=[IMDBID]&amp;limit=[LIMIT]
+```
+
+________________________________________________________________________________________________________
+
+#####Similar Media (because you watched...)
+```
+plugin://script.skin.helper.service/?action=similarmedia&amp;limit=[LIMIT]&amp;reload=$INFO[Window(Home).Property(widgetreload2)]
+```
+This will provide a list with both Movies and TV shows that are similar to a random in progress movie or show from the library.
+TIP: The listitem provided by this list will have a property "similartitle" which contains the movie from which this list is generated. That way you can create a "Because you watched $INFO[Container.ListItem.Property(originaltitle)]" label....
+Note: You can optionally provide the widgetreload2 parameter if you want to refresh the widget every 10 minutes. If you want to refresh the widget on other circumstances just provide any changing info with the reload parameter, such as the window title or some window Property which you change on X interval.
+
+The above command will create a similar shows listing based on a random in progress show in the library.
+If you want to specify the movie/show to base the request on yourself you can optionally specify the imdb/tvdb id to the script:
+
+```
+plugin://script.skin.helper.service/?action=similarshows&amp;imdbid=[IMDBID]&amp;limit=[LIMIT]
+```
+
+________________________________________________________________________________________________________
+
+#####Top rated Movies in genre
+```
+plugin://script.skin.helper.service/?action=moviesforgenre&amp;limit=[LIMIT]&amp;reload=$INFO[Window(Home).Property(widgetreload2)]
+```
+This will provide a list with movies that for a random genre from the library.
+TIP: The listitem provided by this list will have a property "genretitle" which contains the movie from which this list is generated.
+Note: You can optionally provide the widgetreload2 parameter if you want to refresh the widget every 10 minutes. If you want to refresh the widget on other circumstances just provide any changing info with the reload parameter, such as the window title or some window Property which you change on X interval.
+
+________________________________________________________________________________________________________
+
+#####Top rated tvshows in genre
+```
+plugin://script.skin.helper.service/?action=showsforgenre&amp;limit=[LIMIT]&amp;reload=$INFO[Window(Home).Property(widgetreload2)]
+```
+This will provide a list with tvshows for a random genre from the library.
+TIP: The listitem provided by this list will have a property "genretitle" which contains the movie from which this list is generated.
+Note: You can optionally provide the widgetreload2 parameter if you want to refresh the widget every 10 minutes. If you want to refresh the widget on other circumstances just provide any changing info with the reload parameter, such as the window title or some window Property which you change on X interval.
+
+________________________________________________________________________________________________________
+
+
 #####In progress Media
 ```
-plugin://script.skin.helper.service/?action=inprogressmedia&limit=[LIMIT]&reload=$INFO[Window(Home).Property(widgetreload)]
+plugin://script.skin.helper.service/?action=inprogressmedia&amp;limit=[LIMIT]&amp;reload=$INFO[Window(Home).Property(widgetreload)]
 ```
 Provides a list of all in progress media (movies, tv shows, music, musicvideos)
 Note: the reload parameter is needed to auto refresh the widget when the content has changed.
@@ -739,7 +1342,7 @@ ________________________________________________________________________________
 
 #####In progress and Recommended Media
 ```
-plugin://script.skin.helper.service/?action=inprogressandrecommendedmedia&limit=[LIMIT]&reload=$INFO[Window(Home).Property(widgetreload)]
+plugin://script.skin.helper.service/?action=inprogressandrecommendedmedia&amp;limit=[LIMIT]&amp;reload=$INFO[Window(Home).Property(widgetreload)]
 ```
 This combines in progress media and recommended media, usefull to prevent an empty widget when no items are in progress.
 Note: the reload parameter is needed to auto refresh the widget when the content has changed.
@@ -748,7 +1351,7 @@ ________________________________________________________________________________
 
 #####Favourite Media
 ```
-plugin://script.skin.helper.service/?action=favouritemedia&limit=[LIMIT]&reload=$INFO[Window(Home).Property(widgetreload2)]
+plugin://script.skin.helper.service/?action=favouritemedia&amp;limit=[LIMIT]&amp;reload=$INFO[Window(Home).Property(widgetreload2)]
 ```
 Provides a list of all media items that are added as favourite (movies, tv shows, songs, musicvideos)
 Note: By providing the reload-parameter set to the widgetreload2 property, the widget will be updated every 10 minutes.
@@ -757,7 +1360,7 @@ ________________________________________________________________________________
 
 #####My TV Shows Airing today
 ```
-plugin://script.skin.helper.service/?action=nextairedtvshows&reload=$INFO[Window(Home).Property(widgetreload2)]
+plugin://script.skin.helper.service/?action=nextairedtvshows&amp;reload=$INFO[Window(Home).Property(widgetreload2)]
 ```
 Provides a list of the shows from the library that are airing today - requires script.tv.show.next.aired
 The listitems will have the properties as described here: http://kodi.wiki/view/Add-on:TV_Show_-_Next_Aired#Airing_today
@@ -769,18 +1372,18 @@ ________________________________________________________________________________
 
 #####PVR TV Channels widget
 ```
-plugin://script.skin.helper.service/?action=pvrchannels&limit=[LIMIT]&reload=$INFO[Window(Home).Property(widgetreload2)]
+plugin://script.skin.helper.service/?action=pvrchannels&amp;limit=[LIMIT]&amp;reload=$INFO[Window(Home).Property(widgetreload2)]
 ```
-Provides the Kodi TV channels as list content, enriched with thumbs, poster, channelicon and fanart (where possible).
+Provides the Kodi TV channels as list content, enriched with the artwork provided by this script (where possible).
 Note: By providing the reload-parameter set to the widgetreload2 property, the widget will be updated every 10 minutes.
 
 ________________________________________________________________________________________________________
 
-#####PVR TV Recordings widget
+#####PVR Latest Recordings widget
 ```
-plugin://script.skin.helper.service/?action=pvrrecordings&limit=[LIMIT]&reload=$INFO[Window(Home).Property(widgetreload2)]
+plugin://script.skin.helper.service/?action=pvrrecordings&amp;limit=[LIMIT]&amp;reload=$INFO[Window(Home).Property(widgetreload2)]
 ```
-Provides the Kodi TV Recordings as list content, enriched with thumbs, poster, channelicon and fanart (where possible).
+Provides the Kodi TV Recordings (sorted by date) as list content, enriched with the artwork provided by this script (where possible).
 Note: By providing the reload-parameter set to the widgetreload2 property, the widget will be updated every 10 minutes.
 
 
@@ -788,7 +1391,7 @@ ________________________________________________________________________________
 
 #####Favourites
 ```
-plugin://script.skin.helper.service/?action=favourites&limit=[LIMIT]&reload=$INFO[Window(Home).Property(widgetreload2)]
+plugin://script.skin.helper.service/?action=favourites&amp;limit=[LIMIT]&amp;reload=$INFO[Window(Home).Property(widgetreload2)]
 ```
 Provides the Kodi favourites as list content.
 Note: By providing the reload-parameter set to the widgetreload2 property, the widget will be updated every 10 minutes.
@@ -797,18 +1400,37 @@ ________________________________________________________________________________
 
 #####Cast Details
 ```
-plugin://script.skin.helper.service/?action=getcast&movie=[MOVIENAME OR DBID]
-plugin://script.skin.helper.service/?action=getcast&tvshow=[TVSHOW NAME OR DBID]
-plugin://script.skin.helper.service/?action=getcast&movieset=[MOVIESET NAME OR DBID]
+plugin://script.skin.helper.service/?action=getcast&amp;movie=[MOVIENAME OR DBID]
+plugin://script.skin.helper.service/?action=getcast&amp;tvshow=[TVSHOW NAME OR DBID]
+plugin://script.skin.helper.service/?action=getcast&amp;movieset=[MOVIESET NAME OR DBID]
+plugin://script.skin.helper.service/?action=getcast&amp;episode=[EPISODE NAME OR DBID]
 ```
 Provides the Cast list for the specified media type as a listing.
 Label = Name of the actor
 Label2 = Role
 Icon = Thumb of the actor
 
-You can use the name of the Movie or the DBID to perform the lookup.
-
+You can use the name of the item or the DBID to perform the lookup.
 There will also a Window Property be set when you use the above query to the script: SkinHelper.ListItemCast --> It will return the cast list seperated by [CR]
+
+Optional parameter: downloadthumbs=true --> will auto download any missing actor thumbs from IMDB
+
+
+#####Browse Genres
+```
+plugin://script.skin.helper.service/?action=browsegenres&amp;type=movie&amp;limit=1000
+plugin://script.skin.helper.service/?action=browsegenres&amp;type=tvshow&amp;limit=1000
+```
+Provides the genres listing for movies or tvshows with artwork properties from movies/shows with the genre so you can build custom genre icons.
+
+ListItem.Art(poster.X) --> poster for movie/show X (start counting at 0) in the genre
+
+ListItem.Art(fanart.X) --> fanart for movie/show X (start counting at 0) in the genre
+
+
+For each genre, only 5 movies/tvshows are retrieved.
+Supported types: movie, tvshow (will return 5 items from the library for each genre)
+If you use randommovie or randomtvshow as type the library items will be randomized 
 ________________________________________________________________________________________________________
 ________________________________________________________________________________________________________
 
@@ -936,87 +1558,87 @@ ________________________________________________________________________________
 
 
 
-##### Smart shortcuts for Netflix addon (plugin.video.netflixbmc)
+##### Smart shortcuts for Netflix addon (plugin.video.flix2kodi)
 Will only be available if this Skin Bool is true --> SmartShortcuts.netflix
 
-Note that the Netflixbmc addon must be present on the system for this to function.
+Note that the Flix2Kodi addon must be present on the system for this to function.
 
 | property 			| description |
 | :----------------------------	| :----------- |
-| Window(Home).Property(netflix.generic.title) | Title of the main Netflixbmc entry|
-| Window(Home).Property(netflix.generic.path) | Path of the main Netflixbmc entry|
-| Window(Home).Property(netflix.generic.content) | Contentpath of the main Netflixbmc entry (for widgets)|
-| Window(Home).Property(netflix.generic.image) | Rotating Fanart from netflixbmc addon|
+| Window(Home).Property(netflix.generic.title) | Title of the main Netflix entry|
+| Window(Home).Property(netflix.generic.path) | Path of the main Netflix entry|
+| Window(Home).Property(netflix.generic.content) | Contentpath of the main Netflix entry (for widgets)|
+| Window(Home).Property(netflix.generic.image) | Rotating Fanart from Netflix addon|
 | |
-| Window(Home).Property(netflix.generic.mylist.title) | Title of the Netflixbmc My List entry|
-| Window(Home).Property(netflix.generic.mylist.path) | Path of the Netflixbmc My List entry|
-| Window(Home).Property(netflix.generic.mylist.content) | Contentpath of the Netflixbmc My List entry (for widgets)|
-| Window(Home).Property(netflix.generic.mylist.image) | Rotating Fanart from Netflixbmc My List entry|
+| Window(Home).Property(netflix.generic.mylist.title) | Title of the Netflix My List entry|
+| Window(Home).Property(netflix.generic.mylist.path) | Path of the Netflix My List entry|
+| Window(Home).Property(netflix.generic.mylist.content) | Contentpath of the Netflix My List entry (for widgets)|
+| Window(Home).Property(netflix.generic.mylist.image) | Rotating Fanart from Netflix My List entry|
 | |
-| Window(Home).Property(netflix.generic.suggestions.title) | Title of the Netflixbmc Suggestions entry|
-| Window(Home).Property(netflix.generic.suggestions.path) | Path of the Netflixbmc Suggestions entry|
-| Window(Home).Property(netflix.generic.suggestions.content) | Contentpath of the Netflixbmc Suggestions entry (for widgets)|
-| Window(Home).Property(netflix.generic.suggestions.image) | Rotating Fanart from Netflixbmc Suggestions entry|
+| Window(Home).Property(netflix.generic.suggestions.title) | Title of the Netflix Suggestions entry|
+| Window(Home).Property(netflix.generic.suggestions.path) | Path of the Netflix Suggestions entry|
+| Window(Home).Property(netflix.generic.suggestions.content) | Contentpath of the Netflix Suggestions entry (for widgets)|
+| Window(Home).Property(netflix.generic.suggestions.image) | Rotating Fanart from Netflix Suggestions entry|
 | |
-| Window(Home).Property(netflix.generic.inprogress.title) | Title of the Netflixbmc Continue Watching entry|
-| Window(Home).Property(netflix.generic.inprogress.path) | Path of the Netflixbmc Continue Watching entry|
-| Window(Home).Property(netflix.generic.inprogress.content) | Contentpath of the Netflixbmc Continue Watching entry (for widgets)|
-| Window(Home).Property(netflix.generic.inprogress.image) | Rotating Fanart from Netflixbmc Continue Watching entry|
+| Window(Home).Property(netflix.generic.inprogress.title) | Title of the Netflix Continue Watching entry|
+| Window(Home).Property(netflix.generic.inprogress.path) | Path of the Netflix Continue Watching entry|
+| Window(Home).Property(netflix.generic.inprogress.content) | Contentpath of the Netflix Continue Watching entry (for widgets)|
+| Window(Home).Property(netflix.generic.inprogress.image) | Rotating Fanart from Netflix Continue Watching entry|
 | |
-| Window(Home).Property(netflix.generic.recent.title) | Title of the Netflixbmc Latest entry|
-| Window(Home).Property(netflix.generic.recent.path) | Path of the Netflixbmc Latest entry|
-| Window(Home).Property(netflix.generic.recent.content) | Contentpath of the Netflixbmc Latest entry (for widgets)|
-| Window(Home).Property(netflix.generic.recent.image) | Rotating Fanart from Netflixbmc Latest entry|
+| Window(Home).Property(netflix.generic.recent.title) | Title of the Netflix Latest entry|
+| Window(Home).Property(netflix.generic.recent.path) | Path of the Netflix Latest entry|
+| Window(Home).Property(netflix.generic.recent.content) | Contentpath of the Netflix Latest entry (for widgets)|
+| Window(Home).Property(netflix.generic.recent.image) | Rotating Fanart from Netflix Latest entry|
 | |
-| Window(Home).Property(netflix.movies.title) | Title of the Netflixbmc Movies entry|
-| Window(Home).Property(netflix.movies.path) | Path of the Netflixbmc Movies entry|
-| Window(Home).Property(netflix.movies.content) | Contentpath of the Netflixbmc Movies entry (for widgets)|
-| Window(Home).Property(netflix.movies.image) | Rotating Fanart from Netflixbmc Movies entry|
+| Window(Home).Property(netflix.movies.title) | Title of the Netflix Movies entry|
+| Window(Home).Property(netflix.movies.path) | Path of the Netflix Movies entry|
+| Window(Home).Property(netflix.movies.content) | Contentpath of the Netflix Movies entry (for widgets)|
+| Window(Home).Property(netflix.movies.image) | Rotating Fanart from Netflix Movies entry|
 | |
-| Window(Home).Property(netflix.movies.mylist.title) | Title of the Netflixbmc Movies Mylist entry|
-| Window(Home).Property(netflix.movies.mylist.path) | Path of the Netflixbmc Movies Mylist entry|
-| Window(Home).Property(netflix.movies.mylist.content) | Contentpath of the Netflixbmc Movies Mylist entry (for widgets)|
-| Window(Home).Property(netflix.movies.mylist.image) | Rotating Fanart from Netflixbmc Movies Mylist entry|
+| Window(Home).Property(netflix.movies.mylist.title) | Title of the Netflix Movies Mylist entry|
+| Window(Home).Property(netflix.movies.mylist.path) | Path of the Netflix Movies Mylist entry|
+| Window(Home).Property(netflix.movies.mylist.content) | Contentpath of the Netflix Movies Mylist entry (for widgets)|
+| Window(Home).Property(netflix.movies.mylist.image) | Rotating Fanart from Netflix Movies Mylist entry|
 | |
-| Window(Home).Property(netflix.movies.suggestions.title) | Title of the Netflixbmc Movies suggestions entry|
-| Window(Home).Property(netflix.movies.suggestions.path) | Path of the Netflixbmc Movies suggestions entry|
-| Window(Home).Property(netflix.movies.suggestions.content) | Contentpath of the Netflixbmc Movies suggestions entry (for widgets)|
-| Window(Home).Property(netflix.movies.suggestions.image) | Rotating Fanart from Netflixbmc Movies suggestions entry|
+| Window(Home).Property(netflix.movies.suggestions.title) | Title of the Netflix Movies suggestions entry|
+| Window(Home).Property(netflix.movies.suggestions.path) | Path of the Netflix Movies suggestions entry|
+| Window(Home).Property(netflix.movies.suggestions.content) | Contentpath of the Netflix Movies suggestions entry (for widgets)|
+| Window(Home).Property(netflix.movies.suggestions.image) | Rotating Fanart from Netflix Movies suggestions entry|
 | |
-| Window(Home).Property(netflix.movies.inprogress.title) | Title of the Netflixbmc Movies In progress entry|
-| Window(Home).Property(netflix.movies.inprogress.path) | Path of the Netflixbmc Movies In progress entry|
-| Window(Home).Property(netflix.movies.inprogress.content) | Contentpath of the Netflixbmc Movies In progress entry (for widgets)|
-| Window(Home).Property(netflix.movies.inprogress.image) | Rotating Fanart from Netflixbmc Movies In progress entry|
+| Window(Home).Property(netflix.movies.genres.title) | Title of the Netflix Movies genres entry|
+| Window(Home).Property(netflix.movies.genres.path) | Path of the Netflix Movies genres entry|
+| Window(Home).Property(netflix.movies.genres.content) | Contentpath of the Netflix Movies genres entry (for widgets)|
+| Window(Home).Property(netflix.movies.genres.image) | Rotating Fanart from Netflix Movies genres entry|
 | |
-| Window(Home).Property(netflix.movies.recent.title) | Title of the Netflixbmc Latest movies entry|
-| Window(Home).Property(netflix.movies.recent.path) | Path of the Netflixbmc Latest movies entry|
-| Window(Home).Property(netflix.movies.recent.content) | Contentpath of the Netflixbmc Latest movies entry (for widgets)|
-| Window(Home).Property(netflix.movies.recent.image) | Rotating Fanart from Netflixbmc Latest movies entry|
+| Window(Home).Property(netflix.movies.recent.title) | Title of the Netflix Latest movies entry|
+| Window(Home).Property(netflix.movies.recent.path) | Path of the Netflix Latest movies entry|
+| Window(Home).Property(netflix.movies.recent.content) | Contentpath of the Netflix Latest movies entry (for widgets)|
+| Window(Home).Property(netflix.movies.recent.image) | Rotating Fanart from Netflix Latest movies entry|
 | |
-| Window(Home).Property(netflix.tvshows.title) | Title of the Netflixbmc tvshows entry|
-| Window(Home).Property(netflix.tvshows.path) | Path of the Netflixbmc tvshows entry|
-| Window(Home).Property(netflix.tvshows.content) | Contentpath of the Netflixbmc tvshows entry (for widgets)|
-| Window(Home).Property(netflix.tvshows.image) | Rotating Fanart from Netflixbmc tvshows entry|
+| Window(Home).Property(netflix.tvshows.title) | Title of the Netflix tvshows entry|
+| Window(Home).Property(netflix.tvshows.path) | Path of the Netflix tvshows entry|
+| Window(Home).Property(netflix.tvshows.content) | Contentpath of the Netflix tvshows entry (for widgets)|
+| Window(Home).Property(netflix.tvshows.image) | Rotating Fanart from Netflix tvshows entry|
 | |
-| Window(Home).Property(netflix.tvshows.mylist.title) | Title of the Netflixbmc tvshows Mylist entry|
-| Window(Home).Property(netflix.tvshows.mylist.path) | Path of the Netflixbmc tvshows Mylist entry|
-| Window(Home).Property(netflix.tvshows.mylist.content) | Contentpath of the Netflixbmc tvshows Mylist entry (for widgets)|
-| Window(Home).Property(netflix.tvshows.mylist.image) | Rotating Fanart from Netflixbmc tvshows Mylist entry|
+| Window(Home).Property(netflix.tvshows.mylist.title) | Title of the Netflix tvshows Mylist entry|
+| Window(Home).Property(netflix.tvshows.mylist.path) | Path of the Netflix tvshows Mylist entry|
+| Window(Home).Property(netflix.tvshows.mylist.content) | Contentpath of the Netflix tvshows Mylist entry (for widgets)|
+| Window(Home).Property(netflix.tvshows.mylist.image) | Rotating Fanart from Netflix tvshows Mylist entry|
 | |
-| Window(Home).Property(netflix.tvshows.suggestions.title) | Title of the Netflixbmc tvshows suggestions entry|
-| Window(Home).Property(netflix.tvshows.suggestions.path) | Path of the Netflixbmc tvshows suggestions entry|
-| Window(Home).Property(netflix.tvshows.suggestions.content) | Contentpath of the Netflixbmc tvshows suggestions entry (for widgets)|
-| Window(Home).Property(netflix.tvshows.suggestions.image) | Rotating Fanart from Netflixbmc tvshows suggestions entry|
+| Window(Home).Property(netflix.tvshows.suggestions.title) | Title of the Netflix tvshows suggestions entry|
+| Window(Home).Property(netflix.tvshows.suggestions.path) | Path of the Netflix tvshows suggestions entry|
+| Window(Home).Property(netflix.tvshows.suggestions.content) | Contentpath of the Netflix tvshows suggestions entry (for widgets)|
+| Window(Home).Property(netflix.tvshows.suggestions.image) | Rotating Fanart from Netflix tvshows suggestions entry|
 | |
-| Window(Home).Property(netflix.tvshows.inprogress.title) | Title of the Netflixbmc tvshows In progress entry|
-| Window(Home).Property(netflix.tvshows.inprogress.path) | Path of the Netflixbmc tvshows In progress entry|
-| Window(Home).Property(netflix.tvshows.inprogress.content) | Contentpath of the Netflixbmc tvshows In progress entry (for widgets)|
-| Window(Home).Property(netflix.tvshows.inprogress.image) | Rotating Fanart from Netflixbmc tvshows In progress entry|
+| Window(Home).Property(netflix.tvshows.genres.title) | Title of the Netflix tvshows genres entry|
+| Window(Home).Property(netflix.tvshows.genres.path) | Path of the Netflix tvshows genres entry|
+| Window(Home).Property(netflix.tvshows.genres.content) | Contentpath of the Netflix tvshows genres entry (for widgets)|
+| Window(Home).Property(netflix.tvshows.genres.image) | Rotating Fanart from Netflix tvshows genres entry|
 | |
-| Window(Home).Property(netflix.tvshows.recent.title) | Title of the Netflixbmc Latest tvshows entry|
-| Window(Home).Property(netflix.tvshows.recent.path) | Path of the Netflixbmc Latest tvshows entry|
-| Window(Home).Property(netflix.tvshows.recent.content) | Contentpath of the Netflixbmc Latest tvshows entry (for widgets)|
-| Window(Home).Property(netflix.tvshows.recent.image) | Rotating Fanart from Netflixbmc Latest tvshows entry|
+| Window(Home).Property(netflix.tvshows.recent.title) | Title of the Netflix Latest tvshows entry|
+| Window(Home).Property(netflix.tvshows.recent.path) | Path of the Netflix Latest tvshows entry|
+| Window(Home).Property(netflix.tvshows.recent.content) | Contentpath of the Netflix Latest tvshows entry (for widgets)|
+| Window(Home).Property(netflix.tvshows.recent.image) | Rotating Fanart from Netflix Latest tvshows entry|
 | |
 
 

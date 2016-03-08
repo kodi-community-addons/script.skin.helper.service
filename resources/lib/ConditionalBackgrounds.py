@@ -1,18 +1,6 @@
-import sys
-import xbmc
-import xbmcgui
-import xbmcaddon
-import xbmcvfs
-import os, sys
-import urllib
-import threading
-import InfoDialog
-import json
 from xml.dom.minidom import parse
 from operator import itemgetter
 from Utils import *
-import datetime
-import time
 
 cachePath = os.path.join(ADDON_DATA_PATH,"conditionalbackgrounds.json")
 dateFormat = "%Y-%m-%d"
@@ -46,7 +34,7 @@ class ConditionalBackgrounds(xbmcgui.WindowXMLDialog):
         count = 0
         for bg in self.allBackgrounds:
             label = bg["name"]
-            if time_in_range(bg["startdate"],bg["enddate"],datetime.datetime.now().strftime(dateFormat)):
+            if time_in_range(bg["startdate"],bg["enddate"],datetime.now().strftime(dateFormat)):
                 label = label + " " + xbmc.getLocalizedString(461)
             listitem = xbmcgui.ListItem(label=label,iconImage=bg["background"])
             desc = "[B]%s:[/B] %s [CR][B]%s:[/B] %s" %(xbmc.getLocalizedString(19128),bg["startdate"],xbmc.getLocalizedString(19129),bg["enddate"])
@@ -104,7 +92,7 @@ class ConditionalBackgrounds(xbmcgui.WindowXMLDialog):
             id = item.getProperty("id")
             if id == "add":
                 # add
-                dateToday = datetime.datetime.now().strftime(dateFormat)
+                dateToday = datetime.now().strftime(dateFormat)
                 name = xbmcgui.Dialog().input(ADDON.getLocalizedString(32058), type=xbmcgui.INPUT_ALPHANUM)
                 if xbmcgui.Dialog().yesno(ADDON.getLocalizedString(32056),ADDON.getLocalizedString(32064), nolabel=ADDON.getLocalizedString(32066),yeslabel=ADDON.getLocalizedString(32065)):
                     background = xbmcgui.Dialog().browse( 2 , ADDON.getLocalizedString(32061), 'files', mask='.jpg|.png')
@@ -114,8 +102,8 @@ class ConditionalBackgrounds(xbmcgui.WindowXMLDialog):
                 enddate = xbmcgui.Dialog().input(xbmc.getLocalizedString(19129) + " (yyyy-mm-dd)",dateToday, type=xbmcgui.INPUT_ALPHANUM)
                 try:
                     #check if the dates are valid
-                    dt = datetime.datetime(*(time.strptime(startdate, dateFormat)[0:6]))
-                    dt = datetime.datetime(*(time.strptime(startdate, dateFormat)[0:6]))
+                    dt = datetime(*(time.strptime(startdate, dateFormat)[0:6]))
+                    dt = datetime(*(time.strptime(startdate, dateFormat)[0:6]))
                 except:
                     error = True
                 
@@ -142,8 +130,8 @@ class ConditionalBackgrounds(xbmcgui.WindowXMLDialog):
                     enddate = xbmcgui.Dialog().input(xbmc.getLocalizedString(19129) + " (yyyy-mm-dd)",currentvalues["enddate"], type=xbmcgui.INPUT_ALPHANUM)
                     try:
                         #check if the dates are valid
-                        dt = datetime.datetime(*(time.strptime(startdate, dateFormat)[0:6]))
-                        dt = datetime.datetime(*(time.strptime(startdate, dateFormat)[0:6]))
+                        dt = datetime(*(time.strptime(startdate, dateFormat)[0:6]))
+                        dt = datetime(*(time.strptime(startdate, dateFormat)[0:6]))
                     except:
                         error = True
                     
@@ -179,7 +167,7 @@ def getActiveConditionalBackground(backgroundsList=None):
     if backgroundsList:
         backgroundsList = eval(backgroundsList)
     background = None
-    dateToday = datetime.datetime.now().strftime(dateFormat)
+    dateToday = datetime.now().strftime(dateFormat)
     if not backgroundsList:
         backgroundsList = getConditionalBackgrounds()
     if backgroundsList:

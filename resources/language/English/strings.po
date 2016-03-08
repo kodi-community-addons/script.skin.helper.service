@@ -169,7 +169,7 @@ msgid "Are you sure you want to reset the skin to default settings ?"
 msgstr ""
 
 msgctxt "#32038"
-msgid "Global random fanart background"
+msgid "Global media fanart background"
 msgstr ""
 
 msgctxt "#32039"
@@ -373,7 +373,7 @@ msgid "Recently played songs"
 msgstr ""
 
 msgctxt "#32089"
-msgid "Reset persistant cache for PVR thumbs"
+msgid "Reset persistant cache"
 msgstr ""
 
 msgctxt "#32090"
@@ -494,4 +494,176 @@ msgstr ""
 
 msgctxt "#32119"
 msgid "Random Albums Wall/Grid"
+msgstr ""
+
+msgctxt "#32120"
+msgid "PVR Artwork"
+msgstr ""
+
+msgctxt "#32121"
+msgid "Backgrounds"
+msgstr ""
+
+msgctxt "#32122"
+msgid "Music Artwork"
+msgstr ""
+
+msgctxt "#32123"
+msgid "Enable online lookups for music artwork"
+msgstr ""
+
+msgctxt "#32124"
+msgid "Lookup artwork in local music folders"
+msgstr ""
+
+msgctxt "#32125"
+msgid "Download artwork to local music folders"
+msgstr ""
+
+msgctxt "#32126"
+msgid "Reset persistant cache"
+msgstr ""
+
+msgctxt "#32127"
+msgid "Random Tv Shows Wall/Grid"
+msgstr ""
+
+msgctxt "#32128"
+msgid "Only build the wall images once (reuse images)"
+msgstr ""
+
+msgctxt "#32129"
+msgid "Clear cache (rebuild all wall images)"
+msgstr ""
+
+msgctxt "#32130"
+msgid "Similar TV Shows"
+msgstr ""
+
+msgctxt "#32131"
+msgid "Recommended albums"
+msgstr ""
+
+msgctxt "#32132"
+msgid "Recommended songs"
+msgstr ""
+
+msgctxt "#32133"
+msgid "PVR Channel groups"
+msgstr ""
+
+msgctxt "#32134"
+msgid "Other"
+msgstr ""
+
+msgctxt "#32135"
+msgid "Enable verbose debug logging"
+msgstr ""
+
+msgctxt "#32136"
+msgid "Max number of extrafanarts to grab for music/pvr fanart"
+msgstr ""
+
+msgctxt "#32137"
+msgid "Title's character splitter"
+msgstr ""
+
+msgctxt "#32138"
+msgid "Random videos background (movie/show/musicvideo)"
+msgstr ""
+
+msgctxt "#32139"
+msgid "Recent videos background (movie or tvshow)"
+msgstr ""
+
+msgctxt "#32140"
+msgid "In progress videos background (movie or tvshow)"
+msgstr ""
+
+msgctxt "#32141"
+msgid "Color Palette"
+msgstr ""
+
+msgctxt "#32142"
+msgid "Recently added music"
+msgstr ""
+
+msgctxt "#32143"
+msgid "Artwork settings"
+msgstr ""
+
+msgctxt "#32144"
+msgid "Refresh item (auto lookup)"
+msgstr ""
+
+msgctxt "#32145"
+msgid "Refresh item (manual lookup)"
+msgstr ""
+
+msgctxt "#32146"
+msgid "Enter a name for the theme"
+msgstr ""
+
+msgctxt "#32147"
+msgid "Enter search phrase for lookup"
+msgstr ""
+
+msgctxt "#32148"
+msgid "Open Configuration"
+msgstr ""
+
+msgctxt "#32149"
+msgid "Add channel to ignore list"
+msgstr ""
+
+msgctxt "#32150"
+msgid "Add title to ignore list"
+msgstr ""
+
+msgctxt "#32151"
+msgid "PVR - Recent recordings"
+msgstr ""
+
+msgctxt "#32152"
+msgid "PVR - Next unwatched recordings"
+msgstr ""
+
+msgctxt "#32153"
+msgid "PVR - TV Channels"
+msgstr ""
+
+msgctxt "#32154"
+msgid "PVR - Timers"
+msgstr ""
+
+msgctxt "#32155"
+msgid "Enable PVR artwork for Recordings/timers only"
+msgstr ""
+
+msgctxt "#32156"
+msgid "Posters"
+msgstr ""
+
+msgctxt "#32157"
+msgid "Precache all music artwork"
+msgstr ""
+
+msgctxt "#32158"
+msgid "Are you sure you want to continue? This can take some time, depending on your collection size."
+msgstr ""
+
+msgctxt "#32159"
+msgid "Allow existing artwork to be overwritten with better quality"
+msgstr ""
+
+msgctxt "#32160"
+msgid "Maximum number of wall images to create for each background"
+msgstr ""
+
+msgctxt "#32161"
+msgid "Black & White"
+msgstr ""
+
+msgctxt "#32162"
+msgid "Similar Media"
 msgstr ""
