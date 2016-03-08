@@ -1429,6 +1429,8 @@ ListItem.Art(fanart.X) --> fanart for movie/show X (start counting at 0) in the 
 
 
 For each genre, only 5 movies/tvshows are retrieved.
+Supported types: movie, tvshow (will return 5 items from the library for each genre)
+If you use randommovie or randomtvshow as type the library items will be randomized 
 ________________________________________________________________________________________________________
 ________________________________________________________________________________________________________
 

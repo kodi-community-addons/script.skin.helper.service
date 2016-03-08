@@ -604,7 +604,12 @@ def MOVIESFORGENRE(limit,genretitle=""):
 def BROWSEGENRES(limit, type="movie"):
     count = 0
     allItems = []
-
+    
+    sort = "order": "ascending", "method": "title"
+    if "random" in type:
+        sort = "order": "descending", "method": "random"
+        type = type.replace("random","")
+        
     #get all genres
     json_result = getJSON('VideoLibrary.GetGenres', '{"type": "%s", "sort": { "order": "ascending", "method": "title" }}' %type)
     for genre in json_result:
@@ -612,10 +617,10 @@ def BROWSEGENRES(limit, type="movie"):
         genre["art"] = {}
         if type== "tvshow":
             genre["file"] = "videodb://tvshows/genres/%s/"%genre["genreid"]
-            json_result = getJSON('VideoLibrary.GetTvshows', '{ "sort": { "order": "descending", "method": "random" }, "filter": {"operator":"is", "field":"genre", "value":"%s"}, "properties": [ %s ],"limits":{"end":%d} }' %(genre["label"],fields_tvshows,5))
+            json_result = getJSON('VideoLibrary.GetTvshows', '{ "sort": { %s }, "filter": {"operator":"is", "field":"genre", "value":"%s"}, "properties": [ %s ],"limits":{"end":%d} }' %(sort,genre["label"],fields_tvshows,5))
         else:
             genre["file"] = "videodb://movies/genres/%s/"%genre["genreid"]
-            json_result = getJSON('VideoLibrary.GetMovies', '{ "sort": { "order": "descending", "method": "random" }, "filter": {"operator":"is", "field":"genre", "value":"%s"}, "properties": [ %s ],"limits":{"end":%d} }' %(genre["label"],fields_movies,5))
+            json_result = getJSON('VideoLibrary.GetMovies', '{ "sort": { %s }, "filter": {"operator":"is", "field":"genre", "value":"%s"}, "properties": [ %s ],"limits":{"end":%d} }' %(sort,genre["label"],fields_movies,5))
         for count, item in enumerate(json_result):
             genre["art"]["poster.%s" %count] = item["art"].get("poster","")
             genre["art"]["fanart.%s" %count] = item["art"].get("fanart","")
