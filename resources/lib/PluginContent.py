@@ -605,9 +605,9 @@ def BROWSEGENRES(limit, type="movie"):
     count = 0
     allItems = []
     
-    sort = "order": "ascending", "method": "title"
+    sort = '"order": "ascending", "method": "title"'
     if "random" in type:
-        sort = "order": "descending", "method": "random"
+        sort = '"order": "descending", "method": "random"'
         type = type.replace("random","")
         
     #get all genres
