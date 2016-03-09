@@ -605,7 +605,7 @@ def BROWSEGENRES(limit, type="movie"):
     count = 0
     allItems = []
     
-    sort = '"order": "ascending", "method": "sorttitle"'
+    sort = '"order": "ascending", "method": "sorttitle", "ignorearticle": true' 
     if "random" in type:
         sort = '"order": "descending", "method": "random"'
         type = type.replace("random","")
