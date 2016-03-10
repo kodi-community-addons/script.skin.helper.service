@@ -36,8 +36,6 @@ class WebService(threading.Thread):
             server.serve_forever()
         except Exception as e: logMsg("WebServer exception occurred " + str(e),0)
             
-
-
 class Request(object):
     # attributes from urlsplit that this class also sets
     uri_attrs = ('scheme', 'netloc', 'path', 'query', 'fragment')
@@ -104,6 +102,7 @@ class StoppableHttpRequestHandler (SimpleHTTPServer.SimpleHTTPRequestHandler):
     def send_headers(self):
         image = None
         images = None
+        jsonstr = None
         preferred_type = None
         org_params = urlparse.parse_qs(self.path)
         params = {}
@@ -155,6 +154,12 @@ class StoppableHttpRequestHandler (SimpleHTTPServer.SimpleHTTPRequestHandler):
             for key, value in images.iteritems():
                 images[key] = unicode(value).encode('utf-8')
             images = urllib.urlencode(images)
+            
+        elif action == "getartwork":
+            year = params.get("year","")
+            arttype = params.get("type","")
+            artwork = artutils.getAddonArtwork(title,year,arttype)
+            jsonstr = json.dumps(artwork)
         
         elif action == "getmusicart":
             preferred_type = params.get("type","")
@@ -195,10 +200,18 @@ class StoppableHttpRequestHandler (SimpleHTTPServer.SimpleHTTPRequestHandler):
                 preferred_type = params.get("type","")
                 if preferred_type: 
                     image = artwork.get(preferred_type,"")
+                else:
+                    image = artwork.get("poster","")
         
         #set fallback image if nothing else worked
         if not image and fallback: image = fallback
         
+        if jsonstr:
+            self.send_response(200)
+            self.send_header('Content-type','application/json')
+            self.send_header('Content-Length',len(jsonstr))
+            self.end_headers()
+            return jsonstr, True
         if images:
             self.send_response(200)
             self.send_header('Content-type','text/plaintext')
@@ -230,7 +243,7 @@ class StoppableHttpRequestHandler (SimpleHTTPServer.SimpleHTTPRequestHandler):
             image.close()
         elif image:
             #send multiple images to the client (plaintext)
-            logMsg("WebService -- sending multiple images for --> " + try_encode(self.path))
+            logMsg("WebService -- sending multiple images or json for --> " + try_encode(self.path))
             self.wfile.write(image)
         return
 

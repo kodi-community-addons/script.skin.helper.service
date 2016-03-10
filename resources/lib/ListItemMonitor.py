@@ -1245,7 +1245,7 @@ class ListItemMonitor(threading.Thread):
     
     def setAddonDetails(self, multiThreaded=False):
         #try to lookup additional artwork and properties for plugin content
-        genre = self.contentType
+        preftype = self.contentType
         title = self.liTitle
         year = xbmc.getInfoLabel("Container(%s).ListItem.Year"%self.widgetContainer).decode("utf8")
         
@@ -1253,22 +1253,22 @@ class ListItemMonitor(threading.Thread):
             return
 
         if xbmc.getCondVisibility("!IsEmpty(Container(%s).ListItem.TvShowTitle)" %self.widgetContainer):
-            genre = "tvshows"
+            preftype = "tvshows"
             title = xbmc.getInfoLabel("Container(%s).ListItem.TvShowTitle"%self.widgetContainer).decode("utf8")
         
-        cacheStr = title + self.contentType + "SkinHelper.PVR.Artwork"
+        cacheStr = title + preftype + "SkinHelper.PVR.Artwork"
         logMsg("setAddonDetails cacheStr--> %s" %cacheStr)
 
         if self.pvrArtCache.has_key(cacheStr):
             artwork = self.pvrArtCache[cacheStr]
         else:
-            artwork = artutils.getPVRThumbs(title, "", self.contentType, "", genre)
+            artwork = artutils.getAddonArtwork(title,year,preftype)
             self.pvrArtCache[cacheStr] = artwork
         
         #return if another listitem was focused in the meanwhile
         if multiThreaded and not (title == self.liTitle or title == xbmc.getInfoLabel("Container(%s).ListItem.TvShowTitle"%self.widgetContainer).decode("utf8")):
             return
-        
+                
         #set window props
         for key, value in artwork.iteritems():
             WINDOW.setProperty("SkinHelper.PVR." + key,value)
