@@ -765,6 +765,24 @@ def getGoogleImages(terms,**kwargs):
                 if image:
                     results.append(image[0])
     return results
+
+def getImdbTop250():
+    opener = urllib2.build_opener()
+    opener.addheaders = [('User-agent', 'Mozilla/5.0')]
+    html = opener.open("http://www.imdb.com/chart/top").read()
+    soup = BeautifulSoup.BeautifulSoup(html)
+    results = {}
+    for table in soup.findAll('table'):
+        if table.get("class") == "chart full-width":
+            for td in table.findAll('td'):
+                if td.get("class") == "titleColumn":
+                    a = td.find("a")
+                    if a:
+                        url = a.get("href","")
+                        imdb_id = url.split("/")[2]
+                        imdb_rank = url.split("chttp_tt_")[1]
+                        results[imdb_id] = imdb_rank
+    return results
     
 def searchYoutubeImage(searchphrase, searchphrase2=""):
     image = ""

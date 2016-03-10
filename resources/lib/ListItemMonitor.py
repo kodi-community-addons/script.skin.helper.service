@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import threading, thread
-import requests
+import requests, re
 import random
 import xml.etree.ElementTree as etree
 from Utils import *
@@ -36,6 +36,7 @@ class ListItemMonitor(threading.Thread):
     streamdetailsCache = {}
     pvrArtCache = {}
     extendedinfocache = {}
+    imdb_top250 = {}
     cachePath = os.path.join(ADDON_DATA_PATH,"librarycache.json")
     ActorImagesCachePath = os.path.join(ADDON_DATA_PATH,"actorimages.json")
     
@@ -252,12 +253,14 @@ class ListItemMonitor(threading.Thread):
             logMsg("Started Background worker...")
             self.getStudioLogos()
             self.genericWindowProps()
+            if not self.imdb_top250: self.imdb_top250 = artutils.getImdbTop250()
             self.updatePlexlinks()
             self.checkNotifications()
             self.saveCacheToFile()
             logMsg("Ended Background worker...")
         except Exception as e:
             logMsg("ERROR in ListitemMonitor doBackgroundWork ! --> " + str(e), 0)
+    
     
     def saveCacheToFile(self):
         libraryCache = {}
@@ -1231,6 +1234,7 @@ class ListItemMonitor(threading.Thread):
                 WINDOW.setProperty("SkinHelper.IMDB.Rating",result.get('imdbRating',""))
                 WINDOW.setProperty("SkinHelper.IMDB.Votes",result.get('imdbVotes',""))
                 WINDOW.setProperty("SkinHelper.IMDB.MPAA",result.get('Rated',""))
+                WINDOW.setProperty("SkinHelper.IMDB.Top250",self.imdb_top250.get(liImdb,""))
                 WINDOW.setProperty("SkinHelper.IMDB.Runtime",result.get('Runtime',""))
                 WINDOW.setProperty("SkinHelper.TMDB.Budget",result.get('budget',""))
                 WINDOW.setProperty("SkinHelper.TMDB.Budget.formatted",result.get('budget.formatted',""))
