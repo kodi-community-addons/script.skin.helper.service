@@ -28,9 +28,10 @@ class Main:
         
             if action:
                 if action == "LAUNCHPVR":
-                    xbmc.executeJSONRPC('{ "jsonrpc": "2.0", "id": 0, "method": "Player.Open", "params": { "item": {"channelid": %d} } }' %int(path))
                     xbmcplugin.setResolvedUrl(handle=int(sys.argv[1]), succeeded=False, listitem=xbmcgui.ListItem())
+                    xbmc.executeJSONRPC('{ "jsonrpc": "2.0", "id": 0, "method": "Player.Open", "params": { "item": {"channelid": %d} } }' %int(path))
                 if action == "PLAYRECORDING":
+                    xbmcplugin.setResolvedUrl(handle=int(sys.argv[1]), succeeded=False, listitem=xbmcgui.ListItem())
                     #retrieve the recording and play as listitem to get resume working
                     json_result = utils.getJSON('PVR.GetRecordingDetails', '{"recordingid": %d, "properties": [ %s ]}' %(int(path),plugincontent.fields_pvrrecordings))
                     if json_result:
@@ -41,15 +42,14 @@ class Main:
                                     break
                                 xbmc.sleep(250)
                             xbmc.Player().seekTime(json_result["resume"].get("position"))
-                    xbmcplugin.setResolvedUrl(handle=int(sys.argv[1]), succeeded=False, listitem=xbmcgui.ListItem())
                 elif action == "LAUNCH":
+                    xbmcplugin.setResolvedUrl(handle=int(sys.argv[1]), succeeded=False, listitem=xbmcgui.ListItem())
                     path = sys.argv[2].split("&path=")[1]
                     xbmc.executebuiltin("Action(Close)")
                     xbmc.executebuiltin(path)
-                    xbmcplugin.setResolvedUrl(handle=int(sys.argv[1]), succeeded=False, listitem=xbmcgui.ListItem())
                 elif action == "PLAYALBUM":
-                    xbmc.executeJSONRPC('{ "jsonrpc": "2.0", "method": "Player.Open", "params": { "item": { "albumid": %d } }, "id": 1 }' % int(path))
                     xbmcplugin.setResolvedUrl(handle=int(sys.argv[1]), succeeded=False, listitem=xbmcgui.ListItem())
+                    xbmc.executeJSONRPC('{ "jsonrpc": "2.0", "method": "Player.Open", "params": { "item": { "albumid": %d } }, "id": 1 }' % int(path))
                 elif action == "SMARTSHORTCUTS":
                     skinshortcuts.getSmartShortcuts(path)
                 elif action == "BACKGROUNDS":

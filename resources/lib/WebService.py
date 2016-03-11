@@ -101,8 +101,6 @@ class StoppableHttpRequestHandler (SimpleHTTPServer.SimpleHTTPRequestHandler):
     
     def send_headers(self):
         image = None
-        images = None
-        jsonstr = None
         preferred_type = None
         org_params = urlparse.parse_qs(self.path)
         params = {}
@@ -154,12 +152,22 @@ class StoppableHttpRequestHandler (SimpleHTTPServer.SimpleHTTPRequestHandler):
             for key, value in images.iteritems():
                 images[key] = unicode(value).encode('utf-8')
             images = urllib.urlencode(images)
+            self.send_response(200)
+            self.send_header('Content-type','text/plaintext')
+            self.send_header('Content-Length',len(images))
+            self.end_headers()
+            return images, True
             
         elif action == "getartwork":
             year = params.get("year","")
             arttype = params.get("type","")
             artwork = artutils.getAddonArtwork(title,year,arttype)
             jsonstr = json.dumps(artwork)
+            self.send_response(200)
+            self.send_header('Content-type','application/json')
+            self.send_header('Content-Length',len(jsonstr))
+            self.end_headers()
+            return jsonstr, True
         
         elif action == "getmusicart":
             preferred_type = params.get("type","")
@@ -206,19 +214,7 @@ class StoppableHttpRequestHandler (SimpleHTTPServer.SimpleHTTPRequestHandler):
         #set fallback image if nothing else worked
         if not image and fallback: image = fallback
         
-        if jsonstr:
-            self.send_response(200)
-            self.send_header('Content-type','application/json')
-            self.send_header('Content-Length',len(jsonstr))
-            self.end_headers()
-            return jsonstr, True
-        if images:
-            self.send_response(200)
-            self.send_header('Content-type','text/plaintext')
-            self.send_header('Content-Length',len(images))
-            self.end_headers()
-            return images, True
-        elif image:
+        if image:
             self.send_response(200)
             if ".jpg" in image: self.send_header('Content-type','image/jpeg')
             else: self.send_header('Content-type','image/png')
@@ -235,16 +231,16 @@ class StoppableHttpRequestHandler (SimpleHTTPServer.SimpleHTTPRequestHandler):
         return image, None
 
     def do_GET(self):
-        image, multi = self.send_headers()
-        if image and not multi:
+        result, multi = self.send_headers()
+        if result and not multi:
             #send the image to the client
             logMsg("WebService -- sending image for --> " + try_encode(self.path))
-            self.wfile.write(image.readBytes())
-            image.close()
-        elif image:
+            self.wfile.write(result.readBytes())
+            result.close()
+        elif result:
             #send multiple images to the client (plaintext)
             logMsg("WebService -- sending multiple images or json for --> " + try_encode(self.path))
-            self.wfile.write(image)
+            self.wfile.write(result)
         return
 
 class StoppableHttpServer (BaseHTTPServer.HTTPServer):

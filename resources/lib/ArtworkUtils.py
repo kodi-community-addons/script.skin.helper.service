@@ -218,11 +218,11 @@ def getAddonArtwork(title,year="",preftype="",ignoreCache=False, manualLookup=Fa
     if not year: return {}
     
     try:
-        dbID = "%s-%s" %(title,year)
+        dbID = unicode("%s-%s" %(title,year),errors="ignore")
         logMsg("getAddonArtwork for %s--> "%dbID)
         
         #get the items from cache first
-        cacheStr = u"SkinHelper.Addons.Artwork-%s" %unicode(dbID)
+        cacheStr = u"SkinHelper.Addons.Artwork-%s" %dbID
         cache = WINDOW.getProperty(cacheStr).decode('utf-8')
         if cache and ignoreCache==False:
             artwork = eval(cache)
@@ -280,7 +280,7 @@ def getAddonArtwork(title,year="",preftype="",ignoreCache=False, manualLookup=Fa
                         createNFO(cachefile,artwork)
                         
             #store in cache for quick access later
-            WINDOW.setProperty(cacheStr, repr(artwork).decode('utf-8'))
+            WINDOW.setProperty(cacheStr, repr(artwork))
         else:
             logMsg("getAddonArtwork cache found for dbID--> " + dbID)
     except Exception as e:
