@@ -7,7 +7,6 @@ from Utils import *
 import ArtworkUtils as artutils
 import random
 
-
 def getPluginListing(action,limit,refresh=None,optionalParam=None,randomize=False):
     #general method to get a widget/plugin listing and check cache etc.
     count = 0
@@ -53,7 +52,10 @@ def getPluginListing(action,limit,refresh=None,optionalParam=None,randomize=Fals
     xbmcplugin.setContent(int(sys.argv[1]), type)
     
     #try to get from cache first...
-    cache = WINDOW.getProperty(cacheStr).decode("utf-8")
+    if action == "NEXTEPISODES":
+        cache = WINDOW.getProperty("skinhelper.nextepisodes").decode("utf-8")
+    else:
+        cache = WINDOW.getProperty(cacheStr).decode("utf-8")
     if cache:
         logMsg("getPluginListing-%s-%s-%s-%s-%s -- got data from cache" %(action,limit,optionalParam,refresh,randomize))
         allItems = eval(cache)
@@ -306,7 +308,7 @@ def RECENTSONGS(limit):
         item['album_description'] = item["art"].get("info","")
         allItems.append(item)
     return allItems    
-    
+
 def NEXTEPISODES(limit):
     allItems = []
     count = 0

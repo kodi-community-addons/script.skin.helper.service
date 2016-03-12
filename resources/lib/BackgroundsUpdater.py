@@ -655,12 +655,14 @@ class BackgroundsUpdater(threading.Thread):
                 nodes = self.smartShortcuts["plex"]
             
             else:
+                orgtitle = WINDOW.getProperty("plexbmc.0.title")
                 WINDOW.clearProperty("plexbmc.0.title")
                 xbmc.executebuiltin('RunScript(plugin.video.plexbmc,amberskin)')
                 for i in range(60):
                     if WINDOW.getProperty("plexbmc.0.title"): break
                     else: xbmc.sleep(500)
-
+                WINDOW.setProperty("plexbmc.0.title",orgtitle)
+                
                 #get the plex setting if there are subnodes
                 plexaddon = xbmcaddon.Addon(id='plugin.video.plexbmc')
                 hasSecondaryMenus = plexaddon.getSetting("secondary") == "true"

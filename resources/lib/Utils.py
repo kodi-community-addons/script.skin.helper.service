@@ -13,6 +13,10 @@ import unicodedata
 import urlparse
 import xml.etree.ElementTree as xmltree
 from xml.dom.minidom import parse
+try:
+    from multiprocessing.pool import ThreadPool as Pool
+    supportsPool = True
+except: supportsPool = False
 
 try:
     import simplejson as json
@@ -304,11 +308,18 @@ def createListItem(item):
 
     return liz
 
+listitems = [] 
 def prepareListItems(items):
-    newlist = []
-    for item in items:
-        newlist.append(prepareListItem(item))
-    return newlist
+    if supportsPool:
+        pool = Pool(25)
+        for item in items:
+            pool.apply_async(prepareListItem, (item,))
+        pool.close()
+        pool.join()
+    else:
+        for item in items:
+            prepareListItem(item)
+    return listitems
     
 def prepareListItem(item):
     #fix values returned from json to be used as listitem values
@@ -434,6 +445,7 @@ def prepareListItem(item):
     
     #return the result
     item["extraproperties"] = properties
+    listitems.append(item)
     return item
     
 def detectPluginContent(plugin):
@@ -768,10 +780,6 @@ def resetPlayerWindowProps():
     
 def resetMusicWidgetWindowProps(data="",resetAll=False):
     #clear the cache for the music widgets
-    WINDOW.setProperty("resetMusicArtCache","reset")
-    WINDOW.setProperty("widgetreloadmusic", time.strftime("%Y%m%d%H%M%S", time.gmtime()))
-    
-    #clear the cache for the music widgets
     type = "unknown"
     if data:
         data = eval(data.replace("true","True").replace("false","False"))
@@ -779,14 +787,11 @@ def resetMusicWidgetWindowProps(data="",resetAll=False):
 
     if (type in ["song","artist","album"] or resetAll) and not WINDOW.getProperty("skinhelper-refreshmusicwidgetsbusy"):
         logMsg("Music database changed - type: %s - resetAll: %s, refreshing widgets...." %(type,resetAll))
-        WINDOW.setProperty("skinhelper-refreshmusicwidgetsbusy","busy")
         if resetAll: WINDOW.setProperty("resetMusicArtCache","reset")
         timestr = time.strftime("%Y%m%d%H%M%S", time.gmtime())
         WINDOW.setProperty("widgetreloadmusic", timestr)
-        #add sleep to prevent same action within time period
-        xbmc.Monitor().waitForAbort(2)
         WINDOW.clearProperty("skinhelper-refreshmusicwidgetsbusy")
-    
+        
 def resetVideoWidgetWindowProps(data="",resetAll=False):
     #clear the cache for the video widgets
     type = "unknown"
@@ -799,7 +804,6 @@ def resetVideoWidgetWindowProps(data="",resetAll=False):
         WINDOW.setProperty("skinhelper-refreshvideowidgetsbusy","busy")
         if resetAll: WINDOW.setProperty("resetVideoDbCache","reset")
         timestr = time.strftime("%Y%m%d%H%M%S", time.gmtime())
-        WINDOW.setProperty("widgetreload", timestr)
         #reset specific widgets, based on item that is updated
         if resetAll or type=="movie":
             WINDOW.setProperty("widgetreload-movies", timestr)
@@ -807,8 +811,7 @@ def resetVideoWidgetWindowProps(data="",resetAll=False):
             WINDOW.setProperty("widgetreload-episodes", timestr)
         if resetAll or type=="tvshow":
             WINDOW.setProperty("widgetreload-tvshows", timestr)
-        #add sleep to prevent same action within time period
-        xbmc.Monitor().waitForAbort(2)
+        WINDOW.setProperty("widgetreload", timestr)
         WINDOW.clearProperty("skinhelper-refreshvideowidgetsbusy")
 
 def getResourceAddonFiles(addonName,allFilesList=None):
