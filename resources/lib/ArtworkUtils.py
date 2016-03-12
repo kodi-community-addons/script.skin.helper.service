@@ -210,7 +210,6 @@ def getPVRThumbs(title,channel,type="channels",path="",genre="",year="",ignoreCa
     return artwork
 
 def getAddonArtwork(title,year="",preftype="",ignoreCache=False, manualLookup=False):
-    cacheFound = False
     artwork = {}
     downloadLocal = False
     includeCast = True
@@ -221,69 +220,62 @@ def getAddonArtwork(title,year="",preftype="",ignoreCache=False, manualLookup=Fa
         dbID = "%s-%s" %(title,year)
         logMsg("getAddonArtwork for %s--> "%dbID)
         
-        #get the items from cache first
+        #get the items from window cache first
         cacheStr = "SkinHelper.Addons.Artwork-%s" %dbID
         cache = WINDOW.getProperty(try_encode(cacheStr)).decode("utf-8")
         cache = cache.decode('utf-8')
-        if cache and ignoreCache==False:
-            artwork = eval(cache)
+        if cache and not ignoreCache:
+            return eval(cache)
             cacheFound = True
         
-        if not cacheFound:
-            logMsg("getAddonArtwork no cache found for dbID--> " + dbID)
-            
-            addonsArtPath = "special://profile/addon_data/script.skin.helper.service/artworkcache/"
-            
-            #Do we have a persistant cache file (pvrdetails.xml) for this item ?
-            cachefile = os.path.join(addonsArtPath, normalize_string(dbID) + ".xml")
-            if not ignoreCache:
-                artwork = getArtworkFromCacheFile(cachefile,artwork)
-            if artwork:
-                cacheFound = True
+        #Do we have a persistant cache file (pvrdetails.xml) for this item ?
+        addonsArtPath = "special://profile/addon_data/script.skin.helper.service/artworkcache/"
+        cachefile = os.path.join(addonsArtPath, normalize_string(dbID) + ".xml")
+        if not ignoreCache:
+            artwork = getArtworkFromCacheFile(cachefile,artwork)
+            if artwork: return artwork
+        
+        #nothing in our cache, proceed with lookup...
+        searchtitle = title
+        if manualLookup:
+            searchtitle = xbmcgui.Dialog().input(ADDON.getLocalizedString(32147), title, type=xbmcgui.INPUT_ALPHANUM).decode("utf-8")
                 
-            if not cacheFound:
-                searchtitle = title
-                if manualLookup:
-                    searchtitle = xbmcgui.Dialog().input(ADDON.getLocalizedString(32147), title, type=xbmcgui.INPUT_ALPHANUM).decode("utf-8")
-                        
-                #if nothing in persistant cache, perform the internet scraping
-                if not cacheFound and not WINDOW.getProperty("SkinHelper.DisableInternetLookups"):
-                        
-                    #grab artwork from tmdb/fanart.tv
-                    if "movie" in preftype:
-                        artwork = getTmdbDetails(searchtitle,artwork,"movie",year,includeCast)
-                    elif "tv" in preftype or "show" in preftype or "series" in preftype:
-                        artwork = getTmdbDetails(searchtitle,artwork,"tv",year,includeCast)
-                    else:
-                        artwork = getTmdbDetails(searchtitle,artwork,"",year,includeCast)
+        #if nothing in persistant cache, perform the internet scraping
+        if not cacheFound and not WINDOW.getProperty("SkinHelper.DisableInternetLookups"):
+                
+            #grab artwork from tmdb/fanart.tv
+            if "movie" in preftype:
+                artwork = getTmdbDetails(searchtitle,artwork,"movie",year,includeCast)
+            elif "tv" in preftype or "show" in preftype or "series" in preftype:
+                artwork = getTmdbDetails(searchtitle,artwork,"tv",year,includeCast)
+            else:
+                artwork = getTmdbDetails(searchtitle,artwork,"",year,includeCast)
+            
+            if downloadLocal == True:
+                #download images if we want them local
+                for artType in KodiArtTypes:
+                    if artwork.has_key(artType[0]): artwork[artType[0]] = downloadImage(artwork[artType[0]],addonsArtPath,artType[1])
+            
+            #extrafanart images
+            if artwork.get("extrafanarts"):
+                if downloadLocal:
+                    efadir = os.path.join(addonsArtPath,"extrafanart/")
+                    count = 1
+                    for fanart in eval(artwork.get("extrafanarts")):
+                        downloadImage(fanart,efadir,"fanart%s.jpg"%count)
+                        count += 1
+                    artwork["extrafanart"] = efadir
+                else: artwork["extrafanart"] = "plugin://script.skin.helper.service/?action=EXTRAFANART&path=%s" %(single_urlencode(try_encode(cachefile)))
+            
+            #create persistant cache file...
+            if title:
+                artwork["title"] = title
+                if year and not artwork.get("year"): artwork["year"] = year
+                if not xbmcvfs.exists(addonsArtPath): xbmcvfs.mkdirs(addonsArtPath)
+                createNFO(cachefile,artwork)
                     
-                    if downloadLocal == True:
-                        #download images if we want them local
-                        for artType in KodiArtTypes:
-                            if artwork.has_key(artType[0]): artwork[artType[0]] = downloadImage(artwork[artType[0]],addonsArtPath,artType[1])
-                    
-                    #extrafanart images
-                    if artwork.get("extrafanarts"):
-                        if downloadLocal:
-                            efadir = os.path.join(addonsArtPath,"extrafanart/")
-                            count = 1
-                            for fanart in eval(artwork.get("extrafanarts")):
-                                downloadImage(fanart,efadir,"fanart%s.jpg"%count)
-                                count += 1
-                            artwork["extrafanart"] = efadir
-                        else: artwork["extrafanart"] = "plugin://script.skin.helper.service/?action=EXTRAFANART&path=%s" %(single_urlencode(try_encode(cachefile)))
-                    
-                    #create persistant cache file...
-                    if title:
-                        artwork["title"] = title
-                        if year and not artwork.get("year"): artwork["year"] = year
-                        if not xbmcvfs.exists(addonsArtPath): xbmcvfs.mkdirs(addonsArtPath)
-                        createNFO(cachefile,artwork)
-                        
-            #store in cache for quick access later
-            WINDOW.setProperty(try_encode(cacheStr), repr(artwork))
-        else:
-            logMsg("getAddonArtwork cache found for dbID--> " + dbID)
+        #store in cache for quick access later
+        WINDOW.setProperty(try_encode(cacheStr), repr(artwork))
     except Exception as e:
         logMsg("ERROR in getAddonArtwork --> " + str(e), 0)
         

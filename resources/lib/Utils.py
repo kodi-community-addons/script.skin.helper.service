@@ -438,7 +438,7 @@ def prepareListItem(item):
     
 def detectPluginContent(plugin):
     #based on the properties in the listitem we try to detect the content
-    logMsg("detectPluginContent processing: " + plugin,0)
+    logMsg("detectPluginContent processing: " + plugin)
     
     #load from cache first
     cacheStr = "skinhelper-widgetcontenttype-%s" %plugin
@@ -450,28 +450,30 @@ def detectPluginContent(plugin):
         if not contentType:
             if "movie" in plugin.lower() or "box" in plugin.lower() or "dvd" in plugin.lower() or "rentals" in plugin.lower():
                 contentType = "movies"
-            elif "album" in plugin:
+            elif "album" in plugin.lower():
                 contentType = "albums"
-            elif "show" in plugin:
+            elif "show" in plugin.lower():
                 contentType = "tvshows"
-            elif "episode" in plugin:
+            elif "episode" in plugin.lower():
                 contentType = "episodes"
-            elif "media" in plugin:
+            elif "media" in plugin.lower():
                 contentType = "movies"
-            elif "favourites" in plugin:
+            elif "favourites" in plugin.lower():
                 contentType = "movies"
-            elif "song" in plugin:
+            elif "song" in plugin.lower():
                 contentType = "songs"
-            elif "musicvideo" in plugin:
+            elif "musicvideo" in plugin.lower():
                 contentType = "musicvideos"
-            elif "type=dynamic" in plugin:
+            elif "type=dynamic" in plugin.lower():
                 contentType = "movies"
-            elif "type=both" in plugin:
+            elif "videos" in plugin.lower():
+                contentType = "movies"
+            elif "type=both" in plugin.lower():
                 contentType = "movies"
 
         #if we didn't get the content based on the path, we need to probe the addon...
         if not contentType and not xbmc.getCondVisibility("Window.IsMedia"): #safety check: check if no library windows are active to prevent any addons setting the view
-            logMsg("detectPluginContent probing contenttype for: " + plugin,0)
+            logMsg("detectPluginContent probing contenttype for: " + plugin)
             media_array = getJSON('Files.GetDirectory','{ "directory": "%s", "media": "files", "properties": ["title", "file", "thumbnail", "episode", "showtitle", "season", "album", "artist", "imdbnumber", "firstaired", "mpaa", "trailer", "studio", "art"], "limits": {"end":1} }' %plugin)
             for item in media_array:
                 if not item.has_key("showtitle") and not item.has_key("artist"):
@@ -515,7 +517,7 @@ def detectPluginContent(plugin):
                         break
         
         #save to cache
-        logMsg("detectPluginContent detected type for: %s is: %s " %(plugin,contentType),0)
+        logMsg("detectPluginContent detected type for: %s is: %s " %(plugin,contentType))
         WINDOW.setProperty(cacheStr,contentType)
     
     #return the value

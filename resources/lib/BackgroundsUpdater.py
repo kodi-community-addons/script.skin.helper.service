@@ -731,7 +731,8 @@ class BackgroundsUpdater(threading.Thread):
             if self.smartShortcuts.has_key("netflix") and not buildSmartshortcuts:
                 nodes = self.smartShortcuts["netflix"]
             else:
-                nodes = self.getNetflixNodes()
+                if not self.smartShortcutsFirstRunBusy: 
+                    nodes = self.getNetflixNodes()
                 if nodes:
                     allSmartShortcuts.append("netflix.generic")
                     allSmartShortcuts.append("netflix.generic.suggestions")
@@ -748,7 +749,7 @@ class BackgroundsUpdater(threading.Thread):
                 else:
                     imagespath = content
                 self.setImageFromPath(key + ".image",imagespath,"special://home/addons/plugin.video.flix2kodi/fanart.jpg")
-                if buildSmartshortcuts:
+                if self.smartShortcutsFirstRunBusy or buildSmartshortcuts:
                     WINDOW.setProperty(key + ".title", label)
                     WINDOW.setProperty(key + ".content", content)
                     WINDOW.setProperty(key + ".path", path)
