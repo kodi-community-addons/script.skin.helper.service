@@ -429,52 +429,51 @@ def prepareListItem(item):
         if not art.get("landscape") and art.get("tvshow.landscape"):
             art["landscape"] = art.get("tvshow.landscape")
     if not art.get("fanart") and item.get('fanart'): art["fanart"] = item.get('fanart')
-    if not art.get("thumb") and item.get('thumbnail'): art["thumb"] = item.get('thumbnail')
-    if not art.get("thumb") and item.get('icon'): art["thumb"] = item.get('icon')
+    if not art.get("thumb") and item.get('thumbnail'): art["thumb"] = getCleanImage(item.get('thumbnail'))
+    if not art.get("thumb") and item.get('icon'): art["thumb"] = getCleanImage(item.get('icon'))
     
     #return the result
     item["extraproperties"] = properties
     return item
     
-def detectPluginContent(plugin,skipscan=False):
+def detectPluginContent(plugin):
     #based on the properties in the listitem we try to detect the content
-    logMsg("detectPluginContent processing: " + plugin)
-    image = None
-    contentType = None
+    logMsg("detectPluginContent processing: " + plugin,0)
+    
     #load from cache first
-    cache = WINDOW.getProperty("skinhelper-widgetcontenttype").decode("utf-8")
-    if cache:
-        cache = eval(cache)
-        if cache and cache.get(plugin):
-            contentType = cache[plugin][0]
-            image = cache[plugin][1]
-            logMsg("detectPluginContent cache found for: " + plugin)
-            return (contentType, image)
-    else: cache = {}
-        
-    #probe path to determine content
+    cacheStr = "skinhelper-widgetcontenttype-%s" %plugin
+    contentType = WINDOW.getProperty(cacheStr).decode("utf-8")
+
+    #no cache, we need to detect the contenttype
     if not contentType:
-        logMsg("detectPluginContent cache NOT found for: " + plugin)
-        #safety check: check if no library windows are active to prevent any addons setting the view
-        curWindow = xbmc.getInfoLabel("$INFO[Window.Property(xmlfile)]")
-        if curWindow.endswith("Nav.xml") or curWindow == "AddonBrowser.xml" or curWindow.startswith("MyPVR"):
-            skipScan = True
-        
-        if not skipscan:
+        #detect content based on the path
+        if not contentType:
+            if "movie" in plugin.lower() or "box" in plugin.lower() or "dvd" in plugin.lower() or "rentals" in plugin.lower():
+                contentType = "movies"
+            elif "album" in plugin:
+                contentType = "albums"
+            elif "show" in plugin:
+                contentType = "tvshows"
+            elif "episode" in plugin:
+                contentType = "episodes"
+            elif "media" in plugin:
+                contentType = "movies"
+            elif "favourites" in plugin:
+                contentType = "movies"
+            elif "song" in plugin:
+                contentType = "songs"
+            elif "musicvideo" in plugin:
+                contentType = "musicvideos"
+            elif "type=dynamic" in plugin:
+                contentType = "movies"
+            elif "type=both" in plugin:
+                contentType = "movies"
+
+        #if we didn't get the content based on the path, we need to probe the addon...
+        if not contentType and not xbmc.getCondVisibility("Window.IsMedia"): #safety check: check if no library windows are active to prevent any addons setting the view
+            logMsg("detectPluginContent probing contenttype for: " + plugin,0)
             media_array = getJSON('Files.GetDirectory','{ "directory": "%s", "media": "files", "properties": ["title", "file", "thumbnail", "episode", "showtitle", "season", "album", "artist", "imdbnumber", "firstaired", "mpaa", "trailer", "studio", "art"], "limits": {"end":1} }' %plugin)
-            if not media_array: contentType="empty"
             for item in media_array:
-                if item.has_key("art") and not image:
-                    if item["art"].has_key("fanart") and not image:
-                        image = item["art"]["fanart"]
-                    elif item["art"].has_key("tvshow.fanart") and not image:
-                        image = item["art"]["tvshow.fanart"]
-                    elif item["art"].has_key("thumb") and not image:
-                        image = item["art"]["thumb"]
-                    elif item.has_key("fanart_image") and not image:
-                        image = item["fanart_image"]
-                    elif item.has_key("thumbnail") and not image:
-                        image = item["thumbnail"]
                 if not item.has_key("showtitle") and not item.has_key("artist"):
                     #these properties are only returned in the json response if we're looking at actual file content...
                     # if it's missing it means this is a main directory listing and no need to scan the underlying listitems.
@@ -514,31 +513,13 @@ def detectPluginContent(plugin,skipscan=False):
                     elif item["type"] == "movie" or item["imdbnumber"] or item["mpaa"] or item["trailer"] or item["studio"]:
                         contentType = "movies"
                         break
-    
-        #last resort or skipscan chosen - detect content based on the path
-        if not contentType:
-            if "movie" in plugin or "box" in plugin or "dvd" in plugin or "rentals" in plugin:
-                contentType = "movies"
-            elif "album" in plugin:
-                contentType = "albums"
-            elif "show" in plugin:
-                contentType = "tvshows"
-            elif "song" in plugin:
-                contentType = "songs"
-            elif "musicvideo" in plugin:
-                contentType = "musicvideos"
-            else:
-                contentType = "unknown"
-            
+        
         #save to cache
-        logMsg("detectPluginContent detected type for: %s is: %s " %(plugin,contentType))
-        cache[plugin] = (contentType,image)
-        cache = repr(cache)
-        if contentType != "empty": 
-            WINDOW.setProperty("skinhelper-widgetcontenttype",cache)
+        logMsg("detectPluginContent detected type for: %s is: %s " %(plugin,contentType),0)
+        WINDOW.setProperty(cacheStr,contentType)
     
-    #return the values
-    return (contentType, getCleanImage(image))
+    #return the value
+    return contentType
 
 def getLocalDateTimeFromUtc(timestring):
     try:
@@ -645,7 +626,7 @@ def getCurrentContentType(containerid=""):
          
 def getCleanImage(image):
     if image and "image://" in image:
-        image = image.replace("image://","")
+        image = image.replace("image://","").replace("music@","")
         image=urllib.unquote(image.encode("utf-8"))
         if image.endswith("/"):
             image = image[:-1]

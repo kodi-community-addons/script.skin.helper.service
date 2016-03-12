@@ -254,7 +254,6 @@ class ListItemMonitor(threading.Thread):
             self.getStudioLogos()
             self.genericWindowProps()
             if not self.imdb_top250: self.imdb_top250 = artutils.getImdbTop250()
-            self.updatePlexlinks()
             self.checkNotifications()
             self.saveCacheToFile()
             logMsg("Ended Background worker...")
@@ -283,104 +282,10 @@ class ListItemMonitor(threading.Thread):
             self.streamdetailsCache = data["streamdetailsCache"]
         if data.has_key("extendedinfocache"):
             self.extendedinfocache = data["extendedinfocache"]
-        if data.has_key("widgetcache"):
-            WINDOW.setProperty("skinhelper-widgetself.contentType",repr(data["widgetcache"]).encode("utf-8"))
             
         #actorimagescache
         data = getDataFromCacheFile(self.ActorImagesCachePath)
         if data: WINDOW.setProperty("SkinHelper.ActorImages", repr(data))
-
-    def updatePlexlinks(self):
-        
-        if xbmc.getCondVisibility("System.HasAddon(plugin.video.plexbmc) + Skin.HasSetting(SmartShortcuts.plex)"): 
-            logMsg("update plexlinks started...")
-            
-            #initialize plex window props by using the amberskin entrypoint for now
-            if not WINDOW.getProperty("plexbmc.0.title"):
-                xbmc.executebuiltin('RunScript(plugin.video.plexbmc,amberskin)')
-                #wait for max 40 seconds untill the plex nodes are available
-                count = 0
-                while (count < 160 and not WINDOW.getProperty("plexbmc.0.title")):
-                    xbmc.sleep(250)
-                    count += 1
-            
-            #fallback to normal skin init
-            if not WINDOW.getProperty("plexbmc.0.title"):
-                xbmc.executebuiltin('RunScript(plugin.video.plexbmc,skin)')
-                count = 0
-                while (count < 80 and not WINDOW.getProperty("plexbmc.0.title")):
-                    xbmc.sleep(250)
-                    count += 1
-            
-            #get the plex setting if there are subnodes
-            plexaddon = xbmcaddon.Addon(id='plugin.video.plexbmc')
-            hasSecondayMenus = plexaddon.getSetting("secondary") == "true"
-            del plexaddon
-            
-            #update plex window properties
-            linkCount = 0
-            while linkCount !=50:
-                plexstring = "plexbmc." + str(linkCount)
-                link = WINDOW.getProperty(plexstring + ".title")
-                link = link.replace("VideoLibrary","10025")
-                if not link:
-                    break
-                logMsg(plexstring + ".title --> " + link)
-                plexType = WINDOW.getProperty(plexstring + ".type")
-                logMsg(plexstring + ".type --> " + plexType)            
-
-                if hasSecondayMenus == True:
-                    recentlink = WINDOW.getProperty(plexstring + ".recent")
-                    progresslink = WINDOW.getProperty(plexstring + ".ondeck")
-                    alllink = WINDOW.getProperty(plexstring + ".all")
-                else:
-                    link = WINDOW.getProperty(plexstring + ".path")
-                    alllink = link
-                    link = link.replace("mode=1", "mode=0")
-                    link = link.replace("mode=2", "mode=0")
-                    recentlink = link.replace("/all", "/recentlyAdded")
-                    progresslink = link.replace("/all", "/onDeck")
-                    WINDOW.setProperty(plexstring + ".recent", recentlink)
-                    WINDOW.setProperty(plexstring + ".ondeck", progresslink)
-                    
-                logMsg(plexstring + ".all --> " + alllink)
-                
-                WINDOW.setProperty(plexstring + ".recent.content", getContentPath(recentlink))
-                WINDOW.setProperty(plexstring + ".recent.path", recentlink)
-                WINDOW.setProperty(plexstring + ".recent.title", "recently added")
-                logMsg(plexstring + ".recent --> " + recentlink)       
-                WINDOW.setProperty(plexstring + ".ondeck.content", getContentPath(progresslink))
-                WINDOW.setProperty(plexstring + ".ondeck.path", progresslink)
-                WINDOW.setProperty(plexstring + ".ondeck.title", "on deck")
-                logMsg(plexstring + ".ondeck --> " + progresslink)
-                
-                unwatchedlink = alllink.replace("mode=1", "mode=0")
-                unwatchedlink = alllink.replace("mode=2", "mode=0")
-                unwatchedlink = alllink.replace("/all", "/unwatched")
-                WINDOW.setProperty(plexstring + ".unwatched", unwatchedlink)
-                WINDOW.setProperty(plexstring + ".unwatched.content", getContentPath(unwatchedlink))
-                WINDOW.setProperty(plexstring + ".unwatched.path", unwatchedlink)
-                WINDOW.setProperty(plexstring + ".unwatched.title", "unwatched")
-                
-                WINDOW.setProperty(plexstring + ".content", getContentPath(alllink))
-                WINDOW.setProperty(plexstring + ".path", alllink)
-                
-                linkCount += 1
-                
-            #add plex channels as entry - extract path from one of the nodes as a workaround because main plex addon channels listing is in error
-            link = WINDOW.getProperty("plexbmc.0.path")
-            
-            if link:
-                link = link.split("/library/")[0]
-                link = link + "/channels/all&mode=21"
-                link = link + ", return)"
-                plexstring = "plexbmc.channels"
-                WINDOW.setProperty(plexstring + ".title", "Channels")
-                logMsg(plexstring + ".path --> " + link)
-                WINDOW.setProperty(plexstring + ".path", link)
-                WINDOW.setProperty(plexstring + ".content", getContentPath(link))
-                
-            logMsg("update plexlinks ended...")
 
     def checkNotifications(self):
         try:

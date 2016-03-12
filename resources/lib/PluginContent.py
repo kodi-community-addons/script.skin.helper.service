@@ -76,7 +76,7 @@ def getPluginListing(action,limit,refresh=None,optionalParam=None,randomize=Fals
         isFolder = item.get("isFolder",False)
         xbmcplugin.addDirectoryItem(int(sys.argv[1]), item['file'], liz, isFolder)
         count += 1
-        if count == limit:
+        if count == limit or WINDOW.getProperty("SkinHelperShutdownRequested"):
             break
     
     #end directory listing

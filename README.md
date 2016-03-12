@@ -1485,22 +1485,22 @@ Note that the plexbmc addon must be present on the system for this to function.
 | Window(Home).Property(plexbmc.X.title) | Title of the Plex collection|
 | Window(Home).Property(plexbmc.X.path) | Path of the Plex collection|
 | Window(Home).Property(plexbmc.X.content) | Contentpath (without activatewindow) of the Plex collection, to display it's content in widgets.|
-| Window(Home).Property(plexbmc.X.background) | Rotating fanart of the Plex collection|
+| Window(Home).Property(plexbmc.X.image) | Rotating fanart of the Plex collection|
 | Window(Home).Property(plexbmc.X.type) | Type of the Plex collection (e.g. movies, tvshows)|
 | Window(Home).Property(plexbmc.X.recent) | Path to the recently added items node of the Plex collection|
 | Window(Home).Property(plexbmc.X.recent.content) | Contentpath to the recently added items node of the Plex collection (for widgets)|
-| Window(Home).Property(plexbmc.X.recent.background) | Rotating fanart of the recently added items node|
+| Window(Home).Property(plexbmc.X.recent.image) | Rotating fanart of the recently added items node|
 | Window(Home).Property(plexbmc.X.ondeck) | Path to the in progress items node of the Plex collection|
 | Window(Home).Property(plexbmc.X.ondeck.content) | Contentpath to the in progress items node of the Plex collection (for widgets)|
-| Window(Home).Property(plexbmc.X.ondeck.background) | Rotating fanart of the in progress items node|
+| Window(Home).Property(plexbmc.X.ondeck.image) | Rotating fanart of the in progress items node|
 | Window(Home).Property(plexbmc.X.unwatched) | Path to the in unwatched items node of the Plex collection|
 | Window(Home).Property(plexbmc.X.unwatched.content) | Contentpath to the unwatched items node of the Plex collection (for widgets)|
-| Window(Home).Property(plexbmc.X.unwatched.background) | Rotating fanart of the unwatched items node|
+| Window(Home).Property(plexbmc.X.unwatched.image) | Rotating fanart of the unwatched items node|
 | |
 | Window(Home).Property(plexbmc.channels.title) | Title of the Plex Channels collection|
 | Window(Home).Property(plexbmc.channels.path) | Path to the Plex Channels|
 | Window(Home).Property(plexbmc.channels.content) | Contentpath to the Plex Channels (for widgets)|
-| Window(Home).Property(plexbmc.channels.background) | Rotating fanart of the Plex Channels|
+| Window(Home).Property(plexbmc.channels.image) | Rotating fanart of the Plex Channels|
 | |
 | Window(Home).Property(plexfanartbg) | A global fanart background from plex sources|
 --> replace X with the item count, starting at 0.
