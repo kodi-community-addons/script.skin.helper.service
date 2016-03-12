@@ -655,9 +655,11 @@ class BackgroundsUpdater(threading.Thread):
                 nodes = self.smartShortcuts["plex"]
             
             else:
-                if not WINDOW.getProperty("plexbmc.0.title"):
-                    #initialize the plex addon
-                    xbmc.executebuiltin('RunScript(plugin.video.plexbmc,amberskin)')
+                WINDOW.clearProperty("plexbmc.0.title")
+                xbmc.executebuiltin('RunScript(plugin.video.plexbmc,amberskin)')
+                for i in range(60):
+                    if WINDOW.getProperty("plexbmc.0.title"): break
+                    else: xbmc.sleep(500)
 
                 #get the plex setting if there are subnodes
                 plexaddon = xbmcaddon.Addon(id='plugin.video.plexbmc')
@@ -673,24 +675,28 @@ class BackgroundsUpdater(threading.Thread):
                         key = "plexbmc.%s%s"%(i,contentString)
                         label = WINDOW.getProperty("plexbmc.%s.title"%i).decode("utf-8")
                         type = WINDOW.getProperty("plexbmc.%s.type"%i).decode("utf-8")
+                        if type == "movie": type = "movies"
                         if hasSecondaryMenus: path = WINDOW.getProperty("plexbmc.%s.all"%i).decode("utf-8")
                         else: path = WINDOW.getProperty("plexbmc.%s.path"%i).decode("utf-8")
-                        print path
                         alllink = path
                         alllink = alllink.replace("mode=1", "mode=0")
                         alllink = alllink.replace("mode=2", "mode=0")
                         if contentString == ".recent":
                             label += " - Recently Added"
+                            if type == "show": type = "episodes"
                             if hasSecondaryMenus: path = WINDOW.getProperty(key).decode("utf-8")
                             else: path = alllink.replace("/all", "/recentlyAdded")
                         elif contentString == ".ondeck":
                             label += " - On deck"
+                            if type == "show": type = "episodes"
                             if hasSecondaryMenus: path = WINDOW.getProperty(key).decode("utf-8")
                             else: path = alllink.replace("/all", "/onDeck")
                         elif contentString == ".unwatched":
+                            if type == "show": type = "episodes"
                             label += " - Unwatched"
                             path = alllink.replace("/all", "/unwatched")
-                        elif contentString == "": 
+                        elif contentString == "":
+                            if type == "show": type = "tvshows"
                             allSmartShortcuts.append("plexbmc.%s"%i )
                             createSmartShortcutSubmenu("plexbmc.%s"%i,"special://home/addons/plugin.video.plexbmc/icon.png")
                         
@@ -731,7 +737,7 @@ class BackgroundsUpdater(threading.Thread):
             if self.smartShortcuts.has_key("netflix") and not buildSmartshortcuts:
                 nodes = self.smartShortcuts["netflix"]
             else:
-                if not self.smartShortcutsFirstRunBusy: 
+                if not self.smartShortcutsFirstRunBusy and buildSmartshortcuts: 
                     nodes = self.getNetflixNodes()
                 if nodes:
                     allSmartShortcuts.append("netflix.generic")
