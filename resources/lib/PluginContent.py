@@ -58,7 +58,6 @@ def getPluginListing(action,limit,refresh=None,optionalParam=None,randomize=Fals
     #try to get from cache first...
     cache = WINDOW.getProperty(cacheStr).decode("utf-8")
     if cache:
-        logMsg("getPluginListing-%s-%s-%s-%s-%s -- got data from cache" %(action,limit,optionalParam,refresh,randomize))
         allItems = eval(cache)
             
     #Call the correct method to get the content from json when no cache
@@ -236,29 +235,30 @@ def getPVRArtForItems(items):
 def PVRCHANNELS(limit):
     count = 0
     allItems = []
-    # Perform a JSON query to get all channels
-    json_query = getJSON('PVR.GetChannels', '{"channelgroupid": "alltv", "properties": [ "thumbnail", "channeltype", "hidden", "locked", "channel", "lastplayed", "broadcastnow" ], "limits": {"end": %d}}' %( limit ) )
-    for channel in json_query:
-        channelname = channel["label"]
-        channelid = channel["channelid"]
-        channelicon = channel['thumbnail']
-        if channel.has_key('broadcastnow'):
-            #channel with epg data
-            item = channel['broadcastnow']
-        else:
-            #channel without epg
-            item = channel
-            item["title"] = item["label"]
+    if xbmc.getCondVisibility("PVR.HasTVChannels"):
+        # Perform a JSON query to get all channels
+        json_query = getJSON('PVR.GetChannels', '{"channelgroupid": "alltv", "properties": [ "thumbnail", "channeltype", "hidden", "locked", "channel", "lastplayed", "broadcastnow" ], "limits": {"end": %d}}' %( limit ) )
+        for channel in json_query:
             channelname = channel["label"]
             channelid = channel["channelid"]
             channelicon = channel['thumbnail']
-        item["file"] = sys.argv[0] + "?action=launchpvr&path=" + str(channelid)
-        item["channelicon"] = channelicon
-        item["icon"] = channelicon
-        item["channel"] = channelname
-        item["label2"] = channelname
-        item["cast"] = None
-        allItems.append(item)
+            if channel.has_key('broadcastnow'):
+                #channel with epg data
+                item = channel['broadcastnow']
+            else:
+                #channel without epg
+                item = channel
+                item["title"] = item["label"]
+                channelname = channel["label"]
+                channelid = channel["channelid"]
+                channelicon = channel['thumbnail']
+            item["file"] = sys.argv[0] + "?action=launchpvr&path=" + str(channelid)
+            item["channelicon"] = channelicon
+            item["icon"] = channelicon
+            item["channel"] = channelname
+            item["label2"] = channelname
+            item["cast"] = None
+            allItems.append(item)
         
     #return result including artwork...
     return getPVRArtForItems(allItems)
@@ -267,17 +267,18 @@ def PVRCHANNELGROUPS(limit):
     count = 0
     #Code is not yet working... not possible to navigate to a specific channel group in pvr windows
     xbmcplugin.setContent(int(sys.argv[1]), 'files')
-    # Perform a JSON query to get all channels
-    json_query = getJSON('PVR.GetChannelGroups', '{"channeltype": "tv"}' )
-    for item in json_query:
-        item["file"] = "pvr://channels/tv/%s/" %(item["label"])
-        item["title"] = item["label"]
-        liz = createListItem(item)
-        liz.setProperty('IsPlayable', 'false')
-        xbmcplugin.addDirectoryItem(int(sys.argv[1]), item['file'], liz, True)
-        count += 1
-        if count == limit:
-            break
+    if xbmc.getCondVisibility("PVR.HasTVChannels"):
+        # Perform a JSON query to get all channels
+        json_query = getJSON('PVR.GetChannelGroups', '{"channeltype": "tv"}' )
+        for item in json_query:
+            item["file"] = "pvr://channels/tv/%s/" %(item["label"])
+            item["title"] = item["label"]
+            liz = createListItem(item)
+            liz.setProperty('IsPlayable', 'false')
+            xbmcplugin.addDirectoryItem(int(sys.argv[1]), item['file'], liz, True)
+            count += 1
+            if count == limit:
+                break
     xbmcplugin.endOfDirectory(handle=int(sys.argv[1])) 
        
 def getThumb(searchphrase):
@@ -386,7 +387,6 @@ def NEXTEPISODES(limit):
     result = []
     # First we get a list of all the unwatched TV shows ordered by lastplayed
     json_result = getJSON('VideoLibrary.GetTVShows', '{ "sort": { "order": "descending", "method": "lastplayed" },"filter": {"operator":"is", "field":"playcount", "value":"0"}, "properties": [ "title", "lastplayed", "playcount" ], "limits":{"end":%s} }' %limit)
-    logMsg("tvshows for next episodes --> " + repr(json_result))
     if supportsPool:
         #pooled processing
         pool = Pool()
@@ -1125,7 +1125,7 @@ def getCast(movie=None,tvshow=None,movieset=None,episode=None,downloadThumbs=Fal
             elif not itemId:
                 json_result = getJSON('VideoLibrary.GetMovieSets', '{ "properties": [ "title" ] }')
                 for result in json_result:
-                    if result.get("title") == movieset:
+                    if result.get("title") == movieset and result.get("movies"):
                         moviesetmovies = result['movies']
                         break
             if moviesetmovies:

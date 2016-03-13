@@ -616,7 +616,7 @@ class BackgroundsUpdater(threading.Thread):
                             #check if this is a valid path with content
                             if not "script://" in content.lower() and not "mode=9" in content.lower() and not "search" in content.lower() and not "play" in content.lower():
                                 path = "ActivateWindow(%s,%s,return)" %(fav["window"],content)
-                                if "&" in content: content += "&widget=true"
+                                if "&" in content and "?" in content and "=" in content and not content.endswith("/"): content += "&widget=true"
                                 type = detectPluginContent(content)
                                 if type:
                                     allSmartShortcuts.append("favorite." + str(count) )

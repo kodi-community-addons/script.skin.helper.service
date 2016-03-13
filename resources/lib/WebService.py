@@ -117,6 +117,11 @@ class StoppableHttpRequestHandler (SimpleHTTPServer.SimpleHTTPRequestHandler):
 
         if action == "getthumb":
             image = artutils.searchThumb(title)
+            
+        if action == "getanimatedposter":
+            imdbid = params.get("imdbid","")
+            if imdbid:
+                image = artutils.getAnimatedPosters(imdbid).get("animated_poster","")
         
         elif action == "getvarimage":
             title = title.replace("{","[").replace("}","]")

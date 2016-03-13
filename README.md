@@ -114,7 +114,25 @@ Some additional window properties that can be used in the video library.
 |Window(Home).Property(SkinHelper.TMDB.Popularity) | popularity for this movie (from tmdb) |
 
 
-________________________________________________________________________________________________________
+#### Widget reload properties
+If you need to refresh a widget automatically after the library is changed or after playback stop you can append these to the widget path.
+
+For example:
+
+```
+plugin://myvideoplugin/movies/?latest&amp;reload=$INFO[Window(Home).Property(widgetreload-episodes)]
+'''
+
+| property 			| description |
+|:-----------------------------	| :----------- |
+|Window(Home).Property(widgetreload) | will change if any video content is added/changed in the library or after playback stop of any video content (in- or outside of library) |
+|Window(Home).Property(widgetreload-episodes) | will change if episodes content is added/changed in the library or after playback stop of episodes content (in- or outside of library) |
+|Window(Home).Property(widgetreload-movies) | will change if movies content is added/changed in the library or after playback stop of movies content (in- or outside of library) |
+|Window(Home).Property(widgetreload-tvshows) | will change if tvshows content is added/changed in the library |
+|Window(Home).Property(widgetreload-music) | will change if any music content is added/changed in the library or after playback stop of music (in- or outside of library) |
+|Window(Home).Property(widgetreload2) | will change every 10 minutes (e.g. for pvr widgets or favourites) |
+
+_____________________________________________________________________________________________________
 #### Animated Posters
 Provides animated poster in window property (cached locally)
 For info, see: http://forum.kodi.tv/showthread.php?tid=215727
@@ -594,13 +612,31 @@ http://localhost:52307/getvarimage&amp;title=$INFO{Skin.String(MyCustomPath)}/lo
 You can use this to create a custom view for movie/tvshow genres with posters/fanart from the genre
 
 ```xml
-<texture background="true">http://localhost:52307/getmoviegenreimages&amp;title=$INFO[Listitem.Label]&amp;type=poster.0&amp;fallback=DefaultGenre.png</texture>
-<texture background="true">http://localhost:52307/gettvshowgenreimages&amp;title=$INFO[Listitem.Label]&amp;type=poster.0&amp;fallback=DefaultGenre.png</texture>
-<texture background="true">http://localhost:52307/getmoviegenreimages&amp;title=$INFO[Listitem.Label]&amp;type=fanart.0&amp;fallback=DefaultGenre.png</texture>
-<texture background="true">http://localhost:52307/gettvshowgenreimages&amp;title=$INFO[Listitem.Label]&amp;type=fanart.0&amp;fallback=DefaultGenre.png</texture>
+poster 1 for movies in genre X:
+http://localhost:52307/getmoviegenreimages&amp;title=$INFO[Listitem.Label]&amp;type=poster.0&amp;fallback=DefaultGenre.png
+
+poster 1 for tvshows in genre X:
+http://localhost:52307/gettvshowgenreimages&amp;title=$INFO[Listitem.Label]&amp;type=poster.0&amp;fallback=DefaultGenre.png
+
+
+fanart 1 for movies in genre X:
+http://localhost:52307/getmoviegenreimages&amp;title=$INFO[Listitem.Label]&amp;type=fanart.0&amp;fallback=DefaultGenre.png</texture>
+
+
+fanart 1 for tvshows in genre X:
+http://localhost:52307/gettvshowgenreimages&amp;title=$INFO[Listitem.Label]&amp;type=fanart.0&amp;fallback=DefaultGenre.png
 ```
 Possible types are poster.X and fanart.X (replace X with count, only 0-4 are available)
-Replace getmoviegenreimages with getmoviegenreimagesrandom to have the artwork items be randomly pulled from the db
+Replace getmoviegenreimages with getmoviegenreimagesrandom to have the artwork items be randomly pulled from the db instead of sorted alphabetically.
+
+
+##### Animated poster
+You can use this to retrieve the animated poster for a movie (if exists)
+Note: movies only and you must supply the imdbid of the movie.
+
+```
+http://localhost:52307/getanimatedposter&amp;imdbid=$INFO[Listitem.IMDBID]&amp;fallback=$INFO[Listitem.Art(poster)]</texture>
+```
 
 
 ##### Webservice optional params

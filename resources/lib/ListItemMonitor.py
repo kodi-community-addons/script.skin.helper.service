@@ -41,13 +41,13 @@ class ListItemMonitor(threading.Thread):
     ActorImagesCachePath = os.path.join(ADDON_DATA_PATH,"actorimages.json")
     
     def __init__(self, *args):
-        logMsg("HomeMonitor - started")
+        logMsg("ListItemMonitor - started")
         self.event =  threading.Event()
         self.monitor = xbmc.Monitor()
         threading.Thread.__init__(self, *args)
     
     def stop(self):
-        logMsg("HomeMonitor - stop called",0)
+        logMsg("ListItemMonitor - stop called",0)
         self.saveCacheToFile()
         self.exit = True
         self.event.set()
@@ -690,7 +690,6 @@ class ListItemMonitor(threading.Thread):
             return
         
         cacheStr = title + channel + "SkinHelper.PVR.Artwork"
-        logMsg("setPVRThumb cacheStr--> %s  - path: %s" %( cacheStr,path))
         
         if self.pvrArtCache.has_key(cacheStr):
             artwork = self.pvrArtCache[cacheStr]
@@ -851,14 +850,11 @@ class ListItemMonitor(threading.Thread):
         album = xbmc.getInfoLabel("Container(%s).ListItem.Album"%self.widgetContainer).decode('utf-8')
         title = self.liTitle
         cacheId = artist+album
-        logMsg("setMusicDetails artist: %s - album: %s - title: %s "%(artist,album,title))
         
         #get the items from cache first
         if self.musicArtCache.has_key(cacheId + "SkinHelper.Music.Art"):
             artwork = self.musicArtCache[cacheId + "SkinHelper.Music.Art"]
-            logMsg("setMusicDetails FOUND CACHE FOR  artist: %s - album: %s - title: %s "%(artist,album,title))
         else:
-            logMsg("setMusicDetails CACHE NOT FOUND FOR  artist: %s - album: %s - title: %s "%(artist,album,title))
             artwork = artutils.getMusicArtwork(artist,album,title)
             self.musicArtCache[cacheId + "SkinHelper.Music.Art"] = artwork
         
@@ -1035,29 +1031,13 @@ class ListItemMonitor(threading.Thread):
         if not liImdb: liImdb = self.liImdb
         if not xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnableAnimatedPosters)") or not liImdb:
             return
-        logMsg("setAnimatedPoster liImdb--> %s  - self.contentType: %s" %(liImdb,self.contentType))
         if (self.contentType == "movies" or self.contentType=="setmovies"):
             #check cache first
             cacheStr = "animatedartwork-%s"%liImdb
             if self.extendedinfocache.has_key(cacheStr):
                 result = self.extendedinfocache[cacheStr]
             else:
-                result = {}
-                #create local thumbs directory
-                if not xbmcvfs.exists("special://thumbnails/animatedgifs/"):
-                    xbmcvfs.mkdir("special://thumbnails/animatedgifs/")
-                
-                # retrieve animated poster and fanart
-                for img in [("animated_fanart","%s_background_0_original.gif" %liImdb), ("animated_poster","%s_poster_0_original.gif" %liImdb)]:
-                    if xbmcvfs.exists("special://thumbnails/animatedgifs/%s"%img[1]):
-                        result[img[0]] = "special://thumbnails/animatedgifs/%s"%img[1]
-                    elif xbmcvfs.exists("http://www.consiliumb.com/animatedgifs/%s" %img[1]):
-                        xbmcvfs.copy("http://www.consiliumb.com/animatedgifs/%s"%img[1], "special://thumbnails/animatedgifs/%s"%img[1])
-                        for i in range(40):
-                            if xbmcvfs.exists("special://thumbnails/animatedgifs/%s"%img[1]): break
-                            else: xbmc.sleep(250)
-                        result[img[0]] = "special://thumbnails/animatedgifs/%s"%img[1]
-                    
+                result = artutils.getAnimatedPosters(liImdb)
                 self.extendedinfocache[cacheStr] = result
             #return if another listitem was focused in the meanwhile
             if multiThreaded and not liImdb == self.liImdb:
@@ -1069,12 +1049,11 @@ class ListItemMonitor(threading.Thread):
         result = {}
         if not liImdb: liImdb = self.liImdb
         if (self.contentType == "movies" or self.contentType=="setmovies") and liImdb:
-            logMsg("setExtendedMovieInfo self.liImdb--> %s  - self.contentType: %s" %(liImdb,self.contentType))
             if self.extendedinfocache.get(liImdb):
                 #get data from cache
                 result = self.extendedinfocache[liImdb]
             elif not WINDOW.getProperty("SkinHelper.DisableInternetLookups"):
-            
+                logMsg("Retrieving ExtendedMovieInfofor ImdbId--> %s  - contentType: %s" %(liImdb,self.contentType))
                 #get info from OMDB 
                 url = 'http://www.omdbapi.com/?i=%s&plot=short&tomatoes=true&r=json' %liImdb
                 res = requests.get(url)
@@ -1166,7 +1145,6 @@ class ListItemMonitor(threading.Thread):
             title = xbmc.getInfoLabel("Container(%s).ListItem.TvShowTitle"%self.widgetContainer).decode("utf8")
         
         cacheStr = title + preftype + "SkinHelper.PVR.Artwork"
-        logMsg("setAddonDetails cacheStr--> %s" %cacheStr)
 
         if self.pvrArtCache.has_key(cacheStr):
             artwork = self.pvrArtCache[cacheStr]

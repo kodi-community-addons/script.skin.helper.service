@@ -55,7 +55,6 @@ def getPVRThumbs(title,channel,type="channels",path="",genre="",year="",ignoreCa
 
     comparetitle = getCompareString(title)
     dbID = comparetitle + channel
-    logMsg("getPVRThumb for %s %s--> "%(title,channel))
     
     #make sure we have our settings cached in memory...
     if not WINDOW.getProperty("SkinHelper.pvrthumbspath"):
@@ -78,15 +77,11 @@ def getPVRThumbs(title,channel,type="channels",path="",genre="",year="",ignoreCa
         if cache.has_key(dbID): 
             artwork = cache[dbID]
             cacheFound = True
-            logMsg("getPVRThumb cache found for dbID--> " + dbID)
     else: cache = {}
     
     if not cacheFound:
-        logMsg("getPVRThumb no cache found for dbID--> " + dbID)
         
         pvrThumbPath = getPvrThumbPath(channel,title)
-        logMsg("pvr thumbs path --> " + pvrThumbPath)
-        
         #Do we have a persistant cache file (pvrdetails.xml) for this item ?
         cachefile = os.path.join(pvrThumbPath, "pvrdetails.xml")
         if not ignoreCache:
@@ -98,7 +93,7 @@ def getPVRThumbs(title,channel,type="channels",path="",genre="",year="",ignoreCa
             createNFO(cachefile,artwork)
                 
         if not cacheFound:
-        
+            logMsg("getPVRThumb no cache found for dbID: %s - starting lookup... " %dbID)
             searchtitle = title
             if manualLookup:
                 searchtitle = xbmcgui.Dialog().input(ADDON.getLocalizedString(32147), title, type=xbmcgui.INPUT_ALPHANUM).decode("utf-8")
@@ -220,7 +215,6 @@ def getAddonArtwork(title,year="",preftype="",ignoreCache=False, manualLookup=Fa
     
     try:
         dbID = "%s-%s" %(title,year)
-        logMsg("getAddonArtwork for %s--> "%dbID)
         
         #get the items from window cache first
         cacheStr = "SkinHelper.Addons.Artwork-%s" %dbID
@@ -243,7 +237,7 @@ def getAddonArtwork(title,year="",preftype="",ignoreCache=False, manualLookup=Fa
                 
         #if nothing in persistant cache, perform the internet scraping
         if not cacheFound and not WINDOW.getProperty("SkinHelper.DisableInternetLookups"):
-                
+            logMsg("getAddonArtwork no cache found for %s - starting lookup..."%dbID)    
             #grab artwork from tmdb/fanart.tv
             if "movie" in preftype:
                 artwork = getTmdbDetails(searchtitle,artwork,"movie",year,includeCast)
@@ -733,6 +727,33 @@ def searchGoogleImage(searchphrase1, searchphrase2="",manualLookup=False):
         xbmc.executebuiltin( "Dialog.Close(busydialog)" )
     return image
 
+def getAnimatedPosters(imdbid):
+    #get the item from cache first
+    cacheStr = "SkinHelper.AnimatedPosters.%s" %imdbid
+    cache = WINDOW.getProperty(cacheStr).decode('utf-8')
+    if cache:
+        return eval(cache)
+    else:
+        result = {}
+        logMsg("getAnimatedPosters for imdbid: %s " %(imdbid))
+        #create local thumbs directory
+        if not xbmcvfs.exists("special://thumbnails/animatedgifs/"):
+            xbmcvfs.mkdir("special://thumbnails/animatedgifs/")
+        
+        # retrieve animated poster and fanart
+        for img in [("animated_fanart","%s_background_0_original.gif" %imdbid), ("animated_poster","%s_poster_0_original.gif" %imdbid)]:
+            if xbmcvfs.exists("special://thumbnails/animatedgifs/%s"%img[1]):
+                result[img[0]] = "special://thumbnails/animatedgifs/%s"%img[1]
+            elif xbmcvfs.exists("http://www.consiliumb.com/animatedgifs/%s" %img[1]):
+                xbmcvfs.copy("http://www.consiliumb.com/animatedgifs/%s"%img[1], "special://thumbnails/animatedgifs/%s"%img[1])
+                for i in range(40):
+                    if xbmcvfs.exists("special://thumbnails/animatedgifs/%s"%img[1]): break
+                    else: xbmc.sleep(250)
+                result[img[0]] = "special://thumbnails/animatedgifs/%s"%img[1]
+        
+        WINDOW.setProperty(cacheStr,repr(result))
+        return result
+    
 def getGoogleImages(terms,**kwargs):
     start = ''
     page = 1

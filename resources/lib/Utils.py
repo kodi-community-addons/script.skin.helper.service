@@ -452,7 +452,6 @@ def prepareListItem(item):
     
 def detectPluginContent(plugin):
     #based on the properties in the listitem we try to detect the content
-    logMsg("detectPluginContent processing: " + plugin)
     
     #load from cache first
     cacheStr = "skinhelper-widgetcontenttype-%s" %plugin
@@ -462,8 +461,16 @@ def detectPluginContent(plugin):
     if not contentType:
         #detect content based on the path
         if not contentType:
-            if "movie" in plugin.lower() or "box" in plugin.lower() or "dvd" in plugin.lower() or "rentals" in plugin.lower():
-                contentType = "movies"
+            if ("movie" in plugin.lower() or 
+                "box" in plugin.lower() or 
+                "dvd" in plugin.lower() or 
+                "rentals" in plugin.lower() or 
+                "incinemas" in plugin.lower() or 
+                "comingsoon" in plugin.lower() or 
+                "upcoming" in plugin.lower() or 
+                "opening" in plugin.lower() or 
+                "intheaters" in plugin.lower()):
+                    contentType = "movies"
             elif "album" in plugin.lower():
                 contentType = "albums"
             elif "show" in plugin.lower():
@@ -531,7 +538,6 @@ def detectPluginContent(plugin):
                         break
         
         #save to cache
-        logMsg("detectPluginContent detected type for: %s is: %s " %(plugin,contentType))
         WINDOW.setProperty(cacheStr,contentType)
     
     #return the value
