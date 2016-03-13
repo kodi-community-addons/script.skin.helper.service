@@ -459,10 +459,11 @@ ________________________________________________________________________________
 
 #### Yes/No Dialog (dialogYesNo)
 ```
-RunScript(script.skin.helper.service,action=dialogyesno,header[yourheadertext],message=[your message body],action=[your action])
+RunScript(script.skin.helper.service,action=dialogyesno,header[yourheadertext],message=[your message body],yesaction=[action for yes],noaction=[optional action for no])
 ```
 This command will open Kodi's YesNo dialog with the text you supplied.
-If the user presses YES, the action will be executed you supplied. To provide multiple actions, seperate by | 
+If the user presses YES, the action will be executed you supplied. To provide multiple actions, seperate by |
+You can use any Kodi permitted action. If you also want to specify action(s) when the user presses NO, also supplu the NOACTION argument.
 ________________________________________________________________________________________________________
 
 
