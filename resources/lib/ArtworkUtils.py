@@ -20,7 +20,9 @@ def getPVRThumbs(title,channel,type="channels",path="",genre="",year="",ignoreCa
     pvrThumbPath = None
     
     #ignore back entry
-    if title == "..": return {}
+    if title == ".." or not title: 
+        logMsg("getPVRThumbs empty title, skipping...")
+        return {}
     
     if title: title = urllib.unquote(title)
     if channel: channel = urllib.unquote(channel)

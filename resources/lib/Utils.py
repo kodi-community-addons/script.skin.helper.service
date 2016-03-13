@@ -13,6 +13,7 @@ import unicodedata
 import urlparse
 import xml.etree.ElementTree as xmltree
 from xml.dom.minidom import parse
+from operator import itemgetter
 try:
     from multiprocessing.pool import ThreadPool as Pool
     supportsPool = True
@@ -188,6 +189,9 @@ def setAddonsettings():
     WINDOW.setProperty("SkinHelper.splittitlechar",SETTING("splittitlechar"))
     WINDOW.setProperty("SkinHelper.enablePVRThumbsRecordingsOnly",SETTING("enablePVRThumbsRecordingsOnly"))
     WINDOW.setProperty("SkinHelper.preferOnlineMusicArt",SETTING("preferOnlineMusicArt"))
+    WINDOW.setProperty("SkinHelper.enableWidgetsArtworkLookups",SETTING("enableWidgetsArtworkLookups"))
+    WINDOW.setProperty("SkinHelper.enableSpecialsInWidgets",SETTING("enableSpecialsInWidgets"))
+    WINDOW.setProperty("SkinHelper.enableWidgetsAlbumBrowse",SETTING("enableWidgetsAlbumBrowse"))
     
 def indentXML( elem, level=0 ):
     i = "\n" + level*"\t"
@@ -305,20 +309,19 @@ def createListItem(item):
         liz.setIconImage(item.get('icon'))
     if item.get("thumbnail"):
         liz.setThumbnailImage(item.get('thumbnail'))
-
     return liz
 
-listitems = [] 
 def prepareListItems(items):
+    listitems = []
     if supportsPool:
-        pool = Pool(25)
-        for item in items:
-            pool.apply_async(prepareListItem, (item,))
+        pool = Pool()
+        listitems = pool.map(prepareListItem, items)
         pool.close()
         pool.join()
+        #return sorted(listitems, key=lambda k: k['sortkey'])
     else:
         for item in items:
-            prepareListItem(item)
+            listitems.append(prepareListItem(item))
     return listitems
     
 def prepareListItem(item):
@@ -445,7 +448,6 @@ def prepareListItem(item):
     
     #return the result
     item["extraproperties"] = properties
-    listitems.append(item)
     return item
     
 def detectPluginContent(plugin):

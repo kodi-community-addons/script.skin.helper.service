@@ -310,6 +310,7 @@ class BackgroundsUpdater(threading.Thread):
 
     def setPicturesBackground(self,windowProp):
         customPath = xbmc.getInfoLabel("skin.string(SkinHelper.CustomPicturesBackgroundPath)").decode("utf-8")
+        images = []
         
         #flush cache if custompath changed
         if (self.lastPicturesPath != customPath):
@@ -317,18 +318,11 @@ class BackgroundsUpdater(threading.Thread):
             self.lastPicturesPath = customPath
 
         try:
-            #get random image from cache
-            if self.allBackgrounds.get(windowProp):
-                image = random.choice(self.allBackgrounds[windowProp])
-                if image:
-                    for key, value in image.iteritems():
-                        if key == "fanart": WINDOW.setProperty(windowProp, value)
-                        else: WINDOW.setProperty(windowProp + "." + key, value)
-                return 
+            #get images from cache
+            if self.allBackgrounds.has_key(windowProp):
+                images = self.allBackgrounds[windowProp]
             else:
                 #load the pictures from the custom path or from all picture sources
-                images = []
-                
                 if customPath:
                     #load images from custom path
                     dirs, files = xbmcvfs.listdir(customPath)
@@ -379,15 +373,14 @@ class BackgroundsUpdater(threading.Thread):
                 #store images in the cache
                 self.allBackgrounds[windowProp] = images
                 
-                # return a random image
-                if images:
-                    random.shuffle(images)
-                    image = images[0]
-                    for key, value in image.iteritems():
-                        if key == "fanart": WINDOW.setProperty(windowProp, value)
-                        else: WINDOW.setProperty(windowProp + "." + key, value)
-                else:
-                    logMsg("BackgroundsUpdater.setPicturesBackground -->image sources array or cache empty so skipping image-sources background untill next restart",0)
+            # return a random image
+            if images:
+                random.shuffle(images)
+                image = images[0]
+                for key, value in image.iteritems():
+                    if key == "fanart": WINDOW.setProperty(windowProp, value)
+                    else: WINDOW.setProperty(windowProp + "." + key, value)
+
         #if something fails, return None
         except:
             logMsg("exception occured in getPicturesBackground.... ",0)           
@@ -708,14 +701,15 @@ class BackgroundsUpdater(threading.Thread):
                 #add plex channels as entry
                 #extract path from one of the nodes as a workaround because main plex addon channels listing is in error
                 path = WINDOW.getProperty("plexbmc.0.path").decode("utf-8")
-                path = path.split("/library/")[0]
-                path = path + "/channels/all&mode=21"
-                path = path + ", return)"
-                key = "plexbmc.channels"
-                label = "Channels"
-                content = getContentPath(path)
-                nodes.append( (key, label, path, content, "episodes" ) )
-                allSmartShortcuts.append("plexbmc.channels")
+                if path:
+                    path = path.split("/library/")[0]
+                    path = path + "/channels/all&mode=21"
+                    path = path + ", return)"
+                    key = "plexbmc.channels"
+                    label = "Channels"
+                    content = getContentPath(path)
+                    nodes.append( (key, label, path, content, "episodes" ) )
+                    allSmartShortcuts.append("plexbmc.channels")
 
                 self.smartShortcuts["plex"] = nodes
             
