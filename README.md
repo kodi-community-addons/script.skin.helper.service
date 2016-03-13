@@ -121,7 +121,7 @@ For example:
 
 ```
 plugin://myvideoplugin/movies/?latest&amp;reload=$INFO[Window(Home).Property(widgetreload-episodes)]
-'''
+```
 
 | property 			| description |
 |:-----------------------------	| :----------- |
@@ -437,20 +437,24 @@ ________________________________________________________________________________
 
 
 #### Video library search (extended)
+
 ```
 RunScript(script.skin.helper.service,action=videosearch)
 ```
+
 This command will open the special search window in the script. It has a onscreen keyboard to quickly search for movies, tvshows and episodes. You can customize the look and feel of this search dialog. To do that include the files script-skin_helper_service-CustomSearch.xml and script-skin_helper_service-CustomInfo.xml in your skin and skin it to your needs.
 
 ________________________________________________________________________________________________________
 
 
 #### Special Info Dialog
+
 ```
 RunScript(script.skin.helper.service,action=showinfo,movieid=&amp;INFO[ListItem.DBID])
 RunScript(script.skin.helper.service,action=showinfo,tvshowid=&amp;INFO[ListItem.DBID])
 RunScript(script.skin.helper.service,action=showinfo,episodeid=&amp;INFO[ListItem.DBID])
 ```
+
 It is possible to show the infodialog provided by the script (see video library search command), for example if you want to call that info screen from your widgets.
 In that case run the command above. In the info dialog will also all special properties be available from the script.
 Note that ListItem.DBID and ListItem.DBTYPE can only be used for "real" library items, for widgets provided by this script, use ListItem.Property(DBID) and ListItem.Property(type) instead.
@@ -458,9 +462,11 @@ Note that ListItem.DBID and ListItem.DBTYPE can only be used for "real" library 
 ________________________________________________________________________________________________________
 
 #### Yes/No Dialog (dialogYesNo)
+
 ```
 RunScript(script.skin.helper.service,action=dialogyesno,header[yourheadertext],message=[your message body],yesaction=[action for yes],noaction=[optional action for no])
 ```
+
 This command will open Kodi's YesNo dialog with the text you supplied.
 If the user presses YES, the action will be executed you supplied. To provide multiple actions, seperate by |
 You can use any Kodi permitted action. If you also want to specify action(s) when the user presses NO, also supplu the NOACTION argument.
