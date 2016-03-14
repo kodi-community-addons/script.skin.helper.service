@@ -793,7 +793,7 @@ def resetMusicWidgetWindowProps(data="",resetAll=False):
     type = "unknown"
     if data:
         data = eval(data.replace("true","True").replace("false","False"))
-        type = data["type"]
+        type = data.get("type","")
 
     if (type in ["song","artist","album"] or resetAll) and not WINDOW.getProperty("skinhelper-refreshmusicwidgetsbusy"):
         logMsg("Music database changed - type: %s - resetAll: %s, refreshing widgets...." %(type,resetAll))

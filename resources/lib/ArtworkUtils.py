@@ -335,7 +335,7 @@ def getfanartTVimages(type,id,artwork=None,allowoverwrite=True):
     else:
         url = 'http://webservice.fanart.tv/v3/tv/%s?api_key=%s' %(id,api_key)
     try:
-        response = requests.get(url, timeout=5)
+        response = requests.get(url, timeout=15)
     except Exception as e:
         logMsg("getfanartTVimages lookup failed--> " + str(e), 0)
         return artwork
@@ -1043,18 +1043,17 @@ def preCacheAllMusicArt(skipOnCache=False):
             for count, item in enumerate(json_response):
                 artistName = item["displayartist"]
                 albumName = item["label"]
-                if skipOnCache and xbmcvfs.exists("special://profile/addon_data/script.skin.helper.service/musicart/%s-%s.xml" %(normalize_string(artistName),normalize_string(albumName))):
-                    continue
-                else:
-                    progressDialog.update((count * 100) / len(json_response),ADDON.getLocalizedString(32157), artistName + " - " + albumName)
-                    getMusicArtwork(artistName,albumName,"",False)
-                    logMsg("preCacheAllMusicArt -- " + artistName + " - " + albumName, 0)
+                progressDialog.update((count * 100) / len(json_response),ADDON.getLocalizedString(32157), artistName + " - " + albumName)
+                getMusicArtwork(artistName,albumName,"",False)
+                logMsg("preCacheAllMusicArt -- " + artistName + " - " + albumName, 0)
     except Exception as e:
         logMsg("ERROR in preCacheAllMusicArt --> " + str(e), 0)
     progressDialog.close()
     
 def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
-    if not artistName and not albumName and not trackName: return {}
+    if not artistName:
+        logMsg("getMusicArtwork - No artist given, skipping...")
+        return {}
     albumartwork = {}
     path = ""
     artistCacheFound = False

@@ -95,14 +95,14 @@ class ListItemMonitor(threading.Thread):
                 else:
                     secondsToDisplay = ""
                 
-                if secondsToDisplay:
+                if secondsToDisplay and secondsToDisplay != "0":
                     while xbmc.getCondVisibility("Window.IsActive(%s)"%window):
                         if xbmc.getCondVisibility("System.IdleTime(%s)" %secondsToDisplay):
                             xbmc.executebuiltin("Dialog.Close(%s)"%window)
                         else:
                             xbmc.sleep(250)
                 
-            if not xbmc.getCondVisibility("Window.IsActive(fullscreenvideo) | Window.IsActive(script.pseudotv.TVOverlay.xml) | Window.IsActive(script.pseudotv.live.TVOverlay.xml) | Window.IsActive(movieinformation) | Window.IsActive(visualisation)"):
+            if not xbmc.getCondVisibility("Window.IsActive(fullscreenvideo) | Window.IsActive(script.pseudotv.TVOverlay.xml) | Window.IsActive(script.pseudotv.live.TVOverlay.xml) | Window.IsActive(movieinformation) | Window.IsActive(visualisation) | Container(%s).Scrolling" %(self.widgetContainer) ):
 
                 try:
                     #widget support
@@ -259,7 +259,6 @@ class ListItemMonitor(threading.Thread):
             logMsg("Ended Background worker...")
         except Exception as e:
             logMsg("ERROR in ListitemMonitor doBackgroundWork ! --> " + str(e), 0)
-    
     
     def saveCacheToFile(self):
         libraryCache = {}
@@ -701,7 +700,7 @@ class ListItemMonitor(threading.Thread):
             self.pvrArtCache[cacheStr] = artwork
         
         #return if another listitem was focused in the meanwhile
-        if multiThreaded and not (title == self.liTitle or title == self.liLabel):
+        if multiThreaded and not (title == xbmc.getInfoLabel("Container(%s).ListItem.Title"%self.widgetContainer).decode('utf-8') or title == xbmc.getInfoLabel("Container(%s).ListItem.Label"%self.widgetContainer).decode('utf-8')):
             return
         
         #set window props
@@ -849,6 +848,7 @@ class ListItemMonitor(threading.Thread):
         artist = xbmc.getInfoLabel("Container(%s).ListItem.Artist"%self.widgetContainer).decode('utf-8')
         album = xbmc.getInfoLabel("Container(%s).ListItem.Album"%self.widgetContainer).decode('utf-8')
         title = self.liTitle
+        label = self.liLabel
         cacheId = artist+album
         
         #get the items from cache first
@@ -859,7 +859,7 @@ class ListItemMonitor(threading.Thread):
             self.musicArtCache[cacheId + "SkinHelper.Music.Art"] = artwork
         
         #return if another listitem was focused in the meanwhile
-        if multiThreaded and self.liLabel != self.liLabel:
+        if multiThreaded and label != xbmc.getInfoLabel("Container(%s).ListItem.Label"%self.widgetContainer).decode('utf-8'):
             return
         
         #set properties
@@ -991,7 +991,7 @@ class ListItemMonitor(threading.Thread):
             efaPath = "plugin://plugin.video.emby/extrafanart?path=" + cachePath
             efaFound = True
         #lookup the extrafanart in the media location
-        elif (self.liPath != None and (self.contentType in ["movies","seasons","episodes","tvshows"] ) and not "videodb:" in self.liPath):
+        elif (self.liPath != None and (self.contentType in ["movies","seasons","episodes","tvshows","setmovies"] ) and not "videodb:" in self.liPath):
                            
             # do not set extra fanart for virtuals
             if "plugin://" in self.liPath or "addon://" in self.liPath or "sources" in self.liPath:
@@ -1153,7 +1153,7 @@ class ListItemMonitor(threading.Thread):
             self.pvrArtCache[cacheStr] = artwork
         
         #return if another listitem was focused in the meanwhile
-        if multiThreaded and not (title == self.liTitle or title == xbmc.getInfoLabel("Container(%s).ListItem.TvShowTitle"%self.widgetContainer).decode("utf8")):
+        if multiThreaded and not (title == xbmc.getInfoLabel("Container(%s).ListItem.Title"%self.widgetContainer).decode('utf-8') or title == xbmc.getInfoLabel("Container(%s).ListItem.TvShowTitle"%self.widgetContainer).decode("utf8")):
             return
                 
         #set window props

@@ -36,7 +36,6 @@
     <category label="32163">
         <setting id="enableWidgetsArtworkLookups" type="bool" label="32164" default="true"/>
         <setting id="enableSpecialsInWidgets" type="bool" label="32165" default="false"/>
-        <setting id="enableWidgetsAlbumBrowse" type="bool" label="32166" default="false"/>
     </category>
     <category label="32134">
         <setting id="enableDebugLog" type="bool" label="32135" default="false"/>
