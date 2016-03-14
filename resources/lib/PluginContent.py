@@ -749,28 +749,27 @@ def getPlexOndeckItems(type):
                     allItems.append(item)
     return allItems
 
-def getNetflixItems(listtype,videotype):
+def getNetflixItems(key):
     allItems = []
-    key = "netflix.%s.%s.content" %(videotype,listtype)
-    if WINDOW.getProperty(key):
-        json_result = getJSON('Files.GetDirectory', '{ "directory": "%s", "media": "files", "properties": [ %s ] }' %(WINDOW.getProperty(key).decode("utf-8"),fields_files))
+    path = WINDOW.getProperty("netflix.%s.content" %key).decode("utf-8")
+    if path:
+        json_result = getJSON('Files.GetDirectory', '{ "directory": "%s", "media": "files", "properties": [ %s ] }' %(path,fields_files))
         for item in json_result:
-            if not item["title"] in allTitles:
-                allItems.append(item)
-                allTitles.append(item["title"])
+            allItems.append(item)
     return allItems
      
 def INPROGRESSMOVIES(limit):
     allItems = []
     
-    #plex in progress movies
-    allItems += getPlexOndeckItems("movie")
-
     # Get a list of all the in-progress Movies in library
-    json_result = getJSON('VideoLibrary.GetMovies', '{ "sort": { "order": "descending", "method": "lastplayed" }, "filter": {"and": [{"operator":"true", "field":"inprogress", "value":""}]}, "properties": [ %s ], "limits": { "end": %s } }' %(fields_movies,limit))
-    for item in json_result:
-        allItems.append(item)
-            
+    if xbmc.getCondVisibility("Library.HasContent(movies)"):
+        json_result = getJSON('VideoLibrary.GetMovies', '{ "sort": { "order": "descending", "method": "lastplayed" }, "filter": {"and": [{"operator":"true", "field":"inprogress", "value":""}]}, "properties": [ %s ], "limits": { "end": %s } }' %(fields_movies,limit))
+        for item in json_result:
+            allItems.append(item)
+    else:
+        #plex in progress movies if no library content
+        allItems = getPlexOndeckItems("movie")
+ 
     return sorted(allItems,key=itemgetter("lastplayed"),reverse=True)
     
 def INPROGRESSEPISODES(limit):
@@ -794,7 +793,7 @@ def INPROGRESSMEDIA(limit):
     allItems = []
     
     #netflix in progress items
-    allItems += getNetflixItems("generic","inprogress")
+    allItems += getNetflixItems("generic.inprogress")
     
     # In progress Movies
     allItems += INPROGRESSMOVIES(25)
@@ -915,21 +914,22 @@ def RECENTMEDIA(limit):
             allItems.append(item)
             allTitles.append(item["title"])
     
-    #recent plex items
-    if WINDOW.getProperty("plexbmc.0.title"):
-        nodes = []
-        for i in range(50):
-            key = "plexbmc.%s.recent"%(str(i))
-            path = WINDOW.getProperty(key + ".content")
-            label = WINDOW.getProperty(key + ".title")
-            type = WINDOW.getProperty("plexbmc.%s.type"%(str(i)))
-            if not label: break
-            json_result = getJSON('Files.GetDirectory', '{ "directory": "%s", "media": "files", "properties": [ %s ] }' %(path,fields_files))
-            for item in json_result:
-                if not item["title"] in allTitles:
-                    item["sortkey"] = item.get("dateadded","")
-                    allItems.append(item)
-                    allTitles.append(item["title"])
+    #recent plex items if no library content
+    if xbmc.getCondVisibility("!Library.HasContent(movies)"):
+        if WINDOW.getProperty("plexbmc.0.title"):
+            nodes = []
+            for i in range(50):
+                key = "plexbmc.%s.recent"%(str(i))
+                path = WINDOW.getProperty(key + ".content")
+                label = WINDOW.getProperty(key + ".title")
+                type = WINDOW.getProperty("plexbmc.%s.type"%(str(i)))
+                if not label: break
+                json_result = getJSON('Files.GetDirectory', '{ "directory": "%s", "media": "files", "properties": [ %s ] }' %(path,fields_files))
+                for item in json_result:
+                    if not item["title"] in allTitles:
+                        item["sortkey"] = item.get("dateadded","")
+                        allItems.append(item)
+                        allTitles.append(item["title"])
     
     #sort the list with in recent items by lastplayed date   
     return sorted(allItems,key=itemgetter("sortkey"),reverse=True)
@@ -940,7 +940,7 @@ def FAVOURITEMEDIA(limit,AllKodiFavsOnly=False):
     
     if not AllKodiFavsOnly:
         #netflix favorites
-        allItems += getNetflixItems("mylist","generic")
+        allItems += getNetflixItems("generic.mylist")
         
         #emby favorites
         if xbmc.getCondVisibility("System.HasAddon(plugin.video.emby) + Skin.HasSetting(SmartShortcuts.emby)"):

@@ -239,7 +239,7 @@ class ListItemMonitor(threading.Thread):
                     self.musicArtCache = {}
                     WINDOW.clearProperty("resetMusicArtCache")
                 
-                xbmc.sleep(100)
+                xbmc.sleep(250)
                 self.delayedTaskInterval += 0.1
                 self.widgetTaskInterval += 0.1
             else:
