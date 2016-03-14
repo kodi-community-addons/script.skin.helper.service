@@ -207,6 +207,7 @@ def getAddonArtwork(title,year="",preftype="",ignoreCache=False, manualLookup=Fa
     artwork = {}
     downloadLocal = False
     includeCast = True
+    cacheFound = False
     
     if not year: return {}
     

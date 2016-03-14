@@ -749,10 +749,11 @@ def getPlexOndeckItems(type):
                     allItems.append(item)
     return allItems
 
-def getNetflixMyListItems(type):
+def getNetflixItems(listtype,videotype):
     allItems = []
-    if WINDOW.getProperty("netflix.%s.inprogress.content" %type):
-        json_result = getJSON('Files.GetDirectory', '{ "directory": "%s", "media": "files", "properties": [ %s ] }' %(WINDOW.getProperty("netflix.%s.inprogress.content"%type).decode("utf-8"),fields_files))
+    key = "netflix.%s.%s.content" %(videotype,listtype)
+    if WINDOW.getProperty(key):
+        json_result = getJSON('Files.GetDirectory', '{ "directory": "%s", "media": "files", "properties": [ %s ] }' %(WINDOW.getProperty(key).decode("utf-8"),fields_files))
         for item in json_result:
             if not item["title"] in allTitles:
                 allItems.append(item)
@@ -761,8 +762,6 @@ def getNetflixMyListItems(type):
      
 def INPROGRESSMOVIES(limit):
     allItems = []
-    #netflix in progress movies
-    allItems += getNetflixMyListItems("movies")
     
     #plex in progress movies
     allItems += getPlexOndeckItems("movie")
@@ -793,6 +792,9 @@ def INPROGRESSMUSICVIDEOS(limit):
     
 def INPROGRESSMEDIA(limit):
     allItems = []
+    
+    #netflix in progress items
+    allItems += getNetflixItems("generic","inprogress")
     
     # In progress Movies
     allItems += INPROGRESSMOVIES(25)
@@ -938,10 +940,7 @@ def FAVOURITEMEDIA(limit,AllKodiFavsOnly=False):
     
     if not AllKodiFavsOnly:
         #netflix favorites
-        if WINDOW.getProperty("netflix.generic.mylist.content"):
-            json_result = getJSON('Files.GetDirectory', '{ "directory": "%s", "media": "files", "properties": [ %s ] }' %(WINDOW.getProperty("netflix.generic.mylist.content").decode("utf-8"),fields_files))
-            for item in json_result:
-                allItems.append(item)
+        allItems += getNetflixItems("mylist","generic")
         
         #emby favorites
         if xbmc.getCondVisibility("System.HasAddon(plugin.video.emby) + Skin.HasSetting(SmartShortcuts.emby)"):
@@ -1014,10 +1013,14 @@ def FAVOURITEMEDIA(limit,AllKodiFavsOnly=False):
             if fav.get("type") == "window":
                 path = 'ActivateWindow(%s,"%s",return)' %(fav.get("window",""),fav.get("windowparameter",""))
                 path="plugin://script.skin.helper.service/?action=launch&path=" + path
+            elif fav.get("type") == "media":
+                path = fav.get("path")
             elif fav.get("type") == "script":
                 path='plugin://script.skin.helper.service/?action=launch&path=RunScript("%s")' %fav.get("path")
+            elif "android" in fav.get("type"):
+                path='plugin://script.skin.helper.service/?action=launch&path=StartAndroidActivity("%s")' %fav.get("path")
             else:
-                path = fav.get("path")
+                path='plugin://script.skin.helper.service/?action=launch&path=RunScript("%s")' %fav.get("path")
             if not fav.get("label"): fav["label"] = fav.get("title")
             if not fav.get("title"): fav["label"] = fav.get("label")
             item = {"label": fav.get("label"), "title": fav.get("title"), "thumbnail":fav.get("thumbnail"), "file":path}
