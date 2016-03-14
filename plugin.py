@@ -16,7 +16,7 @@ class Main:
         #get params
         action = None
         params = urlparse.parse_qs(sys.argv[2][1:].decode("utf-8"))
-        utils.logMsg("Parameter string: %s" % sys.argv[2],0)
+        utils.logMsg("Parameter string: %s" % sys.argv[2])
         
         if params:        
             path=params.get("path",None)

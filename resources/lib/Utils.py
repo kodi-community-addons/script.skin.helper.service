@@ -318,7 +318,6 @@ def prepareListItems(items):
         listitems = pool.map(prepareListItem, items)
         pool.close()
         pool.join()
-        #return sorted(listitems, key=lambda k: k['sortkey'])
     else:
         for item in items:
             listitems.append(prepareListItem(item))
@@ -425,10 +424,13 @@ def prepareListItem(item):
         properties["EndDate"] = endtime[0]
         fulldate = starttime[0] + " " + starttime[1] + "-" + endtime[1]
         properties["Date"] = fulldate
+        properties["StartDateTime"] = starttime[0] + " " + starttime[1]
+        item["date"] = starttime[0]
     if item.get("channellogo"): properties["channellogo"] = item.get("channellogo","")
     if item.get("channellogo"): properties["channelicon"] = item.get("channellogo","")
     if item.get("episodename"): properties["episodename"] = item.get("episodename","")
     if item.get("channel"): properties["channel"] = item.get("channel","")
+    if item.get("channel"): properties["channelname"] = item.get("channel","")
     if item.get("channel"): item["label2"] = item.get("channel","")
     
     #artwork
@@ -791,7 +793,7 @@ def resetMusicWidgetWindowProps(data="",resetAll=False):
     type = "unknown"
     if data:
         data = eval(data.replace("true","True").replace("false","False"))
-        type = data["item"]["type"]
+        type = data["type"]
 
     if (type in ["song","artist","album"] or resetAll) and not WINDOW.getProperty("skinhelper-refreshmusicwidgetsbusy"):
         logMsg("Music database changed - type: %s - resetAll: %s, refreshing widgets...." %(type,resetAll))
@@ -808,7 +810,7 @@ def resetVideoWidgetWindowProps(data="",resetAll=False):
         type = data["item"]["type"]
 
     if (type in ["movie","tvshow","episode"] and not WINDOW.getProperty("skinhelper-refreshvideowidgetsbusy")) or resetAll:
-        logMsg("Video database changed - type: %s - resetAll: %s, refreshing widgets...." %(type,resetAll),0)
+        logMsg("Video database changed - type: %s - resetAll: %s, refreshing widgets...." %(type,resetAll))
         WINDOW.setProperty("skinhelper-refreshvideowidgetsbusy","busy")
         if resetAll: WINDOW.setProperty("resetVideoDbCache","reset")
         timestr = time.strftime("%Y%m%d%H%M%S", time.gmtime())

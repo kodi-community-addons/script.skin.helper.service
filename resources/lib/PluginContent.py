@@ -57,6 +57,7 @@ def getPluginListing(action,limit,refresh=None,optionalParam=None,randomize=Fals
     
     #try to get from cache first...
     cache = WINDOW.getProperty(cacheStr).decode("utf-8")
+    cache = None
     if cache:
         allItems = eval(cache)
             

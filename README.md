@@ -642,7 +642,7 @@ You can use this to retrieve the animated poster for a movie (if exists)
 Note: movies only and you must supply the imdbid of the movie.
 
 ```
-http://localhost:52307/getanimatedposter&amp;imdbid=$INFO[Listitem.IMDBID]&amp;fallback=$INFO[Listitem.Art(poster)]</texture>
+http://localhost:52307/getanimatedposter&amp;imdbid=$INFO[Listitem.IMDBID]&amp;fallback=$INFO[Listitem.Art(poster)]
 ```
 
 
@@ -663,7 +663,9 @@ Shows a selectdialog with all searchresults found by the Youtube plugin, for exa
 The benefit of that is that user stays in the same window and is not moved away from the library to the youtube plugin.
 You can supply a searchphrase to the script and optionally provide a label for the header in the DialogSelect.
 
+```
 RunScript(script.skin.helper.service,action=searchyoutube,title=[SEARCHPHRASE],header=[HEADER FOR THE DIALOGSELECT]
+```
 
 TIP: The results of the script displayed in DialogSelect.xml will have the label2 of the ListItem set to the description.
 
@@ -678,6 +680,7 @@ example 1: Search for trailers in DialogVideoInfo.xml
            
 ```
 example 2: Search for artist videos in DialogAlbumInfo.xml
+
 ```
 RunScript(script.skin.helper.service,action=searchyoutube,title=$INFO[ListItem.Artist], header=Videos for $INFO[ListItem.Artist])             
 ```
