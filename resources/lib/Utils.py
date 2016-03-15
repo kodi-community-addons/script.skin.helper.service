@@ -89,6 +89,11 @@ def getContentPath(libPath):
         libPath = libPath.split("&reload=")[0]
     return libPath
 
+def setJSON(method,params):
+    json_response = xbmc.executeJSONRPC('{ "jsonrpc": "2.0", "method" : "%s", "params": %s, "id":1 }' %(method, try_encode(params)))
+    jsonobject = json.loads(json_response.decode('utf-8','replace'))
+    return jsonobject
+    
 def getJSON(method,params):
     json_response = xbmc.executeJSONRPC('{ "jsonrpc": "2.0", "method" : "%s", "params": %s, "id":1 }' %(method, try_encode(params)))
     jsonobject = json.loads(json_response.decode('utf-8','replace'))
@@ -152,6 +157,8 @@ def getJSON(method,params):
             return jsonobject['item']
         elif jsonobject.has_key('genres'):
             return jsonobject['genres']
+        elif jsonobject.has_key('value'):
+            return jsonobject['value']
         else:
             logMsg("getJson - invalid result for Method %s - params: %s - response: %s" %(method,params, str(jsonobject))) 
             return {}

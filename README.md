@@ -26,7 +26,7 @@ Important settings:
 |SmartShortcuts.netflix | Skin.SetBool(SmartShortcuts.netflix) | Enable smart shortcuts for flix2kodi addon |
 |SkinHelper.EnableAddonsLookups	| Skin.ToggleSetting(SkinHelper.EnableAddonsLookups)	| enables the background scanner for addons artwork and additional properties |
 |SkinHelper.EnablePVRThumbs	| Skin.ToggleSetting(SkinHelper.EnablePVRThumbs)	| enables the background scanner for PVR artwork |
-
+|SkinHelper.DisableScreenSaverOnFullScreenMusic	| Skin.ToggleSetting(SkinHelper.DisableScreenSaverOnFullScreenMusic)	| will temporary disable the Kodi screensaver on fullscreen music playback |
 ________________________________________________________________________________________________________
 ________________________________________________________________________________________________________
 

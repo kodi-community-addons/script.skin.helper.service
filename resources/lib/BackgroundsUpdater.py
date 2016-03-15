@@ -671,7 +671,7 @@ class BackgroundsUpdater(threading.Thread):
                 for node in nodes:
                     if len(node) == 6: imagespath = node[5]
                     else: imagespath = node[2]
-                    if not key.startswith("netflix.generic.suggestions"):
+                    if not node[0].startswith("netflix.generic.suggestions"):
                         self.setImageFromPath(node[0] + ".image",imagespath,"special://home/addons/plugin.video.flix2kodi/fanart.jpg")
             elif self.netFlixnodes:
                 nodes = self.netFlixnodes
