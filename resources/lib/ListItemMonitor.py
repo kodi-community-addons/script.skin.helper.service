@@ -61,7 +61,6 @@ class ListItemMonitor(threading.Thread):
         lastPlayerItem = ""
         playerItem = ""
         liPathLast = ""
-        liLabelLast = ""
         curFolder = ""
         curFolderLast = ""
         lastListItem = ""
@@ -113,30 +112,19 @@ class ListItemMonitor(threading.Thread):
                         else:
                             xbmc.sleep(250)
                 
-            if not xbmc.getCondVisibility("Window.IsActive(fullscreenvideo) | Window.IsActive(script.pseudotv.TVOverlay.xml) | Window.IsActive(script.pseudotv.live.TVOverlay.xml) | Window.IsActive(movieinformation) | Window.IsActive(visualisation) | Container(%s).Scrolling" %(self.widgetContainer) ):
-
+            if xbmc.getCondVisibility("[Window.IsMedia | Window.IsActive(script-skin_helper_service-CustomInfo.xml) | !IsEmpty(Window(Home).Property(SkinHelper.WidgetContainer)) ] + !Container(%s).Scrolling" %(self.widgetContainer) ):
+                
                 try:
-                    #widget support
-                    if xbmc.getCondVisibility("IsEmpty(ListItem.label)"):
-                        if xbmc.getCondVisibility("Window.IsActive(script-skin_helper_service-CustomInfo.xml)"):
-                            self.widgetContainer = "999"
-                        else:
-                            self.widgetContainer = WINDOW.getProperty("SkinHelper.WidgetContainer").decode('utf-8')
-                        if xbmc.getCondVisibility("IsEmpty(Container(%s).ListItem.label)" %self.widgetContainer):
-                            self.widgetContainer = ""
-                    else: self.widgetContainer = ""
-                    #global properties
+                    if xbmc.getCondVisibility("Window.IsActive(script-skin_helper_service-CustomInfo.xml)"):
+                        self.widgetContainer = "999"
+                    else:
+                        self.widgetContainer = WINDOW.getProperty("SkinHelper.WidgetContainer").decode('utf-8')
                     self.liLabel = xbmc.getInfoLabel("Container(%s).ListItem.Label" %self.widgetContainer).decode('utf-8')                  
-                    if not self.widgetContainer and xbmc.getCondVisibility("!IsEmpty(ListItem.Title)"):
-                        self.liTitle = xbmc.getInfoLabel("ListItem.Title").decode('utf-8')
-                    elif self.widgetContainer and xbmc.getCondVisibility("!IsEmpty(Container(%s).ListItem.Title)" %self.widgetContainer):
-                        self.liTitle = xbmc.getInfoLabel("Container(%s).ListItem.Title" %self.widgetContainer).decode('utf-8')
-                    else: self.liTitle = ""
-                    curFolder = xbmc.getInfoLabel("$INFO[Container.FolderPath]-$INFO[Container(%s).NumItems]"%self.widgetContainer).decode('utf-8') + self.widgetContainer
+                    curFolder = xbmc.getInfoLabel("$INFO[Container.FolderPath]$INFO[Container(%s).NumItems]" %self.widgetContainer).decode('utf-8')
                 except Exception as e: 
                     logMsg(str(e),0)
                 
-                curListItem = curFolder + self.liLabel + self.liTitle
+                curListItem = curFolder + self.liLabel
                 #WINDOW.setProperty("curlistitem",curListItem)
                     
                 #perform actions if the container path has changed
@@ -144,25 +132,23 @@ class ListItemMonitor(threading.Thread):
                     self.resetWindowProps()
                     self.contentType = ""
                     curFolderLast = curFolder
-                    if curFolder:
+                    if curFolder and self.liLabel:
                         #always wait for the contentType because plugins can be slow
                         for i in range(20):
-                            if self.liLabel:
-                                self.contentType = getCurrentContentType(self.widgetContainer)
+                            self.contentType = getCurrentContentType(self.widgetContainer)
                             if self.contentType: break
                             else: xbmc.sleep(250)
                         if not self.widgetContainer and self.contentType:
                             self.setForcedView()
-                            self.focusEpisode()
                             self.setContentHeader()
 
                 #only perform actions when the listitem has actually changed
                 if curListItem and curListItem != lastListItem and self.contentType:
-                    
                     #clear all window props first
                     self.resetWindowProps()
 
                     #generic props
+                    self.liTitle = xbmc.getInfoLabel("Container(%s).ListItem.Title" %self.widgetContainer).decode('utf-8')
                     self.liPath = xbmc.getInfoLabel("Container(%s).ListItem.Path" %self.widgetContainer).decode('utf-8')
                     self.liFile = xbmc.getInfoLabel("Container(%s).ListItem.FileNameAndPath" %self.widgetContainer).decode('utf-8')
                     self.liDbId = xbmc.getInfoLabel("Container(%s).ListItem.DBID"%self.widgetContainer).decode('utf-8')
@@ -219,7 +205,6 @@ class ListItemMonitor(threading.Thread):
                             
                     #set some globals
                     liPathLast = self.liPath
-                    liLabelLast = self.liLabel
                     lastListItem = curListItem
                 
                 #do some background stuff every 30 minutes
@@ -1176,54 +1161,3 @@ class ListItemMonitor(threading.Thread):
             self.setExtendedMovieInfo(False,artwork.get("imdb_id"))
             self.setAnimatedPoster(False,artwork.get("imdb_id"))
     
-    def focusEpisode(self):
-        # monitor episodes for auto focus first unwatched - Helix only as it is included in Kodi as of Isengard by default
-        if xbmc.getCondVisibility("Skin.HasSetting(AutoFocusUnwatchedEpisode)"):
-            
-            #store unwatched episodes
-            if ((xbmc.getCondVisibility("Container.Content(seasons) | Container.Content(tvshows)")) and xbmc.getCondVisibility("!IsEmpty(ListItem.Property(UnWatchedEpisodes))")):
-                try:
-                    self.unwatched = int(xbmc.getInfoLabel("ListItem.Property(UnWatchedEpisodes)"))
-                except: pass
-            
-            if (xbmc.getCondVisibility("Container.Content(episodes) | Container.Content(seasons)")):
-                
-                if self.unwatched != 0:
-                    totalItems = 0
-                    curView = xbmc.getInfoLabel("Container.Viewmode") 
-                    
-                    # get all views from views-file
-                    viewId = None
-                    skin_view_file = os.path.join(xbmc.translatePath('special://skin/extras'), "views.xml")
-                    tree = etree.parse(skin_view_file)
-                    root = tree.getroot()
-                    for view in root.findall('view'):
-                        if curView == xbmc.getLocalizedString(int(view.attrib['languageid'])):
-                            viewId=view.attrib['value']
-                    
-                    wid = xbmcgui.getCurrentWindowId()
-                    window = xbmcgui.Window( wid )        
-                    control = window.getControl(int(viewId))
-                    totalItems = int(xbmc.getInfoLabel("Container.NumItems"))
-                    
-                    if (xbmc.getCondVisibility("Container.SortDirection(ascending)")):
-                        curItem = 0
-                        while ((xbmc.getCondVisibility("Container.Content(episodes) | Container.Content(seasons)")) and totalItems >= curItem):
-                            if (xbmc.getInfoLabel("Container.ListItem(" + str(curItem) + ").Overlay") != "OverlayWatched.png" and xbmc.getInfoLabel("Container.ListItem(" + str(curItem) + ").Label") != ".." and not xbmc.getInfoLabel("Container.ListItem(" + str(curItem) + ").Label").startswith("*")):
-                                if curItem != 0:
-                                    #control.selectItem(curItem)
-                                    xbmc.executebuiltin("Control.Move(%s,%s)" %(str(viewId),str(curItem)))
-                                break
-                            else:
-                                curItem += 1
-                    
-                    elif (xbmc.getCondVisibility("Container.SortDirection(descending)")):
-                        curItem = totalItems
-                        while ((xbmc.getCondVisibility("Container.Content(episodes) | Container.Content(seasons)")) and curItem != 0):
-                            
-                            if (xbmc.getInfoLabel("Container.ListItem(" + str(curItem) + ").Overlay") != "OverlayWatched.png"):
-                                xbmc.executebuiltin("Control.Move(%s,%s)" %(str(viewId),str(curItem)))
-                                break
-                            else:    
-                                curItem -= 1
-           

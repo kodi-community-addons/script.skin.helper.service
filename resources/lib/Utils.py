@@ -160,7 +160,7 @@ def getJSON(method,params):
         elif jsonobject.has_key('value'):
             return jsonobject['value']
         else:
-            logMsg("getJson - invalid result for Method %s - params: %s - response: %s" %(method,params, str(jsonobject))) 
+            logMsg("getJson %s - response: %s" %(method,str(jsonobject))) 
             return {}
     else:
         logMsg("getJson - empty result for Method %s - params: %s - response: %s" %(method,params, str(jsonobject))) 
@@ -595,7 +595,6 @@ def createSmartShortcutSubmenu(windowProp,iconimage):
 
 def getCurrentContentType(containerid=""):
     contenttype = ""
-    
     if xbmc.getCondVisibility("Container.Content(episodes)"):
         contenttype = "episodes"
     elif xbmc.getCondVisibility("Container.Content(movies) + !substring(Container.FolderPath,setid=)"):
@@ -603,7 +602,9 @@ def getCurrentContentType(containerid=""):
     elif xbmc.getCondVisibility("[Container.Content(sets) | StringCompare(Container.Folderpath,videodb://movies/sets/)] + !substring(Container.FolderPath,setid=)"):
         contenttype = "sets"
     elif xbmc.getCondVisibility("substring(Container.FolderPath,setid=)"):
-        contenttype = "setmovies" 
+        contenttype = "setmovies"
+    elif xbmc.getCondVisibility("!IsEmpty(Container.Content)"):     
+        contenttype = xbmc.getInfoLabel("Container.Content")
     elif xbmc.getCondVisibility("Container.Content(tvshows)"):
         contenttype = "tvshows"
     elif xbmc.getCondVisibility("Container.Content(seasons)"):
@@ -628,9 +629,27 @@ def getCurrentContentType(containerid=""):
         contenttype = "genres"
     elif xbmc.getCondVisibility("Container.Content(files)"):
         contenttype = "files"
-    elif xbmc.getCondVisibility("!IsEmpty(Container.Content)"):     
-        contenttype = xbmc.getInfoLabel("Container.Content")
     #try to determine type by the listitem properties
+    elif xbmc.getCondVisibility("!IsEmpty(Container(%s).ListItem.DBTYPE)" %containerid):
+        contenttype = xbmc.getInfoLabel("Container(%s).ListItem.DBTYPE" %containerid) + "s"
+    elif xbmc.getCondVisibility("!IsEmpty(Container(%s).ListItem.Property(DBTYPE))" %containerid):
+        contenttype = xbmc.getInfoLabel("Container(%s).ListItem.Property(DBTYPE)" %containerid) + "s"
+    elif xbmc.getCondVisibility("SubString(Container(%s).ListItem.FileNameAndPath,playrecording) | SubString(Container(%s).ListItem.FileNameAndPath,tvtimer)" %(containerid,containerid)):
+        contenttype = "tvrecordings"
+    elif xbmc.getCondVisibility("SubString(Container(%s).ListItem.FolderPath,pvr://channels)" %containerid):
+        contenttype = "tvchannels"
+    elif xbmc.getCondVisibility("StringCompare(Container(%s).ListItem.Label,Container(%s).ListItem.Artist)" %(containerid,containerid)):
+        contenttype = "artists"
+    elif xbmc.getCondVisibility("StringCompare(Container(%s).ListItem.Label,Container(%s).ListItem.Album)" %(containerid,containerid)):
+        contenttype = "albums"
+    elif xbmc.getCondVisibility("!IsEmpty(Container(%s).ListItem.Artist) + !IsEmpty(Container(%s).ListItem.Album)" %(containerid,containerid)):
+        contenttype = "songs"
+    elif xbmc.getCondVisibility("StringCompare(Container(%s).ListItem.Label,Container(%s).ListItem.TvShowTitle)" %(containerid,containerid)):
+        contenttype = "tvshows"
+    elif xbmc.getCondVisibility("SubString(Container(%s).ListItem.FolderPath,flix2kodi) + SubString(Container(%s).ListItem.Genre,Series)" %(containerid,containerid)):
+        contenttype = "tvshows"
+    elif xbmc.getCondVisibility("SubString(Container(%s).ListItem.FolderPath,flix2kodi)" %(containerid)):
+        contenttype = "movies"
     elif xbmc.getCondVisibility("!IsEmpty(Container(%s).ListItem(1).DBTYPE)" %containerid):
         contenttype = xbmc.getInfoLabel("Container(%s).ListItem(1).DBTYPE" %containerid) + "s"
     elif xbmc.getCondVisibility("!IsEmpty(Container(%s).ListItem(1).Property(DBTYPE))" %containerid):
