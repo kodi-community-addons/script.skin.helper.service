@@ -118,7 +118,7 @@ class StoppableHttpRequestHandler (SimpleHTTPServer.SimpleHTTPRequestHandler):
         if action == "getthumb":
             image = artutils.searchThumb(title)
             
-        if action == "getanimatedposter":
+        elif action == "getanimatedposter":
             imdbid = params.get("imdbid","")
             if imdbid:
                 image = artutils.getAnimatedPosters(imdbid).get("animated_poster","")
@@ -221,7 +221,8 @@ class StoppableHttpRequestHandler (SimpleHTTPServer.SimpleHTTPRequestHandler):
         
         if image:
             self.send_response(200)
-            if ".jpg" in image: self.send_header('Content-type','image/jpeg')
+            if ".jpg" in image: self.send_header('Content-type','image/jpg')
+            elif image.lower().endswith(".gif"): self.send_header('Content-type','image/gif')
             else: self.send_header('Content-type','image/png')
             logMsg("found image for request %s  --> %s" %(try_encode(self.path),try_encode(image)))
             st = xbmcvfs.Stat(image)

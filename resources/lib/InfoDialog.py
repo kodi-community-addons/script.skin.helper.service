@@ -12,6 +12,7 @@ class GUI( xbmcgui.WindowXMLDialog ):
         xbmcgui.WindowXMLDialog.__init__( self )
         self.listitem = kwargs[ "listitem" ]
         self.content = kwargs[ "content" ]
+        WINDOW.setProperty("SkinHelper.WidgetContainer","999")
 
     def onInit( self ):
         self._hide_controls()
@@ -47,6 +48,7 @@ class GUI( xbmcgui.WindowXMLDialog ):
     def _close_dialog( self, action=None ):
         self.action = action
         self.bginfoThread.stopRunning()
+        WINDOW.clearProperty("SkinHelper.WidgetContainer")
         self.close()
 
     def onClick( self, controlId ):

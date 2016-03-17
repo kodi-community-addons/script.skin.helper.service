@@ -112,20 +112,22 @@ class ListItemMonitor(threading.Thread):
                         else:
                             xbmc.sleep(250)
                 
-            if xbmc.getCondVisibility("[Window.IsMedia | Window.IsActive(script-skin_helper_service-CustomInfo.xml) | !IsEmpty(Window(Home).Property(SkinHelper.WidgetContainer)) ] + !Container(%s).Scrolling" %(self.widgetContainer) ):
+            if xbmc.getCondVisibility("[Window.IsMedia | !IsEmpty(Window(Home).Property(SkinHelper.WidgetContainer))]"):
                 
                 try:
-                    if xbmc.getCondVisibility("Window.IsActive(script-skin_helper_service-CustomInfo.xml)"):
-                        self.widgetContainer = "999"
-                    else:
-                        self.widgetContainer = WINDOW.getProperty("SkinHelper.WidgetContainer").decode('utf-8')
-                    self.liLabel = xbmc.getInfoLabel("Container(%s).ListItem.Label" %self.widgetContainer).decode('utf-8')                  
+                    self.widgetContainer = WINDOW.getProperty("SkinHelper.WidgetContainer").decode('utf-8')
+                    self.liLabel = xbmc.getInfoLabel("Container(%s).ListItem.Label" %self.widgetContainer).decode('utf-8')
+                    if self.widgetContainer: self.liTitle = xbmc.getInfoLabel("Container(%s).ListItem.Title" %self.widgetContainer).decode('utf-8')
+                    else: self.liTitle = xbmc.getInfoLabel("ListItem.Title").decode('utf-8')
                     curFolder = xbmc.getInfoLabel("$INFO[Container.FolderPath]$INFO[Container(%s).NumItems]" %self.widgetContainer).decode('utf-8')
                 except Exception as e: 
                     logMsg(str(e),0)
+                    curFolder = ""
+                    self.liLabel = ""
+                    self.liTitle = ""
                 
-                curListItem = curFolder + self.liLabel
-                #WINDOW.setProperty("curlistitem",curListItem)
+                curListItem = curFolder + self.liLabel + self.liTitle
+                WINDOW.setProperty("curListItem",curListItem)
                     
                 #perform actions if the container path has changed
                 if (curFolder != curFolderLast):
@@ -148,7 +150,6 @@ class ListItemMonitor(threading.Thread):
                     self.resetWindowProps()
 
                     #generic props
-                    self.liTitle = xbmc.getInfoLabel("Container(%s).ListItem.Title" %self.widgetContainer).decode('utf-8')
                     self.liPath = xbmc.getInfoLabel("Container(%s).ListItem.Path" %self.widgetContainer).decode('utf-8')
                     self.liFile = xbmc.getInfoLabel("Container(%s).ListItem.FileNameAndPath" %self.widgetContainer).decode('utf-8')
                     self.liDbId = xbmc.getInfoLabel("Container(%s).ListItem.DBID"%self.widgetContainer).decode('utf-8')
@@ -206,7 +207,7 @@ class ListItemMonitor(threading.Thread):
                     #set some globals
                     liPathLast = self.liPath
                     lastListItem = curListItem
-                
+
                 #do some background stuff every 30 minutes
                 if (self.delayedTaskInterval >= 1800):
                     thread.start_new_thread(self.doBackgroundWork, ())
@@ -235,14 +236,23 @@ class ListItemMonitor(threading.Thread):
                     self.musicArtCache = {}
                     WINDOW.clearProperty("resetMusicArtCache")
                 
-                xbmc.sleep(250)
+                xbmc.sleep(100)
                 self.delayedTaskInterval += 0.1
                 self.widgetTaskInterval += 0.1
-            else:
-                #fullscreen video is playing
+            elif lastListItem:
+                self.resetWindowProps()
+                lastListItem = ""
+                curListItem = ""
+            elif xbmc.getCondVisibility("Window.IsActive(fullscreenvideo)"):
+                #fullscreen video active
                 self.monitor.waitForAbort(2)
                 self.delayedTaskInterval += 2
                 self.widgetTaskInterval += 2
+            else:
+                #other window visible
+                self.monitor.waitForAbort(0.5)
+                self.delayedTaskInterval += 0.5
+                self.widgetTaskInterval += 0.5
                    
     def doBackgroundWork(self):
         try:
@@ -696,7 +706,7 @@ class ListItemMonitor(threading.Thread):
             self.pvrArtCache[cacheStr] = artwork
         
         #return if another listitem was focused in the meanwhile
-        if multiThreaded and not (title == xbmc.getInfoLabel("Container(%s).ListItem.Title"%self.widgetContainer).decode('utf-8') or title == xbmc.getInfoLabel("Container(%s).ListItem.Label"%self.widgetContainer).decode('utf-8')):
+        if multiThreaded and not (title == xbmc.getInfoLabel("ListItem.Title").decode('utf-8') or title == xbmc.getInfoLabel("Container(%s).ListItem.Title"%self.widgetContainer).decode('utf-8') or title == xbmc.getInfoLabel("Container(%s).ListItem.Label"%self.widgetContainer).decode('utf-8')):
             return
         
         #set window props

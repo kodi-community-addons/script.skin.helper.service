@@ -644,31 +644,33 @@ def searchChannelLogo(searchphrase):
             if not image:
                 url = 'http://www.thelogodb.com/api/json/v1/1/tvchannel.php?s=%s' %try_encode(searchphrase)
                 response = requests.get(url)
-                data = json.loads(response.content.decode('utf-8','replace'))
-                if data and data.has_key('channels'):
-                    results = data['channels']
-                    if results:
-                        for i in results: 
-                            rest = i['strLogoWide']
-                            if rest:
-                                if ".jpg" in rest or ".png" in rest:
-                                    image = rest
-                                    break
+                if response.content:
+                    data = json.loads(response.content.decode('utf-8','replace'))
+                    if data and data.has_key('channels'):
+                        results = data['channels']
+                        if results:
+                            for i in results: 
+                                rest = i['strLogoWide']
+                                if rest:
+                                    if ".jpg" in rest or ".png" in rest:
+                                        image = rest
+                                        break
                 
             if not image:
                 search_alt = searchphrase.replace(" HD","")
                 url = 'http://www.thelogodb.com/api/json/v1/1/tvchannel.php?s=%s' %try_encode(search_alt)
                 response = requests.get(url)
-                data = json.loads(response.content.decode('utf-8','replace'))
-                if data and data.has_key('channels'):
-                    results = data['channels']
-                    if results:
-                        for i in results: 
-                            rest = i['strLogoWide']
-                            if rest:
-                                if ".jpg" in rest or ".png" in rest:
-                                    image = rest
-                                    break
+                if response.content:
+                    data = json.loads(response.content.decode('utf-8','replace'))
+                    if data and data.has_key('channels'):
+                        results = data['channels']
+                        if results:
+                            for i in results: 
+                                rest = i['strLogoWide']
+                                if rest:
+                                    if ".jpg" in rest or ".png" in rest:
+                                        image = rest
+                                        break
         except Exception as e:
             if "getaddrinfo failed" in str(e):
                 #no internet access - disable lookups for now

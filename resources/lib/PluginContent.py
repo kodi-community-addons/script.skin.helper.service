@@ -1038,7 +1038,7 @@ def getExtraFanArt(path):
         extrafanarts = eval(WINDOW.getProperty(path).decode("utf-8"))
     #get extrafanarts by passing an artwork cache xml file
     else:
-        if not xbmcvfs.exists(path):
+        if not xbmcvfs.exists(path.encode("utf-8")):
             filepart = path.split("/")[-1]
             path = path.replace(filepart,"") + normalize_string(filepart)
             if not xbmcvfs.exists(path):
