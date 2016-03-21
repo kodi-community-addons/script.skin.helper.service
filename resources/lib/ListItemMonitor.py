@@ -238,10 +238,7 @@ class ListItemMonitor(threading.Thread):
                 xbmc.sleep(100)
                 self.delayedTaskInterval += 0.1
                 self.widgetTaskInterval += 0.1
-            elif lastListItem:
-                self.resetWindowProps()
-                lastListItem = ""
-                curListItem = ""
+
             elif xbmc.getCondVisibility("Window.IsActive(fullscreenvideo)"):
                 #fullscreen video active
                 self.monitor.waitForAbort(2)
