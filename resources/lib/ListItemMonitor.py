@@ -87,7 +87,6 @@ class ListItemMonitor(threading.Thread):
             if xbmc.getCondVisibility("Window.IsActive(visualisation) + Skin.HasSetting(SkinHelper.DisableScreenSaverOnFullScreenMusic)"):
                 #disable the screensaver if fullscreen music playback
                 if not screenSaverSetting:
-                    xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"Settings.GetSettingValue","params":{"setting":"screensaver.mode"}}')
                     screenSaverSetting = getJSON('Settings.GetSettingValue', '{"setting":"screensaver.mode"}')
                     if screenSaverSetting: setJSON('Settings.SetSettingValue', '{"setting":"screensaver.mode", "value": ""}')
             elif screenSaverSetting: 
