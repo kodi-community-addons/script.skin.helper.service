@@ -152,6 +152,8 @@ def PVRRECORDINGS(limit):
         json_result = getJSON('PVR.GetRecordings', '{"properties": [ %s ]}' %fields_pvrrecordings)
         pvr_backend = xbmc.getInfoLabel("Pvr.BackendName").decode("utf-8")
         for item in json_result:
+            if WINDOW.getProperty("SkinHelperShutdownRequested"):
+                return []
             #exclude live tv items from recordings list (mythtv hack)
             if item["playcount"] == 0 and not ("mythtv" in pvr_backend.lower() and "/livetv/" in item.get("file","").lower()):
                 channelname = item["channel"]
@@ -175,6 +177,8 @@ def NEXTPVRRECORDINGS(limit,reversed="false"):
         json_result = getJSON('PVR.GetRecordings', '{"properties": [ %s ]}' %fields_pvrrecordings)
         pvr_backend = xbmc.getInfoLabel("Pvr.BackendName").decode("utf-8")
         for item in json_result:
+            if WINDOW.getProperty("SkinHelperShutdownRequested"):
+                return []
             #exclude live tv items from recordings list (mythtv hack)
             if not (item.get("directory") and item["directory"] in allTitles) and item["playcount"] == 0 and not ("mythtv" in pvr_backend.lower() and "/livetv/" in item.get("file","").lower()):
                 channelname = item["channel"]
@@ -211,6 +215,7 @@ def PVRTIMERS(limit):
     return allItems
 
 def getPVRArtForItem(item):
+    if WINDOW.getProperty("SkinHelperShutdownRequested"): return item
     if "launchpvr" in item["file"]: pvrtype = "channels"
     else: pvrtype = "recordings"
     if item.get("title") and WINDOW.getProperty("SkinHelper.enableWidgetsArtworkLookups") == "true":
@@ -353,6 +358,7 @@ def RECENTPLAYEDSONGS(limit):
     return allItems    
 
 def getSongDetails(item):
+    if WINDOW.getProperty("SkinHelperShutdownRequested"): return item
     if WINDOW.getProperty("SkinHelper.enableWidgetsArtworkLookups") == "true":
         item["art"] = artutils.getMusicArtwork(item["displayartist"], item["album"])
         item["extraproperties"] = {"extrafanart": item["art"].get("extrafanart",""), "tracklist":item["art"].get("tracklist","")}
@@ -375,6 +381,7 @@ def RECENTSONGS(limit):
     return allItems    
 
 def getNextEpisodeForShow(showid):
+    if WINDOW.getProperty("SkinHelperShutdownRequested"): return {}
     if WINDOW.getProperty("SkinHelper.enableSpecialsInWidgets") == "true":
         json_episodes = getJSON('VideoLibrary.GetEpisodes', '{ "tvshowid": %d, "sort": {"method":"episode"}, "filter": {"field": "playcount", "operator": "lessthan", "value":"1"}, "properties": [ %s ], "limits":{"end":1}}' %(showid,fields_episodes))
     else:
@@ -472,6 +479,7 @@ def RECOMMENDEDMOVIES(limit):
     #Plex movies with a score higher than 7
     if WINDOW.getProperty("plexbmc.0.content"):
         for i in range(50):
+            if WINDOW.getProperty("SkinHelperShutdownRequested"): return []
             key = "plexbmc.%s.unwatched"%(str(i))
             path = WINDOW.getProperty(key + ".content")
             label = WINDOW.getProperty(key + ".title")
@@ -489,6 +497,7 @@ def RECOMMENDEDTVSHOWS(limit):
     # Random tvshows with a score higher then 7
     json_result = getJSON('VideoLibrary.GetTVShows', '{ "sort": { "order": "descending", "method": "rating" }, "filter": {"and": [{"operator":"is", "field":"playcount", "value":"0"},{"operator":"greaterthan", "field":"rating", "value":"7"}]}, "properties": [ %s ],"limits":{"end":25} }' %fields_tvshows)
     for item in json_result:
+        if WINDOW.getProperty("SkinHelperShutdownRequested"): return []
         #get the first unwatched episode for this show
         json_query2 = getJSON('VideoLibrary.GetEpisodes', '{ "tvshowid": %d, "sort": {"method":"episode"}, "filter": {"and": [ {"field": "playcount", "operator": "lessthan", "value":"1"}, {"field": "season", "operator": "greaterthan", "value": "0"} ]}, "properties": [ "title", "file" ], "limits":{"end":1}}' %item['tvshowid'])
         if json_query2:
@@ -499,6 +508,7 @@ def RECOMMENDEDTVSHOWS(limit):
     #Plex tvshows with a score higher than 7
     if WINDOW.getProperty("plexbmc.0.content"):
         for i in range(50):
+            if WINDOW.getProperty("SkinHelperShutdownRequested"): return []
             key = "plexbmc.%s.unwatched"%(str(i))
             path = WINDOW.getProperty(key + ".content")
             label = WINDOW.getProperty(key + ".title")
@@ -562,6 +572,7 @@ def RECOMMENDEDSONGS(limit):
         #get all movies from the same genre
         for genre in genres:
             if count == limit: break
+            if WINDOW.getProperty("SkinHelperShutdownRequested"): return []
             json_result = getJSON('AudioLibrary.GetSongs', '{ "sort": { "order": "descending", "method": "rating" }, "filter": {"operator":"is", "field":"genre", "value":"%s"}, "properties": [ %s ],"limits":{"end":%d} }' %(genre,fields_songs,limit))
             for item in json_result:
                 if count == limit: break
@@ -605,6 +616,7 @@ def SIMILARMOVIES(limit,imdbid="",unSorted=False):
         similartitle = item["title"]
         #get all movies from the same genre
         for genre in genres:
+            if WINDOW.getProperty("SkinHelperShutdownRequested"): return []
             if count == limit: break
             json_result = getJSON('VideoLibrary.GetMovies', '{ "sort": { "order": "descending", "method": "random" }, "filter": {"and": [{"operator":"is", "field":"genre", "value":"%s"}, {"operator":"is", "field":"playcount", "value":"0"}]}, "properties": [ %s ],"limits":{"end":%d} }' %(genre,fields_movies,limit))
             for item in json_result:
@@ -739,6 +751,7 @@ def getPlexOndeckItems(type):
     allItems = []
     if WINDOW.getProperty("plexbmc.0.title"):
         for i in range(50):
+            if WINDOW.getProperty("SkinHelperShutdownRequested"): return []
             key = "plexbmc.%s.ondeck"%(str(i))
             path = WINDOW.getProperty(key + ".content")
             label = WINDOW.getProperty(key + ".title")
@@ -753,6 +766,7 @@ def getNetflixItems(key):
     allItems = []
     path = WINDOW.getProperty("netflix.%s.content" %key).decode("utf-8")
     if path:
+        if WINDOW.getProperty("SkinHelperShutdownRequested"): return []
         json_result = getJSON('Files.GetDirectory', '{ "directory": "%s", "media": "files", "properties": [ %s ] }' %(path,fields_files))
         for item in json_result:
             allItems.append(item)
@@ -919,6 +933,7 @@ def RECENTMEDIA(limit):
         if WINDOW.getProperty("plexbmc.0.title"):
             nodes = []
             for i in range(50):
+                if WINDOW.getProperty("SkinHelperShutdownRequested"): return []
                 key = "plexbmc.%s.recent"%(str(i))
                 path = WINDOW.getProperty(key + ".content")
                 label = WINDOW.getProperty(key + ".title")

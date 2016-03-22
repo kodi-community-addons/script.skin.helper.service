@@ -83,6 +83,11 @@ class ListItemMonitor(threading.Thread):
                         lastPlayerItem = playerItem       
                 except Exception as e:
                     logMsg("ERROR in setMusicPlayerDetails ! --> " + str(e), 0)
+            elif lastPlayerItem:
+                #cleanup remaining window props
+                resetPlayerWindowProps()
+                playerItem = ""
+                lastPlayerItem = ""
             
             if xbmc.getCondVisibility("Window.IsActive(visualisation) + Skin.HasSetting(SkinHelper.DisableScreenSaverOnFullScreenMusic)"):
                 #disable the screensaver if fullscreen music playback
