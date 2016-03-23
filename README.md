@@ -292,6 +292,8 @@ What you need to do is set a window property with the ID of your widget containe
 For example set that in the onload of your home window if you only have 1 focusable widget control or set it as onfocus action on the widgetcontainer itself with the correct ID.
 
 
+IMPORTANT NOTE: You need to clear the SkinHelper.WidgetContainer property after leaving your custom window or homescreen, 
+otherwise the properties won't be returned in the default library.
 ________________________________________________________________________________________________________
 
 #### window properties for addons
