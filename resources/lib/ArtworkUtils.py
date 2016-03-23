@@ -642,7 +642,7 @@ def searchChannelLogo(searchphrase):
 
             #lookup with thelogodb
             if not image:
-                url = 'http://www.thelogodb.com/api/json/v1/1/tvchannel.php?s=%s' %try_encode(searchphrase)
+                url = 'http://www.thelogodb.com/api/json/v1/3241/tvchannel.php?s=%s' %try_encode(searchphrase)
                 response = requests.get(url)
                 if response.content:
                     data = json.loads(response.content.decode('utf-8','replace'))
@@ -658,7 +658,7 @@ def searchChannelLogo(searchphrase):
                 
             if not image:
                 search_alt = searchphrase.replace(" HD","")
-                url = 'http://www.thelogodb.com/api/json/v1/1/tvchannel.php?s=%s' %try_encode(search_alt)
+                url = 'http://www.thelogodb.com/api/json/v1/3241/tvchannel.php?s=%s' %try_encode(search_alt)
                 response = requests.get(url)
                 if response.content:
                     data = json.loads(response.content.decode('utf-8','replace'))
@@ -1108,8 +1108,7 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
                     if json_response.get("thumbnail") and not (json_response["label"].lower() == "singles" or "Various Artists" in json_response.get("displayartist").lower()) and xbmcvfs.exists(getCleanImage(json_response["thumbnail"])): albumartwork["folder"] = getCleanImage(json_response["thumbnail"])
                     if json_response.get("label") and not albumartwork.get("albumname"): albumartwork["albumname"] = json_response["label"]
                     if json_response.get("displayartist") and not albumartwork.get("artistname"): albumartwork["artistname"] = json_response["displayartist"]
-                    if json_response.get("musicbrainzalbumid") and not albumartwork.get("musicbrainzalbumid") and isinstance(json_response.get("musicbrainzalbumid"), list): albumartwork["musicbrainzalbumid"] = json_response["musicbrainzalbumid"][0]
-                    if json_response.get("musicbrainzalbumid") and not albumartwork.get("musicbrainzalbumid") and not isinstance(json_response.get("musicbrainzalbumid"), list): albumartwork["musicbrainzalbumid"] = json_response["musicbrainzalbumid"]
+                    if json_response.get("musicbrainzalbumid") and not albumartwork.get("musicbrainzalbumid"): albumartwork["musicbrainzalbumid"] = json_response["musicbrainzalbumid"]
                     albumid = json_response.get("albumid")
                     #get track listing for album
                     json_response2 = getJSON('AudioLibrary.GetSongs', '{ "properties": [ %s ], "sort": {"method":"track"}, "filter": { "albumid": %d}}'%(fields_songs,albumid))
@@ -1128,6 +1127,8 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
                     albumartwork["tracklist.formatted"] += u"• %s[CR]" %trackitem
                 albumartwork["albumcount"] = "1"
                 albumartwork["songcount"] = "%s"%songcount
+                if isinstance(albumartwork.get("musicbrainzalbumid",""), list):
+                    albumartwork["musicbrainzalbumid"] = albumartwork["musicbrainzalbumid"][0]
    
     ############## ARTIST DETAILS #######################################
     
@@ -1157,8 +1158,7 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
             if json_response.get("fanart") and xbmcvfs.exists(getCleanImage(json_response["fanart"])): artistartwork["fanart"] = getCleanImage(json_response["fanart"])
             if json_response.get("thumbnail") and xbmcvfs.exists(getCleanImage(json_response["thumbnail"])) : artistartwork["folder"] = getCleanImage(json_response["thumbnail"])
             if json_response.get("label") and not artistartwork.get("artistname",""): artistartwork["artistname"] = json_response["label"]
-            if json_response.get("musicbrainzartistid") and not artistartwork.get("musicbrainzartistid") and isinstance(json_response.get("musicbrainzartistid"), list): artistartwork["musicbrainzartistid"] = json_response["musicbrainzartistid"][0]
-            if json_response.get("musicbrainzartistid") and not artistartwork.get("musicbrainzartistid") and not isinstance(json_response.get("musicbrainzartistid"), list): artistartwork["musicbrainzartistid"] = json_response["musicbrainzartistid"]
+            if json_response.get("musicbrainzartistid") and not artistartwork.get("musicbrainzartistid"): artistartwork["musicbrainzartistid"] = json_response["musicbrainzartistid"]
             #get track/album listing for artist
             json_response2 = None
             json_response2 = getJSON('AudioLibrary.GetSongs', '{ "filter":{"artistid": %d}, "properties": [ %s ] }'%(json_response.get("artistid"),fields_songs))
@@ -1194,6 +1194,8 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
             artistartwork["songcount"] = "%s"%songcount
             if not albumartwork.get("artistname"): albumartwork["artistname"] = artistName
             if not albumartwork.get("albumname"): albumartwork["albumname"] = albumName
+            if isinstance(artistartwork.get("musicbrainzartistid",""), list):
+                artistartwork["musicbrainzartistid"] = artistartwork["musicbrainzartistid"][0]
         
             #LOOKUP LOCAL ARTWORK PATH PASED ON SONG FILE PATH
             if path and enableLocalMusicArtLookup and (not artistCacheFound or (albumName and not albumCacheFound)) and localArtistMatch:

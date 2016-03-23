@@ -116,14 +116,17 @@ class ListItemMonitor(threading.Thread):
                         else:
                             xbmc.sleep(250)
                 
-            if xbmc.getCondVisibility("[Window.IsMedia | !IsEmpty(Window(Home).Property(SkinHelper.widgetContainer))]"):
+            if xbmc.getCondVisibility("[Window.IsMedia | !IsEmpty(Window(Home).Property(SkinHelper.WidgetContainer))]"):
                 try:
-                    widgetContainer = WINDOW.getProperty("SkinHelper.widgetContainer").decode('utf-8')
-                    if widgetContainer: self.widgetContainerPrefix = "Container(%s)."%self.widgetContainerPrefix
-                    else: self.widgetContainerPrefix = ""
+                    widgetContainer = WINDOW.getProperty("SkinHelper.WidgetContainer").decode('utf-8')
+                    if widgetContainer: 
+                        self.widgetContainerPrefix = "Container(%s)."%widgetContainer
+                        curFolder = xbmc.getInfoLabel("widget-%s-$INFO[Container(%s).NumItems]" %(widgetContainer,widgetContainer)).decode('utf-8')
+                    else: 
+                        self.widgetContainerPrefix = ""
+                        curFolder = xbmc.getInfoLabel("$INFO[Container.FolderPath]$INFO[Container.NumItems]").decode('utf-8')
                     self.liTitle = xbmc.getInfoLabel("%sListItem.Title" %self.widgetContainerPrefix).decode('utf-8')
                     self.liLabel = xbmc.getInfoLabel("%sListItem.Label" %self.widgetContainerPrefix).decode('utf-8')
-                    curFolder = xbmc.getInfoLabel("$INFO[Container.FolderPath]$INFO[Container(%s).NumItems]" %widgetContainer).decode('utf-8')
                 except Exception as e: 
                     logMsg(str(e),0)
                     curFolder = ""
@@ -131,7 +134,7 @@ class ListItemMonitor(threading.Thread):
                     self.liTitle = ""
                 
                 curListItem = curFolder + self.liLabel + self.liTitle
-                #WINDOW.setProperty("curListItem",curListItem)
+                WINDOW.setProperty("curListItem",curListItem)
                     
                 #perform actions if the container path has changed
                 if (curFolder != curFolderLast):
@@ -246,8 +249,13 @@ class ListItemMonitor(threading.Thread):
             elif lastListItem:
                 #flush any remaining window properties
                 self.resetWindowProps()
+                if nextairedActive:
+                    nextairedActive = False
+                    xbmc.executebuiltin("RunScript(script.tv.show.next.aired,tvshowtitle=165628787629692696)")
                 lastListItem = ""
                 curListItem = ""
+                curFolder = ""
+                curFolderLast = ""
                 self.widgetContainerPrefix = ""
             elif xbmc.getCondVisibility("Window.IsActive(fullscreenvideo)"):
                 #fullscreen video active

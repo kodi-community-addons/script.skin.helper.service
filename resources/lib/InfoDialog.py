@@ -2,6 +2,7 @@ import sys, re
 import xbmc, xbmcgui, xbmcvfs
 import ArtworkUtils as artutils
 import PluginContent as plugincontent
+from Utils import *
 import threading
 
 CANCEL_DIALOG  = ( 9, 10, 92, 216, 247, 257, 275, 61467, 61448, )
