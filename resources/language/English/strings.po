@@ -704,3 +704,6 @@ msgctxt "#32171"
 msgid "PVR - Next unwatched recordings (reversed)"
 msgstr ""
 
+msgctxt "#32172"
+msgid "Precache all artwork"
+msgstr ""

@@ -31,7 +31,7 @@
         <setting id="downloadMusicArt" type="bool" label="32125" default="false" visible="eq(-1,true)"/>
         <setting id="preferOnlineMusicArt" type="bool" label="32159" default="false" visible="eq(-1,true)"/>
         <setting label="32126" type="action" action="RunScript(script.skin.helper.service,action=RESETCACHE,path=music)"/>
-        <setting label="Precache all artwork" type="action" action="RunScript(script.skin.helper.service,action=CACHEALLMUSICART)" option="close"/>
+        <setting label="32172" type="action" action="RunScript(script.skin.helper.service,action=CACHEALLMUSICART)" option="close"/>
     </category>
     <category label="32163">
         <setting id="enableWidgetsArtworkLookups" type="bool" label="32164" default="true"/>
