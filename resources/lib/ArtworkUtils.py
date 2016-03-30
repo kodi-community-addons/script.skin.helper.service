@@ -342,6 +342,9 @@ def getfanartTVimages(type,id,artwork=None,allowoverwrite=True):
         return artwork
     if response and response.content and response.status_code == 200:
         data = json.loads(response.content.decode('utf-8','replace'))
+    elif response and response.status_code == 404:
+        #not found 
+        return artwork
     else:
         logMsg("get fanart.tv images FAILED for type: %s - id: %s  - statuscode: %s" %(type,id,response.status_code))
         return artwork
@@ -1068,7 +1071,7 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
     if not albumName and trackName: albumName = trackName
     artistOnly = False
     if not albumName: artistOnly = True
-    if "/" in artistName: artistName = artistName.split("/")[0]
+    if "/" in artistName and artistName.lower() != "ac/dc": artistName = artistName.split("/")[0]
     localArtistMatch = False
     localAlbumMatch = False
     cacheStrAlbum = ""

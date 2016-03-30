@@ -139,8 +139,8 @@ class BackgroundsUpdater(threading.Thread):
     def getCacheFromFile(self):
         self.allBackgrounds = getDataFromCacheFile(self.cachePath)
         self.smartShortcuts = getDataFromCacheFile(self.SmartShortcutsCachePath)
-        if self.smartShortcuts.get("self.allSmartShortcuts"):
-            WINDOW.setProperty("self.allSmartShortcuts", repr(self.smartShortcuts["self.allSmartShortcuts"]))
+        if self.smartShortcuts.get("allSmartShortcuts"):
+            WINDOW.setProperty("allSmartShortcuts", repr(self.smartShortcuts["allSmartShortcuts"]))
     
     def setDayNightColorTheme(self):
         #check if a colro theme should be conditionally set
@@ -1048,5 +1048,5 @@ class BackgroundsUpdater(threading.Thread):
                     #add our images to the dict
                     return_images.append({"wall": out_file, "wallbw": out_file_bw })
                 
-        logMsg("Building Wall background %s DONE" %windowProp)
+            logMsg("Building Wall background %s DONE" %windowProp)
         return return_images         

@@ -160,10 +160,9 @@ def getJSON(method,params):
         elif jsonobject.has_key('value'):
             return jsonobject['value']
         else:
-            logMsg("getJson %s - response: %s" %(method,str(jsonobject))) 
             return {}
     else:
-        logMsg("getJson - empty result for Method %s - params: %s - response: %s" %(method,params, str(jsonobject))) 
+        logMsg("getJson - invalid result for Method %s - params: %s - response: %s" %(method,params, str(jsonobject))) 
         return {}
 
 def setAddonsettings():
@@ -835,7 +834,8 @@ def resetVideoWidgetWindowProps(data="",resetAll=False):
     type = "unknown"
     if data:
         data = eval(data.replace("true","True").replace("false","False"))
-        type = data["item"]["type"]
+        if data and data.get("item"):
+            type = data["item"].get("type","unknown")
 
     if (type in ["movie","tvshow","episode"] and not WINDOW.getProperty("skinhelper-refreshvideowidgetsbusy")) or resetAll:
         logMsg("Video database changed - type: %s - resetAll: %s, refreshing widgets...." %(type,resetAll))
