@@ -468,6 +468,7 @@ class ListItemMonitor(threading.Thread):
         for i in range(totalNodes):
             if not WINDOW.getProperty('SkinHelper.MovieSet.' + str(i) + '.Title'): break
             WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.Title')
+            WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.Plot')
             WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.FanArt')
             WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.Poster')
             WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.Landscape')
@@ -476,6 +477,9 @@ class ListItemMonitor(threading.Thread):
             WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.ClearArt')
             WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.Banner')
             WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.Rating')
+            WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.Year')
+            WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.DBID')
+            WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.Duration')			
             WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.Resolution')
             WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.Resolution.Type')
             WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.AspectRatio')
@@ -513,6 +517,7 @@ class ListItemMonitor(threading.Thread):
                 json_response = getJSON('VideoLibrary.GetMovieSetDetails', '{"setid": %s, "properties": [ "thumbnail" ], "movies": { "properties":  [ "rating", "art", "file", "year", "director", "writer", "playcount", "genre" , "thumbnail", "runtime", "studio", "plotoutline", "plot", "country", "streamdetails"], "sort": { "order": "ascending",  "method": "year" }} }' % self.liDbId)
                 if json_response:
                     count = 0
+                    runtime = 0
                     unwatchedcount = 0
                     watchedcount = 0
                     runtime = 0
@@ -544,6 +549,10 @@ class ListItemMonitor(threading.Thread):
                         allProperties.append( ('SkinHelper.MovieSet.' + str(count) + '.ClearArt',art.get('clearart', '')) )
                         allProperties.append( ('SkinHelper.MovieSet.' + str(count) + '.Banner',art.get('banner', '')) )
                         allProperties.append( ('SkinHelper.MovieSet.' + str(count) + '.Rating',str(item.get('rating', ''))) )
+                        allProperties.append( ('SkinHelper.MovieSet.' + str(count) + '.Plot',item['plot']) )
+                        allProperties.append( ('SkinHelper.MovieSet.' + str(count) + '.Year',str(item.get('year'))) )
+                        allProperties.append( ('SkinHelper.MovieSet.' + str(count) + '.DBID',str(item.get('movieid'))) )
+                        allProperties.append( ('SkinHelper.MovieSet.' + str(count) + '.Duration',str(item['runtime'] / 60)) )
                         if item.get('streamdetails',''):
                             streamdetails = item["streamdetails"]
                             audiostreams = streamdetails.get('audio',[])
