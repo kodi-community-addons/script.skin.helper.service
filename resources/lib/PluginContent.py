@@ -949,6 +949,36 @@ def RECENTMEDIA(limit):
     #sort the list with in recent items by lastplayed date   
     return sorted(allItems,key=itemgetter("sortkey"),reverse=True)
 
+def getKodiFavsFromFile():
+    #json method for favourites doesn't return all items (such as android apps) so retrieve them from file
+    allfavourites = []
+    favourites_path = xbmc.translatePath('special://profile/favourites.xml').decode("utf-8")
+    if xbmcvfs.exists(favourites_path):
+        doc = parse(favourites_path)
+        result = doc.documentElement.getElementsByTagName('favourite')
+        for count, fav in enumerate(result):
+            action = fav.childNodes[0].nodeValue
+            action = action.replace('"','')
+            label = fav.attributes['name'].nodeValue
+            try: thumb = fav.attributes['thumb'].nodeValue
+            except: thumb = ""
+            window = ""
+            windowparameter = ""
+            type = "unknown"
+            if action.startswith("StartAndroidActivity"):
+                type = "androidapp"
+            elif action.startswith("ActivateWindow"):
+                type = "window"
+                actionparts = action.replace("ActivateWindow(","").replace(",return)","").split(",")
+                window = actionparts[0]
+                if len(actionparts) > 1:
+                    windowparameter = actionparts[1]
+            elif action.startswith("PlayMedia"):
+                type = "media"
+                action = action.replace("PlayMedia(","")[:-1]
+            allfavourites.append( {"label":label, "path":action, "thumbnail": thumb, "window":window, "windowparameter":windowparameter, "type":type} )
+    return allfavourites
+    
 def FAVOURITEMEDIA(limit,AllKodiFavsOnly=False):
     count = 0
     allItems = []
@@ -971,10 +1001,11 @@ def FAVOURITEMEDIA(limit,AllKodiFavsOnly=False):
                 allItems.append(item)
     
     #Kodi favourites
-    json_result = getJSON('Favourites.GetFavourites', '{"type": null, "properties": ["path", "thumbnail", "window", "windowparameter"]}')
-    for fav in json_result:
+    #all_favs = getJSON('Favourites.GetFavourites', '{"type": null, "properties": ["path", "thumbnail", "window", "windowparameter"]}')
+    all_favs = getKodiFavsFromFile()
+    for fav in all_favs:
         matchFound = False
-        if "windowparameter" in fav:
+        if fav.get("windowparameter"):
             if fav["windowparameter"].startswith("videodb://tvshows/titles"):
                 #it's a tv show
                 try:
@@ -986,7 +1017,7 @@ def FAVOURITEMEDIA(limit,AllKodiFavsOnly=False):
                     tvshowpath = "ActivateWindow(Videos,%s,return)" %fav["windowparameter"]
                     tvshowpath="plugin://script.skin.helper.service?action=launch&path=" + tvshowpath
                     json_result["file"] == tvshowpath
-                    allItems.append(json_result)            
+                    allItems.append(json_result)
         if fav["type"] == "media":
             path = fav["path"]
             if "/" in path:
@@ -1030,20 +1061,15 @@ def FAVOURITEMEDIA(limit,AllKodiFavsOnly=False):
                 path="plugin://script.skin.helper.service/?action=launch&path=" + path
             elif fav.get("type") == "media":
                 path = fav.get("path")
-            elif fav.get("type") == "script":
-                path='plugin://script.skin.helper.service/?action=launch&path=RunScript("%s")' %fav.get("path")
-            elif "android" in fav.get("type"):
-                path='plugin://script.skin.helper.service/?action=launch&path=StartAndroidActivity("%s")' %fav.get("path")
             else:
-                path='plugin://script.skin.helper.service/?action=launch&path=RunScript("%s")' %fav.get("path")
+                path='plugin://script.skin.helper.service/?action=launch&path=%s' %fav.get("path")
             if not fav.get("label"): fav["label"] = fav.get("title")
             if not fav.get("title"): fav["label"] = fav.get("label")
             item = {"label": fav.get("label"), "title": fav.get("title"), "thumbnail":fav.get("thumbnail"), "file":path}
             if fav.get("thumbnail").endswith("icon.png") and fav.get("thumbnail").endswith("icon.png") and  xbmcvfs.exists(fav.get("thumbnail").replace("icon.png","fanart.jpg")):
                 item["art"] = {"landscape": fav.get("thumbnail"), "poster": fav.get("thumbnail"), "fanart": fav.get("thumbnail").replace("icon.png","fanart.jpg")}
             item["extraproperties"] = {"IsPlayable": "false"}
-            allItems.append(item)
-            
+            allItems.append(item)      
     return allItems
     
 def getExtraFanArt(path):
