@@ -730,32 +730,122 @@ def searchGoogleImage(searchphrase1, searchphrase2="",manualLookup=False):
         xbmc.executebuiltin( "Dialog.Close(busydialog)" )
     return image
 
-def getAnimatedPosters(imdbid):
+def getAnimatedPostersDb():
+    allItems = {}
+    
+    #try window cache first
+    cacheStr = "SkinHelper.AnimatedArtwork"
+    cache = WINDOW.getProperty(cacheStr).decode("utf-8")
+    if cache: return eval(cache)
+
+    #get all animated posters from the online json file
+    
+    #create local thumbs directory
+    if not xbmcvfs.exists("special://thumbnails/animatedgifs/"):
+        xbmcvfs.mkdir("special://thumbnails/animatedgifs/")
+        
+    response = requests.get('http://www.consiliumb.com/animatedgifs/movies.json')
+    if response.content:
+        data = json.loads(response.content.decode('utf-8','replace'))
+        if data and data.has_key('movies'):
+            for item in data['movies']:
+                print item
+                imdbid = item['imdbid']
+                posters = []
+                fanarts = []
+                for img in item['entries']:
+                    if img['type'] == 'poster':
+                        posters.append(img['image'])
+                    elif img['type'] == 'background':
+                        fanarts.append(img['image'])
+                allItems[imdbid + 'poster'] = posters
+                allItems[imdbid + 'fanart'] = fanarts
+    #store in cache
+    WINDOW.setProperty(cacheStr, repr(allItems))
+    return allItems
+              
+def getAnimatedArtwork(imdbid,type="poster",dbid=None,manualHeader=""):
     #get the item from cache first
-    cacheStr = "SkinHelper.AnimatedPosters.%s" %imdbid
+    cacheStr = "SkinHelper.AnimatedArtwork.%s.%s" %(imdbid,type)
     cache = WINDOW.getProperty(cacheStr).decode('utf-8')
-    if cache:
-        return eval(cache)
+    if cache and not manualHeader:
+        image = cache
     else:
-        result = {}
-        logMsg("getAnimatedPosters for imdbid: %s " %(imdbid))
-        #create local thumbs directory
-        if not xbmcvfs.exists("special://thumbnails/animatedgifs/"):
-            xbmcvfs.mkdir("special://thumbnails/animatedgifs/")
+        image = ""
+        logMsg("Get Animated %s for imdbid: %s " %(type,imdbid))
         
-        # retrieve animated poster and fanart
-        for img in [("animated_fanart","%s_background_0_original.gif" %imdbid), ("animated_poster","%s_poster_0_original.gif" %imdbid)]:
-            if xbmcvfs.exists("special://thumbnails/animatedgifs/%s"%img[1]):
-                result[img[0]] = "special://thumbnails/animatedgifs/%s"%img[1]
-            elif xbmcvfs.exists("http://www.consiliumb.com/animatedgifs/%s" %img[1]):
-                xbmcvfs.copy("http://www.consiliumb.com/animatedgifs/%s"%img[1], "special://thumbnails/animatedgifs/%s"%img[1])
-                for i in range(40):
-                    if xbmcvfs.exists("special://thumbnails/animatedgifs/%s"%img[1]): break
-                    else: xbmc.sleep(250)
-                result[img[0]] = "special://thumbnails/animatedgifs/%s"%img[1]
-        
-        WINDOW.setProperty(cacheStr,repr(result))
-        return result
+        #check local first
+        localfilename = "special://thumbnails/animatedgifs/%s_%s.gif" %(imdbid,type)
+        localfilenamenone = "special://thumbnails/animatedgifs/%s_%s.none" %(imdbid,type)
+        if xbmcvfs.exists(localfilename) and not manualHeader:
+            image = localfilename
+            if xbmcvfs.Stat(localfilename).st_size < 10: image = ""
+        elif xbmcvfs.exists(localfilenamenone) and not manualHeader:
+            image = ""
+        else:    
+            #lookup in database
+            all_artwork = getAnimatedPostersDb()
+            
+            if manualHeader:
+                #present selectbox to let the user choose the artwork
+                imagesList = []
+                #add none entry
+                listitem = xbmcgui.ListItem(label=ADDON.getLocalizedString(32013))
+                listitem.setProperty("icon","DefaultAddonNone.png")
+                imagesList.append(listitem)
+                #add browse entry
+                listitem = xbmcgui.ListItem(label=ADDON.getLocalizedString(32176))
+                listitem.setProperty("icon","DefaultFolder.png")
+                imagesList.append(listitem)
+                #append online images
+                if all_artwork.get(imdbid + type):
+                    for img in all_artwork[imdbid + type]:
+                        listitem = xbmcgui.ListItem(label=img)
+                        listitem.setProperty("icon","http://www.consiliumb.com/animatedgifs/%s"%img)
+                        imagesList.append(listitem)
+                import Dialogs as dialogs
+                w = dialogs.DialogSelectBig( "DialogSelect.xml", ADDON_PATH, listing=imagesList, windowtitle=manualHeader, multiselect=False )
+                w.doModal()
+                selectedItem = w.result
+                if selectedItem == 0:
+                    image = ""
+                elif selectedItem == 1:
+                    image = xbmcgui.Dialog().browse( 2 , ADDON.getLocalizedString(32176), 'files', mask='.gif')
+                elif selectedItem != -1:
+                    selectedItem = imagesList[selectedItem]
+                    image = selectedItem.getProperty("icon")
+                        
+            elif all_artwork.get(imdbid + type):
+                #just select the first image...
+                image = "http://www.consiliumb.com/animatedgifs/%s" %all_artwork[imdbid + type][0]
+                
+            #save to file
+            xbmcvfs.delete(localfilename)
+            xbmcvfs.delete(localfilenamenone)
+            if image:
+                try:
+                    urllib.URLopener().retrieve(image.replace(".gif","_original.gif"), xbmc.translatePath(localfilename))
+                except:
+                    if "consiliumb" in image:
+                        image = image.replace(".gif","_original.gif")
+                    xbmcvfs.copy(image,localfilename)
+                    xbmc.sleep(150)
+                image = localfilename
+            else:
+                #write empty file to prevent recurring lookups
+                file =  xbmcvfs.File(localfilenamenone,"w")
+                file.write("")
+                file.close()
+            
+            #save in kodi db
+            if dbid and image:
+                setJSON('VideoLibrary.SetMovieDetails','{ "movieid": %i, "art": { "animated%s": "%s" } }'%(int(dbid),type,image))
+            elif dbid and not image:
+                setJSON('VideoLibrary.SetMovieDetails','{ "movieid": %i, "art": { "animated%s": null } }'%(int(dbid),type))
+                
+            #save in window cache
+            WINDOW.setProperty(cacheStr,image)
+    return image
     
 def getGoogleImages(terms,**kwargs):
     start = ''

@@ -162,7 +162,7 @@ def getJSON(method,params):
         else:
             return {}
     else:
-        logMsg("getJson - invalid result for Method %s - params: %s - response: %s" %(method,params, str(jsonobject))) 
+        logMsg("getJson - invalid result for Method %s - params: %s - response: %s" %(method,params, str(jsonobject)),0) 
         return {}
 
 def setAddonsettings():

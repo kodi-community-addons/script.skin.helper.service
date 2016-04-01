@@ -135,7 +135,7 @@ plugin://myvideoplugin/movies/?latest&amp;reload=$INFO[Window(Home).Property(wid
 _____________________________________________________________________________________________________
 #### Animated Posters
 Provides animated poster in window property (cached locally)
-For info, see: http://forum.kodi.tv/showthread.php?tid=215727
+For more info, see: http://forum.kodi.tv/showthread.php?tid=215727
 
 Only available when enabled as skin setting --> Skin.SetBool(SkinHelper.EnableAnimatedPosters)
 
@@ -143,6 +143,13 @@ Only available when enabled as skin setting --> Skin.SetBool(SkinHelper.EnableAn
 |:-----------------------------	| :----------- |
 |Window(Home).Property(SkinHelper.AnimatedPoster) | Animated (gif) Movie poster image -if available-  |
 |Window(Home).Property(SkinHelper.AnimatedFanart) | Animated (gif) Movie fanart image -if available-  |
+
+NOTE: UPDATED 01-04-2026:
+1. The properties will now also be saved into the Kodi database for easy access in lists:
+   ListItem.Art(animatedposter) and ListItem.Art(animatedfanart)
+   
+2. A contextmenu will be shown in the movies library to allow the user to manual select the animated artwork
+
 
 ________________________________________________________________________________________________________
 #### Studio Logos

@@ -707,3 +707,19 @@ msgstr ""
 msgctxt "#32172"
 msgid "Precache all artwork"
 msgstr ""
+
+msgctxt "#32173"
+msgid "Manual select Animated Poster"
+msgstr ""
+
+msgctxt "#32174"
+msgid "Manual select Animated fanart"
+msgstr ""
+
+msgctxt "#32175"
+msgid "Select Animated artwork"
+msgstr ""
+
+msgctxt "#32176"
+msgid "Browse for image..."
+msgstr ""

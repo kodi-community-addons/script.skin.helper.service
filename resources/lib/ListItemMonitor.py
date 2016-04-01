@@ -237,6 +237,11 @@ class ListItemMonitor(threading.Thread):
                     self.pvrArtCache = {}
                     WINDOW.clearProperty("SkinHelper.PVR.ArtWork")
                     WINDOW.clearProperty("resetPvrArtCache")
+                    
+                #flush cache if extendedinfo has changed
+                if WINDOW.getProperty("resetExtendedInfoCache") == "reset":
+                    self.extendedinfocache = {}
+                    WINDOW.clearProperty("resetExtendedInfoCache")
                 
                 #flush cache if musiclibrary has changed
                 if WINDOW.getProperty("resetMusicArtCache") == "reset":
@@ -1061,18 +1066,18 @@ class ListItemMonitor(threading.Thread):
         if not xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnableAnimatedPosters)") or not liImdb:
             return
         if (self.contentType == "movies" or self.contentType=="setmovies"):
-            #check cache first
-            cacheStr = "animatedartwork-%s"%liImdb
-            if self.extendedinfocache.has_key(cacheStr):
-                result = self.extendedinfocache[cacheStr]
-            else:
-                result = artutils.getAnimatedPosters(liImdb)
-                self.extendedinfocache[cacheStr] = result
-            #return if another listitem was focused in the meanwhile
-            if multiThreaded and not liImdb == self.liImdb:
-                return
-            WINDOW.setProperty("SkinHelper.AnimatedPoster",result.get('animated_poster',""))
-            WINDOW.setProperty("SkinHelper.AnimatedFanart",result.get('animated_fanart',""))
+            for type in ["poster","fanart"]:
+                #check cache first
+                cacheStr = "animatedartwork-%s-%s" %(type,liImdb)
+                if self.extendedinfocache.has_key(cacheStr):
+                    image = self.extendedinfocache[cacheStr]
+                else:
+                    image = artutils.getAnimatedArtwork(liImdb,type,self.liDbId)
+                    self.extendedinfocache[cacheStr] = image
+                #return if another listitem was focused in the meanwhile
+                if multiThreaded and not liImdb == self.liImdb:
+                    return
+                WINDOW.setProperty("SkinHelper.Animated%s"%type,image)
         
     def setExtendedMovieInfo(self,multiThreaded=False,liImdb=""):
         result = {}

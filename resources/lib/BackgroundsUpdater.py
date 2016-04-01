@@ -228,90 +228,60 @@ class BackgroundsUpdater(threading.Thread):
             self.setManualWallFromPath(key, value)
 
     def setImageFromPath(self, windowProp, libPath, fallbackImage="", customJson=None):
+        images = []
         if self.exit:
             return False
-            
-        libPath = getContentPath(libPath)
-        
-        #special treatment for emby nodes...
-        if "plugin.video.emby" in libPath and "browsecontent" in libPath and not "filter" in libPath:
-            libPath = libPath + "&filter=random"
 
-        #is path in the temporary blacklist ?
-        if libPath in self.tempBlacklist:
-            return False
-        
-        #no blacklist so read cache and/or path
-        images = []
-               
         #cache entry exists and cache is not expired, load cache entry
         if self.allBackgrounds.has_key(windowProp):
-            image = random.choice(self.allBackgrounds[windowProp])
-            if image:
-                for key, value in image.iteritems():
-                    if key == "fanart": WINDOW.setProperty(windowProp, value)
-                    else: WINDOW.setProperty(windowProp + "." + key, value)
-                return True
-            else:
-                #cache entry empty ?...skipping...
-                return False
+            images = self.allBackgrounds[windowProp]
         else:
             #no cache file so try to load images from the path
-            media_array = None
+            
             #safety check: check if no library windows are active to prevent any addons setting the view
             if xbmc.getInfoLabel("$INFO[Window.Property(xmlfile)]").endswith("Nav.xml"):
-                return
-            if customJson:
-                media_array = getJSON(customJson[0],customJson[1])
-            else:
-                media_array = getJSON('Files.GetDirectory','{ "properties": ["title","art","thumbnail","fanart","album","artist"], "directory": "%s", "media": "files", "limits": {"end":250}, "sort": { "order": "ascending", "method": "random", "ignorearticle": true } }' %libPath)
-            if media_array:
-                for media in media_array:
-                    image = {}
-                    if media.get("thumbnail"):
-                        image["thumbnail"] =  media.get("thumbnail")
-                    if media.get('art') and not media['title'].lower() == "next page":
-                        if media['art'].get('fanart'):
-                            image["fanart"] = getCleanImage(media['art']['fanart'])
-                        elif media['art'].get('tvshow.fanart'):
-                            image["fanart"] = getCleanImage(media['art']['tvshow.fanart'])
-                        #also append other mediatypes to the dict
-                        if media['art'].get('landscape'): image["landscape"] = media['art']['landscape']
-                        if media['art'].get('poster'): image["poster"] = media['art']['poster']
-                        if media['art'].get('clearlogo'): image["clearlogo"] = media['art']['clearlogo']
-                    elif media.get('fanart') and not media['title'].lower() == "next page":
-                        image["fanart"] = media['fanart']
-                    if not image and "musicdb" in libPath:
-                        logMsg("get music artwork for libpath: %s  - artist: %s  - album: %s" %(libPath,media.get('artist',''),media.get('album','')))
-                        if isinstance(media.get('artist'), list) and len(media.get('artist')) > 0: artist = media.get('artist')[0]
-                        else: artist = media.get('artist','')
-                        image = artutils.getMusicArtwork(artist,media.get('album',''))
-                    if image:
-                        image["title"] = media['title']
-                        images.append(image)
-                    
-            else:
-                logMsg("BackgroundsUpdater.setImageFromPath --> media array empty or error so add this path to blacklist... %s" %libPath)
-                #add path to temporary blacklist
-                self.tempBlacklist.add(libPath)
-                WINDOW.setProperty(windowProp, fallbackImage)
-
-        #all is fine, we have some images to randomize and return one
-        if images:
+                return False
+                
+            libPath = getContentPath(libPath)
+            if "plugin.video.emby" in libPath and "browsecontent" in libPath and not "filter" in libPath:
+                libPath = libPath + "&filter=random"
+            
+            #get the images from json
+            if customJson: media_array = getJSON(customJson[0],customJson[1])
+            else: media_array = getJSON('Files.GetDirectory','{ "properties": ["title","art","thumbnail","fanart","album","artist"], "directory": "%s", "media": "files", "limits": {"end":250}, "sort": { "order": "ascending", "method": "random", "ignorearticle": true } }' %libPath)
+            
+            for media in media_array:
+                image = {}
+                if media.get("thumbnail"):
+                    image["thumbnail"] =  media.get("thumbnail")
+                if media.get('art') and not media['label'].lower() == "next page":
+                    if media['art'].get('fanart'):
+                        image["fanart"] = getCleanImage(media['art']['fanart'])
+                    elif media['art'].get('tvshow.fanart'):
+                        image["fanart"] = getCleanImage(media['art']['tvshow.fanart'])
+                    #also append other mediatypes to the dict
+                    if media['art'].get('landscape'): image["landscape"] = media['art']['landscape']
+                    if media['art'].get('poster'): image["poster"] = media['art']['poster']
+                    if media['art'].get('clearlogo'): image["clearlogo"] = media['art']['clearlogo']
+                elif media.get('fanart') and not media['label'].lower() == "next page":
+                    image["fanart"] = media['fanart']
+                if image.get("fanart"):
+                    #only append items which have a fanart image
+                    image["title"] = media.get('title',media['label'])
+                    images.append(image)
+            #store images in cache
             self.allBackgrounds[windowProp] = images
-            random.shuffle(images)
-            image = images[0]
+
+        if images:
+            image = random.choice(images)
             for key, value in image.iteritems():
                 if key == "fanart": WINDOW.setProperty(windowProp, value)
                 else: WINDOW.setProperty(windowProp + "." + key, value)
             return True
         else:
-            logMsg("BackgroundsUpdater.setImageFromPath --> image array or cache empty so skipping this path until next restart - %s"%libPath)
-            self.tempBlacklist.add(libPath)
+            WINDOW.setProperty(windowProp, fallbackImage)
+            return False
             
-        WINDOW.setProperty(windowProp, fallbackImage)
-        return False
-
     def setPicturesBackground(self,windowProp):
         customPath = xbmc.getInfoLabel("skin.string(SkinHelper.CustomPicturesBackgroundPath)").decode("utf-8")
         images = []
@@ -321,134 +291,111 @@ class BackgroundsUpdater(threading.Thread):
             self.allBackgrounds[windowProp] = []
             self.lastPicturesPath = customPath
 
-        try:
-            #get images from cache
-            if self.allBackgrounds.has_key(windowProp):
-                images = self.allBackgrounds[windowProp]
+        #get images from cache
+        if self.allBackgrounds.has_key(windowProp):
+            images = self.allBackgrounds[windowProp]
+        else:
+            #load the pictures from the custom path or from all picture sources
+            if customPath:
+                #load images from custom path
+                dirs, files = xbmcvfs.listdir(customPath)
+                #pick all images from path
+                for file in files:
+                    if file.lower().endswith(".jpg") or file.lower().endswith(".png"):
+                        image = os.path.join(customPath,file.decode("utf-8"))
+                        images.append({"fanart": image, "title": file.decode("utf-8")})
             else:
-                #load the pictures from the custom path or from all picture sources
-                if customPath:
-                    #load images from custom path
-                    dirs, files = xbmcvfs.listdir(customPath)
-                    #pick all images from path
-                    for file in files:
-                        if file.lower().endswith(".jpg") or file.lower().endswith(".png"):
-                            image = os.path.join(customPath,file.decode("utf-8"))
-                            images.append({"fanart": image, "title": file.decode("utf-8")})
-                else:
-                    #load pictures from all sources
-                    media_array = getJSON('Files.GetSources','{"media": "pictures"}')
-                    for source in media_array:
-                        if source.has_key('file'):
-                            if not "plugin://" in source["file"]:
-                                dirs, files = xbmcvfs.listdir(source["file"])
-                                if dirs:
-                                    #pick 10 random dirs
-                                    randomdirs = []
-                                    randomdirs.append(os.path.join(source["file"],random.choice(dirs).decode("utf-8","ignore")))
-                                    randomdirs.append(os.path.join(source["file"],random.choice(dirs).decode("utf-8","ignore")))
-                                    randomdirs.append(os.path.join(source["file"],random.choice(dirs).decode("utf-8","ignore")))
-                                    randomdirs.append(os.path.join(source["file"],random.choice(dirs).decode("utf-8","ignore")))
-                                    randomdirs.append(os.path.join(source["file"],random.choice(dirs).decode("utf-8","ignore")))
-                                    randomdirs.append(os.path.join(source["file"],random.choice(dirs).decode("utf-8","ignore")))
-                                    randomdirs.append(os.path.join(source["file"],random.choice(dirs).decode("utf-8","ignore")))
-                                    randomdirs.append(os.path.join(source["file"],random.choice(dirs).decode("utf-8","ignore")))
-                                    randomdirs.append(os.path.join(source["file"],random.choice(dirs).decode("utf-8","ignore")))
-                                    randomdirs.append(os.path.join(source["file"],random.choice(dirs).decode("utf-8","ignore")))
-                                    
-                                    #pick 5 images from each dir
-                                    for dir in randomdirs:
-                                        subdirs, files2 = xbmcvfs.listdir(dir)
-                                        count = 0
-                                        for file in files2:
-                                            if ((file.endswith(".jpg") or file.endswith(".png") or file.endswith(".JPG") or file.endswith(".PNG")) and count < 5):
-                                                image = os.path.join(dir,file.decode("utf-8","ignore"))
-                                                images.append({"fanart": image, "title": file})
-                                                count += 1
-                                if files:
-                                    #pick 10 images from root
+                #load pictures from all sources
+                media_array = getJSON('Files.GetSources','{"media": "pictures"}')
+                for source in media_array:
+                    if source.has_key('file'):
+                        if not "plugin://" in source["file"]:
+                            dirs, files = xbmcvfs.listdir(source["file"])
+                            if dirs:
+                                #pick 10 random dirs
+                                randomdirs = []
+                                randomdirs.append(os.path.join(source["file"],random.choice(dirs).decode("utf-8","ignore")))
+                                randomdirs.append(os.path.join(source["file"],random.choice(dirs).decode("utf-8","ignore")))
+                                randomdirs.append(os.path.join(source["file"],random.choice(dirs).decode("utf-8","ignore")))
+                                randomdirs.append(os.path.join(source["file"],random.choice(dirs).decode("utf-8","ignore")))
+                                randomdirs.append(os.path.join(source["file"],random.choice(dirs).decode("utf-8","ignore")))
+                                randomdirs.append(os.path.join(source["file"],random.choice(dirs).decode("utf-8","ignore")))
+                                randomdirs.append(os.path.join(source["file"],random.choice(dirs).decode("utf-8","ignore")))
+                                randomdirs.append(os.path.join(source["file"],random.choice(dirs).decode("utf-8","ignore")))
+                                randomdirs.append(os.path.join(source["file"],random.choice(dirs).decode("utf-8","ignore")))
+                                randomdirs.append(os.path.join(source["file"],random.choice(dirs).decode("utf-8","ignore")))
+                                
+                                #pick 5 images from each dir
+                                for dir in randomdirs:
+                                    subdirs, files2 = xbmcvfs.listdir(dir)
                                     count = 0
-                                    for file in files:
-                                        if ((file.endswith(".jpg") or file.endswith(".png") or file.endswith(".JPG") or file.endswith(".PNG")) and count < 10):
-                                            image = os.path.join(source["file"],file.decode("utf-8","ignore"))
+                                    for file in files2:
+                                        if ((file.endswith(".jpg") or file.endswith(".png") or file.endswith(".JPG") or file.endswith(".PNG")) and count < 5):
+                                            image = os.path.join(dir,file.decode("utf-8","ignore"))
                                             images.append({"fanart": image, "title": file})
                                             count += 1
-                
-                #store images in the cache
-                self.allBackgrounds[windowProp] = images
-                
-            # return a random image
-            if images:
-                random.shuffle(images)
-                image = images[0]
-                for key, value in image.iteritems():
-                    if key == "fanart": WINDOW.setProperty(windowProp, value)
-                    else: WINDOW.setProperty(windowProp + "." + key, value)
-
-        #if something fails, return None
-        except:
-            logMsg("exception occured in getPicturesBackground.... ",0)           
-    
+                            if files:
+                                #pick 10 images from root
+                                count = 0
+                                for file in files:
+                                    if ((file.endswith(".jpg") or file.endswith(".png") or file.endswith(".JPG") or file.endswith(".PNG")) and count < 10):
+                                        image = os.path.join(source["file"],file.decode("utf-8","ignore"))
+                                        images.append({"fanart": image, "title": file})
+                                        count += 1
+            
+            #store images in the cache
+            self.allBackgrounds[windowProp] = images
+            
+        # return a random image
+        if images:
+            random.shuffle(images)
+            image = images[0]
+            for key, value in image.iteritems():
+                if key == "fanart": WINDOW.setProperty(windowProp, value)
+                else: WINDOW.setProperty(windowProp + "." + key, value)
+       
     def setPvrBackground(self,windowProp):
-        try:
-            if (self.allBackgrounds.has_key(windowProp)):
-                #get random image from our global cache file
-                if self.allBackgrounds[windowProp]:
-                    image = random.choice(self.allBackgrounds[windowProp])
-                    if image:
-                        for key, value in image.iteritems():
-                            if key == "fanart": WINDOW.setProperty(windowProp, value)
-                            else: WINDOW.setProperty(windowProp + "." + key, value)
-                    return True 
-            else:
-                images = []
-                import ArtworkUtils as artutils
-                if not WINDOW.getProperty("SkinHelper.pvrthumbspath"): setAddonsettings()
-                customlookuppath = WINDOW.getProperty("SkinHelper.customlookuppath").decode("utf-8")
-                pvrthumbspath = WINDOW.getProperty("SkinHelper.pvrthumbspath").decode("utf-8")
-                paths = [customlookuppath, pvrthumbspath]
-                for path in paths:
-                    dirs, files = xbmcvfs.listdir(path)
-                    for dir in dirs:
-                        dir = try_decode(dir)
-                        thumbdir = os.path.join(path,dir)
-                        dirs2, files2 = xbmcvfs.listdir(thumbdir)
-                        for file in files2:
-                            if "pvrdetails.xml" in file:
+        images = []
+        #get pvr images from cache first
+        if (self.allBackgrounds.has_key(windowProp)):
+            images = self.allBackgrounds[windowProp]
+        else:
+            images = []
+            if not WINDOW.getProperty("SkinHelper.pvrthumbspath"): setAddonsettings()
+            customlookuppath = WINDOW.getProperty("SkinHelper.customlookuppath").decode("utf-8")
+            pvrthumbspath = WINDOW.getProperty("SkinHelper.pvrthumbspath").decode("utf-8")
+            paths = [customlookuppath, pvrthumbspath]
+            for path in paths:
+                dirs, files = xbmcvfs.listdir(path)
+                for dir in dirs:
+                    dir = try_decode(dir)
+                    thumbdir = os.path.join(path,dir)
+                    dirs2, files2 = xbmcvfs.listdir(thumbdir)
+                    for file in files2:
+                        if "pvrdetails.xml" in file:
+                            artwork = artutils.getArtworkFromCacheFile(os.path.join(thumbdir,"pvrdetails.xml"))
+                            fanart = getCleanImage(artwork.get("fanart",""))
+                            if fanart and xbmcvfs.exists(fanart): images.append({"fanart": fanart, "title": artwork.get("title",""), "landscape": artwork.get("landscape",""), "poster": artwork.get("poster","")})
+                            del artwork
+                    for dir2 in dirs2:
+                        thumbdir = os.path.join(dir,dir2.decode("utf-8"))
+                        dirs3, files3 = xbmcvfs.listdir(thumbdir)
+                        for file in files3:
+                           if "pvrdetails.xml" in file:
                                 artwork = artutils.getArtworkFromCacheFile(os.path.join(thumbdir,"pvrdetails.xml"))
                                 fanart = getCleanImage(artwork.get("fanart",""))
                                 if fanart and xbmcvfs.exists(fanart): images.append({"fanart": fanart, "title": artwork.get("title",""), "landscape": artwork.get("landscape",""), "poster": artwork.get("poster","")})
                                 del artwork
-                        for dir2 in dirs2:
-                            thumbdir = os.path.join(dir,dir2.decode("utf-8"))
-                            dirs3, files3 = xbmcvfs.listdir(thumbdir)
-                            for file in files3:
-                               if "pvrdetails.xml" in file:
-                                    artwork = artutils.getArtworkFromCacheFile(os.path.join(thumbdir,"pvrdetails.xml"))
-                                    fanart = getCleanImage(artwork.get("fanart",""))
-                                    if fanart and xbmcvfs.exists(fanart): images.append({"fanart": fanart, "title": artwork.get("title",""), "landscape": artwork.get("landscape",""), "poster": artwork.get("poster","")})
-                                    del artwork
-                del artutils
-                    
-                #store images in the cache
-                self.allBackgrounds[windowProp] = images
                 
-                # return a random image
-                if images != []:
-                    random.shuffle(images)
-                    image = images[0]
-                    if image:
-                        for key, value in image.iteritems():
-                            if key == "fanart": WINDOW.setProperty(windowProp, value)
-                            else: WINDOW.setProperty(windowProp + "." + key, value)
-                    return True
-                else:
-                    logMsg("BackgroundsUpdater.setPvrBackground --> pvrfanart empty so skipping pvrfanart background untill next restart",0)
-                    return True
-        #if something fails, return None
-        except:
-            logMsg("exception occured in getPvrBackground.... ",0)
-            return False            
+            #store images in the cache
+            self.allBackgrounds[windowProp] = images
+            
+        # return a random image
+        if images:
+            image = random.choice(images)
+            for key, value in image.iteritems():
+                if key == "fanart": WINDOW.setProperty(windowProp, value)
+                else: WINDOW.setProperty(windowProp + "." + key, value)      
             
     def setGlobalBackground(self, windowProp, keys=[], fallbackImage=""):
         #gets a random background from multiple other collections
@@ -493,26 +440,26 @@ class BackgroundsUpdater(threading.Thread):
         
         #all music
         if xbmc.getCondVisibility("Library.HasContent(music)"):
-            self.setImageFromPath("SkinHelper.AllMusicBackground","musicdb://artists/")
-            self.setImageFromPath("SkinHelper.AllMusicSongsBackground","musicdb://songs/")
-            self.setImageFromPath("SkinHelper.RecentMusicBackground","SkinHelper.RecentMusicBackground","",['AudioLibrary.GetRecentlyAddedAlbums','{ "properties": ["title","fanart"], "limits": {"end":50} }'])
+            self.setImageFromPath("SkinHelper.AllMusicBackground","SkinHelper.AllMusicBackground","",['AudioLibrary.GetArtists','{ "properties": ["fanart","thumbnail"], "limits": {"end":250}, "sort": { "order": "ascending", "method": "random" } }'])
+            self.setImageFromPath("SkinHelper.AllMusicSongsBackground","SkinHelper.AllMusicSongsBackground","",['AudioLibrary.GetSongs','{ "properties": ["title","fanart","artist","album","thumbnail"], "limits": {"end":250}, "sort": { "order": "ascending", "method": "random" } }'])
+            self.setImageFromPath("SkinHelper.RecentMusicBackground","SkinHelper.RecentMusicBackground","",['AudioLibrary.GetRecentlyAddedAlbums','{ "properties": ["title","fanart","artist","thumbnail"], "limits": {"end":50} }'])
         
         #tmdb backgrounds (extendedinfo)
         if xbmc.getCondVisibility("System.HasAddon(script.extendedinfo)"):
             self.setImageFromPath("SkinHelper.TopRatedMovies","plugin://script.extendedinfo/?info=topratedmovies")
             self.setImageFromPath("SkinHelper.TopRatedShows","plugin://script.extendedinfo/?info=topratedtvshows")
         
+        #pictures background
+        self.setPicturesBackground("SkinHelper.PicturesBackground")
+        
+        #pvr background 
+        self.setPvrBackground("SkinHelper.PvrBackground")
+        
         #global backgrounds
         self.setGlobalBackground("SkinHelper.GlobalFanartBackground")
         self.setGlobalBackground("SkinHelper.AllVideosBackground", [ "SkinHelper.AllMoviesBackground", "SkinHelper.AllTvShowsBackground", "SkinHelper.AllMusicVideosBackground" ])
         self.setGlobalBackground("SkinHelper.RecentVideosBackground", [ "SkinHelper.RecentMoviesBackground", "SkinHelper.RecentEpisodesBackground" ])
         self.setGlobalBackground("SkinHelper.InProgressVideosBackground", [ "SkinHelper.InProgressMoviesBackground", "SkinHelper.InProgressShowsBackground" ])
-
-        #pictures background
-        picturesbg = self.setPicturesBackground("SkinHelper.PicturesBackground")
-        
-        #pvr background 
-        pvrbackground = self.setPvrBackground("SkinHelper.PvrBackground")
             
         #wall backgrounds
         self.setWallImageFromPath("SkinHelper.AllMoviesBackground.Wall","SkinHelper.AllMoviesBackground")
