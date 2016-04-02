@@ -916,7 +916,7 @@ def getImdbTop250():
                     if a:
                         url = a.get("href","")
                         imdb_id = url.split("/")[2]
-                        imdb_rank = url.split("chttp_tt_")[1]
+                        imdb_rank = url.split("chttvtp_tt_")[1]
                         results[imdb_id] = imdb_rank
     return results
     

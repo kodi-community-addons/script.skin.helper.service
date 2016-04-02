@@ -83,6 +83,7 @@ Some additional window properties that can be used in the video library.
 |Window(Home).Property(SkinHelper.ListItemAllAudioStreams) | Will return a formatted list of all audiostreams for the current listitem separated by / |
 |Window(Home).Property(SkinHelper.ListItemVideoHeight) | Will return the height of the video stream for the current listitem |
 |Window(Home).Property(SkinHelper.ListItemVideoWidth) | Will return the width of the video stream for the current listitem |
+|Window(Home).Property(SkinHelper.ListItemTags) | Will return all tags for the selected movie, separated by / |
 |Window(Home).Property(SkinHelper.RottenTomatoesRating) | rotten tomatoes rating |
 |Window(Home).Property(SkinHelper.RottenTomatoesMeter) | rotten tomatoes meter |
 |Window(Home).Property(SkinHelper.RottenTomatoesFresh) | rotten tomatoes fresh count |
