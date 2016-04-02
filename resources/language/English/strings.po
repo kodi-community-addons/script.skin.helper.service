@@ -723,3 +723,31 @@ msgstr ""
 msgctxt "#32176"
 msgid "Browse for image..."
 msgstr ""
+
+msgctxt "#32177"
+msgid "Custom folder with music artwork"
+msgstr ""
+
+msgctxt "#32178"
+msgid "Lookup artwork in custom folder"
+msgstr ""
+
+msgctxt "#32179"
+msgid "Contextmenu"
+msgstr ""
+
+msgctxt "#32180"
+msgid "Show contextmenu for music artwork"
+msgstr ""
+
+msgctxt "#32181"
+msgid "Show contextmenu for pvr artwork"
+msgstr ""
+
+msgctxt "#32182"
+msgid "Show contextmenu for animated artwork"
+msgstr ""
+
+msgctxt "#32183"
+msgid "Show series-level button in contextmenu"
+msgstr ""

@@ -198,6 +198,17 @@ def setAddonsettings():
     WINDOW.setProperty("SkinHelper.enableWidgetsArtworkLookups",SETTING("enableWidgetsArtworkLookups"))
     WINDOW.setProperty("SkinHelper.enableSpecialsInWidgets",SETTING("enableSpecialsInWidgets"))
     WINDOW.setProperty("SkinHelper.enableWidgetsAlbumBrowse",SETTING("enableWidgetsAlbumBrowse"))
+    if SETTING("enableCustomMusicArtLookup") == "true": WINDOW.setProperty("SkinHelper.custommusiclookuppath",SETTING("custommusiclookuppath"))
+    else: WINDOW.clearProperty("SkinHelper.custommusiclookuppath")
+    if SETTING("enablecontextmenu_music") == "true": WINDOW.setProperty("SkinHelper.enablecontextmenu_music","enable")
+    else: WINDOW.clearProperty("SkinHelper.enablecontextmenu_music")
+    if SETTING("enablecontextmenu_pvr") == "true": WINDOW.setProperty("SkinHelper.enablecontextmenu_pvr","enable")
+    else: WINDOW.clearProperty("SkinHelper.enablecontextmenu_pvr")
+    if SETTING("enablecontextmenu_animatedart") == "true": WINDOW.setProperty("SkinHelper.enablecontextmenu_animatedart","enable")
+    else: WINDOW.clearProperty("SkinHelper.enablecontextmenu_animatedart")
+    if SETTING("enablecontextmenu_series") == "true": WINDOW.setProperty("SkinHelper.enablecontextmenu_series","enable")
+    else: WINDOW.clearProperty("SkinHelper.enablecontextmenu_series")
+        
     
 def indentXML( elem, level=0 ):
     i = "\n" + level*"\t"

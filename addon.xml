@@ -10,36 +10,34 @@
 	</requires>
 	
     <extension point="xbmc.python.library" library="default.py" />
-	<extension point="xbmc.python.pluginsource" library="plugin.py">
-		<provides>video audio</provides>
-	</extension>
+	<extension point="xbmc.python.pluginsource" library="plugin.py" />
 	<extension library="service.py" point="xbmc.service" start="login" />
 	<extension point="kodi.context.item" library="resources\lib\ContextMenu_serieslevel.py">
 		<item>
 			<label>32072</label>
             <description>Display Series level button in next/recent/in progress episodes listings</description>
-			<visible>Container.Content(episodes) + !StringCompare(Container.ListItem(0).TvShowTitle,Container.ListItem(1).TvShowTitle)</visible>
+			<visible>!IsEmpty(Window(Home).Property(SkinHelper.enablecontextmenu_series)) + Container.Content(episodes) + !StringCompare(Container.ListItem(0).TvShowTitle,Container.ListItem(1).TvShowTitle)</visible>
 		</item>
 	</extension>
     <extension point="kodi.context.item" library="resources\lib\ContextMenu_pvr.py">
 		<item>
 			<label>32120</label>
             <description>PVR artwork Configuration</description>
-            <visible>[Window.IsActive(MyPVRChannels.xml) | Window.IsActive(MyPVRGuide.xml) | Window.IsActive(MyPVRRecordings.xml) | Window.IsActive(MyPVRTimers.xml) | Window.IsActive(MyPVRSearch.xml)] + Skin.HasSetting(SkinHelper.EnablePVRThumbs)</visible>
+            <visible>!IsEmpty(Window(Home).Property(SkinHelper.enablecontextmenu_pvr)) + [Window.IsActive(MyPVRChannels.xml) | Window.IsActive(MyPVRGuide.xml) | Window.IsActive(MyPVRRecordings.xml) | Window.IsActive(MyPVRTimers.xml) | Window.IsActive(MyPVRSearch.xml)] + Skin.HasSetting(SkinHelper.EnablePVRThumbs)</visible>
 		</item>
 	</extension>
     <extension point="kodi.context.item" library="resources\lib\ContextMenu_music.py">
 		<item>
 			<label>32122</label>
             <description>Music artwork Configuration</description>
-            <visible>[Container.Content(albums) | Container.Content(artists) | Container.Content(songs)]</visible>
+            <visible>!IsEmpty(Window(Home).Property(SkinHelper.enablecontextmenu_music)) + [Container.Content(albums) | Container.Content(artists) | Container.Content(songs)]</visible>
 		</item>
 	</extension>
     <extension point="kodi.context.item" library="resources\lib\ContextMenu_animatedart.py">
 		<item>
 			<label>32175</label>
             <description>Animated artwork Configuration</description>
-            <visible>[Container.Content(movies) + Skin.HasSetting(SkinHelper.EnableAnimatedPosters) + !IsEmpty(ListItem.IMDBNumber)]</visible>
+            <visible>!IsEmpty(Window(Home).Property(SkinHelper.enablecontextmenu_animatedart)) + [Container.Content(movies) + Skin.HasSetting(SkinHelper.EnableAnimatedPosters) + !IsEmpty(ListItem.IMDBNumber)]</visible>
 		</item>
 	</extension>
 	<extension point="xbmc.addon.metadata">

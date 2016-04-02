@@ -1181,6 +1181,7 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
     downloadMusicArt = WINDOW.getProperty("SkinHelper.downloadMusicArt") == "true"
     allowoverwrite = WINDOW.getProperty("SkinHelper.preferOnlineMusicArt") == "true"
     enableLocalMusicArtLookup = WINDOW.getProperty("SkinHelper.enableLocalMusicArtLookup") == "true"
+    custommusiclookuppath = WINDOW.getProperty("SkinHelper.custommusiclookuppath").decode("utf-8")
 
     ############# ALBUM DETAILS #########################
     if artistName and albumName:
@@ -1299,14 +1300,39 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
             if not albumartwork.get("albumname"): albumartwork["albumname"] = albumName
             if isinstance(artistartwork.get("musicbrainzartistid",""), list):
                 artistartwork["musicbrainzartistid"] = artistartwork["musicbrainzartistid"][0]
-        
+            
+            #LOOKUP ART IN CUSTOM FOLDER
+            if custommusiclookuppath and (not artistCacheFound or (albumName and not albumCacheFound)):
+                if "\\" in custommusiclookuppath: delim = "\\"
+                else: delim = "/"
+                artistpath = os.path.join(custommusiclookuppath, normalize_string(artistName)+delim)
+                if xbmcvfs.exists(artistpath):
+                    #lookup local artist artwork
+                    artistartwork["custompath"] = artistpath
+                    for artType in KodiArtTypes:
+                        artpath = os.path.join(artistpath,artType[1])
+                        if xbmcvfs.exists(artpath) and not artistartwork.get(artType[0]):
+                            artistartwork[artType[0]] = artpath
+                            logMsg("getMusicArtwork - %s found on disk for %s" %(artType[0],artistName))
+                    #lookup local album artwork
+                    if albumName:
+                        albumpath = os.path.join(artistpath,normalize_string(albumName)+delim)
+                        if xbmcvfs.exists(albumpath):
+                            albumartwork["custompath"] = albumpath
+                            #lookup existing artwork in the paths
+                            for artType in KodiArtTypes:
+                                artpath = os.path.join(albumpath,artType[1])
+                                if xbmcvfs.exists(artpath) and not albumartwork.get(artType[0]):
+                                    albumartwork[artType[0]] = artpath
+                                    logMsg("getMusicArtwork - %s found on disk for %s" %(artType[0],albumName))
+                else: artistpath = ""
+            
+            
             #LOOKUP LOCAL ARTWORK PATH PASED ON SONG FILE PATH
             if path and enableLocalMusicArtLookup and (not artistCacheFound or (albumName and not albumCacheFound)) and localArtistMatch:
                 #only use existing path if the artistname is actually in the path 
-                if "\\" in path:
-                    delim = "\\"
-                else:
-                    delim = "/"
+                if "\\" in path: delim = "\\"
+                else: delim = "/"
                 pathparts = path.split(delim)
                 if len(pathparts) > 2:
                     foldername = path.split(delim)[-2].lower()
