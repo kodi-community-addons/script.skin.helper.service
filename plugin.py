@@ -97,7 +97,7 @@ class Main:
 
         else:
             #do plugin main listing...
-            plugincontent.doMainListing(params.get("content_type",[""])[0])
+            plugincontent.doMainListing()
 
 if (__name__ == "__main__"):
     try:

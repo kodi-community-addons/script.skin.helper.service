@@ -15,15 +15,16 @@ class Main:
         #extract the params from the called script path
         params = {}
         for arg in sys.argv:
+            arg = arg.decode("utf-8")
             if arg == 'script.skin.helper.service' or arg == 'default.py':
                 continue
-            arg = arg.replace('"', '').replace("'", " ").replace("?", "")
-            if "=" in arg:
-                paramname = arg.split('=')[0].upper()
-                paramvalue = arg.split('=')[1]
+            elif "=" in arg:
+                paramname = arg.split('=')[0]
+                paramvalue = arg.replace(paramname+"=","")
                 params[paramname] = paramvalue
+                params[paramname.upper()] = paramvalue
         
-        utils.logMsg("Parameter string: " + str(params))
+        utils.logMsg("Parameter string: " + str(params),0)
         return params
     
     def __init__(self):
