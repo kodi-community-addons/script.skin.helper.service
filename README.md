@@ -804,6 +804,14 @@ If the file exists, the result will be written as EXISTS in the property or skin
 ________________________________________________________________________________________________________
 
 
+#### Get percentage of 2 values
+```
+RunScript(script.skin.helper.service,action=getpercentage,count=[count value],total=[total items],skinstring=[skin string to write the result],roundsteps=[optional: round to specific steps])
+```
+This command will allow you to get a percentage of 2 numbers. The result is (rounded without decimals) written to a skin string.
+If you want the result to be rounded in blocks (e.g. ), you can provide the optional roundsteps parameter
+________________________________________________________________________________________________________
+
 
 
 #### Set skin setting

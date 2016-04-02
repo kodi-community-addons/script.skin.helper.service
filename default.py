@@ -302,7 +302,19 @@ class Main:
             elif action == "CHECKRESOURCEADDONS":
                 ADDONSLIST = params.get("ADDONSLIST")
                 mainmodule.checkResourceAddons(ADDONSLIST)
-
+                
+            elif action == "GETPERCENTAGE":
+                total = int(params.get("TOTAL"))
+                count = int(params.get("COUNT"))
+                roundsteps = params.get("ROUNDSTEPS")
+                skinstring = params.get("SKINSTRING")
+                
+                percentage = int(round((1.0 * count / total) * 100))
+                if roundsteps:
+                    roundsteps = int(roundsteps)
+                    percentage = percentage + (roundsteps - percentage) % roundsteps
+                
+                xbmc.executebuiltin("Skin.SetString(%s,%s)" %(skinstring,percentage))    
 
 
 if (__name__ == "__main__"):
