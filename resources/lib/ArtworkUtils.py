@@ -118,8 +118,12 @@ def getPVRThumbs(title,channel,type="channels",path="",genre="",year="",ignoreCa
                         artwork["plot"] = item["plot"]
                         break
             
+            #delete existing files on disk (only at default location)
+            if manualLookup and pvrThumbPath.startswith(WINDOW.getProperty("SkinHelper.pvrthumbspath").decode("utf-8")):
+                recursiveDelete(pvrThumbPath)
+            
             #lookup existing artwork in pvrthumbs paths
-            if xbmcvfs.exists(pvrThumbPath):
+            if xbmcvfs.exists(pvrThumbPath) and not ("special" in pvrThumbPath and manualLookup):
                 logMsg("thumbspath found on disk for " + title)
                 for artType in KodiArtTypes:
                     artpath = os.path.join(pvrThumbPath,artType[1])
@@ -342,11 +346,8 @@ def getfanartTVimages(type,id,artwork=None,allowoverwrite=True):
         return artwork
     if response and response.content and response.status_code == 200:
         data = json.loads(response.content.decode('utf-8','replace'))
-    elif response and response.status_code == 404:
-        #not found 
-        return artwork
     else:
-        logMsg("get fanart.tv images FAILED for type: %s - id: %s  - statuscode: %s" %(type,id,response.status_code))
+        #not found
         return artwork
     if data:
         if type == "album" and data.has_key("albums"):
@@ -885,11 +886,28 @@ def getGoogleImages(terms,**kwargs):
     return results
 
 def getImdbTop250():
+    results = {}
+    #movie top250
     opener = urllib2.build_opener()
     opener.addheaders = [('User-agent', 'Mozilla/5.0')]
     html = opener.open("http://www.imdb.com/chart/top").read()
     soup = BeautifulSoup.BeautifulSoup(html)
-    results = {}
+    for table in soup.findAll('table'):
+        if table.get("class") == "chart full-width":
+            for td in table.findAll('td'):
+                if td.get("class") == "titleColumn":
+                    a = td.find("a")
+                    if a:
+                        url = a.get("href","")
+                        imdb_id = url.split("/")[2]
+                        imdb_rank = url.split("chttp_tt_")[1]
+                        results[imdb_id] = imdb_rank
+                        
+    #tvshows top250
+    opener = urllib2.build_opener()
+    opener.addheaders = [('User-agent', 'Mozilla/5.0')]
+    html = opener.open("http://www.imdb.com/chart/toptv").read()
+    soup = BeautifulSoup.BeautifulSoup(html)
     for table in soup.findAll('table'):
         if table.get("class") == "chart full-width":
             for td in table.findAll('td'):

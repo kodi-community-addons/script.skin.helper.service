@@ -101,7 +101,7 @@ Some additional window properties that can be used in the video library.
 |Window(Home).Property(SkinHelper.IMDB.Votes) | No. of votes for rating on IMDB |
 |Window(Home).Property(SkinHelper.IMDB.MPAA) | MPAA rating on IMDB |
 |Window(Home).Property(SkinHelper.IMDB.Runtime) | Runtime on IMDB |
-|Window(Home).Property(SkinHelper.IMDB.Top250) | Position of the movie in the IMDB Top250 |
+|Window(Home).Property(SkinHelper.IMDB.Top250) | Position of the movie or tvshow in the IMDB Top250 |
 |Window(Home).Property(SkinHelper.TMDB.Budget) | budget spent to this movie in dollars (from tmdb)|
 |Window(Home).Property(SkinHelper.TMDB.Budget.mln) | budget spent to this movie in millions of dollars|
 |Window(Home).Property(SkinHelper.TMDB.Budget.formatted) | Same as Budget.mln but formatted as $ 123 mln.|

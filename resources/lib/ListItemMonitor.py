@@ -192,6 +192,7 @@ class ListItemMonitor(threading.Thread):
                                     self.setStreamDetails()
                                     self.setMovieSetDetails()
                                     self.checkExtraFanArt()
+                                    self.setTop250Info()
                                 #nextaired workaround for info dialog
                                 if self.widgetContainerPrefix and xbmc.getCondVisibility("!IsEmpty(%sListItem.TvShowTitle) + System.HasAddon(script.tv.show.next.aired)" %self.widgetContainerPrefix):
                                     xbmc.executebuiltin("RunScript(script.tv.show.next.aired,tvshowtitle=%s)" %xbmc.getInfoLabel("%sListItem.TvShowTitle"%self.widgetContainerPrefix))
@@ -1081,7 +1082,13 @@ class ListItemMonitor(threading.Thread):
                     return
                 if image != "None":
                     WINDOW.setProperty("SkinHelper.Animated%s"%type,image)
-        
+    
+    def setTop250Info(self,liImdb=""):
+        if not liImdb: 
+            liImdb = self.liImdb
+        if liImdb:
+            WINDOW.setProperty("SkinHelper.IMDB.Top250",self.imdb_top250.get(liImdb,""))
+    
     def setExtendedMovieInfo(self,multiThreaded=False,liImdb=""):
         result = {}
         if not liImdb: liImdb = self.liImdb
@@ -1155,7 +1162,6 @@ class ListItemMonitor(threading.Thread):
                 WINDOW.setProperty("SkinHelper.IMDB.Rating",result.get('imdbRating',""))
                 WINDOW.setProperty("SkinHelper.IMDB.Votes",result.get('imdbVotes',""))
                 WINDOW.setProperty("SkinHelper.IMDB.MPAA",result.get('Rated',""))
-                WINDOW.setProperty("SkinHelper.IMDB.Top250",self.imdb_top250.get(liImdb,""))
                 WINDOW.setProperty("SkinHelper.IMDB.Runtime",result.get('Runtime',""))
                 WINDOW.setProperty("SkinHelper.TMDB.Budget",result.get('budget',""))
                 WINDOW.setProperty("SkinHelper.TMDB.Budget.formatted",result.get('budget.formatted',""))
@@ -1201,4 +1207,5 @@ class ListItemMonitor(threading.Thread):
         if (self.contentType == "movies" or self.contentType == "setmovies") and artwork.get("imdb_id"):
             self.setExtendedMovieInfo(False,artwork.get("imdb_id"))
             self.setAnimatedPoster(False,artwork.get("imdb_id"))
+        self.setTop250Info(artwork.get("imdb_id"))
     

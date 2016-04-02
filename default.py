@@ -24,7 +24,7 @@ class Main:
                 params[paramname] = paramvalue
                 params[paramname.upper()] = paramvalue
         
-        utils.logMsg("Parameter string: " + str(params),0)
+        utils.logMsg("Parameter string: " + str(params))
         return params
     
     def __init__(self):
