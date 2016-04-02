@@ -237,11 +237,6 @@ class ListItemMonitor(threading.Thread):
                     self.pvrArtCache = {}
                     WINDOW.clearProperty("SkinHelper.PVR.ArtWork")
                     WINDOW.clearProperty("resetPvrArtCache")
-                    
-                #flush cache if extendedinfo has changed
-                if WINDOW.getProperty("resetExtendedInfoCache") == "reset":
-                    self.extendedinfocache = {}
-                    WINDOW.clearProperty("resetExtendedInfoCache")
                 
                 #flush cache if musiclibrary has changed
                 if WINDOW.getProperty("resetMusicArtCache") == "reset":
@@ -403,6 +398,8 @@ class ListItemMonitor(threading.Thread):
         WINDOW.clearProperty('SkinHelper.ListItemAudioStreams.Count')
         WINDOW.clearProperty('SkinHelper.ListItemGenres')
         WINDOW.clearProperty('SkinHelper.ListItemDirectors')
+        WINDOW.clearProperty('SkinHelper.ListItemVideoHeight')
+        WINDOW.clearProperty('SkinHelper.ListItemVideoWidth')
         WINDOW.clearProperty("SkinHelper.ExtraFanArtPath")
         WINDOW.clearProperty("SkinHelper.Music.Banner") 
         WINDOW.clearProperty("SkinHelper.Music.ClearLogo") 
@@ -449,23 +446,32 @@ class ListItemMonitor(threading.Thread):
         WINDOW.clearProperty('SkinHelper.RottenTomatoesMeter')
         WINDOW.clearProperty('SkinHelper.RottenTomatoesRating')
         WINDOW.clearProperty('SkinHelper.RottenTomatoesAudienceRating')
+        WINDOW.clearProperty('SkinHelper.RottenTomatoesAudienceReviews')
+        WINDOW.clearProperty('SkinHelper.RottenTomatoesAudienceMeter')
         WINDOW.clearProperty('SkinHelper.RottenTomatoesConsensus')
         WINDOW.clearProperty('SkinHelper.RottenTomatoesAwards')
         WINDOW.clearProperty('SkinHelper.RottenTomatoesBoxOffice')
         WINDOW.clearProperty('SkinHelper.RottenTomatoesFresh')
         WINDOW.clearProperty('SkinHelper.RottenTomatoesRotten')
         WINDOW.clearProperty('SkinHelper.RottenTomatoesImage')
-        WINDOW.clearProperty('SkinHelper.RottenTomatoesAudienceMeter')
+        WINDOW.clearProperty('SkinHelper.RottenTomatoesReviews')
         WINDOW.clearProperty('SkinHelper.RottenTomatoesDVDRelease')
         WINDOW.clearProperty('SkinHelper.MetaCritic.Rating')
         WINDOW.clearProperty('SkinHelper.IMDB.Rating')
         WINDOW.clearProperty('SkinHelper.IMDB.Votes')
+        WINDOW.clearProperty('SkinHelper.IMDB.MPAA')
+        WINDOW.clearProperty('SkinHelper.IMDB.Runtime')
+        WINDOW.clearProperty('SkinHelper.IMDB.Top250')
         WINDOW.clearProperty('SkinHelper.TMDB.Budget')
         WINDOW.clearProperty('SkinHelper.Budget.formatted')
         WINDOW.clearProperty('SkinHelper.TMDB.Budget.mln')
-        WINDOW.clearProperty('SkinHelper.TMDB.Budget.mln')
-        WINDOW.clearProperty('SkinHelper.TMDB.Budget.mln')
-        WINDOW.clearProperty('SkinHelper.TMDB.Budget.mln')
+        WINDOW.clearProperty('SkinHelper.TMDB.Revenue')
+        WINDOW.clearProperty('SkinHelper.TMDB.Revenue.mln')
+        WINDOW.clearProperty('SkinHelper.TMDB.Revenue.formatted')
+        WINDOW.clearProperty('SkinHelper.TMDB.Tagline')
+        WINDOW.clearProperty('SkinHelper.TMDB.Homepage')
+        WINDOW.clearProperty('SkinHelper.TMDB.Status')
+        WINDOW.clearProperty('SkinHelper.TMDB.Popularity')
         WINDOW.clearProperty('SkinHelper.AnimatedPoster')
         WINDOW.clearProperty('SkinHelper.AnimatedFanart')
         
@@ -708,7 +714,7 @@ class ListItemMonitor(threading.Thread):
         WINDOW.setProperty('SkinHelper.ListItemDirectors', "[CR]".join(directors))
        
     def setPVRThumbs(self, multiThreaded=False):
-                
+        if WINDOW.getProperty("artworkcontextmenu"): return        
         title = self.liTitle
         channel = xbmc.getInfoLabel("%sListItem.ChannelName"%self.widgetContainerPrefix).decode('utf-8')
         #path = self.liFile
@@ -861,17 +867,17 @@ class ListItemMonitor(threading.Thread):
                                 title = json_result.get("title").split(splitchar)[1]
                     logMsg("setMusicPlayerDetails: " + repr(json_result))
         
-        cacheId = artist+album+title
+        cacheId = artist+album+title + "SkinHelper.Music.Art"
         #get the items from cache first
-        if self.musicArtCache.has_key(cacheId + "SkinHelper.Music.Art"):
-            artwork = self.musicArtCache[cacheId + "SkinHelper.Music.Art"]
+        if self.musicArtCache.has_key(cacheId):
+            artwork = self.musicArtCache[cacheId]
             logMsg("setMusicPlayerDetails FOUND CACHE FOR  artist: %s - album: %s - title: %s "%(artist,album,title))
         else:
             logMsg("setMusicPlayerDetails CACHE NOT FOUND FOR  artist: %s - album: %s - title: %s "%(artist,album,title))
             artwork = artutils.getMusicArtwork(artist,album,title)
             if artwork.get("info") and xbmc.getInfoLabel("MusicPlayer.Comment"):
                 artwork["info"] = normalize_string(xbmc.getInfoLabel("MusicPlayer.Comment")).replace('\n', ' ').replace('\r', '').split(" a href")[0] + "  -  " + artwork["info"]
-            self.musicArtCache[cacheId + "SkinHelper.Music.Art"] = artwork
+            self.musicArtCache[cacheId] = artwork
 
         #set properties
         for key, value in artwork.iteritems():
@@ -879,18 +885,19 @@ class ListItemMonitor(threading.Thread):
     
     def setMusicDetails(self,multiThreaded=False):
         artwork = {}
+        if WINDOW.getProperty("artworkcontextmenu"): return
         artist = xbmc.getInfoLabel("%sListItem.Artist"%self.widgetContainerPrefix).decode('utf-8')
         album = xbmc.getInfoLabel("%sListItem.Album"%self.widgetContainerPrefix).decode('utf-8')
         title = self.liTitle
         label = self.liLabel
-        cacheId = artist+album
+        cacheId = artist+album+title + "SkinHelper.Music.Art"
         
         #get the items from cache first
-        if self.musicArtCache.has_key(cacheId + "SkinHelper.Music.Art"):
-            artwork = self.musicArtCache[cacheId + "SkinHelper.Music.Art"]
+        if self.musicArtCache.has_key(cacheId):
+            artwork = self.musicArtCache[cacheId]
         else:
             artwork = artutils.getMusicArtwork(artist,album,title)
-            self.musicArtCache[cacheId + "SkinHelper.Music.Art"] = artwork
+            self.musicArtCache[cacheId] = artwork
         
         #return if another listitem was focused in the meanwhile
         if multiThreaded and label != xbmc.getInfoLabel("%sListItem.Label"%self.widgetContainerPrefix).decode('utf-8'):
@@ -1065,19 +1072,15 @@ class ListItemMonitor(threading.Thread):
         if not liImdb: liImdb = self.liImdb
         if not xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnableAnimatedPosters)") or not liImdb:
             return
+        if WINDOW.getProperty("artworkcontextmenu"): return
         if (self.contentType == "movies" or self.contentType=="setmovies"):
             for type in ["poster","fanart"]:
-                #check cache first
-                cacheStr = "animatedartwork-%s-%s" %(type,liImdb)
-                if self.extendedinfocache.has_key(cacheStr):
-                    image = self.extendedinfocache[cacheStr]
-                else:
-                    image = artutils.getAnimatedArtwork(liImdb,type,self.liDbId)
-                    self.extendedinfocache[cacheStr] = image
+                image = artutils.getAnimatedArtwork(liImdb,type,self.liDbId)
                 #return if another listitem was focused in the meanwhile
                 if multiThreaded and not liImdb == self.liImdb:
                     return
-                WINDOW.setProperty("SkinHelper.Animated%s"%type,image)
+                if image != "None":
+                    WINDOW.setProperty("SkinHelper.Animated%s"%type,image)
         
     def setExtendedMovieInfo(self,multiThreaded=False,liImdb=""):
         result = {}

@@ -765,6 +765,9 @@ def getAnimatedPostersDb():
     return allItems
               
 def getAnimatedArtwork(imdbid,type="poster",dbid=None,manualHeader=""):
+    if manualHeader: 
+        xbmc.executebuiltin( "ActivateWindow(busydialog)" )
+    
     #get the item from cache first
     cacheStr = "SkinHelper.AnimatedArtwork.%s.%s" %(imdbid,type)
     cache = WINDOW.getProperty(cacheStr).decode('utf-8')
@@ -779,9 +782,8 @@ def getAnimatedArtwork(imdbid,type="poster",dbid=None,manualHeader=""):
         localfilenamenone = "special://thumbnails/animatedgifs/%s_%s.none" %(imdbid,type)
         if xbmcvfs.exists(localfilename) and not manualHeader:
             image = localfilename
-            if xbmcvfs.Stat(localfilename).st_size < 10: image = ""
         elif xbmcvfs.exists(localfilenamenone) and not manualHeader:
-            image = ""
+            image = "None"
         else:    
             #lookup in database
             all_artwork = getAnimatedPostersDb()
@@ -805,10 +807,12 @@ def getAnimatedArtwork(imdbid,type="poster",dbid=None,manualHeader=""):
                         imagesList.append(listitem)
                 import Dialogs as dialogs
                 w = dialogs.DialogSelectBig( "DialogSelect.xml", ADDON_PATH, listing=imagesList, windowtitle=manualHeader, multiselect=False )
+                xbmc.executebuiltin( "Dialog.Close(busydialog)" )
                 w.doModal()
                 selectedItem = w.result
+                xbmc.executebuiltin( "ActivateWindow(busydialog)" )
                 if selectedItem == 0:
-                    image = ""
+                    image = "None"
                 elif selectedItem == 1:
                     image = xbmcgui.Dialog().browse( 2 , ADDON.getLocalizedString(32176), 'files', mask='.gif')
                 elif selectedItem != -1:
@@ -822,7 +826,12 @@ def getAnimatedArtwork(imdbid,type="poster",dbid=None,manualHeader=""):
             #save to file
             xbmcvfs.delete(localfilename)
             xbmcvfs.delete(localfilenamenone)
-            if image:
+            if image == "None":
+                #write empty file to prevent recurring lookups
+                file =  xbmcvfs.File(localfilenamenone,"w")
+                file.write("")
+                file.close()
+            elif image:
                 try:
                     urllib.URLopener().retrieve(image.replace(".gif","_original.gif"), xbmc.translatePath(localfilename))
                 except:
@@ -831,20 +840,21 @@ def getAnimatedArtwork(imdbid,type="poster",dbid=None,manualHeader=""):
                     xbmcvfs.copy(image,localfilename)
                     xbmc.sleep(150)
                 image = localfilename
-            else:
-                #write empty file to prevent recurring lookups
-                file =  xbmcvfs.File(localfilenamenone,"w")
-                file.write("")
-                file.close()
             
             #save in kodi db
-            if dbid and image:
+            if dbid and image and image != "None":
                 setJSON('VideoLibrary.SetMovieDetails','{ "movieid": %i, "art": { "animated%s": "%s" } }'%(int(dbid),type,image))
-            elif dbid and not image:
+            elif dbid and image == "None":
                 setJSON('VideoLibrary.SetMovieDetails','{ "movieid": %i, "art": { "animated%s": null } }'%(int(dbid),type))
-                
+            
+            #set image to none if empty to prevent further lookups untill next restart
+            if not image: image = "None"
+            
             #save in window cache
             WINDOW.setProperty(cacheStr,image)
+            
+            if manualHeader: 
+                xbmc.executebuiltin( "Dialog.Close(busydialog)" )
     return image
     
 def getGoogleImages(terms,**kwargs):

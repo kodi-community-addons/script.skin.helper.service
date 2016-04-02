@@ -7,6 +7,7 @@ if __name__ == '__main__':
     
     #### Animated artwork #######
     logMsg("Context menu artwork settings for Animated artwork",0)
+    WINDOW.setProperty("artworkcontextmenu", "busy")
     options=[]
     options.append(ADDON.getLocalizedString(32173)) #animated poster
     options.append(ADDON.getLocalizedString(32174)) #animated fanart
@@ -19,11 +20,11 @@ if __name__ == '__main__':
     liImdb = xbmc.getInfoLabel("ListItem.IMDBNumber")
     liDbId = xbmc.getInfoLabel("ListItem.DBID")
     if liImdb and WINDOW.getProperty("contenttype") in ["movies","setmovies"]:
+        WINDOW.clearProperty("SkinHelper.Animated%s"%type)
         image = artworkutils.getAnimatedArtwork(liImdb,type,liDbId,options[ret])
-        WINDOW.setProperty("SkinHelper.Animated%s"%type,"DefaultMovieTitle.png")
-        xbmc.sleep(150)
-        WINDOW.setProperty("SkinHelper.Animated%s"%type,image)
-    WINDOW.setProperty("resetExtendedInfoCache", "reset")
-    xbmc.executebuiltin("Container.Refresh")
-    xbmcgui.Dialog().notification('Needs restart', 'Kodi restart might be needed to apply these changes', xbmcgui.NOTIFICATION_INFO, 5000)
-        
+        WINDOW.clearProperty("SkinHelper.Animated%s"%type)
+        if image != "None":
+            xbmc.sleep(150)
+            WINDOW.setProperty("SkinHelper.Animated%s"%type,image)
+    #xbmc.executebuiltin("Container.Refresh")
+    WINDOW.clearProperty("artworkcontextmenu")

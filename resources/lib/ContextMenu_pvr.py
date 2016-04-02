@@ -8,6 +8,7 @@ if __name__ == '__main__':
     ##### PVR Artwork ########
     artwork = {}
     logMsg("Context menu artwork settings for PVR artwork",0)
+    WINDOW.setProperty("artworkcontextmenu", "busy")
     options=[]
     options.append(ADDON.getLocalizedString(32144)) #Refresh item (auto lookup)
     options.append(ADDON.getLocalizedString(32145)) #Refresh item (manual lookup)
@@ -69,3 +70,4 @@ if __name__ == '__main__':
         #set new properties
         for key, value in artwork.iteritems():
             WINDOW.setProperty("SkinHelper.PVR." + key,value)
+    WINDOW.clearProperty("artworkcontextmenu")
