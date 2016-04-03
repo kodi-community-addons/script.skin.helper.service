@@ -1137,7 +1137,7 @@ def getCast(movie=None,tvshow=None,movieset=None,episode=None,downloadThumbs=Fal
             cachedataStr = xbmc.getInfoLabel("ListItem.Title")+xbmc.getInfoLabel("ListItem.FileNameAndPath")+str(downloadThumbs)
     except: pass
     
-    cachedata = WINDOW.getProperty(cachedataStr).decode("utf-8")
+    cachedata = WINDOW.getProperty(cachedataStr+"bla").decode("utf-8")
     if cachedata:
         #get data from cache
         allCast = eval(cachedata)
@@ -1164,19 +1164,17 @@ def getCast(movie=None,tvshow=None,movieset=None,episode=None,downloadThumbs=Fal
             if json_result and json_result[0].get("cast"): allCast = json_result[0].get("cast")
         elif movieset:
             moviesetmovies = []
-            if itemId:
-                json_result = getJSON('VideoLibrary.GetMovieSetDetails', '{ "setid": %d, "properties": [ "title" ] }' %itemId)
-                if json_result.has_key("movies"): moviesetmovies = json_result['movies']
-            elif not itemId:
+            if not itemId:
                 json_result = getJSON('VideoLibrary.GetMovieSets', '{ "properties": [ "title" ] }')
                 for result in json_result:
-                    if result.get("title") == movieset and result.get("movies"):
-                        moviesetmovies = result['movies']
+                    if result.get("title").lower() == movieset.lower():
+                        itemId = result['setid']
                         break
-            if moviesetmovies:
-                for setmovie in moviesetmovies:
-                    json_result = getJSON('VideoLibrary.GetMovieDetails', '{ "movieid": %d, "properties": [ "title", "cast" ] }' %setmovie["movieid"])
-                    if json_result and json_result.get("cast"): allCast += json_result.get("cast")
+            if itemId:
+                json_result = getJSON('VideoLibrary.GetMovieSetDetails', '{ "setid": %d, "movies": {"properties": [ "title","cast" ]} }' %itemId)
+                if json_result.has_key("movies"):
+                    for movie in json_result['movies']:
+                        allCast += movie['cast']
         
         #no item provided, try to grab the cast list from container 50 (dialogvideoinfo)
         elif not (movie or tvshow or episode or movieset) and xbmc.getCondVisibility("Window.IsActive(DialogVideoInfo.xml)"):
