@@ -241,7 +241,6 @@ def selectView(contenttype="other", currentView=None, displayNone=False):
         for count, view in enumerate(listing):
             label = xbmc.getLocalizedString(int(view.attributes[ 'languageid' ].nodeValue))
             id = view.attributes[ 'value' ].nodeValue
-            desc = label + " (" + str(id) + ")"
             type = view.attributes[ 'type' ].nodeValue.lower().split(",")
             if label.lower() == currentView.lower() or id == currentView:
                 currentViewSelectId = itemcount
@@ -249,7 +248,7 @@ def selectView(contenttype="other", currentView=None, displayNone=False):
                     currentViewSelectId += 1
             if ("all" in type or contenttype.lower() in type) and (not "!" + contenttype.lower() in type) and not xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.View.Disabled.%s)" %id):
                 image = "special://skin/extras/viewthumbs/%s.jpg" %id
-                listitem = xbmcgui.ListItem(label=label, label2=desc, iconImage=image)
+                listitem = xbmcgui.ListItem(label=label, iconImage=image)
                 listitem.setProperty("id",id)
                 listitem.setProperty("icon",image)
                 allViews.append(listitem)
