@@ -403,6 +403,7 @@ class ListItemMonitor(threading.Thread):
         WINDOW.clearProperty('SkinHelper.ListItemDirectors')
         WINDOW.clearProperty('SkinHelper.ListItemVideoHeight')
         WINDOW.clearProperty('SkinHelper.ListItemVideoWidth')
+        WINDOW.clearProperty('SkinHelper.ListItemTags')
         WINDOW.clearProperty("SkinHelper.ExtraFanArtPath")
         WINDOW.clearProperty("SkinHelper.Music.Banner") 
         WINDOW.clearProperty("SkinHelper.Music.ClearLogo") 
