@@ -191,7 +191,7 @@ class Main:
                     path = utils.WINDOW.getProperty("SkinHelper.pvrthumbspath").decode("utf-8")
                     utils.WINDOW.setProperty("resetPvrArtCache","reset")
                 elif path == "music":
-                    path = "special://profile/addon_data/script.skin.helper.service/musicart/"
+                    path = "special://profile/addon_data/script.skin.helper.service/musicartcache/"
                     utils.WINDOW.setProperty("resetMusicArtCache","reset")
                 elif path == "wallbackgrounds":
                     path = "special://profile/addon_data/script.skin.helper.service/wallbackgrounds/"
@@ -202,8 +202,10 @@ class Main:
                     success = True
                     ret = xbmcgui.Dialog().yesno(heading=utils.ADDON.getLocalizedString(32089), line1=utils.ADDON.getLocalizedString(32090)+path)
                     if ret:
+                        utils.WINDOW.setProperty("SkinHelper.IgnoreCache","ignore")
                         success = utils.recursiveDelete(path)
                         if success:
+                            utils.checkFolders()
                             xbmcgui.Dialog().ok(heading=utils.ADDON.getLocalizedString(32089), line1=utils.ADDON.getLocalizedString(32091))
                         else:
                             xbmcgui.Dialog().ok(heading=utils.ADDON.getLocalizedString(32089), line1=utils.ADDON.getLocalizedString(32092))

@@ -143,7 +143,7 @@ class BackgroundsUpdater(threading.Thread):
             WINDOW.setProperty("allSmartShortcuts", repr(self.smartShortcuts["allSmartShortcuts"]))
     
     def setDayNightColorTheme(self):
-        #check if a colro theme should be conditionally set
+        #check if a color theme should be conditionally set
         if xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnableDayNightThemes) + Skin.String(SkinHelper.ColorTheme.Day.time) + Skin.String(SkinHelper.ColorTheme.Night.time)"):
             try:
                 daytime = xbmc.getInfoLabel("Skin.String(SkinHelper.ColorTheme.Day.time)")

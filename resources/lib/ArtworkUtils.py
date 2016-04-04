@@ -18,6 +18,7 @@ def getPVRThumbs(title,channel,type="channels",path="",genre="",year="",ignoreCa
     ignore = False
     artwork = {}
     pvrThumbPath = None
+    if WINDOW.getProperty("SkinHelper.IgnoreCache"): ignoreCache = True
     
     #ignore back entry
     if title == ".." or not title: 
@@ -750,7 +751,6 @@ def getAnimatedPostersDb():
         data = json.loads(response.content.decode('utf-8','replace'))
         if data and data.has_key('movies'):
             for item in data['movies']:
-                print item
                 imdbid = item['imdbid']
                 posters = []
                 fanarts = []
@@ -1143,7 +1143,7 @@ def getAlbumArtwork(musicbrainzalbumid, artwork=None, allowoverwrite=True):
     #get album thumb from musicbrainz
     if not artwork.get("thumb") and not artwork.get("folder") and not WINDOW.getProperty("SkinHelper.TempDisableMusicBrainz"): 
         try: 
-            new_file = "special://profile/addon_data/script.skin.helper.service/musicart/%s.jpg" %musicbrainzalbumid
+            new_file = "special://profile/addon_data/script.skin.helper.service/musicartcache/%s.jpg" %musicbrainzalbumid
             thumbfile = m.get_release_group_image_front(musicbrainzalbumid)
             if thumbfile: 
                 f = xbmcvfs.File(new_file, 'w')
@@ -1194,6 +1194,7 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
     localAlbumMatch = False
     cacheStrAlbum = ""
     albumcache = None
+    if WINDOW.getProperty("SkinHelper.IgnoreCache"): ignoreCache = True
 
     enableMusicArtScraper = WINDOW.getProperty("SkinHelper.enableMusicArtScraper") == "true"
     downloadMusicArt = WINDOW.getProperty("SkinHelper.downloadMusicArt") == "true"
@@ -1213,7 +1214,7 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
         else:
             logMsg("getMusicArtwork artist: %s  - track: %s  -  album: %s" %(artistName,trackName,albumName))
             #get details from persistant cachefile to prevent online lookups
-            if not ignoreCache: albumartwork = getArtworkFromCacheFile("special://profile/addon_data/script.skin.helper.service/musicart/%s-%s.xml" %(normalize_string(artistName),normalize_string(albumName)))
+            if not ignoreCache: albumartwork = getArtworkFromCacheFile("special://profile/addon_data/script.skin.helper.service/musicartcache/%s-%s.xml" %(normalize_string(artistName),normalize_string(albumName)))
             else: albumartwork = {}
             if albumartwork and albumartwork.get("artistname"): 
                 albumCacheFound = True
@@ -1262,7 +1263,7 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
         artistCacheFound = True
     else:
         #get details from persistant cachefile to prevent online lookups
-        if not ignoreCache: artistartwork = getArtworkFromCacheFile("special://profile/addon_data/script.skin.helper.service/musicart/%s.xml" %normalize_string(artistName))
+        if not ignoreCache: artistartwork = getArtworkFromCacheFile("special://profile/addon_data/script.skin.helper.service/musicartcache/%s.xml" %normalize_string(artistName))
         else: artistartwork = {}
         if artistartwork: artistCacheFound = True
             
@@ -1289,12 +1290,7 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
                 if not trackName: trackName = song.get("label","")
                 if song.get("album"):
                     if not path and song.get("file"):
-                        #get path from song - only if artist level matches...
-                        if "\\" in song.get("file"): delim = "\\"
-                        else: delim = "/"
-                        pathartist = song.get("file").split(delim)[-3]
-                        match =  SM(None, artistName, pathartist).ratio()
-                        if match >= 0.50: path = song.get("file")
+                        path = song.get("file")
                     if not albumName: albumName = song.get("album")
                     if song.get("musicbrainzartistid") and not artistartwork.get("musicbrainzartistid"): artistartwork["musicbrainzartistid"] = song["musicbrainzartistid"]
                     tracklist.append(song["title"])
@@ -1326,6 +1322,7 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
                 artistpath = os.path.join(custommusiclookuppath, normalize_string(artistName)+delim)
                 if xbmcvfs.exists(artistpath):
                     #lookup local artist artwork
+                    logMsg("getMusicArtwork - lookup artwork in custom folder for artist: %s - using path: %s" %(artistName,artistpath))
                     artistartwork["custompath"] = artistpath
                     for artType in KodiArtTypes:
                         artpath = os.path.join(artistpath,artType[1])
@@ -1336,6 +1333,7 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
                     if albumName:
                         albumpath = os.path.join(artistpath,normalize_string(albumName)+delim)
                         if xbmcvfs.exists(albumpath):
+                            logMsg("getMusicArtwork - lookup artwork in custom folder for album: %s - using path: %s" %(albumName,albumpath))
                             albumartwork["custompath"] = albumpath
                             #lookup existing artwork in the paths
                             for artType in KodiArtTypes:
@@ -1343,7 +1341,11 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
                                 if xbmcvfs.exists(artpath) and not albumartwork.get(artType[0]):
                                     albumartwork[artType[0]] = artpath
                                     logMsg("getMusicArtwork - %s found on disk for %s" %(artType[0],albumName))
-                else: artistpath = ""
+                        else:
+                            logMsg("getMusicArtwork - lookup artwork in custom folder SKIPPED for album: %s - using path: %s -- path not found!" %(albumName,albumpath))
+                else:
+                    logMsg("getMusicArtwork - lookup artwork in custom folder SKIPPED for artist: %s - using path: %s -- path not found!" %(artistName,artistpath))
+                    artistpath = ""
             
             
             #LOOKUP LOCAL ARTWORK PATH PASED ON SONG FILE PATH
@@ -1353,37 +1355,43 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
                 else: delim = "/"
                 pathparts = path.split(delim)
                 if len(pathparts) > 2:
-                    foldername = path.split(delim)[-2].lower()
-                    if foldername.startswith("disc"): 
-                        path = path.rsplit(delim, 1)[0] + delim #from disc level to album level
-                    albumpath = path.rsplit(delim, 1)[0] + delim #album level
-                    artistpath = path.rsplit(delim, 2)[0] + delim #artist level
-
-                    #lookup existing artwork in the paths (only if artistname in the path, to prevent lookups in various artists/compilations folders)
-                    match =  SM(None, artistName, artistpath.split(delim)[-2]).ratio()
-                    if not match >= 0.50:
+                    
+                    artistPathFound = None
+                    #determine folder structure (there might be a disclevel too...)
+                    for artistpath in [path.rsplit(delim, 1)[0] + delim, path.rsplit(delim, 2)[0] + delim, path.rsplit(delim, 3)[0] + delim]:
+                        #lookup existing artwork in the paths (only if artistname in the path, to prevent lookups in various artists/compilations folders)
+                        match =  SM(None, artistName, artistpath.split(delim)[-2]).ratio()
+                        if match >= 0.50:
+                            #lookup local artist artwork
+                            logMsg("getMusicArtwork - lookup artwork on disk for artist: %s - found path: %s" %(artistName,artistpath))
+                            artistartwork["path"] = artistpath
+                            for artType in KodiArtTypes:
+                                artpath = os.path.join(artistpath,artType[1])
+                                if xbmcvfs.exists(artpath) and not artistartwork.get(artType[0]):
+                                    artistartwork[artType[0]] = artpath
+                                    logMsg("getMusicArtwork - %s found on disk for %s" %(artType[0],artistName))
+                            artistPathFound = artistpath
+                            break
+                            
+                    #skip if we didn't find the artist path on disk
+                    if not artistPathFound:
                         logMsg("getMusicArtwork - lookup on disk skipped for %s - not correct folder structure (artistname\albumname)" %artistartwork.get("artistname",""))
                         albumpath = ""
                         artistpath = ""
-                    else:    
-                        #lookup local artist artwork
-                        artistartwork["path"] = artistpath
-                        for artType in KodiArtTypes:
-                            artpath = os.path.join(artistpath,artType[1])
-                            if xbmcvfs.exists(artpath) and not artistartwork.get(artType[0]):
-                                artistartwork[artType[0]] = artpath
-                                logMsg("getMusicArtwork - %s found on disk for %s" %(artType[0],artistName))
-                        
-                        #lookup local album artwork
-                        if albumName and xbmcvfs.exists(albumpath):
-                            albumartwork["path"] = albumpath
-                            #lookup existing artwork in the paths
-                            for artType in KodiArtTypes:
-                                artpath = os.path.join(albumpath,artType[1])
-                                if xbmcvfs.exists(artpath) and not albumartwork.get(artType[0]):
-                                    albumartwork[artType[0]] = artpath
-                                    logMsg("getMusicArtwork - %s found on disk for %s" %(artType[0],albumName))
-                        else: albumpath = ""
+                    elif albumName:
+                        #also lookup album artwork (max 2 levels up)
+                        for albumpath in [path.rsplit(delim, 1)[0] + delim, path.rsplit(delim, 2)[0] + delim]:
+                            if xbmcvfs.exists(albumpath) and albumpath != artistPathFound:
+                                logMsg("getMusicArtwork - lookup artwork on disk for album: %s - found path: %s" %(albumName,albumpath))
+                                albumartwork["path"] = albumpath
+                                #lookup existing artwork in the paths
+                                for artType in KodiArtTypes:
+                                    artpath = os.path.join(albumpath,artType[1])
+                                    if xbmcvfs.exists(artpath) and not albumartwork.get(artType[0]):
+                                        albumartwork[artType[0]] = artpath
+                                        logMsg("getMusicArtwork - %s found on disk for %s" %(artType[0],albumName))
+                                else: albumpath = ""
+                            
                
         #online lookup for details
         if enableMusicArtScraper and (not artistCacheFound or (albumName and not albumCacheFound)):
@@ -1415,7 +1423,7 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
                             downloadImage(fanart,efadir,"fanart%s.jpg"%count)
                             count += 1
                         artistartwork["extrafanart"] = efadir
-                    elif not artistartwork.get("extrafanart"): artistartwork["extrafanart"] = "plugin://script.skin.helper.service/?action=EXTRAFANART&path=special://profile/addon_data/script.skin.helper.service/musicart/%s.xml" %normalize_string(artistName)
+                    elif not artistartwork.get("extrafanart"): artistartwork["extrafanart"] = "plugin://script.skin.helper.service/?action=EXTRAFANART&path=special://profile/addon_data/script.skin.helper.service/musicartcache/%s.xml" %normalize_string(artistName)
                 
             ######################################################### ALBUM LEVEL #########################################################    
             if albumName and albumartwork.get("musicbrainzalbumid") and not albumCacheFound:
@@ -1430,12 +1438,12 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
         if artistartwork and not artistCacheFound:
             if artistartwork.get("landscape"): del artistartwork["landscape"]
             if artistartwork.get("folder") and not artistartwork.get("thumb"): artistartwork["thumb"] = artistartwork.get("folder")
-            createNFO("special://profile/addon_data/script.skin.helper.service/musicart/%s.xml" %normalize_string(artistName),artistartwork)
+            createNFO("special://profile/addon_data/script.skin.helper.service/musicartcache/%s.xml" %normalize_string(artistName),artistartwork)
         if albumartwork and albumName and not artistOnly and not albumCacheFound:
             if albumartwork.get("landscape"): del albumartwork["landscape"]
             if albumartwork.get("folder") and not albumartwork.get("thumb"): albumartwork["thumb"] = albumartwork.get("folder")
             if not cacheStrAlbum: cacheStrAlbum = "SkinHelper.Music.Cache-%s-%s" %(artistName.lower(),albumName.lower())
-            createNFO("special://profile/addon_data/script.skin.helper.service/musicart/%s-%s.xml" %(normalize_string(artistName),normalize_string(albumName)),albumartwork)
+            createNFO("special://profile/addon_data/script.skin.helper.service/musicartcache/%s-%s.xml" %(normalize_string(artistName),normalize_string(albumName)),albumartwork)
         
     #save to window cache
     if not albumcache:

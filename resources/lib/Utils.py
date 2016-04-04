@@ -165,11 +165,17 @@ def getJSON(method,params):
         logMsg("getJson - invalid result for Method %s - params: %s - response: %s" %(method,params, str(jsonobject)),0) 
         return {}
 
-def setAddonsettings():
+def checkFolders():
     if not xbmcvfs.exists(SETTING("pvrthumbspath")):
         xbmcvfs.mkdirs(SETTING("pvrthumbspath"))
-    if not xbmcvfs.exists("special://profile/addon_data/script.skin.helper.service/musicart/"):
-        xbmcvfs.mkdirs("special://profile/addon_data/script.skin.helper.service/musicart/")
+    if not xbmcvfs.exists("special://profile/addon_data/script.skin.helper.service/musicartcache/"):
+        xbmcvfs.mkdirs("special://profile/addon_data/script.skin.helper.service/musicartcache/")
+    #Remove legacy musicart cache
+    if xbmcvfs.exists("special://profile/addon_data/script.skin.helper.service/musicart/"):
+        recursiveDelete("special://profile/addon_data/script.skin.helper.service/musicart/")
+        
+def setAddonsettings():
+    checkFolders()
     #get the addonsettings and store them in memory
     WINDOW.setProperty("SkinHelper.pvrthumbspath",SETTING("pvrthumbspath"))
     WINDOW.setProperty("SkinHelper.cacheRecordings",SETTING("cacheRecordings"))
@@ -208,8 +214,7 @@ def setAddonsettings():
     else: WINDOW.clearProperty("SkinHelper.enablecontextmenu_animatedart")
     if SETTING("enablecontextmenu_series") == "true": WINDOW.setProperty("SkinHelper.enablecontextmenu_series","enable")
     else: WINDOW.clearProperty("SkinHelper.enablecontextmenu_series")
-        
-    
+           
 def indentXML( elem, level=0 ):
     i = "\n" + level*"\t"
     if len(elem):

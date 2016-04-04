@@ -12,6 +12,7 @@ if __name__ == '__main__':
     options=[]
     options.append(ADDON.getLocalizedString(32144)) #Refresh item (auto lookup)
     options.append(ADDON.getLocalizedString(32157)) #cache all artwork
+    options.append(ADDON.getLocalizedString(32126)) #Reset Cache
     options.append(ADDON.getLocalizedString(32148)) #Open addon settings
     header = ADDON.getLocalizedString(32143) + " - " + ADDON.getLocalizedString(32122)
     ret = xbmcgui.Dialog().select(header, options)
@@ -44,6 +45,10 @@ if __name__ == '__main__':
             artworkutils.preCacheAllMusicArt(skipOnCache=True)
     
     if ret == 2:
+        #Reset cache
+        xbmc.executebuiltin("RunScript(script.skin.helper.service,action=RESETCACHE,path=music)")
+    
+    if ret == 3:
         #Open addon settings
         xbmc.executebuiltin("Addon.OpenSettings(script.skin.helper.service)")
     
