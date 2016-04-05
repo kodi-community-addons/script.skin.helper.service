@@ -958,62 +958,7 @@ def getMusicBrainzId(artist, album="", track=""):
     if artist.startswith("The "): artist = artist.replace("The ","")
     logMsg("getMusicBrainzId -- artist:  -  %s  - album:  %s  - track:  %s" %(artist,album,track))
     
-    #use musicbrainz to get ID
-    try:
-        if not WINDOW.getProperty("SkinHelper.TempDisableMusicBrainz"):
-            MBalbum = None
-            if not MBalbum and artist and album:
-                MBalbums = m.search_release_groups(query=single_urlencode(try_encode(album)),limit=1,offset=None, strict=False, artist=single_urlencode(try_encode(artist)))
-                if MBalbums and MBalbums.get("release-group-list"): MBalbum = MBalbums.get("release-group-list")[0]
-            if not MBalbum and artist and track:
-                MBalbums = m.search_recordings(query=single_urlencode(try_encode(track)),limit=1,offset=None, strict=False, artist=single_urlencode(try_encode(artist)))
-                if MBalbums and MBalbums.get("recording-list"): MBalbum = MBalbums.get("recording-list")[0]
-            if MBalbum:
-                albumid = MBalbum.get("id","")
-                for MBartist in MBalbum.get("artist-credit"):
-                    if isinstance(MBartist, dict) and MBartist.get("artist",""):
-                        #safety check - only allow exact artist match
-                        foundartist = getCompareString(MBartist.get("artist","").get("name").encode("utf-8").decode("utf-8"))
-                        if foundartist and foundartist in matchartist:
-                            artistid = MBartist.get("artist").get("id")
-                            break
-                    
-    except Exception as e:
-        logMsg("MusicBrainz ERROR (servers busy?) - temporary disabling musicbrainz lookups (fallback to theaudiodb)", 0)
-        WINDOW.setProperty("SkinHelper.TempDisableMusicBrainz","disable")
-    
-    #use theaudiodb as fallback
-    try:
-        if not artistid and artist and album:
-            audiodb_url = 'http://www.theaudiodb.com/api/v1/json/193621276b2d731671156g/searchalbum.php'
-            params = {'s' : artist, 'a': album}
-            response = requests.get(audiodb_url, params=params)
-            if response and response.content:
-                data = json.loads(response.content.decode('utf-8','replace'))
-                if data and data.get("album") and len(data.get("album")) > 0:
-                    adbdetails = data["album"][0]
-                    #safety check - only allow exact artist match
-                    foundartist = getCompareString(adbdetails.get("strArtist",""))
-                    if foundartist in matchartist:
-                        albumid = adbdetails.get("strMusicBrainzID","")
-                        artistid = adbdetails.get("strMusicBrainzArtistID","")
-        if not artistid and artist and track:
-            audiodb_url = 'http://www.theaudiodb.com/api/v1/json/193621276b2d731671156g/searchtrack.php'
-            params = {'s' : artist, 't': track}
-            response = requests.get(audiodb_url, params=params)
-            if response and response.content:
-                data = json.loads(response.content.decode('utf-8','replace'))
-                if data and data.get("track") and len(data.get("track")) > 0:
-                    adbdetails = data["track"][0]
-                    #safety check - only allow exact artist match
-                    foundartist = getCompareString(adbdetails.get("strArtist",""))
-                    if foundartist in matchartist:
-                        albumid = adbdetails.get("strMusicBrainzAlbumID","")
-                        artistid = adbdetails.get("strMusicBrainzArtistID","")
-    except Exception as e:
-        logMsg("getMusicArtwork AudioDb lookup failed --> " + str(e), 0)
-    
-    #try lastfm as fallback
+    #try lastfm first (because it is fastest)
     if (not artistid or not albumid) and artist and album:
         try:
             lastfm_url = 'http://ws.audioscrobbler.com/2.0/'
@@ -1031,6 +976,62 @@ def getMusicBrainzId(artist, album="", track=""):
                                 break;
         except Exception as e:
             logMsg("getMusicArtwork LastFM lookup failed --> " + str(e), 0)
+    
+    #use musicbrainz to get ID
+    if (not artistid or not albumid):
+        try:
+            if not WINDOW.getProperty("SkinHelper.TempDisableMusicBrainz"):
+                MBalbum = None
+                if not MBalbum and artist and album:
+                    MBalbums = m.search_release_groups(query=single_urlencode(try_encode(album)),limit=1,offset=None, strict=False, artist=single_urlencode(try_encode(artist)))
+                    if MBalbums and MBalbums.get("release-group-list"): MBalbum = MBalbums.get("release-group-list")[0]
+                if not MBalbum and artist and track:
+                    MBalbums = m.search_recordings(query=single_urlencode(try_encode(track)),limit=1,offset=None, strict=False, artist=single_urlencode(try_encode(artist)))
+                    if MBalbums and MBalbums.get("recording-list"): MBalbum = MBalbums.get("recording-list")[0]
+                if MBalbum:
+                    albumid = MBalbum.get("id","")
+                    for MBartist in MBalbum.get("artist-credit"):
+                        if isinstance(MBartist, dict) and MBartist.get("artist",""):
+                            #safety check - only allow exact artist match
+                            foundartist = getCompareString(MBartist.get("artist","").get("name").encode("utf-8").decode("utf-8"))
+                            if foundartist and foundartist in matchartist:
+                                artistid = MBartist.get("artist").get("id")
+                                break
+                        
+        except Exception as e:
+            logMsg("MusicBrainz ERROR (servers busy?) - temporary disabling musicbrainz lookups (fallback to theaudiodb)", 0)
+            WINDOW.setProperty("SkinHelper.TempDisableMusicBrainz","disable")
+    
+    #use theaudiodb as fallback
+    try:
+        if (not artistid or not albumid) and album:
+            audiodb_url = 'http://www.theaudiodb.com/api/v1/json/193621276b2d731671156g/searchalbum.php'
+            params = {'s' : artist, 'a': album}
+            response = requests.get(audiodb_url, params=params)
+            if response and response.content:
+                data = json.loads(response.content.decode('utf-8','replace'))
+                if data and data.get("album") and len(data.get("album")) > 0:
+                    adbdetails = data["album"][0]
+                    #safety check - only allow exact artist match
+                    foundartist = getCompareString(adbdetails.get("strArtist",""))
+                    if foundartist in matchartist:
+                        albumid = adbdetails.get("strMusicBrainzID","")
+                        artistid = adbdetails.get("strMusicBrainzArtistID","")
+        if (not artistid or not albumid) and artist and track:
+            audiodb_url = 'http://www.theaudiodb.com/api/v1/json/193621276b2d731671156g/searchtrack.php'
+            params = {'s' : artist, 't': track}
+            response = requests.get(audiodb_url, params=params)
+            if response and response.content:
+                data = json.loads(response.content.decode('utf-8','replace'))
+                if data and data.get("track") and len(data.get("track")) > 0:
+                    adbdetails = data["track"][0]
+                    #safety check - only allow exact artist match
+                    foundartist = getCompareString(adbdetails.get("strArtist",""))
+                    if foundartist in matchartist:
+                        albumid = adbdetails.get("strMusicBrainzAlbumID","")
+                        artistid = adbdetails.get("strMusicBrainzArtistID","")
+    except Exception as e:
+        logMsg("getMusicArtwork AudioDb lookup failed --> " + str(e), 0)
     
     #get lastFM by artist name as last resort
     if not artistid and artist:
@@ -1051,10 +1052,21 @@ def getMusicBrainzId(artist, album="", track=""):
 
 def getArtistArtwork(musicbrainzartistid, artwork=None, allowoverwrite=True):
     if not artwork: artwork = {}
+    skipOnlineMusicArtOnLocal = WINDOW.getProperty("SkinHelper.skipOnlineMusicArtOnLocal") == "true"
     #get fanart.tv artwork for artist
-    artwork = getfanartTVimages("artist",musicbrainzartistid,artwork, allowoverwrite)
+    if not (skipOnlineMusicArtOnLocal and artwork.get("extrafanart") and artwork.get("clearlogo") and artwork.get("banner") and (artwork.get("artistthumb") or artwork.get("folder"))):
+        artwork = getfanartTVimages("artist",musicbrainzartistid,artwork, allowoverwrite)
+    else:
+        logMsg("SKIP online FANART.TV lookups for artist %s - local artwork found" %musicbrainzartistid)
+    
     extrafanarts = []
     if artwork.get("extrafanarts"): extrafanarts = eval(artwork.get("extrafanarts"))
+    
+    if (skipOnlineMusicArtOnLocal and artwork.get("extrafanart") and artwork.get("clearlogo") and artwork.get("banner") and (artwork.get("artistthumb") or artwork.get("folder")) and artwork.get("info")):
+        return artwork
+        logMsg("SKIP online AUDIODB/LASTFM lookups for artist %s - local artwork found" %musicbrainzartistid)
+    else:
+        logMsg("performing audiodb/lastfm lookups for artist " + musicbrainzartistid)
     
     #get audiodb info for artist  (and use as spare for artwork)
     try:
@@ -1103,8 +1115,20 @@ def getArtistArtwork(musicbrainzartistid, artwork=None, allowoverwrite=True):
 
 def getAlbumArtwork(musicbrainzalbumid, artwork=None, allowoverwrite=True):
     if not artwork: artwork = {}
+    skipOnlineMusicArtOnLocal = WINDOW.getProperty("SkinHelper.skipOnlineMusicArtOnLocal") == "true"
+    
     #get fanart.tv artwork for album
-    artwork = getfanartTVimages("album",musicbrainzalbumid,artwork,allowoverwrite)
+    if not (skipOnlineMusicArtOnLocal and artwork.get("folder") and artwork.get("discart")):
+        artwork = getfanartTVimages("album",musicbrainzalbumid,artwork,allowoverwrite)
+    else:
+        logMsg("SKIP online FANART.TV lookup for album %s - local artwork found" %musicbrainzalbumid)
+    
+    if (skipOnlineMusicArtOnLocal and artwork.get("folder") and artwork.get("discart") and artwork.get("info")):
+        return artwork
+        logMsg("SKIP online AUDIODB/LASTFM lookups for album %s - local artwork found" %musicbrainzalbumid)
+    else:
+        logMsg("performing audiodb/lastfm lookups for album " + musicbrainzalbumid)
+    
     #get album info on theaudiodb (and use as spare for artwork)
     try:
         audiodb_url = 'http://www.theaudiodb.com/api/v1/json/193621276b2d731671156g/album-mb.php?i=%s' %musicbrainzalbumid
@@ -1173,6 +1197,22 @@ def preCacheAllMusicArt(skipOnCache=False):
     except Exception as e:
         logMsg("ERROR in preCacheAllMusicArt --> " + str(e), 0)
     progressDialog.close()
+
+def getCustomFolderPath(path, foldername):
+    if "\\" in path: delim = "\\"
+    else: delim = "/"
+    dirs, files = xbmcvfs.listdir(path)
+    pathfound = ""
+    for dir in dirs:
+        dir = dir.decode("utf-8")
+        curpath = os.path.join(path,dir) + delim
+        match =  SM(None, foldername, dir).ratio()
+        if match >= 0.70: 
+            return curpath
+        elif not pathfound:
+            pathfound = getCustomFolderPath(curpath,foldername)
+        if pathfound: break
+    return pathfound
     
 def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
     if not artistName:
@@ -1315,24 +1355,32 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
             if isinstance(artistartwork.get("musicbrainzartistid",""), list):
                 artistartwork["musicbrainzartistid"] = artistartwork["musicbrainzartistid"][0]
             
-            #LOOKUP ART IN CUSTOM FOLDER
-            if custommusiclookuppath and (not artistCacheFound or (albumName and not albumCacheFound)):
-                if "\\" in custommusiclookuppath: delim = "\\"
-                else: delim = "/"
-                artistpath = os.path.join(custommusiclookuppath, normalize_string(artistName)+delim)
-                if xbmcvfs.exists(artistpath):
-                    #lookup local artist artwork
-                    logMsg("getMusicArtwork - lookup artwork in custom folder for artist: %s - using path: %s" %(artistName,artistpath))
-                    artistartwork["custompath"] = artistpath
-                    for artType in KodiArtTypes:
-                        artpath = os.path.join(artistpath,artType[1])
-                        if xbmcvfs.exists(artpath) and not artistartwork.get(artType[0]):
-                            artistartwork[artType[0]] = artpath
-                            logMsg("getMusicArtwork - %s found on disk for %s" %(artType[0],artistName))
-                    #lookup local album artwork
-                    if albumName:
-                        albumpath = os.path.join(artistpath,normalize_string(albumName)+delim)
-                        if xbmcvfs.exists(albumpath):
+        #LOOKUP ART IN CUSTOM FOLDER
+        if custommusiclookuppath and (not artistCacheFound or (albumName and not albumCacheFound)):
+            if "\\" in custommusiclookuppath: delim = "\\"
+            else: delim = "/"
+            
+            #try to locate the artist folder recursively...
+            artistpath = getCustomFolderPath(custommusiclookuppath, artistName)
+            if artistpath:
+                #lookup local artist artwork
+                logMsg("getMusicArtwork - lookup artwork in custom folder for artist: %s - using path: %s" %(artistName,artistpath))
+                artistartwork["custompath"] = artistpath
+                for artType in KodiArtTypes:
+                    artpath = os.path.join(artistpath,artType[1])
+                    if xbmcvfs.exists(artpath) and not artistartwork.get(artType[0]):
+                        artistartwork[artType[0]] = artpath
+                        logMsg("getMusicArtwork - %s found on disk for %s" %(artType[0],artistName))
+                #lookup local album artwork
+                if albumName:
+                    albumpath = getCustomFolderPath(artistpath, albumName)
+                    if xbmcvfs.exists(albumpath):
+                        #get sublevels (if disclevel in use)...
+                        dirs, files = xbmcvfs.listdir(albumpath)
+                        albumpaths = [albumpath]
+                        for dir in dirs:
+                            albumpaths.append(os.path.join(albumpath,dir.decode("utf-8")) + delim)
+                        for albumpath in albumpaths:
                             logMsg("getMusicArtwork - lookup artwork in custom folder for album: %s - using path: %s" %(albumName,albumpath))
                             albumartwork["custompath"] = albumpath
                             #lookup existing artwork in the paths
@@ -1341,62 +1389,57 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
                                 if xbmcvfs.exists(artpath) and not albumartwork.get(artType[0]):
                                     albumartwork[artType[0]] = artpath
                                     logMsg("getMusicArtwork - %s found on disk for %s" %(artType[0],albumName))
-                        else:
-                            logMsg("getMusicArtwork - lookup artwork in custom folder SKIPPED for album: %s - using path: %s -- path not found!" %(albumName,albumpath))
-                else:
-                    logMsg("getMusicArtwork - lookup artwork in custom folder SKIPPED for artist: %s - using path: %s -- path not found!" %(artistName,artistpath))
-                    artistpath = ""
-            
-            
-            #LOOKUP LOCAL ARTWORK PATH PASED ON SONG FILE PATH
-            if path and enableLocalMusicArtLookup and (not artistCacheFound or (albumName and not albumCacheFound)) and localArtistMatch:
-                #only use existing path if the artistname is actually in the path 
-                if "\\" in path: delim = "\\"
-                else: delim = "/"
-                pathparts = path.split(delim)
-                if len(pathparts) > 2:
+                    else:
+                        logMsg("getMusicArtwork - lookup artwork in custom folder SKIPPED for album: %s - using path: %s -- path not found!" %(albumName,albumpath))
+            else:
+                logMsg("getMusicArtwork - lookup artwork in custom folder SKIPPED for artist: %s -- path not found in custom music artwork folder!" %(artistName))
+                artistpath = ""
+                
+        #LOOKUP LOCAL ARTWORK PATH PASED ON SONG FILE PATH
+        if path and enableLocalMusicArtLookup and (not artistCacheFound or (albumName and not albumCacheFound)) and localArtistMatch:
+            #only use existing path if the artistname is actually in the path 
+            if "\\" in path: delim = "\\"
+            else: delim = "/"
+            artistPathFound = None
+            #determine folder structure (there might be a disclevel too...)
+            for artistpath in [path.rsplit(delim, 1)[0] + delim, path.rsplit(delim, 2)[0] + delim, path.rsplit(delim, 3)[0] + delim]:
+                #lookup existing artwork in the paths (only if artistname in the path, to prevent lookups in various artists/compilations folders)
+                match =  SM(None, artistName, artistpath.split(delim)[-2]).ratio()
+                if match >= 0.50:
+                    #lookup local artist artwork
+                    logMsg("getMusicArtwork - lookup artwork on disk for artist: %s - found path: %s" %(artistName,artistpath))
+                    artistartwork["path"] = artistpath
+                    for artType in KodiArtTypes:
+                        artpath = os.path.join(artistpath,artType[1])
+                        if xbmcvfs.exists(artpath) and not artistartwork.get(artType[0]):
+                            artistartwork[artType[0]] = artpath
+                            logMsg("getMusicArtwork - %s found on disk for %s" %(artType[0],artistName))
+                    artistPathFound = artistpath
+                    break
                     
-                    artistPathFound = None
-                    #determine folder structure (there might be a disclevel too...)
-                    for artistpath in [path.rsplit(delim, 1)[0] + delim, path.rsplit(delim, 2)[0] + delim, path.rsplit(delim, 3)[0] + delim]:
-                        #lookup existing artwork in the paths (only if artistname in the path, to prevent lookups in various artists/compilations folders)
-                        match =  SM(None, artistName, artistpath.split(delim)[-2]).ratio()
-                        if match >= 0.50:
-                            #lookup local artist artwork
-                            logMsg("getMusicArtwork - lookup artwork on disk for artist: %s - found path: %s" %(artistName,artistpath))
-                            artistartwork["path"] = artistpath
-                            for artType in KodiArtTypes:
-                                artpath = os.path.join(artistpath,artType[1])
-                                if xbmcvfs.exists(artpath) and not artistartwork.get(artType[0]):
-                                    artistartwork[artType[0]] = artpath
-                                    logMsg("getMusicArtwork - %s found on disk for %s" %(artType[0],artistName))
-                            artistPathFound = artistpath
-                            break
-                            
-                    #skip if we didn't find the artist path on disk
-                    if not artistPathFound:
-                        logMsg("getMusicArtwork - lookup on disk skipped for %s - not correct folder structure (artistname\albumname)" %artistartwork.get("artistname",""))
-                        albumpath = ""
-                        artistpath = ""
-                    elif albumName:
-                        #also lookup album artwork (max 2 levels up)
-                        for albumpath in [path.rsplit(delim, 1)[0] + delim, path.rsplit(delim, 2)[0] + delim]:
-                            if xbmcvfs.exists(albumpath) and albumpath != artistPathFound:
-                                logMsg("getMusicArtwork - lookup artwork on disk for album: %s - found path: %s" %(albumName,albumpath))
-                                albumartwork["path"] = albumpath
-                                #lookup existing artwork in the paths
-                                for artType in KodiArtTypes:
-                                    artpath = os.path.join(albumpath,artType[1])
-                                    if xbmcvfs.exists(artpath) and not albumartwork.get(artType[0]):
-                                        albumartwork[artType[0]] = artpath
-                                        logMsg("getMusicArtwork - %s found on disk for %s" %(artType[0],albumName))
-                                else: albumpath = ""
-                            
-               
+            #skip if we didn't find the artist path on disk
+            if not artistPathFound:
+                logMsg("getMusicArtwork - lookup on disk skipped for %s - not correct folder structure (artistname\albumname)" %artistartwork.get("artistname",""))
+                albumpath = ""
+                artistpath = ""
+            elif albumName:
+                #also lookup album artwork (max 2 levels up)
+                for albumpath in [path.rsplit(delim, 1)[0] + delim, path.rsplit(delim, 2)[0] + delim]:
+                    if xbmcvfs.exists(albumpath) and albumpath != artistPathFound:
+                        logMsg("getMusicArtwork - lookup artwork on disk for album: %s - found path: %s" %(albumName,albumpath))
+                        albumartwork["path"] = albumpath
+                        #lookup existing artwork in the paths
+                        for artType in KodiArtTypes:
+                            artpath = os.path.join(albumpath,artType[1])
+                            if xbmcvfs.exists(artpath) and not albumartwork.get(artType[0]):
+                                albumartwork[artType[0]] = artpath
+                                logMsg("getMusicArtwork - %s found on disk for %s" %(artType[0],albumName))
+                        else: albumpath = ""
+                             
         #online lookup for details
         if enableMusicArtScraper and (not artistCacheFound or (albumName and not albumCacheFound)):
             #lookup details in musicbrainz
-            #retrieve album id and artist id with a combined query of album name and artist name to get an accurate result
+            #retrieve album id and artist id with a combined query of album name, track name and artist name to get an accurate result
             if not albumartwork.get("musicbrainzalbumid") or not artistartwork.get("musicbrainzartistid"):
                 musicbrainzartistid, musicbrainzalbumid = getMusicBrainzId(artistName,albumName,trackName)
                 if not albumartwork.get("musicbrainzalbumid"): 

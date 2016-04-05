@@ -751,3 +751,7 @@ msgstr ""
 msgctxt "#32183"
 msgid "Show series-level button in contextmenu"
 msgstr ""
+
+msgctxt "#32184"
+msgid "Skip online lookup if all artwork is found locally"
+msgstr ""

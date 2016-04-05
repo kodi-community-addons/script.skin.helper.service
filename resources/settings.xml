@@ -32,6 +32,7 @@
         <setting label="32177" type="folder" id="custommusiclookuppath" source="auto" default="" visible="eq(-1,true)"/>
         <setting id="downloadMusicArt" type="bool" label="32125" default="false" visible="eq(-4,true)"/>
         <setting id="preferOnlineMusicArt" type="bool" label="32159" default="false" visible="eq(-1,true)"/>
+        <setting id="skipOnlineMusicArtOnLocal" type="bool" label="32184" default="true" visible="eq(-6,true)"/>
         <setting label="32126" type="action" action="RunScript(script.skin.helper.service,action=RESETCACHE,path=music)"/>
         <setting label="32172" type="action" action="RunScript(script.skin.helper.service,action=CACHEALLMUSICART)" option="close"/>
     </category>

@@ -879,9 +879,11 @@ class ListItemMonitor(threading.Thread):
         else:
             logMsg("setMusicPlayerDetails CACHE NOT FOUND FOR  artist: %s - album: %s - title: %s "%(artist,album,title))
             artwork = artutils.getMusicArtwork(artist,album,title)
-            if artwork.get("info") and xbmc.getInfoLabel("MusicPlayer.Comment"):
-                artwork["info"] = normalize_string(xbmc.getInfoLabel("MusicPlayer.Comment")).replace('\n', ' ').replace('\r', '').split(" a href")[0] + "  -  " + artwork["info"]
             self.musicArtCache[cacheId] = artwork
+        
+        #merge comment from id3 tag with album info
+        if artwork.get("info") and xbmc.getInfoLabel("MusicPlayer.Comment"):
+            artwork["info"] = normalize_string(xbmc.getInfoLabel("MusicPlayer.Comment")).replace('\n', ' ').replace('\r', '').split(" a href")[0] + "  -  " + artwork["info"]
 
         #set properties
         for key, value in artwork.iteritems():
