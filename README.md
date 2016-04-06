@@ -146,6 +146,7 @@ Only available when enabled as skin setting --> Skin.SetBool(SkinHelper.EnableAn
 |Window(Home).Property(SkinHelper.AnimatedFanart) | Animated (gif) Movie fanart image -if available-  |
 
 NOTE: UPDATED 01-04-2026:
+
 1. The properties will now also be saved into the Kodi database for easy access in lists:
    ListItem.Art(animatedposter) and ListItem.Art(animatedfanart)
    
@@ -200,6 +201,11 @@ If the selected listitem in the videolibrary is a movie set, some additional win
 | Window(Home).Property(SkinHelper.MovieSet.UnWatchedCount) | Total unwatched movies in the set |
 | Window(Home).Property(SkinHelper.ExtraFanArtPath) | Rotating fanart images from movies in the set |
 | Window(Home).Property(SkinHelper.MovieSet.X.Title) | Title of Movie X in the set |
+| Window(Home).Property(SkinHelper.MovieSet.X.Plot) | Plot of Movie X in the set |
+| Window(Home).Property(SkinHelper.MovieSet.X.Rating) | Rating of Movie X in the set |
+| Window(Home).Property(SkinHelper.MovieSet.X.Year) | Year of Movie X in the set |
+| Window(Home).Property(SkinHelper.MovieSet.X.DBID) | DBID of Movie X in the set |
+| Window(Home).Property(SkinHelper.MovieSet.X.Duration) | Duration of Movie X in the set |
 | Window(Home).Property(SkinHelper.MovieSet.X.Poster) | Poster image of Movie X in the set |
 | Window(Home).Property(SkinHelper.MovieSet.X.FanArt) | FanArt image of Movie X in the set |
 | Window(Home).Property(SkinHelper.MovieSet.X.Landscape) | Landscape image of Movie X in the set |

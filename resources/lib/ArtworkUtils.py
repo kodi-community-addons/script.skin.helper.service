@@ -765,22 +765,22 @@ def getAnimatedPostersDb():
     WINDOW.setProperty(cacheStr, repr(allItems))
     return allItems
               
-def getAnimatedArtwork(imdbid,type="poster",dbid=None,manualHeader=""):
+def getAnimatedArtwork(imdbid,arttype="poster",dbid=None,manualHeader=""):
     if manualHeader: 
         xbmc.executebuiltin( "ActivateWindow(busydialog)" )
     
     #get the item from cache first
-    cacheStr = "SkinHelper.AnimatedArtwork.%s.%s" %(imdbid,type)
+    cacheStr = "SkinHelper.AnimatedArtwork.%s.%s" %(imdbid,arttype)
     cache = WINDOW.getProperty(cacheStr).decode('utf-8')
     if cache and not manualHeader:
         image = cache
     else:
         image = ""
-        logMsg("Get Animated %s for imdbid: %s " %(type,imdbid))
+        logMsg("Get Animated %s for imdbid: %s " %(arttype,imdbid))
         
         #check local first
-        localfilename = "special://thumbnails/animatedgifs/%s_%s.gif" %(imdbid,type)
-        localfilenamenone = "special://thumbnails/animatedgifs/%s_%s.none" %(imdbid,type)
+        localfilename = "special://thumbnails/animatedgifs/%s_%s.gif" %(imdbid,arttype)
+        localfilenamenone = "special://thumbnails/animatedgifs/%s_%s.none" %(imdbid,arttype)
         if xbmcvfs.exists(localfilename) and not manualHeader:
             image = localfilename
         elif xbmcvfs.exists(localfilenamenone) and not manualHeader:
@@ -801,8 +801,8 @@ def getAnimatedArtwork(imdbid,type="poster",dbid=None,manualHeader=""):
                 listitem.setProperty("icon","DefaultFolder.png")
                 imagesList.append(listitem)
                 #append online images
-                if all_artwork.get(imdbid + type):
-                    for img in all_artwork[imdbid + type]:
+                if all_artwork.get(imdbid + arttype):
+                    for img in all_artwork[imdbid + arttype]:
                         listitem = xbmcgui.ListItem(label=img)
                         listitem.setProperty("icon","http://www.consiliumb.com/animatedgifs/%s"%img)
                         imagesList.append(listitem)
@@ -820,9 +820,9 @@ def getAnimatedArtwork(imdbid,type="poster",dbid=None,manualHeader=""):
                     selectedItem = imagesList[selectedItem]
                     image = selectedItem.getProperty("icon")
                         
-            elif all_artwork.get(imdbid + type):
+            elif all_artwork.get(imdbid + arttype):
                 #just select the first image...
-                image = "http://www.consiliumb.com/animatedgifs/%s" %all_artwork[imdbid + type][0]
+                image = "http://www.consiliumb.com/animatedgifs/%s" %all_artwork[imdbid + arttype][0]
                 
             #save to file
             xbmcvfs.delete(localfilename)
@@ -844,9 +844,9 @@ def getAnimatedArtwork(imdbid,type="poster",dbid=None,manualHeader=""):
             
             #save in kodi db
             if dbid and image and image != "None":
-                setJSON('VideoLibrary.SetMovieDetails','{ "movieid": %i, "art": { "animated%s": "%s" } }'%(int(dbid),type,image))
+                setJSON('VideoLibrary.SetMovieDetails','{ "movieid": %i, "art": { "animated%s": "%s" } }'%(int(dbid),arttype,image))
             elif dbid and image == "None":
-                setJSON('VideoLibrary.SetMovieDetails','{ "movieid": %i, "art": { "animated%s": null } }'%(int(dbid),type))
+                setJSON('VideoLibrary.SetMovieDetails','{ "movieid": %i, "art": { "animated%s": null } }'%(int(dbid),arttype))
             
             #set image to none if empty to prevent further lookups untill next restart
             if not image: image = "None"

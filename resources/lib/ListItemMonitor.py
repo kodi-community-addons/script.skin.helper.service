@@ -496,7 +496,6 @@ class ListItemMonitor(threading.Thread):
             WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.DBID')
             WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.Duration')			
             WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.Resolution')
-            WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.Resolution.Type')
             WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.AspectRatio')
             WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.Codec')
             WINDOW.clearProperty('SkinHelper.MovieSet.' + str(i) + '.AudioCodec')
