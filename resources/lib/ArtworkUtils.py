@@ -1265,10 +1265,9 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
             json_items = getJSON('AudioLibrary.GetAlbums','{ "filter": {"operator":"is", "field":"album", "value":"%s"}, "properties": [ "description","fanart","thumbnail","artistid","artist","displayartist","musicbrainzalbumid","musicbrainzalbumartistid" ] }'%(albumName.replace("\"","\\" + "\"")))
             for json_response in json_items:
                 if artistName in json_response["displayartist"]:
-                    logMsg("getMusicArtwork found album details --> " + repr(json_response))
+                    logMsg("getMusicArtwork found album details in Kodi DB for album %s" %albumName)
                     localAlbumMatch = True
                     if json_response.get("description") and not albumartwork.get("info"): albumartwork["info"] = json_response["description"]
-                    if json_response.get("thumbnail") and not (json_response["label"].lower() == "singles" or "Various Artists" in json_response.get("displayartist").lower()) and xbmcvfs.exists(getCleanImage(json_response["thumbnail"])): albumartwork["folder"] = getCleanImage(json_response["thumbnail"])
                     if json_response.get("label") and not albumartwork.get("albumname"): albumartwork["albumname"] = json_response["label"]
                     if json_response.get("displayartist") and not albumartwork.get("artistname"): albumartwork["artistname"] = json_response["displayartist"]
                     if json_response.get("musicbrainzalbumid") and not albumartwork.get("musicbrainzalbumid"): albumartwork["musicbrainzalbumid"] = json_response["musicbrainzalbumid"]
@@ -1317,6 +1316,7 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
         if len(json_response) == 1:
             json_response = json_response[0]
             localArtistMatch = True
+            logMsg("getMusicArtwork found artist details in Kodi DB for artist %s" %artistName)
             if json_response.get("description") and not artistartwork.get("info"): artistartwork["info"] = json_response["description"]
             if json_response.get("fanart") and xbmcvfs.exists(getCleanImage(json_response["fanart"])): artistartwork["fanart"] = getCleanImage(json_response["fanart"])
             if json_response.get("thumbnail") and xbmcvfs.exists(getCleanImage(json_response["thumbnail"])) : artistartwork["folder"] = getCleanImage(json_response["thumbnail"])
@@ -1325,7 +1325,6 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
             #get track/album listing for artist
             json_response2 = None
             json_response2 = getJSON('AudioLibrary.GetSongs', '{ "filter":{"artistid": %d}, "properties": [ %s ] }'%(json_response.get("artistid"),fields_songs))
-            logMsg("getMusicArtwork found songs for artist --> " + repr(json_response2))
             for song in json_response2:
                 if not trackName: trackName = song.get("label","")
                 if song.get("album"):
@@ -1397,15 +1396,14 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
                 
         #LOOKUP LOCAL ARTWORK PATH PASED ON SONG FILE PATH
         if path and enableLocalMusicArtLookup and (not artistCacheFound or (albumName and not albumCacheFound)) and localArtistMatch:
-            #only use existing path if the artistname is actually in the path 
             if "\\" in path: delim = "\\"
             else: delim = "/"
             artistPathFound = None
             #determine folder structure (there might be a disclevel too...)
-            for artistpath in [path.rsplit(delim, 1)[0] + delim, path.rsplit(delim, 2)[0] + delim, path.rsplit(delim, 3)[0] + delim]:
+            for artistpath in [path.rsplit(delim, 3)[0] + delim, path.rsplit(delim, 2)[0] + delim, path.rsplit(delim, 1)[0] + delim]:
                 #lookup existing artwork in the paths (only if artistname in the path, to prevent lookups in various artists/compilations folders)
                 match =  SM(None, artistName, artistpath.split(delim)[-2]).ratio()
-                if match >= 0.50:
+                if match >= 0.70 or artistName.lower() in artistpath.lower():
                     #lookup local artist artwork
                     logMsg("getMusicArtwork - lookup artwork on disk for artist: %s - found path: %s" %(artistName,artistpath))
                     artistartwork["path"] = artistpath

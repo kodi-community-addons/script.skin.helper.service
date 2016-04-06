@@ -14,7 +14,7 @@ class Kodi_Monitor(xbmc.Monitor):
         utils.WINDOW.setProperty("resetPvrArtCache","reset")
     
     def onDatabaseUpdated(self,database):
-        utils.logMsg("Kodi_Monitor: onDatabaseUpdated: " + database,0)
+        utils.logMsg("Kodi_Monitor: onDatabaseUpdated: " + database)
         if database == "video":
             utils.resetVideoWidgetWindowProps("",True)
         if database == "music" :
