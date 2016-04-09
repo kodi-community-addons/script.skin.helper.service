@@ -808,6 +808,9 @@ class ListItemMonitor(threading.Thread):
             WINDOW.setProperty("SkinHelper.allStudioLogosColor",repr(self.allStudioLogosColor))
     
     def setDuration(self,currentDuration=""):
+        if xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.DisableHoursDuration)"): 
+            return
+        
         if not currentDuration:
             currentDuration = xbmc.getInfoLabel("%sListItem.Duration"%self.widgetContainerPrefix)
         

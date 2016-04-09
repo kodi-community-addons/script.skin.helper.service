@@ -100,6 +100,7 @@ class Main:
                 if resultAction:
                     if "jsonrpc" in resultAction:
                         xbmc.executeJSONRPC(resultAction)
+                        xbmc.executeJSONRPC(resultAction)
                     else:
                         xbmc.executebuiltin(resultAction)
             
@@ -121,15 +122,17 @@ class Main:
                     liz = utils.createListItem(item)
                     liz.setProperty("json",repr(item))
                     info_dialog = GUI( "script-skin_helper_service-CustomInfo.xml" , utils.ADDON_PATH, "Default", "1080i", listitem=liz, content=content )
+                    xbmc.executebuiltin( "Dialog.Close(busydialog)" )
                     info_dialog.doModal()
                     resultAction = info_dialog.action
                     del info_dialog
                     if resultAction:
                         if "jsonrpc" in resultAction:
                             xbmc.executeJSONRPC(resultAction)
+                            xbmc.executeJSONRPC(resultAction)
                         else:
                             xbmc.executebuiltin(resultAction)
-                xbmc.executebuiltin( "Dialog.Close(busydialog)" )
+                
             
             elif action == "COLORPICKER":
                 from resources.lib.ColorPicker import ColorPicker
