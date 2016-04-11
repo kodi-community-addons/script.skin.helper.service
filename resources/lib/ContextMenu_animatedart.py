@@ -27,5 +27,5 @@ if __name__ == '__main__':
             if image != "None":
                 xbmc.sleep(150)
                 WINDOW.setProperty("SkinHelper.Animated%s"%type,image)
-        #xbmc.executebuiltin("Container.Refresh")
+        xbmc.executebuiltin("Container.Refresh")
     WINDOW.clearProperty("artworkcontextmenu")

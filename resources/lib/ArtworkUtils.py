@@ -89,9 +89,6 @@ def getPVRThumbs(title,channel,type="channels",path="",genre="",year="",ignoreCa
             artwork = getArtworkFromCacheFile(cachefile,artwork)
         if artwork:
             cacheFound = True
-            #modify cachefile with last access date for future auto cleanup
-            artwork["last_accessed"] = "%s" %datetime.now()
-            createNFO(cachefile,artwork)
                 
         if not cacheFound:
             logMsg("getPVRThumb for dbID: %s" %dbID)
@@ -815,10 +812,10 @@ def getAnimatedArtwork(imdbid,arttype="poster",dbid=None,manualHeader=""):
                 if selectedItem == 0:
                     image = "None"
                 elif selectedItem == 1:
-                    image = xbmcgui.Dialog().browse( 2 , ADDON.getLocalizedString(32176), 'files', mask='.gif')
+                    image = xbmcgui.Dialog().browse( 2 , ADDON.getLocalizedString(32176), 'files', mask='.gif').decode("utf-8")
                 elif selectedItem != -1:
                     selectedItem = imagesList[selectedItem]
-                    image = selectedItem.getProperty("icon")
+                    image = selectedItem.getProperty("icon").decode("utf-8")
                         
             elif all_artwork.get(imdbid + arttype):
                 #just select the first image...
@@ -834,7 +831,7 @@ def getAnimatedArtwork(imdbid,arttype="poster",dbid=None,manualHeader=""):
                 file.close()
             elif image:
                 try:
-                    urllib.URLopener().retrieve(image.replace(".gif","_original.gif"), xbmc.translatePath(localfilename))
+                    urllib.URLopener().retrieve(image.replace(".gif","_original.gif"), xbmc.translatePath(localfilename).decode("utf-8"))
                 except:
                     if "consiliumb" in image:
                         image = image.replace(".gif","_original.gif")
@@ -870,19 +867,24 @@ def getGoogleImages(terms,**kwargs):
     if page > 1: start = '&start=%s' % ((page - 1) * 1)
     url = baseURL.format(start=start,query='&' + query)
     opener = urllib2.build_opener()
-    opener.addheaders = [('User-agent', 'Mozilla/5.0 (Linux; Android 4.1.1; Nexus 7 Build/JRO03D) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.166 Safari/535.19')]
+    opener.addheaders = [('User-agent', 'Mozilla/4.0 (compatible; MSIE 7.0; Windows Phone OS 7.0; Trident/3.1; IEMobile/7.0; LG; GW910)')]
     html = opener.open(url).read()
     soup = BeautifulSoup.BeautifulSoup(html)
     results = []
     for div in soup.findAll('div'):
-        if div.get("class") == "rg_di rg_el ivg-i":
-            a = div.find("a")
-            if a:
-                page = a.get("href","")
-                params = urlparse.parse_qs(page)
-                image = params.get("/imgres?imgurl")
-                if image:
-                    results.append(image[0])
+        if div.get("id") == "images":
+            for a in div.findAll("a"):
+                page = a.get("href")
+                html = opener.open(page).read()
+                soup = BeautifulSoup.BeautifulSoup(html)
+                for div in soup.findAll('div'):
+                    if div.get("id") == "img_details":
+                        img_details = div
+                        links = img_details.findAll('a')
+                        if len(links) == 2:
+                            img = links[1].get("href")
+                            results.append( img )
+
     return results
 
 def getImdbTop250():
