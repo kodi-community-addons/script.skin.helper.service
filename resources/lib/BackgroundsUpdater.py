@@ -660,7 +660,7 @@ class BackgroundsUpdater(threading.Thread):
             key = "netflix.generic"
             label = netflixAddon.getAddonInfo('name')
             content = "plugin://plugin.video.flix2kodi/?mode=main&widget=true&url&widget=true"
-            path = "ActivateWindow(Videos,%s,return)" %content.replace("&widget=true","")
+            path = "ActivateWindow(Videos,%s,return)" %content
             imagespath = "plugin://plugin.video.flix2kodi/?mode=list_videos&thumb&type=both&url=list%3f%26mylist&widget=true"
             type = "media"
             nodes.append( (key, label, content, type, path, imagespath ) )
@@ -670,7 +670,7 @@ class BackgroundsUpdater(threading.Thread):
             key = "netflix.generic.mylist"
             label = netflixAddon.getLocalizedString(30104)
             content = "plugin://plugin.video.flix2kodi/?mode=list_videos&thumb&type=both&url=list%3f%26mylist&widget=true"
-            path = "ActivateWindow(Videos,%s,return)" %content.replace("&widget=true","")
+            path = "ActivateWindow(Videos,%s,return)" %content
             type = "movies"
             nodes.append( (key, label, content, type, path ) )
             
@@ -695,68 +695,68 @@ class BackgroundsUpdater(threading.Thread):
                         #generic suggestions node
                         key = "netflix.generic.suggestions"
                         content = item["file"] + "&widget=true"
-                        path = "ActivateWindow(Videos,%s,return)" %item["file"]
+                        path = "ActivateWindow(Videos,%s,return)" %content
                         nodes.append( (key, item["label"], content, "movies", path ) )
                         #movies suggestions node
                         key = "netflix.movies.suggestions"
                         newpath = item["file"].replace("type=both","type=movie")
                         content = newpath + "&widget=true"
-                        path = "ActivateWindow(Videos,%s,return)" %newpath
+                        path = "ActivateWindow(Videos,%s,return)" %content
                         nodes.append( (key, item["label"], content, "movies", path ) )
                         #tvshows suggestions node
                         key = "netflix.tvshows.suggestions"
                         newpath = item["file"].replace("type=both","type=show")
                         content = newpath + "&widget=true"
-                        path = "ActivateWindow(Videos,%s,return)" %newpath
+                        path = "ActivateWindow(Videos,%s,return)" %content
                         nodes.append( (key, item["label"], content, "tvshows", path ) )
                     elif profilename in item["label"] and suggestionsNodefound: 
                         #this is the continue watching node!
                         #generic inprogress node
                         key = "netflix.generic.inprogress"
                         content = item["file"] + "&widget=true"
-                        path = "ActivateWindow(Videos,%s,return)" %item["file"]
+                        path = "ActivateWindow(Videos,%s,return)" %content
                         nodes.append( (key, item["label"], content, "movies", path ) )
                         #movies inprogress node
                         key = "netflix.movies.inprogress"
                         newpath = item["file"].replace("type=both","type=movie")
                         content = newpath + "&widget=true"
-                        path = "ActivateWindow(Videos,%s,return)" %newpath
+                        path = "ActivateWindow(Videos,%s,return)" %content
                         nodes.append( (key, item["label"], content, "movies", path ) )
                         #tvshows inprogress node
                         key = "netflix.tvshows.inprogress"
                         newpath = item["file"].replace("type=both","type=show")
                         content = newpath + "&widget=true"
-                        path = "ActivateWindow(Videos,%s,return)" %newpath
+                        path = "ActivateWindow(Videos,%s,return)" %content
                         nodes.append( (key, item["label"], content, "tvshows", path ) )
                     elif item["label"].lower().endswith("releases"): 
                         #this is the recent node!
                         #generic recent node
                         key = "netflix.generic.recent"
                         content = item["file"] + "&widget=true"
-                        path = "ActivateWindow(Videos,%s,return)" %item["file"]
+                        path = "ActivateWindow(Videos,%s,return)" %content
                         nodes.append( (key, item["label"], content, "movies", path ) )
                         #movies recent node
                         key = "netflix.movies.recent"
                         newpath = item["file"].replace("type=both","type=movie")
                         content = newpath + "&widget=true"
-                        path = "ActivateWindow(Videos,%s,return)" %newpath
+                        path = "ActivateWindow(Videos,%s,return)" %content
                         nodes.append( (key, item["label"], content, "movies", path ) )
                         #tvshows recent node
                         key = "netflix.tvshows.recent"
                         newpath = item["file"].replace("type=both","type=show")
                         content = newpath + "&widget=true"
-                        path = "ActivateWindow(Videos,%s,return)" %newpath
+                        path = "ActivateWindow(Videos,%s,return)" %content
                         nodes.append( (key, item["label"], content, "tvshows", path ) )
                     elif item["label"] == "Trending": 
                         #this is the trending node!
                         key = "netflix.generic.trending"
                         content = item["file"] + "&widget=true"
-                        path = "ActivateWindow(Videos,%s,return)" %item["file"]
+                        path = "ActivateWindow(Videos,%s,return)" %content
                         nodes.append( (key, item["label"], content, "movies", path ) )
                     else:
                         key = "netflix.generic.suggestions.%s" %itemscount
                         content = item["file"] + "&widget=true"
-                        path = "ActivateWindow(Videos,%s,return)" %item["file"]
+                        path = "ActivateWindow(Videos,%s,return)" %content
                         type = "movies"
                         nodes.append( (key, item["label"], content, type, path ) )
                         itemscount += 1
@@ -773,7 +773,7 @@ class BackgroundsUpdater(threading.Thread):
             key = "netflix.movies"
             label = netflixAddon.getAddonInfo('name') + " " + netflixAddon.getLocalizedString(30100)
             content = "plugin://plugin.video.flix2kodi/?mode=main&thumb&type=movie&url&widget=true"
-            path = "ActivateWindow(Videos,%s,return)" %content.replace("&widget=true","")
+            path = "ActivateWindow(Videos,%s,return)" %content
             imagespath = "plugin://plugin.video.flix2kodi/?mode=list_videos&thumb&type=movie&url=list%3f%26mylist&widget=true"
             type = "movies"
             nodes.append( (key, label, content, type, path, imagespath ) )
@@ -783,7 +783,7 @@ class BackgroundsUpdater(threading.Thread):
             key = "netflix.movies.inprogress"
             label = netflixAddon.getLocalizedString(30100) + " - " + netflixAddon.getLocalizedString(30104)
             content = "plugin://plugin.video.flix2kodi/?mode=list_videos&thumb&type=movie&url=list%3f%26mylist&widget=true"
-            path = "ActivateWindow(Videos,%s,return)" %content.replace("&widget=true","")
+            path = "ActivateWindow(Videos,%s,return)" %content
             type = "movies"
             nodes.append( (key, label, content, type, path ) )
                         
@@ -791,7 +791,7 @@ class BackgroundsUpdater(threading.Thread):
             key = "netflix.movies.genres"
             label = netflixAddon.getLocalizedString(30100) + " - " + netflixAddon.getLocalizedString(30108)
             content = "plugin://plugin.video.flix2kodi/?mode=list_genres&thumb&type=movie&url&widget=true"
-            path = "ActivateWindow(Videos,%s,return)" %content.replace("&widget=true","")
+            path = "ActivateWindow(Videos,%s,return)" %content
             type = "genres"
             nodes.append( (key, label, content, type, path ) )
             
@@ -799,7 +799,7 @@ class BackgroundsUpdater(threading.Thread):
             key = "netflix.tvshows"
             label = netflixAddon.getAddonInfo('name') + " " + netflixAddon.getLocalizedString(30101)
             content = "plugin://plugin.video.flix2kodi/?mode=main&thumb&type=show&url&widget=true"
-            path = "ActivateWindow(Videos,%s,return)" %content.replace("&widget=true","")
+            path = "ActivateWindow(Videos,%s,return)" %content
             imagespath = "plugin://plugin.video.flix2kodi/?mode=list_videos&thumb&type=show&url=list%3f%26mylist&widget=true"
             type = "tvshows"
             nodes.append( (key, label, content, type, path, imagespath ) )
@@ -809,7 +809,7 @@ class BackgroundsUpdater(threading.Thread):
             key = "netflix.tvshows.inprogress"
             label = netflixAddon.getLocalizedString(30101) + " - " + netflixAddon.getLocalizedString(30104)
             content = "plugin://plugin.video.flix2kodi/?mode=list_videos&thumb&type=show&url=list%3f%26mylist&widget=true"
-            path = "ActivateWindow(Videos,%s,return)" %content.replace("&widget=true","")
+            path = "ActivateWindow(Videos,%s,return)" %content
             type = "tvshows"
             nodes.append( (key, label, content, type, path ) )
             
@@ -817,7 +817,7 @@ class BackgroundsUpdater(threading.Thread):
             key = "netflix.tvshows.genres"
             label = netflixAddon.getLocalizedString(30101) + " - " + netflixAddon.getLocalizedString(30108)
             content = "plugin://plugin.video.flix2kodi/?mode=list_genres&thumb&type=show&url&widget=true"
-            path = "ActivateWindow(Videos,%s,return)" %content.replace("&widget=true","")
+            path = "ActivateWindow(Videos,%s,return)" %content
             type = "genres"
             nodes.append( (key, label, content, type, path ) )
             

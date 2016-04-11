@@ -422,6 +422,7 @@ def setSkinSetting(setting="", windowHeader="", sublevel="", valueOnly=""):
                 if condition and not xbmc.getCondVisibility(condition): continue
                 if icon: useRichLayout = True
                 if icon and icon.startswith("$"): icon = xbmc.getInfoLabel(icon)
+                if "%" in label: label = label %value
                 if curValue and (curValue.lower() == value.lower() or label.lower() == curValueLabel.lower()): selectId = itemcount
                 listitem = xbmcgui.ListItem(label=label, iconImage=icon)
                 listitem.setProperty("value",value)
@@ -508,6 +509,7 @@ def correctSkinSettings():
             value = item.attributes[ 'value' ].nodeValue
             curvalue = xbmc.getInfoLabel("Skin.String(%s)" %id.encode("utf-8")).decode("utf-8")
             label = xbmc.getInfoLabel(item.attributes[ 'label' ].nodeValue).decode("utf-8")
+            if "%" in label: label = label %value
             additionalactions = item.getElementsByTagName( 'onselect' )
             try: default = item.attributes[ 'default' ].nodeValue
             except: default = ""
@@ -534,11 +536,13 @@ def correctSkinSettings():
                         if (item2.attributes[ 'value' ].nodeValue.lower() == curvalue.lower()) or (not curvalue and xbmc.getCondVisibility( subdefault )):
                             label = xbmc.getInfoLabel(item2.attributes[ 'label' ].nodeValue).decode("utf-8")
                             value = item2.attributes[ 'value' ].nodeValue
+                            if "%" in label: label = label %value
                             default = subdefault
                             additionalactions = item2.getElementsByTagName( 'onselect' )
                         if (item2.attributes[ 'value' ].nodeValue.lower() == curvalue.lower()) or xbmc.getCondVisibility( subconstantdefault ):
                             label = xbmc.getInfoLabel(item2.attributes[ 'label' ].nodeValue).decode("utf-8")
                             value = item2.attributes[ 'value' ].nodeValue
+                            if "%" in label: label = label %value
                             constantdefault = subconstantdefault
                             additionalactions = item2.getElementsByTagName( 'onselect' )
             #process any multiselects
