@@ -18,6 +18,7 @@ if __name__ == '__main__':
     ret = xbmcgui.Dialog().select(header, options)
     if ret == 0:
         #refresh item
+        artwork = artworkutils.getMusicArtwork(xbmc.getInfoLabel("ListItem.Artist").decode('utf-8'),xbmc.getInfoLabel("ListItem.Album").decode('utf-8'),xbmc.getInfoLabel("ListItem.Title").decode('utf-8'),ignoreCache=True)
         
         #clear properties
         WINDOW.setProperty("resetMusicArtCache","reset")
@@ -33,10 +34,9 @@ if __name__ == '__main__':
         WINDOW.clearProperty("SkinHelper.Music.AlbumList")
         WINDOW.clearProperty("SkinHelper.Music.ExtraFanArt")
         
-        artwork = artworkutils.getMusicArtwork(xbmc.getInfoLabel("ListItem.Artist").decode('utf-8'),xbmc.getInfoLabel("ListItem.Album").decode('utf-8'),xbmc.getInfoLabel("ListItem.Title").decode('utf-8'),ignoreCache=True)
         #set new properties
         for key, value in artwork.iteritems():
-            WINDOW.setProperty("SkinHelper.PVR." + key,value)
+            WINDOW.setProperty("SkinHelper.Music." + key,value)
     
     if ret == 1:
         #cache all artwork

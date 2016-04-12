@@ -99,8 +99,8 @@ class ListItemMonitor(threading.Thread):
                 setJSON('Settings.SetSettingValue', '{"setting":"screensaver.mode", "value": "%s"}' %screenSaverSetting)        
                 screenSaverSetting = None
                 
+            #auto close OSD after X seconds of inactivity
             if xbmc.getCondVisibility("Window.IsActive(videoosd) | Window.IsActive(musicosd)"):
-                #auto close OSD after X seconds of inactivity
                 if xbmc.getCondVisibility("Window.IsActive(videoosd)"):
                     secondsToDisplay = xbmc.getInfoLabel("Skin.String(SkinHelper.AutoCloseVideoOSD)")
                     window = "videoosd"
@@ -116,7 +116,35 @@ class ListItemMonitor(threading.Thread):
                             xbmc.executebuiltin("Dialog.Close(%s)"%window)
                         else:
                             xbmc.sleep(250)
-                
+            
+            #do some background stuff every 30 minutes
+            if (self.delayedTaskInterval >= 1800):
+                thread.start_new_thread(self.doBackgroundWork, ())
+                self.delayedTaskInterval = 0          
+            
+            #reload some widgets every 10 minutes
+            if (self.widgetTaskInterval >= 600):
+                resetGlobalWidgetWindowProps()
+                self.widgetTaskInterval = 0
+            
+            #flush cache if videolibrary has changed
+            if WINDOW.getProperty("resetVideoDbCache") == "reset":
+                self.extraFanartCache = {}
+                self.streamdetailsCache = {}
+                WINDOW.clearProperty("resetVideoDbCache")
+
+            #flush cache if pvr settings have changed
+            if WINDOW.getProperty("resetPvrArtCache") == "reset":
+                self.pvrArtCache = {}
+                WINDOW.clearProperty("SkinHelper.PVR.ArtWork")
+                WINDOW.clearProperty("resetPvrArtCache")
+            
+            #flush cache if musiclibrary has changed
+            if WINDOW.getProperty("resetMusicArtCache") == "reset":
+                self.musicArtCache = {}
+                WINDOW.clearProperty("resetMusicArtCache")
+
+            
             if xbmc.getCondVisibility("[Window.IsMedia | !IsEmpty(Window(Home).Property(SkinHelper.WidgetContainer))]"):
                 try:
                     widgetContainer = WINDOW.getProperty("SkinHelper.WidgetContainer").decode('utf-8')
@@ -217,34 +245,6 @@ class ListItemMonitor(threading.Thread):
                     liPathLast = self.liPath
                     lastListItem = curListItem
 
-                #do some background stuff every 30 minutes
-                if (self.delayedTaskInterval >= 1800):
-                    thread.start_new_thread(self.doBackgroundWork, ())
-                    self.delayedTaskInterval = 0          
-                
-                #reload some widgets every 10 minutes
-                if (self.widgetTaskInterval >= 600):
-                    resetGlobalWidgetWindowProps()
-                    self.widgetTaskInterval = 0
-                
-                #flush cache if videolibrary has changed
-                if WINDOW.getProperty("resetVideoDbCache") == "reset":
-                    self.moviesetCache = {}
-                    self.extraFanartCache = {}
-                    self.streamdetailsCache = {}
-                    WINDOW.clearProperty("resetVideoDbCache")
-
-                #flush cache if pvr settings have changed
-                if WINDOW.getProperty("resetPvrArtCache") == "reset":
-                    self.pvrArtCache = {}
-                    WINDOW.clearProperty("SkinHelper.PVR.ArtWork")
-                    WINDOW.clearProperty("resetPvrArtCache")
-                
-                #flush cache if musiclibrary has changed
-                if WINDOW.getProperty("resetMusicArtCache") == "reset":
-                    self.musicArtCache = {}
-                    WINDOW.clearProperty("resetMusicArtCache")
-                
                 xbmc.sleep(100)
                 self.delayedTaskInterval += 0.1
                 self.widgetTaskInterval += 0.1
@@ -285,10 +285,7 @@ class ListItemMonitor(threading.Thread):
     def saveCacheToFile(self):
         libraryCache = {}
         libraryCache["SetsCache"] = self.moviesetCache
-        libraryCache["streamdetailsCache"] = self.streamdetailsCache
         libraryCache["tmdbinfocache"] = self.tmdbinfocache
-        widgetcache = WINDOW.getProperty("skinhelper-widgetself.contentType").decode("utf-8")
-        if widgetcache: libraryCache["widgetcache"] = eval(widgetcache)
         saveDataToCacheFile(self.cachePath,libraryCache)
         actorcache = WINDOW.getProperty("SkinHelper.ActorImages").decode("utf-8")
         if actorcache:
@@ -299,8 +296,6 @@ class ListItemMonitor(threading.Thread):
         data = getDataFromCacheFile(self.cachePath)
         if data.has_key("SetsCache"):
             self.moviesetCache = data["SetsCache"]
-        if data.has_key("streamdetailsCache"):
-            self.streamdetailsCache = data["streamdetailsCache"]
         if data.has_key("tmdbinfocache"):
             self.tmdbinfocache = data["tmdbinfocache"]
             
@@ -521,13 +516,15 @@ class ListItemMonitor(threading.Thread):
         allProperties = []
         if not self.liDbId or not self.liPath: return
         if self.liPath.startswith("videodb://movies/sets/"):
-            #try to get from cache first
+            #try to get from cache first - use checksum compare because moviesets do not get refreshed automatically
+            checksum = repr(getJSON('VideoLibrary.GetMovieSetDetails', '{"setid": %s, "properties": [ "thumbnail" ], "movies": { "properties":  [ "playcount"] }}' % self.liDbId))
             cacheStr = self.liLabel+self.liDbId
-            if self.moviesetCache.get(cacheStr):
-                allProperties = self.moviesetCache.get(cacheStr)
+            if self.moviesetCache.get(cacheStr) and self.moviesetCache.get("checksum-" + cacheStr,"") == checksum:
+                allProperties = self.moviesetCache[cacheStr]
                 
             if self.liDbId and not allProperties:
                 #get values from json api
+                checksum = getJSON('VideoLibrary.GetMovieSetDetails', '{"setid": %s, "properties": [ "thumbnail" ], "movies": { "properties":  [ "playcount"] }}' % self.liDbId)
                 json_response = getJSON('VideoLibrary.GetMovieSetDetails', '{"setid": %s, "properties": [ "thumbnail" ], "movies": { "properties":  [ "rating", "art", "file", "year", "director", "writer", "playcount", "genre" , "thumbnail", "runtime", "studio", "plotoutline", "plot", "country", "streamdetails"], "sort": { "order": "ascending",  "method": "year" }} }' % self.liDbId)
                 if json_response:
                     count = 0
@@ -647,6 +644,7 @@ class ListItemMonitor(threading.Thread):
                     allProperties.append( ('SkinHelper.MovieSet.Extrafanarts', repr(set_fanart)) )
                 #save to cache
                 self.moviesetCache[cacheStr] = allProperties
+                self.moviesetCache["checksum-" + cacheStr] = repr(checksum)
             
             #Process properties
             for item in allProperties:
