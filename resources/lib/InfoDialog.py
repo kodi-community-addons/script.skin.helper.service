@@ -11,9 +11,22 @@ ACTION_SHOW_INFO = ( 11, )
 class GUI( xbmcgui.WindowXMLDialog ):
     def __init__( self, *args, **kwargs ):
         xbmcgui.WindowXMLDialog.__init__( self )
-        self.listitem = kwargs[ "listitem" ]
-        self.content = kwargs[ "content" ]
+        params = kwargs[ "params" ]
         WINDOW.setProperty("SkinHelper.WidgetContainer","999")
+        
+        if params.get("MOVIEID"):
+            item = getJSON('VideoLibrary.GetMovieDetails', '{ "movieid": %s, "properties": [ %s ] }' %(params.get("MOVIEID"),fields_movies))
+            self.content = "movies"
+        elif params.get("EPISODEID"):
+            item = getJSON('VideoLibrary.GetEpisodeDetails', '{ "episodeid": %s, "properties": [ %s ] }' %(params.get("EPISODEID"),fields_episodes))
+            self.content = "episodes"
+        elif params.get("TVSHOWID"):
+            item = getJSON('VideoLibrary.GetTVShowDetails', '{ "tvshowid": %s, "properties": [ %s ] }' %(params.get("TVSHOWID"),fields_tvshows))
+            self.content = "tvshows"
+            
+        liz = prepareListItem(item)
+        liz = createListItem(item)
+        self.listitem = liz
 
     def onInit( self ):
         self._hide_controls()

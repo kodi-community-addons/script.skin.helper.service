@@ -1289,34 +1289,36 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
             songcount = 0
             tracklist = []
             json_items = getJSON('AudioLibrary.GetAlbums','{ "filter": {"operator":"is", "field":"album", "value":"%s"}, "properties": [ "description","fanart","thumbnail","artistid","artist","displayartist","musicbrainzalbumid","musicbrainzalbumartistid" ] }'%(albumName.replace("\"","\\" + "\"")))
-            for json_response in json_items:
-                if artistName in json_response["displayartist"]:
-                    logMsg("getMusicArtwork found album details in Kodi DB for album %s" %albumName)
-                    localAlbumMatch = True
-                    if json_response.get("description") and not albumartwork.get("info"): albumartwork["info"] = json_response["description"]
-                    if json_response.get("label") and not albumartwork.get("albumname"): albumartwork["albumname"] = json_response["label"]
-                    if json_response.get("displayartist") and not albumartwork.get("artistname"): albumartwork["artistname"] = json_response["displayartist"]
-                    if json_response.get("musicbrainzalbumid") and not albumartwork.get("musicbrainzalbumid"): albumartwork["musicbrainzalbumid"] = json_response["musicbrainzalbumid"]
-                    albumid = json_response.get("albumid")
-                    #get track listing for album
-                    json_response2 = getJSON('AudioLibrary.GetSongs', '{ "properties": [ %s ], "sort": {"method":"track"}, "filter": { "albumid": %d}}'%(fields_songs,albumid))
-                    for song in json_response2:
-                        if not path: path = song["file"]
-                        if song.get("track"): tracklist.append(u"%s - %s" %(song["track"], song["title"]))
-                        else: tracklist.append(song["title"])
-                        songcount += 1
+            for strictmatch in [True, False]:
+                for json_response in json_items:
+                    if localAlbumMatch: break
+                    if (strictmatch and artistName in json_response["displayartist"]) or not strictmatch:
+                        logMsg("getMusicArtwork found album details in Kodi DB for album %s" %albumName)
+                        localAlbumMatch = True
+                        if json_response.get("description") and not albumartwork.get("info"): albumartwork["info"] = json_response["description"]
+                        if json_response.get("label") and not albumartwork.get("albumname"): albumartwork["albumname"] = json_response["label"]
+                        if json_response.get("displayartist") and not albumartwork.get("artistname"): albumartwork["artistname"] = json_response["displayartist"]
+                        if json_response.get("musicbrainzalbumid") and not albumartwork.get("musicbrainzalbumid"): albumartwork["musicbrainzalbumid"] = json_response["musicbrainzalbumid"]
+                        albumid = json_response.get("albumid")
+                        #get track listing for album
+                        json_response2 = getJSON('AudioLibrary.GetSongs', '{ "properties": [ %s ], "sort": {"method":"track"}, "filter": { "albumid": %d}}'%(fields_songs,albumid))
+                        for song in json_response2:
+                            if not path: path = song["file"]
+                            if song.get("track"): tracklist.append(u"%s - %s" %(song["track"], song["title"]))
+                            else: tracklist.append(song["title"])
+                            songcount += 1
                 
-                if not albumartwork.get("artistname"): albumartwork["artistname"] = artistName
-                
-                #make sure that our results are strings
-                albumartwork["tracklist"] = u"[CR]".join(tracklist)
-                albumartwork["tracklist.formatted"] = ""
-                for trackitem in tracklist:
-                    albumartwork["tracklist.formatted"] += u"• %s[CR]" %trackitem
-                albumartwork["albumcount"] = "1"
-                albumartwork["songcount"] = "%s"%songcount
-                if isinstance(albumartwork.get("musicbrainzalbumid",""), list):
-                    albumartwork["musicbrainzalbumid"] = albumartwork["musicbrainzalbumid"][0]
+            if not albumartwork.get("artistname"): albumartwork["artistname"] = artistName
+            
+            #make sure that our results are strings
+            albumartwork["tracklist"] = u"[CR]".join(tracklist)
+            albumartwork["tracklist.formatted"] = ""
+            for trackitem in tracklist:
+                albumartwork["tracklist.formatted"] += u"• %s[CR]" %trackitem
+            albumartwork["albumcount"] = "1"
+            albumartwork["songcount"] = "%s"%songcount
+            if isinstance(albumartwork.get("musicbrainzalbumid",""), list):
+                albumartwork["musicbrainzalbumid"] = albumartwork["musicbrainzalbumid"][0]
    
     ############## ARTIST DETAILS #######################################
     

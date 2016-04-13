@@ -46,8 +46,36 @@ class Main:
             elif action == "LAUNCH":
                 xbmcplugin.setResolvedUrl(handle=int(sys.argv[1]), succeeded=False, listitem=xbmcgui.ListItem())
                 path = sys.argv[2].split("&path=")[1]
-                xbmc.executebuiltin("Action(Close)")
                 xbmc.executebuiltin(path)
+            elif action == "FOCUSANDCLICK":
+                #used as workaround to display local media in extendedinfo actorinfo
+                xbmcplugin.setResolvedUrl(handle=int(sys.argv[1]), succeeded=False, listitem=xbmcgui.ListItem())
+                control=params.get("control")[0]
+                title=params.get("title")[0]
+                totalItems = int(xbmc.getInfoLabel("Container(%s).NumItems" %control))
+                curItem = 0
+                itemFound = False
+                xbmc.executebuiltin("Control.SetFocus(%s,0)" %control)
+                while totalItems > curItem:
+                    curTitle = xbmc.getInfoLabel("Container(%s).ListItemAbsolute(%s).Title" %(control,curItem)).decode("utf-8")
+                    if curTitle == title:
+                        itemFound = True
+                        xbmc.executebuiltin("Control.SetFocus(%s, %s)" %(control,curItem))
+                        xbmc.executebuiltin("Action(select)")
+                        break
+                    else:
+                        curItem += 1
+                        xbmc.sleep(10)
+                        
+                #focus castinfo again after closing videoinfo
+                if itemFound:
+                    while not xbmc.getCondVisibility("Window.IsActive(script-ExtendedInfo Script-DialogVideoInfo.xml)"):
+                        xbmc.sleep(500)
+                    while xbmc.getCondVisibility("Window.IsActive(script-ExtendedInfo Script-DialogVideoInfo.xml)"):
+                        xbmc.sleep(500)
+                    xbmc.sleep(300)
+                    xbmc.executebuiltin("Control.SetFocus(140)")
+
             elif action == "PLAYALBUM":
                 xbmcplugin.setResolvedUrl(handle=int(sys.argv[1]), succeeded=False, listitem=xbmcgui.ListItem())
                 xbmc.executeJSONRPC('{ "jsonrpc": "2.0", "method": "Player.Open", "params": { "item": { "albumid": %d } }, "id": 1 }' % int(path))

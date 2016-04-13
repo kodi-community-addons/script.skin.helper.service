@@ -53,8 +53,17 @@ class Main:
             
             elif action == "SETFOCUS":
                 control = params.get("CONTROL",None)
-                xbmc.sleep(50)
-                xbmc.executebuiltin("Control.SetFocus(%s)"%control)
+                fallback = params.get("FALLBACK",None)
+                count = 0
+                while not xbmc.getCondVisibility("Control.HasFocus(%s)" %control):
+                    if count == 20 or (fallback and xbmc.getCondVisibility("Control.IsVisible(%s) + !IntegerGreaterThan(Container(%s).NumItems,0)" %(control,control))):
+                        if fallback: xbmc.executebuiltin("Control.SetFocus(%s)"%fallback)
+                        break
+                    else:
+                        xbmc.executebuiltin("Control.SetFocus(%s)"%control)
+                        xbmc.sleep(50)
+                        count += 1
+                
             
             elif action == "SETFORCEDVIEW":
                 contenttype = params.get("CONTENTTYPE",None)
@@ -107,31 +116,20 @@ class Main:
             elif action == "SHOWINFO":
                 xbmc.executebuiltin( "ActivateWindow(busydialog)" )
                 from resources.lib.InfoDialog import GUI
-                item = None
-                if params.get("MOVIEID"):
-                    item = utils.getJSON('VideoLibrary.GetMovieDetails', '{ "movieid": %s, "properties": [ %s ] }' %(params.get("MOVIEID"),utils.fields_movies))
-                    content = "movies"
-                elif params.get("EPISODEID"):
-                    item = utils.getJSON('VideoLibrary.GetEpisodeDetails', '{ "episodeid": %s, "properties": [ %s ] }' %(params.get("EPISODEID"),utils.fields_episodes))
-                    content = "episodes"
-                elif params.get("TVSHOWID"):
-                    item = utils.getJSON('VideoLibrary.GetTVShowDetails', '{ "tvshowid": %s, "properties": [ %s ] }' %(params.get("TVSHOWID"),utils.fields_tvshows))
-                    content = "tvshows"
-                if item:
-                    liz = utils.prepareListItem(item)
-                    liz = utils.createListItem(item)
-                    liz.setProperty("json",repr(item))
-                    info_dialog = GUI( "script-skin_helper_service-CustomInfo.xml" , utils.ADDON_PATH, "Default", "1080i", listitem=liz, content=content )
-                    xbmc.executebuiltin( "Dialog.Close(busydialog)" )
-                    info_dialog.doModal()
-                    resultAction = info_dialog.action
-                    del info_dialog
-                    if resultAction:
-                        if "jsonrpc" in resultAction:
-                            xbmc.executeJSONRPC(resultAction)
-                            xbmc.executeJSONRPC(resultAction)
-                        else:
-                            xbmc.executebuiltin(resultAction)
+                info_dialog = GUI( "script-skin_helper_service-CustomInfo.xml" , utils.ADDON_PATH, "Default", "1080i", params=params )
+                xbmc.executebuiltin( "Dialog.Close(busydialog)" )
+                info_dialog.doModal()
+                resultAction = info_dialog.action
+                del info_dialog
+                if resultAction:
+                    while xbmc.getCondVisibility("System.HasModalDialog | Window.IsActive(script-ExtendedInfo Script-DialogVideoInfo.xml) | Window.IsActive(script-ExtendedInfo Script-DialogInfo.xml) | Window.IsActive(script-skin_helper_service-CustomInfo.xml) | Window.IsActive(script-skin_helper_service-CustomSearch.xml)"):
+                        xbmc.executebuiltin("Action(Back)")
+                        xbmc.sleep(500)
+                    if "jsonrpc" in resultAction:
+                        xbmc.executeJSONRPC(resultAction)
+                        xbmc.executeJSONRPC(resultAction)
+                    else:
+                        xbmc.executebuiltin(resultAction)
                 
             
             elif action == "COLORPICKER":

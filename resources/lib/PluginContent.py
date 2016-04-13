@@ -1098,20 +1098,23 @@ def getExtraFanArt(path):
 def GETCASTMEDIA(limit,name=""):
     allItems = []
     if name:
-        json_result = getJSON('VideoLibrary.GetMovies', '{ "properties": [ %s ] }' %fields_movies)
+        json_result = getJSON('VideoLibrary.GetMovies', '{ "filter": {"operator": "contains", "field": "actor", "value": "%s"}, "properties": [ %s ] }' %(name,fields_movies))
         for item in json_result:
-            for castmember in item["cast"]:
-                if castmember["name"].lower() == name.lower():
-                    url = "RunScript(script.skin.helper.service,action=showinfo,movieid=%s)" %item["movieid"]
-                    item["file"] = "plugin://script.skin.helper.service/?action=launch&path=" + url
-                    allItems.append(item)
-        json_result = getJSON('VideoLibrary.GetTvShows', '{ "properties": [ %s ] }' %fields_tvshows)
+            if KODI_VERSION > 15:
+                item["file"] = "plugin://script.skin.helper.service/?action=focusandclick&control=150&title=%s" %item["title"]
+            else:
+                url = "RunScript(script.skin.helper.service,action=showinfo,movieid=%s)" %item["movieid"]
+                item["file"] = "plugin://script.skin.helper.service/?action=launch&path=" + url
+            allItems.append(item)
+        json_result = getJSON('VideoLibrary.GetTvShows', '{ "filter": {"operator": "contains", "field": "actor", "value": "%s"}, "properties": [ %s ] }' %(name,fields_tvshows))
         for item in json_result:
-            for castmember in item["cast"]:
-                if castmember["name"].lower() == name.lower():
-                    url = "RunScript(script.skin.helper.service,action=showinfo,tvshowid=%s)" %item["tvshowid"]
-                    item["file"] = "plugin://script.skin.helper.service/?action=launch&path=" + url
-                    allItems.append(item)
+            if KODI_VERSION > 15:
+                item["file"] = "plugin://script.skin.helper.service/?action=focusandclick&control=150&title=%s" %item["title"]
+            else:
+                url = "RunScript(script.skin.helper.service,action=showinfo,tvshowid=%s)" %item["tvshowid"]
+                item["file"] = "plugin://script.skin.helper.service/?action=launch&path=" + url
+            allItems.append(item)
+
     return allItems
     
 def getCast(movie=None,tvshow=None,movieset=None,episode=None,downloadThumbs=False,listOnly=False):
