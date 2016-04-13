@@ -815,59 +815,6 @@ def matchStudioLogo(studiostr,studiologos):
                 
     return studiologo
 
-def resetGlobalWidgetWindowProps():
-    WINDOW.setProperty("widgetreload2", time.strftime("%Y%m%d%H%M%S", time.gmtime()))
-    
-def resetPlayerWindowProps():
-    #reset all window props provided by the script...
-    WINDOW.setProperty("SkinHelper.Player.Music.Banner","") 
-    WINDOW.setProperty("SkinHelper.Player.Music.ClearLogo","") 
-    WINDOW.setProperty("SkinHelper.Player.Music.DiscArt","") 
-    WINDOW.setProperty("SkinHelper.Player.Music.FanArt","") 
-    WINDOW.setProperty("SkinHelper.Player.Music.Thumb","") 
-    WINDOW.setProperty("SkinHelper.Player.Music.Info","") 
-    WINDOW.setProperty("SkinHelper.Player.Music.TrackList","") 
-    WINDOW.setProperty("SkinHelper.Player.Music.SongCount","") 
-    WINDOW.setProperty("SkinHelper.Player.Music.albumCount","") 
-    WINDOW.setProperty("SkinHelper.Player.Music.AlbumList","")
-    WINDOW.setProperty("SkinHelper.Player.Music.ExtraFanArt","")
-    
-def resetMusicWidgetWindowProps(data="",resetAll=False):
-    #clear the cache for the music widgets
-    type = "unknown"
-    if data:
-        data = eval(data.replace("true","True").replace("false","False"))
-        type = data.get("type","")
-
-    if (type in ["song","artist","album"] or resetAll) and not WINDOW.getProperty("skinhelper-refreshmusicwidgetsbusy"):
-        logMsg("Music database changed - type: %s - resetAll: %s, refreshing widgets...." %(type,resetAll))
-        if resetAll: WINDOW.setProperty("resetMusicArtCache","reset")
-        timestr = time.strftime("%Y%m%d%H%M%S", time.gmtime())
-        WINDOW.setProperty("widgetreloadmusic", timestr)
-        WINDOW.clearProperty("skinhelper-refreshmusicwidgetsbusy")
-        
-def resetVideoWidgetWindowProps(data="",resetAll=False):
-    #clear the cache for the video widgets
-    type = "unknown"
-    if data:
-        data = eval(data.replace("true","True").replace("false","False"))
-        if data and data.get("item"):
-            type = data["item"].get("type","unknown")
-
-    if (type in ["movie","tvshow","episode"] and not WINDOW.getProperty("skinhelper-refreshvideowidgetsbusy")) or resetAll:
-        logMsg("Video database changed - type: %s - resetAll: %s, refreshing widgets...." %(type,resetAll))
-        WINDOW.setProperty("skinhelper-refreshvideowidgetsbusy","busy")
-        if resetAll: WINDOW.setProperty("resetVideoDbCache","reset")
-        timestr = time.strftime("%Y%m%d%H%M%S", time.gmtime())
-        #reset specific widgets, based on item that is updated
-        if resetAll or type=="movie":
-            WINDOW.setProperty("widgetreload-movies", timestr)
-        if resetAll or type=="episode":
-            WINDOW.setProperty("widgetreload-episodes", timestr)
-        if resetAll or type=="tvshow":
-            WINDOW.setProperty("widgetreload-tvshows", timestr)
-        WINDOW.setProperty("widgetreload", timestr)
-        WINDOW.clearProperty("skinhelper-refreshvideowidgetsbusy")
 
 def getResourceAddonFiles(addonName,allFilesList=None):
     # get listing of all files (eg studio logos) inside a resource image addonName

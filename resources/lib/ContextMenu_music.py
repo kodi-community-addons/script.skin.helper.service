@@ -21,7 +21,6 @@ if __name__ == '__main__':
         artwork = artworkutils.getMusicArtwork(xbmc.getInfoLabel("ListItem.Artist").decode('utf-8'),xbmc.getInfoLabel("ListItem.Album").decode('utf-8'),xbmc.getInfoLabel("ListItem.Title").decode('utf-8'),ignoreCache=True)
         
         #clear properties
-        WINDOW.setProperty("resetMusicArtCache","reset")
         WINDOW.clearProperty("SkinHelper.Music.Banner") 
         WINDOW.clearProperty("SkinHelper.Music.ClearLogo") 
         WINDOW.clearProperty("SkinHelper.Music.DiscArt")

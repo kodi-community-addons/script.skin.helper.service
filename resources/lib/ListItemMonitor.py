@@ -32,7 +32,6 @@ class ListItemMonitor(threading.Thread):
     widgetTaskInterval = 590
     moviesetCache = {}
     extraFanartCache = {}
-    musicArtCache = {}
     streamdetailsCache = {}
     pvrArtCache = {}
     tmdbinfocache = {}
@@ -79,14 +78,14 @@ class ListItemMonitor(threading.Thread):
                     #only perform actions when the listitem has actually changed
                     if playerItem and playerItem != lastPlayerItem:
                         #clear all window props first
-                        resetPlayerWindowProps()
+                        self.resetPlayerWindowProps()
                         self.setMusicPlayerDetails()
                         lastPlayerItem = playerItem       
                 except Exception as e:
                     logMsg("ERROR in setMusicPlayerDetails ! --> " + str(e), 0)
             elif lastPlayerItem:
                 #cleanup remaining window props
-                resetPlayerWindowProps()
+                self.resetPlayerWindowProps()
                 playerItem = ""
                 lastPlayerItem = ""
             
@@ -113,9 +112,10 @@ class ListItemMonitor(threading.Thread):
                 if secondsToDisplay and secondsToDisplay != "0":
                     while xbmc.getCondVisibility("Window.IsActive(%s)"%window):
                         if xbmc.getCondVisibility("System.IdleTime(%s)" %secondsToDisplay):
-                            xbmc.executebuiltin("Dialog.Close(%s)"%window)
+                            if xbmc.getCondVisibility("Window.IsActive(%s)"%window): 
+                                xbmc.executebuiltin("Dialog.Close(%s)" %window)
                         else:
-                            xbmc.sleep(250)
+                            xbmc.sleep(500)
             
             #do some background stuff every 30 minutes
             if (self.delayedTaskInterval >= 1800):
@@ -124,7 +124,7 @@ class ListItemMonitor(threading.Thread):
             
             #reload some widgets every 10 minutes
             if (self.widgetTaskInterval >= 600):
-                resetGlobalWidgetWindowProps()
+                self.resetGlobalWidgetWindowProps()
                 self.widgetTaskInterval = 0
             
             #flush cache if videolibrary has changed
@@ -138,12 +138,6 @@ class ListItemMonitor(threading.Thread):
                 self.pvrArtCache = {}
                 WINDOW.clearProperty("SkinHelper.PVR.ArtWork")
                 WINDOW.clearProperty("resetPvrArtCache")
-            
-            #flush cache if musiclibrary has changed
-            if WINDOW.getProperty("resetMusicArtCache") == "reset":
-                self.musicArtCache = {}
-                WINDOW.clearProperty("resetMusicArtCache")
-
             
             if xbmc.getCondVisibility("[Window.IsMedia | !IsEmpty(Window(Home).Property(SkinHelper.WidgetContainer))]"):
                 try:
@@ -188,11 +182,8 @@ class ListItemMonitor(threading.Thread):
                     #generic props
                     self.liPath = xbmc.getInfoLabel("%sListItem.Path" %self.widgetContainerPrefix).decode('utf-8')
                     self.liFile = xbmc.getInfoLabel("%sListItem.FileNameAndPath" %self.widgetContainerPrefix).decode('utf-8')
-                    self.liDbId = xbmc.getInfoLabel("%sListItem.DBID"%self.widgetContainerPrefix).decode('utf-8')
-                    if not self.liDbId or self.liDbId == "-1": self.liDbId = xbmc.getInfoLabel("%sListItem.Property(DBID)"%self.widgetContainerPrefix).decode('utf-8')
-                    if self.liDbId == "-1": self.liDbId = ""
-                    self.liImdb = xbmc.getInfoLabel("%sListItem.IMDBNumber"%self.widgetContainerPrefix).decode('utf-8')
-                    if not self.liImdb: self.liImdb = xbmc.getInfoLabel("%sListItem.Property(IMDBNumber)"%self.widgetContainerPrefix).decode('utf-8')
+                    self.liDbId = ""
+                    self.liImdb = ""
                     
                     if not self.liLabel == "..":
                         # monitor listitem props for music content
@@ -206,6 +197,11 @@ class ListItemMonitor(threading.Thread):
                         # monitor listitem props for video content
                         elif self.contentType in ["movies","setmovies","tvshows","seasons","episodes","sets"]:
                             try:
+                                self.liDbId = xbmc.getInfoLabel("%sListItem.DBID"%self.widgetContainerPrefix).decode('utf-8')
+                                if not self.liDbId or self.liDbId == "-1": self.liDbId = xbmc.getInfoLabel("%sListItem.Property(DBID)"%self.widgetContainerPrefix).decode('utf-8')
+                                if self.liDbId == "-1": self.liDbId = ""
+                                self.liImdb = xbmc.getInfoLabel("%sListItem.IMDBNumber"%self.widgetContainerPrefix).decode('utf-8')
+                                if not self.liImdb: self.liImdb = xbmc.getInfoLabel("%sListItem.Property(IMDBNumber)"%self.widgetContainerPrefix).decode('utf-8')
                                 self.setDuration()
                                 self.setStudioLogo()
                                 self.setGenre()
@@ -510,7 +506,24 @@ class ListItemMonitor(threading.Thread):
             if not WINDOW.getProperty('SkinHelper.ExtraFanArt.' + str(i)):
                 break
             WINDOW.clearProperty('SkinHelper.ExtraFanArt.' + str(i))
-            
+    
+    def resetGlobalWidgetWindowProps(self):
+        WINDOW.setProperty("widgetreload2", time.strftime("%Y%m%d%H%M%S", time.gmtime()))
+    
+    def resetPlayerWindowProps(self):
+        #reset all window props provided by the script...
+        WINDOW.setProperty("SkinHelper.Player.Music.Banner","") 
+        WINDOW.setProperty("SkinHelper.Player.Music.ClearLogo","") 
+        WINDOW.setProperty("SkinHelper.Player.Music.DiscArt","") 
+        WINDOW.setProperty("SkinHelper.Player.Music.FanArt","") 
+        WINDOW.setProperty("SkinHelper.Player.Music.Thumb","")
+        WINDOW.setProperty("SkinHelper.Player.Music.Info","") 
+        WINDOW.setProperty("SkinHelper.Player.Music.TrackList","") 
+        WINDOW.setProperty("SkinHelper.Player.Music.SongCount","") 
+        WINDOW.setProperty("SkinHelper.Player.Music.albumCount","") 
+        WINDOW.setProperty("SkinHelper.Player.Music.AlbumList","")
+        WINDOW.setProperty("SkinHelper.Player.Music.ExtraFanArt","")
+    
     def setMovieSetDetails(self):
         #get movie set details -- thanks to phil65 - used this idea from his skin info script
         allProperties = []
@@ -871,15 +884,7 @@ class ListItemMonitor(threading.Thread):
                                 title = json_result.get("title").split(splitchar)[1]
                     logMsg("setMusicPlayerDetails: " + repr(json_result))
         
-        cacheId = artist+album+title + "SkinHelper.Music.Art"
-        #get the items from cache first
-        if self.musicArtCache.has_key(cacheId):
-            artwork = self.musicArtCache[cacheId]
-            logMsg("setMusicPlayerDetails FOUND CACHE FOR  artist: %s - album: %s - title: %s "%(artist,album,title))
-        else:
-            logMsg("setMusicPlayerDetails CACHE NOT FOUND FOR  artist: %s - album: %s - title: %s "%(artist,album,title))
-            artwork = artutils.getMusicArtwork(artist,album,title)
-            self.musicArtCache[cacheId] = artwork
+        artwork = artutils.getMusicArtwork(artist,album,title)
         
         #merge comment from id3 tag with album info
         if artwork.get("info") and xbmc.getInfoLabel("MusicPlayer.Comment"):
@@ -896,14 +901,7 @@ class ListItemMonitor(threading.Thread):
         album = xbmc.getInfoLabel("%sListItem.Album"%self.widgetContainerPrefix).decode('utf-8')
         title = self.liTitle
         label = self.liLabel
-        cacheId = artist+album+title + "SkinHelper.Music.Art"
-        
-        #get the items from cache first
-        if self.musicArtCache.has_key(cacheId):
-            artwork = self.musicArtCache[cacheId]
-        else:
-            artwork = artutils.getMusicArtwork(artist,album,title)
-            self.musicArtCache[cacheId] = artwork
+        artwork = artutils.getMusicArtwork(artist,album,title)
         
         #return if another listitem was focused in the meanwhile
         if multiThreaded and label != xbmc.getInfoLabel("%sListItem.Label"%self.widgetContainerPrefix).decode('utf-8'):
