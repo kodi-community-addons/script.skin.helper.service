@@ -473,9 +473,12 @@ RunScript(script.skin.helper.service,action=showinfo,episodeid=&amp;INFO[ListIte
 ```
 
 It is possible to show the infodialog provided by the script (see video library search command), for example if you want to call that info screen from your widgets.
-In that case run the command above. In the info dialog will also all special properties be available from the script.
+In that case run the command above. In the info dialog will also provide all special home properties available from the script.
 Note that ListItem.DBID and ListItem.DBTYPE can only be used for "real" library items, for widgets provided by this script, use ListItem.Property(DBID) and ListItem.Property(type) instead.
 
+You can also let the script auto detect the info, in that case only use this command as onclick/oninfo action:
+
+RunScript(script.skin.helper.service,action=showinfo
 ________________________________________________________________________________________________________
 
 #### Yes/No Dialog (dialogYesNo)

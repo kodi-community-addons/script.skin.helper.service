@@ -9,11 +9,11 @@ CANCEL_DIALOG  = ( 9, 10, 92, 216, 247, 257, 275, 61467, 61448, )
 ACTION_SHOW_INFO = ( 11, )
 
 class GUI( xbmcgui.WindowXMLDialog ):
+    
     def __init__( self, *args, **kwargs ):
         xbmcgui.WindowXMLDialog.__init__( self )
         params = kwargs[ "params" ]
-        WINDOW.setProperty("SkinHelper.WidgetContainer","999")
-        
+
         if params.get("MOVIEID"):
             item = getJSON('VideoLibrary.GetMovieDetails', '{ "movieid": %s, "properties": [ %s ] }' %(params.get("MOVIEID"),fields_movies))
             self.content = "movies"
@@ -23,12 +23,17 @@ class GUI( xbmcgui.WindowXMLDialog ):
         elif params.get("TVSHOWID"):
             item = getJSON('VideoLibrary.GetTVShowDetails', '{ "tvshowid": %s, "properties": [ %s ] }' %(params.get("TVSHOWID"),fields_tvshows))
             self.content = "tvshows"
-            
-        liz = prepareListItem(item)
-        liz = createListItem(item)
-        self.listitem = liz
+        else:
+            item = None
+            self.listitem = None
+        
+        if item:        
+            liz = prepareListItem(item)
+            liz = createListItem(item)
+            self.listitem = liz
+            WINDOW.setProperty("SkinHelper.WidgetContainer","999")
 
-    def onInit( self ):
+    def onInit( self ):       
         self._hide_controls()
         self._show_info()
         self.bginfoThread = BackgroundInfoThread()
@@ -142,7 +147,7 @@ class BackgroundInfoThread(threading.Thread):
                 liz = xbmcgui.ListItem(label=cast.get("name"),label2=cast.get("role"),iconImage=cast.get("thumbnail"))
                 liz.setProperty('IsPlayable', 'false')
                 url = "RunScript(script.extendedinfo,info=extendedactorinfo,name=%s)"%cast.get("name")
-                path="plugin://script.skin.helper.service/?action=launch&path=" + url
+                liz.setProperty("path",url)
                 liz.setThumbnailImage(cast.get("thumbnail"))
                 castlist.addItem(liz)
                     

@@ -115,21 +115,36 @@ class Main:
             
             elif action == "SHOWINFO":
                 xbmc.executebuiltin( "ActivateWindow(busydialog)" )
+                
+                #try to figure out the params automatically if no ID provided...
+                if not ( params.get("MOVIEID") or params.get("EPISODEID") or params.get("TVSHOWID") ):
+                    widgetContainer = utils.WINDOW.getProperty("SkinHelper.WidgetContainer").decode('utf-8')
+                    if widgetContainer: widgetContainerPrefix = "Container(%s)."%widgetContainer
+                    else: widgetContainerPrefix = ""
+                    dbid = xbmc.getInfoLabel("%sListItem.DBID"%widgetContainerPrefix).decode('utf-8')
+                    if not dbid or dbid == "-1": dbid = xbmc.getInfoLabel("%sListItem.Property(DBID)"%widgetContainerPrefix).decode('utf-8')
+                    if dbid == "-1": dbid = ""
+                    dbtype = xbmc.getInfoLabel("%sListItem.DBTYPE"%widgetContainerPrefix).decode('utf-8')
+                    if not dbtype: dbtype = xbmc.getInfoLabel("%sListItem.Property(DBTYPE)"%widgetContainerPrefix).decode('utf-8')
+                    if dbid and dbtype: params["%sID" %dbtype.upper()] = dbid
+                
+                #open info dialog...
                 from resources.lib.InfoDialog import GUI
                 info_dialog = GUI( "script-skin_helper_service-CustomInfo.xml" , utils.ADDON_PATH, "Default", "1080i", params=params )
                 xbmc.executebuiltin( "Dialog.Close(busydialog)" )
-                info_dialog.doModal()
-                resultAction = info_dialog.action
-                del info_dialog
-                if resultAction:
-                    while xbmc.getCondVisibility("System.HasModalDialog | Window.IsActive(script-ExtendedInfo Script-DialogVideoInfo.xml) | Window.IsActive(script-ExtendedInfo Script-DialogInfo.xml) | Window.IsActive(script-skin_helper_service-CustomInfo.xml) | Window.IsActive(script-skin_helper_service-CustomSearch.xml)"):
-                        xbmc.executebuiltin("Action(Back)")
-                        xbmc.sleep(500)
-                    if "jsonrpc" in resultAction:
-                        xbmc.executeJSONRPC(resultAction)
-                        xbmc.executeJSONRPC(resultAction)
-                    else:
-                        xbmc.executebuiltin(resultAction)
+                if info_dialog.listitem:
+                    info_dialog.doModal()
+                    resultAction = info_dialog.action
+                    del info_dialog
+                    if resultAction:
+                        while xbmc.getCondVisibility("System.HasModalDialog | Window.IsActive(script-ExtendedInfo Script-DialogVideoInfo.xml) | Window.IsActive(script-ExtendedInfo Script-DialogInfo.xml) | Window.IsActive(script-skin_helper_service-CustomInfo.xml) | Window.IsActive(script-skin_helper_service-CustomSearch.xml)"):
+                            xbmc.executebuiltin("Action(Back)")
+                            xbmc.sleep(500)
+                        if "jsonrpc" in resultAction:
+                            xbmc.executeJSONRPC(resultAction)
+                            xbmc.executeJSONRPC(resultAction)
+                        else:
+                            xbmc.executebuiltin(resultAction)
                 
             
             elif action == "COLORPICKER":

@@ -377,7 +377,7 @@ msgid "Reset persistant cache"
 msgstr ""
 
 msgctxt "#32090"
-msgid "Are you sure you want to reset the permanent cache ? \nWarning: This will delete all contents of the folder "
+msgid "Are you sure you want to reset the permanent cache ? Warning: This will delete all contents of the folder "
 msgstr ""
 
 msgctxt "#32091"

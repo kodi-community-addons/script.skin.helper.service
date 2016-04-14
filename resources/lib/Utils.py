@@ -469,7 +469,9 @@ def prepareListItem(item):
             art["landscape"] = art.get("tvshow.landscape")
     if not art.get("fanart") and item.get('fanart'): art["fanart"] = item.get('fanart')
     if not art.get("thumb") and item.get('thumbnail'): art["thumb"] = getCleanImage(item.get('thumbnail'))
+    if not art.get("thumb") and art.get('poster'): art["thumb"] = getCleanImage(item.get('poster'))
     if not art.get("thumb") and item.get('icon'): art["thumb"] = getCleanImage(item.get('icon'))
+    if not item.get("thumbnail") and art.get('thumb'): item["thumbnail"] = art["thumb"]
     
     #return the result
     item["extraproperties"] = properties

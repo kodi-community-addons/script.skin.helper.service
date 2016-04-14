@@ -185,7 +185,10 @@ def getPVRThumbs(title,channel,type="channels",path="",genre="",year="",ignoreCa
                     
                     #lookup thumb on youtube as fallback
                     if not artwork.get("thumb") and channel and WINDOW.getProperty("SkinHelper.useYoutubeLookups") == "true":
-                        artwork["thumb"] = searchYoutubeImage("'%s' '%s'" %(searchtitle, channel) )
+                        if manualLookup:
+                            artwork["thumb"] = searchYoutubeImage("'%s'" %searchtitle )
+                        else:
+                            artwork["thumb"] = searchYoutubeImage("'%s' '%s'" %(searchtitle, channel) )
                 
                 if downloadLocal == True:
                     #download images if we want them local
@@ -702,9 +705,9 @@ def searchChannelLogo(searchphrase):
         return image
 
 def searchGoogleImage(searchphrase1, searchphrase2="",manualLookup=False):
-    if searchphrase2: searchphrase = "'%s' '%s'" %(searchphrase1, searchphrase2)
-    if manualLookup: xbmc.executebuiltin( "ActivateWindow(busydialog)" )
+    if searchphrase2 and not manualLookup: searchphrase = "'%s' '%s'" %(searchphrase1, searchphrase2)
     else: searchphrase = searchphrase1
+    if manualLookup: xbmc.executebuiltin( "ActivateWindow(busydialog)" )
     imagesList = []
     imagesList2 = []
     image = ""

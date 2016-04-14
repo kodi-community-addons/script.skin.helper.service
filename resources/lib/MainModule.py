@@ -210,6 +210,7 @@ def searchYouTube(title,windowHeader="",autoplay="",windowed=""):
         del w
         if selectedItem != -1:
             path = allResults[selectedItem].getProperty("path")
+        else: path = ""
     
     #play video...
     if path and windowed:
