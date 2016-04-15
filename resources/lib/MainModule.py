@@ -277,7 +277,7 @@ def setSkinShortCutsProperty(setting="",windowHeader="",propertyName=""):
     curValue = xbmc.getInfoLabel("$INFO[Container(211).ListItem.Property(%s)]" %propertyName).decode("utf-8")
     if not curValue: curValue = "None"
     if setting:
-        (value, label) = setSkinSetting(setting, windowHeader, None, curValue)
+        (value, label) = setSkinSetting(setting, windowHeader, None, curValue, True)
     else:
         value = xbmcgui.Dialog().input(windowHeader, curValue, type=xbmcgui.INPUT_ALPHANUM).decode("utf-8")
     if value:
@@ -341,8 +341,10 @@ def writeSkinConstants(listing):
                 for key, value in listing.iteritems():
                     if value:
                         child = xmltree.SubElement( root, "constant" )
-                        child.text = try_decode(value)
+                        child.text = value
                         child.attrib[ "name" ] = key
+                        #also write to skin strings
+                        xbmc.executebuiltin("Skin.SetString(%s,%s)" %(key.encode("utf-8"),value.encode("utf-8")))
                 indentXML( tree.getroot() )
                 xmlstring = xmltree.tostring(tree.getroot(), encoding="utf-8")
                 f = xbmcvfs.File(includes_file, 'w')
@@ -366,8 +368,8 @@ def getSkinConstants():
                     doc = parse( includes_file )
                     listing = doc.documentElement.getElementsByTagName( 'constant' )
                     for count, item in enumerate(listing):
-                        name = item.attributes[ 'name' ].nodeValue
-                        value = item.firstChild.nodeValue
+                        name = try_decode(item.attributes[ 'name' ].nodeValue)
+                        value = try_decode(item.firstChild.nodeValue)
                         allConstants[name] = value
     return allConstants
 
@@ -385,15 +387,22 @@ def updateSkinConstants(newValues):
     if updateNeeded:
         writeSkinConstants(allValues)
 
-def setSkinConstant(setting="", windowHeader=""):
+def setSkinConstant(setting="", windowHeader="", value=""):
     allCurrentValues = getSkinConstants()
-    value, label = setSkinSetting(setting=setting, windowHeader=windowHeader, sublevel="", valueOnly=allCurrentValues.get(setting,"emptyconstant"))
+    if not value:
+        value, label = setSkinSetting(setting, windowHeader, "", allCurrentValues.get(setting,"emptyconstant"))
     result = { setting:value }
     updateSkinConstants(result)
+    
+def setSkinConstants(settings, values):
+    result = {}
+    for count, setting in enumerate(settings):
+        result[setting] = values[count]
+    updateSkinConstants(result)
         
-def setSkinSetting(setting="", windowHeader="", sublevel="", valueOnly=""):
-    curValue = xbmc.getInfoLabel("Skin.String(%s)" %setting).decode("utf-8")
-    if valueOnly: curValue = valueOnly
+def setSkinSetting(setting="", windowHeader="", sublevel="", curValue="", skipSkinString=False):
+    if not curValue:
+        curValue = xbmc.getInfoLabel("Skin.String(%s)" %setting).decode("utf-8")
     curValueLabel = xbmc.getInfoLabel("Skin.String(%s.label)" %setting).decode("utf-8")
     useRichLayout = False
     selectId = 0
@@ -494,7 +503,7 @@ def setSkinSetting(setting="", windowHeader="", sublevel="", valueOnly=""):
                             value = xbmcgui.Dialog().notification( "Invalid input", "Please enter a number...")
                             
                 #write skin strings
-                if not valueOnly and value != "||SKIPSTRING||":
+                if not skipSkinString and value != "||SKIPSTRING||":
                     xbmc.executebuiltin("Skin.SetString(%s,%s)" %(setting.encode("utf-8"),value.encode("utf-8")))
                     xbmc.executebuiltin("Skin.SetString(%s.label,%s)" %(setting.encode("utf-8"),label.encode("utf-8")))
                 #process additional actions

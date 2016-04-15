@@ -64,7 +64,6 @@ class Main:
                         xbmc.sleep(50)
                         count += 1
                 
-            
             elif action == "SETFORCEDVIEW":
                 contenttype = params.get("CONTENTTYPE",None)
                 mainmodule.setForcedView(contenttype)
@@ -77,7 +76,13 @@ class Main:
             elif action == "SETSKINCONSTANT":
                 setting = params.get("SETTING","")
                 windowHeader = params.get("HEADER","")
-                mainmodule.setSkinConstant(setting,windowHeader)
+                value = params.get("VALUE","")
+                mainmodule.setSkinConstant(setting,windowHeader,value)
+                
+            elif action == "SETSKINCONSTANTS":
+                settings = params.get("SETTINGS","").split("|")
+                values = params.get("VALUES","").split("|")
+                mainmodule.setSkinConstant(settings,values)
                 
             elif action == "SETSKINSHORTCUTSPROPERTY":
                 setting = params.get("SETTING","")
@@ -112,8 +117,6 @@ class Main:
                         xbmc.executeJSONRPC(resultAction)
                     else:
                         xbmc.executebuiltin(resultAction)
-            elif action == "SHOWINFO1":
-                xbmc.executeJSONRPC('{ "jsonrpc": "2.0", "method": "Player.Open", "params": { "item": { "albumid": 1 } }, "id": 1 }')
             elif action == "SHOWINFO":
                 xbmc.executebuiltin( "ActivateWindow(busydialog)" )
                 

@@ -941,7 +941,7 @@ With the default attribute you can specify what the default value should be for 
 
 
 #### Write constants to includes file
-You can use the above described approach for skin settings to write constants to an includes file.
+You can use the above described approach for skin settings also to write constants to an includes file.
 For this you can use the same settings file with the same xml elements etc.
 Only, instead of calling "setskinsetting", you should call "setskinconstant".
 Any value that is selected by the user will be written to an XML file in your skin directory called script-skin_helper_service-includes.xml
@@ -950,7 +950,53 @@ Any value that is selected by the user will be written to an XML file in your sk
 RunScript(script.skin.helper.service,action=setskinconstant,setting=PanelWidth,header=Width for Panel)
 ```
 
+
+##### Default value for constant
 On your defined <skinsettings> you may use the additional attribute constantdefault="MyVisibilityCondition" to set your default value at skin install/update.
+You can use any Kodi visibility condition. Example:
+
+```xml
+<settings>
+    <setting id="PanelWidth" value="1" label="1 pixel" condition="" icon="" description=""/>
+    <setting id="PanelWidth" value="2" label="2 pixels" condition="" icon="" description="" constantdefault="Skin.HasSetting(UseWidePanels)"/>
+    <setting id="PanelWidth" value="3" label="3 pixels" condition="" icon="" description="" constantdefault="!Skin.HasSetting(UseWidePanels)"/>
+</settings>
+```
+In the above example, if no value is set for the PanelWidth constant it will default to value 2 if the skin bool UseWidePanels is true, otherwise it will set value 3 as default. 
+
+
+##### Only set the value for a constant
+It is also possible to directly pass the value to the script so the settings dialog won't be opened.
+In this case, just add the optional value argument to the script and that value will be written to the constant.
+
+```
+RunScript(script.skin.helper.service,action=setskinconstant,setting=PanelWidth,value=13)
+```
+
+##### Value of the skinconstant as skinstring
+If you'd like to display the value of your constant in the GUI, it might be comfortable to also have the value of the constant as a skin string.
+All values you set for constants will also be written to a skin string for easy access within your skin.
+For example you've set the contstant PanelWidth with the script, this means that besides a constant you will also have a skin string with that name, e.g. Skin.String(PanelWidth)
+
+
+##### Copy value of constant
+If you want to copy the value of an constant to another constant, there is an easy trick.
+Just use the above explained skinstring for that. For example, you want to use the value of PanelWidth to also set the PanelWidth2 constant:
+
+```
+RunScript(script.skin.helper.service,action=setskinconstant,setting=PanelWidth2,value=$INFO[Skin.String(PanelWidth)])
+```
+
+##### Set multiple constants at once
+If you want to set a whole bunch of constants in one single command (so there is only 1 reloadskin command issued), you can use this syntax:
+
+```
+RunScript(script.skin.helper.service,action=setskinconstant,settings=PanelWidth|PanelWidth2,values=13|14)
+```
+use the settings parameter to define all constants you want to set, seperate with |
+use the values parameter to define all values for the constants, seperate with |
+
+
 ________________________________________________________________________________________________________
 
 
