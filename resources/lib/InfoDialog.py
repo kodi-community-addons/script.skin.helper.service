@@ -31,6 +31,7 @@ class GUI( xbmcgui.WindowXMLDialog ):
             liz = prepareListItem(item)
             liz = createListItem(item)
             self.listitem = liz
+            self.lastwidgetcontainer = params.get("lastwidgetcontainer","")
             WINDOW.setProperty("SkinHelper.WidgetContainer","999")
 
     def onInit( self ):       
@@ -67,7 +68,7 @@ class GUI( xbmcgui.WindowXMLDialog ):
     def _close_dialog( self, action=None ):
         self.action = action
         self.bginfoThread.stopRunning()
-        WINDOW.clearProperty("SkinHelper.WidgetContainer")
+        WINDOW.setProperty("SkinHelper.WidgetContainer",self.lastwidgetcontainer)
         self.close()
 
     def onClick( self, controlId ):

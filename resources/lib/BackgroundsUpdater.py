@@ -356,36 +356,27 @@ class BackgroundsUpdater(threading.Thread):
        
     def setPvrBackground(self,windowProp):
         images = []
+        if not xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnablePVRThumbs)"):
+            return
         #get pvr images from cache first
         if (self.allBackgrounds.has_key(windowProp)):
             images = self.allBackgrounds[windowProp]
         else:
             images = []
-            if not WINDOW.getProperty("SkinHelper.pvrthumbspath"): setAddonsettings()
-            customlookuppath = WINDOW.getProperty("SkinHelper.customlookuppath").decode("utf-8")
-            pvrthumbspath = WINDOW.getProperty("SkinHelper.pvrthumbspath").decode("utf-8")
-            paths = [customlookuppath, pvrthumbspath]
-            for path in paths:
-                dirs, files = xbmcvfs.listdir(path)
-                for dir in dirs:
-                    dir = try_decode(dir)
-                    thumbdir = os.path.join(path,dir)
-                    dirs2, files2 = xbmcvfs.listdir(thumbdir)
-                    for file in files2:
-                        if "pvrdetails.xml" in file:
-                            artwork = artutils.getArtworkFromCacheFile(os.path.join(thumbdir,"pvrdetails.xml"))
-                            fanart = getCleanImage(artwork.get("fanart",""))
-                            if fanart and xbmcvfs.exists(fanart): images.append({"fanart": fanart, "title": artwork.get("title",""), "landscape": artwork.get("landscape",""), "poster": artwork.get("poster","")})
-                            del artwork
-                    for dir2 in dirs2:
-                        thumbdir = os.path.join(dir,dir2.decode("utf-8"))
-                        dirs3, files3 = xbmcvfs.listdir(thumbdir)
-                        for file in files3:
-                           if "pvrdetails.xml" in file:
-                                artwork = artutils.getArtworkFromCacheFile(os.path.join(thumbdir,"pvrdetails.xml"))
-                                fanart = getCleanImage(artwork.get("fanart",""))
-                                if fanart and xbmcvfs.exists(fanart): images.append({"fanart": fanart, "title": artwork.get("title",""), "landscape": artwork.get("landscape",""), "poster": artwork.get("poster","")})
-                                del artwork
+            allTitles = []
+            if not WINDOW.getProperty("SkinHelper.pvrthumbspath"): 
+                setAddonsettings()
+                
+            #only get pvr images from recordings
+            json_query = getJSON('PVR.GetRecordings', '{ "properties": [ %s ]}' %( fields_pvrrecordings))
+            for item in json_query:
+                if not item["title"] in allTitles:
+                    allTitles.append(item["title"])
+                    genre = " / ".join(item["genre"])
+                    artwork = artutils.getPVRThumbs(item["title"],item["channel"],"recordings",item["file"],genre)
+                    fanart = getCleanImage(artwork.get("fanart",""))
+                    if fanart and xbmcvfs.exists(fanart): images.append({"fanart": fanart, "title": artwork.get("title",""), "landscape": artwork.get("landscape",""), "poster": artwork.get("poster","")})
+                    del artwork
                 
             #store images in the cache
             self.allBackgrounds[windowProp] = images

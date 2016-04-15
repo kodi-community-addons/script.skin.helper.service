@@ -247,6 +247,9 @@ class ListItemMonitor(threading.Thread):
             elif lastListItem:
                 #flush any remaining window properties
                 self.resetWindowProps()
+                WINDOW.clearProperty("SkinHelper.ContentHeader")
+                WINDOW.clearProperty("contenttype")
+                self.contentType = ""
                 if nextairedActive:
                     nextairedActive = False
                     xbmc.executebuiltin("RunScript(script.tv.show.next.aired,tvshowtitle=165628787629692696)")

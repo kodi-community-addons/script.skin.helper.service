@@ -469,10 +469,16 @@ def setSkinSetting(setting="", windowHeader="", sublevel="", valueOnly=""):
             else:
                 if value == "||BROWSEIMAGE||":
                     if xbmcgui.Dialog().yesno( label, ADDON.getLocalizedString(32064), yeslabel=ADDON.getLocalizedString(32065), nolabel=ADDON.getLocalizedString(32066) ):
-                        value = xbmcgui.Dialog().browse( 2 , label, 'files').decode("utf-8")
-                    else: value = xbmcgui.Dialog().browse( 0 , ADDON.getLocalizedString(32067), 'files')
+                        value = xbmcgui.Dialog().browse( 2 , label, 'files', '', True, True, curValue).decode("utf-8")
+                    else:
+                        if not curValue.startswith("$"):
+                            if "\\" in curValue: delim = "\\"
+                            else: delim = "/"
+                            curdir = curValue.rsplit(delim, 1)[0] + delim
+                        else: curdir = ""
+                        value = xbmcgui.Dialog().browse( 0 , ADDON.getLocalizedString(32067), 'files', '', True, True, curdir).decode("utf-8")
                 if value == "||BROWSESINGLEIMAGE||":
-                    value = xbmcgui.Dialog().browse( 2 , label, 'files').decode("utf-8")
+                    value = xbmcgui.Dialog().browse( 2 , label, 'files', '', True, True, curValue).decode("utf-8")
                 if value == "||PROMPTNUMERIC||":
                     value = xbmcgui.Dialog().input( label,curValue, 1).decode("utf-8")
                 if value == "||PROMPTSTRING||":

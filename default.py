@@ -126,7 +126,13 @@ class Main:
                     if dbid == "-1": dbid = ""
                     dbtype = xbmc.getInfoLabel("%sListItem.DBTYPE"%widgetContainerPrefix).decode('utf-8')
                     if not dbtype: dbtype = xbmc.getInfoLabel("%sListItem.Property(DBTYPE)"%widgetContainerPrefix).decode('utf-8')
+                    if not dbtype:
+                        folderpath = xbmc.getInfoLabel("%sListItem.FolderPath"%widgetContainerPrefix).decode('utf-8')
+                        if "episodes" in folderpath: dbtype = "episode"
+                        elif "movies" in folderpath: dbtype = "movie"
+                        elif "shows" in folderpath: dbtype = "tvshow"
                     if dbid and dbtype: params["%sID" %dbtype.upper()] = dbid
+                    params["lastwidgetcontainer"] = widgetContainer
                 
                 #open info dialog...
                 from resources.lib.InfoDialog import GUI
