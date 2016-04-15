@@ -112,7 +112,8 @@ class Main:
                         xbmc.executeJSONRPC(resultAction)
                     else:
                         xbmc.executebuiltin(resultAction)
-            
+            elif action == "SHOWINFO1":
+                xbmc.executeJSONRPC('{ "jsonrpc": "2.0", "method": "Player.Open", "params": { "item": { "albumid": 1 } }, "id": 1 }')
             elif action == "SHOWINFO":
                 xbmc.executebuiltin( "ActivateWindow(busydialog)" )
                 
@@ -125,12 +126,15 @@ class Main:
                     if not dbid or dbid == "-1": dbid = xbmc.getInfoLabel("%sListItem.Property(DBID)"%widgetContainerPrefix).decode('utf-8')
                     if dbid == "-1": dbid = ""
                     dbtype = xbmc.getInfoLabel("%sListItem.DBTYPE"%widgetContainerPrefix).decode('utf-8')
+                    utils.logMsg("dbtype: %s - dbid: %s" %(dbtype,dbid))
                     if not dbtype: dbtype = xbmc.getInfoLabel("%sListItem.Property(DBTYPE)"%widgetContainerPrefix).decode('utf-8')
                     if not dbtype:
-                        folderpath = xbmc.getInfoLabel("%sListItem.FolderPath"%widgetContainerPrefix).decode('utf-8')
-                        if "episodes" in folderpath: dbtype = "episode"
-                        elif "movies" in folderpath: dbtype = "movie"
-                        elif "shows" in folderpath: dbtype = "tvshow"
+                        db_type = xbmc.getInfoLabel("%sListItem.Property(type)"%widgetContainerPrefix).decode('utf-8')
+                        if "episode" in db_type.lower() or xbmc.getLocalizedString(20360).lower() in db_type.lower(): dbtype = "episode"
+                        elif "movie" in db_type.lower() or xbmc.getLocalizedString(342).lower() in db_type.lower(): dbtype = "movie"
+                        elif "tvshow" in db_type.lower() or xbmc.getLocalizedString(36903).lower() in db_type.lower(): dbtype = "tvshow"
+                        elif "album" in db_type.lower() or xbmc.getLocalizedString(558).lower() in db_type.lower(): dbtype = "album"
+                        elif "song" in db_type.lower() or xbmc.getLocalizedString(36920).lower() in db_type.lower(): dbtype = "song"
                     if dbid and dbtype: params["%sID" %dbtype.upper()] = dbid
                     params["lastwidgetcontainer"] = widgetContainer
                 
@@ -141,14 +145,13 @@ class Main:
                 if info_dialog.listitem:
                     info_dialog.doModal()
                     resultAction = info_dialog.action
-                    del info_dialog
                     if resultAction:
                         while xbmc.getCondVisibility("System.HasModalDialog | Window.IsActive(script-ExtendedInfo Script-DialogVideoInfo.xml) | Window.IsActive(script-ExtendedInfo Script-DialogInfo.xml) | Window.IsActive(script-skin_helper_service-CustomInfo.xml) | Window.IsActive(script-skin_helper_service-CustomSearch.xml)"):
                             xbmc.executebuiltin("Action(Back)")
                             xbmc.sleep(500)
                         if "jsonrpc" in resultAction:
                             xbmc.executeJSONRPC(resultAction)
-                            xbmc.executeJSONRPC(resultAction)
+                            #xbmc.executeJSONRPC(resultAction)
                         else:
                             xbmc.executebuiltin(resultAction)
                 

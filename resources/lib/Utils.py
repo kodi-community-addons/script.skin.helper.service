@@ -141,6 +141,8 @@ def getJSON(method,params):
             return jsonobject['moviedetails']
         elif jsonobject.has_key('setdetails'):
             return jsonobject['setdetails']
+        elif jsonobject.has_key('musicvideodetails'):
+            return jsonobject['musicvideodetails']
         elif jsonobject.has_key('sets'):
             return jsonobject['sets']
         elif jsonobject.has_key('video'):
@@ -351,7 +353,7 @@ def prepareListItem(item):
     properties = item.get("extraproperties",{})
     
     #set type
-    for idvar in [ ('episode','DefaultTVShows.png'),('tvshow','DefaultTVShows.png'),('movie','DefaultMovies.png'),('song','DefaultAudio.png'),('musicvideo','DefaultMusicVideos.png') ]:
+    for idvar in [ ('episode','DefaultTVShows.png'),('tvshow','DefaultTVShows.png'),('movie','DefaultMovies.png'),('song','DefaultAudio.png'),('musicvideo','DefaultMusicVideos.png'),('recording','DefaultTVShows.png'),('album','DefaultAudio.png') ]:
         if item.get(idvar[0] + "id"):
             properties["DBID"] = str(item.get(idvar[0] + "id"))
             if not item.get("type"): item["type"] = idvar[0]
@@ -367,6 +369,7 @@ def prepareListItem(item):
     if not item.get('artist'): item["artist"] = []
     if item.get('type') == "album" and not item.get('album'): item['album'] = item.get('label')
     if not item.get("duration") and item.get("runtime"): item["duration"] = item.get("runtime")
+    if not item.get("plot") and item.get("comment"): item["plot"] = item.get("comment")
     if not item.get("tvshowtitle") and item.get("showtitle"): item["tvshowtitle"] = item.get("showtitle")
     if not item.get("premiered") and item.get("firstaired"): item["premiered"] = item.get("firstaired")
     if not properties.get("imdbnumber") and item.get("imdbnumber"): properties["imdbnumber"] = item.get("imdbnumber")

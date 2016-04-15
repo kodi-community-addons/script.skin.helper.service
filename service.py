@@ -9,7 +9,6 @@ from resources.lib.KodiMonitor import Kodi_Monitor
 from resources.lib.WebService import WebService
 import xbmc, xbmcaddon
 
-
 class Main:
     
     lastSkin = ""
