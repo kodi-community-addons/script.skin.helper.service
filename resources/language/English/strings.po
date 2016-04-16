@@ -755,3 +755,11 @@ msgstr ""
 msgctxt "#32184"
 msgid "Skip online lookup if all artwork is found locally"
 msgstr ""
+
+msgctxt "#32185"
+msgid "Random movies"
+msgstr ""
+
+msgctxt "#32186"
+msgid "In-progress and random movies"
+msgstr ""

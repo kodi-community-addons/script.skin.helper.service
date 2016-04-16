@@ -219,8 +219,8 @@ class ListItemMonitor(threading.Thread):
                                     self.setMovieSetDetails()
                                     self.checkExtraFanArt()
                                 #nextaired workaround for info dialog
-                                if self.widgetContainerPrefix and xbmc.getCondVisibility("!IsEmpty(%sListItem.TvShowTitle) + System.HasAddon(script.tv.show.next.aired)" %self.widgetContainerPrefix):
-                                    xbmc.executebuiltin("RunScript(script.tv.show.next.aired,tvshowtitle=%s)" %xbmc.getInfoLabel("%sListItem.TvShowTitle"%self.widgetContainerPrefix))
+                                if widgetContainer == "999" and xbmc.getCondVisibility("!IsEmpty(%sListItem.TvShowTitle) + System.HasAddon(script.tv.show.next.aired)" %self.widgetContainerPrefix):
+                                    xbmc.executebuiltin("RunScript(script.tv.show.next.aired,tvshowtitle=%s)" %xbmc.getInfoLabel("%sListItem.TvShowTitle"%self.widgetContainerPrefix).replace("&",""))
                                     nextairedActive = True
                                 elif nextairedActive:
                                     nextairedActive = False
@@ -404,6 +404,8 @@ class ListItemMonitor(threading.Thread):
         WINDOW.clearProperty("SkinHelper.Music.DiscArt")
         WINDOW.clearProperty("SkinHelper.Music.FanArt")
         WINDOW.clearProperty("SkinHelper.Music.Thumb")
+        WINDOW.clearProperty("SkinHelper.Music.ArtistThumb")
+        WINDOW.clearProperty("SkinHelper.Music.AlbumThumb")
         WINDOW.clearProperty("SkinHelper.Music.Info")
         WINDOW.clearProperty("SkinHelper.Music.TrackList")
         WINDOW.clearProperty("SkinHelper.Music.SongCount")
@@ -520,6 +522,8 @@ class ListItemMonitor(threading.Thread):
         WINDOW.setProperty("SkinHelper.Player.Music.DiscArt","") 
         WINDOW.setProperty("SkinHelper.Player.Music.FanArt","") 
         WINDOW.setProperty("SkinHelper.Player.Music.Thumb","")
+        WINDOW.setProperty("SkinHelper.Player.Music.ArtistThumb","")
+        WINDOW.setProperty("SkinHelper.Player.Music.AlbumThumb","")
         WINDOW.setProperty("SkinHelper.Player.Music.Info","") 
         WINDOW.setProperty("SkinHelper.Player.Music.TrackList","") 
         WINDOW.setProperty("SkinHelper.Player.Music.SongCount","") 

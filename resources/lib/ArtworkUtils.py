@@ -982,26 +982,7 @@ def getMusicBrainzId(artist, album="", track=""):
     if artist.startswith("The "): artist = artist.replace("The ","")
     logMsg("getMusicBrainzId -- artist:  -  %s  - album:  %s  - track:  %s" %(artist,album,track))
     
-    #try lastfm first (because it is fastest)
-    if (not artistid or not albumid) and artist and album:
-        try:
-            lastfm_url = 'http://ws.audioscrobbler.com/2.0/'
-            params = {'method': 'album.getInfo', 'format': 'json', 'artist' : artist, 'album': album, 'api_key': '1869cecbff11c2715934b45b721e6fb0'}
-            response = requests.get(lastfm_url, params=params)
-            if response and response.content:
-                data = json.loads(response.content.decode('utf-8','replace'))
-                if data and data.get("album"):
-                    lfmdetails = data["album"]
-                    if lfmdetails.get("mbid") and not albumid: albumid = lfmdetails.get("mbid")
-                    if lfmdetails.get("tracks") and not artistid and lfmdetails["tracks"].get("track"):
-                        for track in lfmdetails.get("tracks")["track"]:
-                            if track["artist"]["name"] == artist and track["artist"]["mbid"]:
-                                artistid = track["artist"]["mbid"]
-                                break;
-        except Exception as e:
-            logMsg("getMusicArtwork LastFM lookup failed --> " + str(e), 0)
-    
-    #use musicbrainz to get ID
+    #use musicbrainz to get ID - prefer because it's the most accurate
     if (not artistid or not albumid):
         try:
             if not WINDOW.getProperty("SkinHelper.TempDisableMusicBrainz"):
@@ -1056,6 +1037,26 @@ def getMusicBrainzId(artist, album="", track=""):
                         artistid = adbdetails.get("strMusicBrainzArtistID","")
     except Exception as e:
         logMsg("getMusicArtwork AudioDb lookup failed --> " + str(e), 0)
+    
+    #try lastfm by asrtist and album
+    if (not artistid or not albumid) and artist and album:
+        try:
+            lastfm_url = 'http://ws.audioscrobbler.com/2.0/'
+            params = {'method': 'album.getInfo', 'format': 'json', 'artist' : artist, 'album': album, 'api_key': '1869cecbff11c2715934b45b721e6fb0'}
+            response = requests.get(lastfm_url, params=params)
+            if response and response.content:
+                data = json.loads(response.content.decode('utf-8','replace'))
+                if data and data.get("album"):
+                    lfmdetails = data["album"]
+                    if lfmdetails.get("mbid") and not albumid: albumid = lfmdetails.get("mbid")
+                    if lfmdetails.get("tracks") and not artistid and lfmdetails["tracks"].get("track"):
+                        for track in lfmdetails.get("tracks")["track"]:
+                            if track["artist"]["name"] == artist and track["artist"]["mbid"]:
+                                artistid = track["artist"]["mbid"]
+                                break;
+        except Exception as e:
+            logMsg("getMusicArtwork LastFM lookup failed --> " + str(e), 0)
+    
     
     #get lastFM by artist name as last resort
     if not artistid and artist:
@@ -1488,7 +1489,6 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
         ########################################################## ARTIST LEVEL #########################################################
         if artistartwork.get("musicbrainzartistid") and not artistCacheFound:
             artistartwork = getArtistArtwork(artistartwork.get("musicbrainzartistid"), artistartwork, allowoverwrite)
-
             #download images if we want them local
             if downloadMusicArt and artistpath:
                 for artType in KodiArtTypes:
@@ -1519,11 +1519,13 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
     if artistartwork and not artistCacheFound:
         if artistartwork.get("folder") and not artistartwork.get("thumb"): artistartwork["thumb"] = artistartwork.get("folder")
         if artistartwork.get("info"): artistartwork["info"] = artistartwork["info"].replace('\n', ' ').replace('\r', '')
+        artistartwork["artistthumb"] = artistartwork.get("thumb","")
         createNFO("special://profile/addon_data/script.skin.helper.service/musicartcache/%s.xml" %normalize_string(artistName),artistartwork)
     if albumartwork and albumName and not artistOnly and not albumCacheFound:
         if albumartwork.get("folder") and not albumartwork.get("thumb"): albumartwork["thumb"] = albumartwork.get("folder")
         if albumartwork.get("info"): albumartwork["info"] = albumartwork["info"].replace('\n', ' ').replace('\r', '')
         if not cacheStrAlbum: cacheStrAlbum = "SkinHelper.Music.Cache-%s-%s" %(artistName.lower(),albumName.lower())
+        albumartwork["albumthumb"] = albumartwork.get("thumb","")
         createNFO("special://profile/addon_data/script.skin.helper.service/musicartcache/%s-%s.xml" %(normalize_string(artistName),normalize_string(albumName)),albumartwork)
             
     #return the results...    

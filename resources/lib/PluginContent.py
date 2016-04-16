@@ -57,7 +57,6 @@ def getPluginListing(action,limit,refresh=None,optionalParam=None,randomize=Fals
     
     #try to get from cache first...
     cache = WINDOW.getProperty(cacheStr).decode("utf-8")
-    cache = None
     if cache:
         allItems = eval(cache)
             
@@ -102,7 +101,9 @@ def doMainListing(mode=""):
         addDirectoryItem(ADDON.getLocalizedString(32168), "plugin://script.skin.helper.service/?action=inprogressmovies&limit=100")
         addDirectoryItem(ADDON.getLocalizedString(32003), "plugin://script.skin.helper.service/?action=recommendedmovies&limit=100")
         addDirectoryItem(ADDON.getLocalizedString(32169), "plugin://script.skin.helper.service/?action=inprogressandrecommendedmovies&limit=100")
+        addDirectoryItem(ADDON.getLocalizedString(32186), "plugin://script.skin.helper.service/?action=inprogressandrandommovies&limit=100")
         addDirectoryItem(ADDON.getLocalizedString(32006), "plugin://script.skin.helper.service/?action=similarmovies&limit=100")
+        addDirectoryItem(ADDON.getLocalizedString(32185), "plugin://script.skin.helper.service/?action=randommovies&limit=100")
         
         #tvshow nodes
         addDirectoryItem(ADDON.getLocalizedString(32167), "plugin://script.skin.helper.service/?action=inprogressepisodes&limit=100")
@@ -853,6 +854,23 @@ def INPROGRESSANDRECOMMENDEDMOVIES(limit):
     
     # Recommended media
     for item in RECOMMENDEDMOVIES(limit):
+        if item["title"] not in allTitles:
+            allItems.append(item)
+    return allItems
+
+def RANDOMMOVIES(limit):
+    return getJSON('VideoLibrary.GetMovies','{ "sort": { "order": "descending", "method": "random" }, "filter": {"operator":"is", "field":"playcount", "value":"0"}, "properties": [ %s ], "limits":{"end":%d} }' %(fields_movies,limit))
+    
+def INPROGRESSANDRANDOMMOVIES(limit):
+    allTitles = list()
+    
+    # In progress movies
+    allItems = INPROGRESSMOVIES(limit)
+    for item in allItems:
+        allTitles.append(item["title"])
+    
+    # Random movies
+    for item in RANDOMMOVIES(limit):
         if item["title"] not in allTitles:
             allItems.append(item)
     return allItems

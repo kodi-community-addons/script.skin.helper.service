@@ -239,6 +239,9 @@ The artwork is detected in the music paths automatically. Also in the addon sett
 | Window(Home).Property(SkinHelper.Music.ClearLogo) | Will return the Artist's logo image for the current selected item in the list. |
 | Window(Home).Property(SkinHelper.Music.DiscArt) | Will return the Album's cd art image for the current selected item in the list. |
 | Window(Home).Property(SkinHelper.Music.ExtraFanArt) | Will return the ExtraFanArt path (if exists) for the current selected item in the list, to be used in a multiimage control. |
+| Window(Home).Property(SkinHelper.Music.Thumb) | Returns the album thumb image if exist, fallback to artist image |
+| Window(Home).Property(SkinHelper.Music.ArtistThumb) | Returns the artist thumb image |
+| Window(Home).Property(SkinHelper.Music.AlbumThumb) | Returns the album thumb image |
 | Window(Home).Property(SkinHelper.Music.Info) | Returns the album's description or if empty the artist info. Can be used at both album- and songlevel.  |
 | Window(Home).Property(SkinHelper.Music.TrackList) | Returns all tracks (in the library) for the selected album or artist, separated by [CR] in the format tracknumber - title  |
 | Window(Home).Property(SkinHelper.Music.TrackList.Formatted) | Same as Tracklist, but prefixed with a • character|
@@ -260,6 +263,8 @@ The music properties are also available for the player:
 | Window(Home).Property(SkinHelper.Player.Music.ClearLogo) | Will return the Artist's logo image (if found). |
 | Window(Home).Property(SkinHelper.Player.Music.DiscArt) | Will return the Album's cd art image (if found). |
 | Window(Home).Property(SkinHelper.Player.Music.Thumb) | Will return the Album/Artist thumb image (if found). |
+| Window(Home).Property(SkinHelper.Player.Music.ArtistThumb) | Returns the artist thumb image (if found). |
+| Window(Home).Property(SkinHelper.Player.Music.AlbumThumb) | Returns the album thumb image (if found). |
 | Window(Home).Property(SkinHelper.Player.Music.ExtraFanArt) | Will return the ExtraFanArt path for the artist (if found). |
 | Window(Home).Property(SkinHelper.Player.Music.Info) | Returns the album's description or if empty the artist info. (if found).  |
 | Window(Home).Property(SkinHelper.Player.Music.TrackList) | Returns all tracks (in the library) for the selected album or artist  |
