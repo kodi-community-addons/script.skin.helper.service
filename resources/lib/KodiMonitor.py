@@ -26,6 +26,9 @@ class Kodi_Monitor(xbmc.Monitor):
     def onNotification(self,sender,method,data):
         
         utils.logMsg("Kodi_Monitor: sender %s - method: %s  - data: %s"%(sender,method,data))
+        
+        if method == "System.OnQuit":
+            utils.WINDOW.setProperty("SkinHelperShutdownRequested","shutdown")
                
         if method == "VideoLibrary.OnUpdate":
             if not xbmc.getCondVisibility("Library.IsScanningVideo"):

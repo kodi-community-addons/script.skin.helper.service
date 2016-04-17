@@ -124,6 +124,7 @@ class BackgroundsUpdater(threading.Thread):
                 #store in memory so wo do not have to query the skin settings too often
                 if self.wallImagesDelay != 0:
                     for key, value in self.allBackgrounds.iteritems():
+                        if self.exit: return
                         if value:
                             limitrange = xbmc.getInfoLabel("Skin.String(%s.EnableWallImages)" %key)
                             if limitrange:
@@ -259,15 +260,15 @@ class BackgroundsUpdater(threading.Thread):
                         image["fanart"] = getCleanImage(media['art']['fanart'])
                     elif media['art'].get('tvshow.fanart'):
                         image["fanart"] = getCleanImage(media['art']['tvshow.fanart'])
-                    #also append other mediatypes to the dict
-                    if media['art'].get('landscape'): image["landscape"] = media['art']['landscape']
-                    if media['art'].get('poster'): image["poster"] = media['art']['poster']
-                    if media['art'].get('clearlogo'): image["clearlogo"] = media['art']['clearlogo']
                 elif media.get('fanart') and not media['label'].lower() == "next page":
                     image["fanart"] = media['fanart']
+                #only append items which have a fanart image
                 if image.get("fanart"):
-                    #only append items which have a fanart image
+                    #also append other art to the dict
                     image["title"] = media.get('title',media['label'])
+                    image["landscape"] = media.get('art',{}).get('landscape','')
+                    image["poster"] = media.get('art',{}).get('poster','')
+                    image["clearlogo"] = media.get('art',{}).get('clearlogo','')
                     images.append(image)
             #store images in cache
             self.allBackgrounds[windowProp] = images
@@ -375,7 +376,7 @@ class BackgroundsUpdater(threading.Thread):
                     genre = " / ".join(item["genre"])
                     artwork = artutils.getPVRThumbs(item["title"],item["channel"],"recordings",item["file"],genre)
                     fanart = getCleanImage(artwork.get("fanart",""))
-                    if fanart and xbmcvfs.exists(fanart): images.append({"fanart": fanart, "title": artwork.get("title",""), "landscape": artwork.get("landscape",""), "poster": artwork.get("poster","")})
+                    if fanart and xbmcvfs.exists(fanart): images.append({"fanart": fanart, "title": artwork.get("title",""), "landscape": artwork.get("landscape",""), "poster": artwork.get("poster",""), "clearlogo": artwork.get("clearlogo","")})
                     del artwork
                 
             #store images in the cache
@@ -641,6 +642,8 @@ class BackgroundsUpdater(threading.Thread):
         
         if not xbmc.getCondVisibility("System.HasAddon(plugin.video.flix2kodi) + Skin.HasSetting(SmartShortcuts.netflix)"):
             return
+            
+        if self.exit: return
         
         nodes = []
         netflixAddon = xbmcaddon.Addon('plugin.video.flix2kodi')
@@ -666,6 +669,8 @@ class BackgroundsUpdater(threading.Thread):
             type = "movies"
             nodes.append( (key, label, content, type, path ) )
             
+            if self.exit: return
+            
             #get mylist items...
             mylist = []
             media_array = getJSON('Files.GetDirectory','{ "properties": ["title"], "directory": "plugin://plugin.video.flix2kodi/?mode=list_videos&thumb&type=both&url=list%3f%26mylist&widget=true", "media": "files", "limits": {"end":50} }')
@@ -678,7 +683,7 @@ class BackgroundsUpdater(threading.Thread):
                 itemscount = 0
                 suggestionsNodefound = False
                 for item in media_array:
-                    if self.exit: return []
+                    if self.exit: return
                     if ("list_viewing_activity" in item["file"]) or ("mode=search" in item["file"]) or ("mylist" in item["file"]):
                         continue
                     elif profilename in item["label"] and not suggestionsNodefound: 
@@ -835,6 +840,7 @@ class BackgroundsUpdater(threading.Thread):
             totalNodes = 50
             for i in range(totalNodes):
                 if not WINDOW.getProperty("plexbmc.%s.title"%i): break
+                if self.exit: return
                 for contentString in contentStrings:
                     key = "plexbmc.%s%s"%(i,contentString)
                     label = WINDOW.getProperty("plexbmc.%s.title"%i).decode("utf-8")
@@ -945,6 +951,7 @@ class BackgroundsUpdater(threading.Thread):
             images_required = img_columns*img_rows
             for image in images:
                 image = image.get(type,"")
+                if self.exit: return []
                 if image and not image.startswith("music@") and not ".mp3" in image:
                     file = xbmcvfs.File(image)
                     try:

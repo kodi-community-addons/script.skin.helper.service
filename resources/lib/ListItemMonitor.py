@@ -118,12 +118,12 @@ class ListItemMonitor(threading.Thread):
                             xbmc.sleep(500)
             
             #do some background stuff every 30 minutes
-            if (self.delayedTaskInterval >= 1800):
+            if self.delayedTaskInterval >= 1800 and not self.exit:
                 thread.start_new_thread(self.doBackgroundWork, ())
                 self.delayedTaskInterval = 0          
             
             #reload some widgets every 10 minutes
-            if (self.widgetTaskInterval >= 600):
+            if self.widgetTaskInterval >= 600 and not self.exit:
                 self.resetGlobalWidgetWindowProps()
                 self.widgetTaskInterval = 0
             
@@ -139,7 +139,7 @@ class ListItemMonitor(threading.Thread):
                 WINDOW.clearProperty("SkinHelper.PVR.ArtWork")
                 WINDOW.clearProperty("resetPvrArtCache")
             
-            if xbmc.getCondVisibility("[Window.IsMedia | !IsEmpty(Window(Home).Property(SkinHelper.WidgetContainer))]"):
+            if xbmc.getCondVisibility("[Window.IsMedia | !IsEmpty(Window(Home).Property(SkinHelper.WidgetContainer))]") and not self.exit:
                 try:
                     widgetContainer = WINDOW.getProperty("SkinHelper.WidgetContainer").decode('utf-8')
                     if widgetContainer: 
@@ -244,7 +244,7 @@ class ListItemMonitor(threading.Thread):
                 xbmc.sleep(100)
                 self.delayedTaskInterval += 0.1
                 self.widgetTaskInterval += 0.1
-            elif lastListItem:
+            elif lastListItem and not self.exit:
                 #flush any remaining window properties
                 self.resetWindowProps()
                 WINDOW.clearProperty("SkinHelper.ContentHeader")
@@ -258,7 +258,7 @@ class ListItemMonitor(threading.Thread):
                 curFolder = ""
                 curFolderLast = ""
                 self.widgetContainerPrefix = ""
-            elif xbmc.getCondVisibility("Window.IsActive(fullscreenvideo)"):
+            elif xbmc.getCondVisibility("Window.IsActive(fullscreenvideo)") and not self.exit:
                 #fullscreen video active
                 self.monitor.waitForAbort(2)
                 self.delayedTaskInterval += 2
@@ -271,6 +271,7 @@ class ListItemMonitor(threading.Thread):
                    
     def doBackgroundWork(self):
         try:
+            if self.exit: return
             logMsg("Started Background worker...")
             self.getStudioLogos()
             self.genericWindowProps()
@@ -535,6 +536,7 @@ class ListItemMonitor(threading.Thread):
         #get movie set details -- thanks to phil65 - used this idea from his skin info script
         allProperties = []
         if not self.liDbId or not self.liPath: return
+        if self.exit: return
         if self.liPath.startswith("videodb://movies/sets/"):
             #try to get from cache first - use checksum compare because moviesets do not get refreshed automatically
             checksum = repr(getJSON('VideoLibrary.GetMovieSetDetails', '{"setid": %s, "properties": [ "thumbnail" ], "movies": { "properties":  [ "playcount"] }}' % self.liDbId))
@@ -748,6 +750,8 @@ class ListItemMonitor(threading.Thread):
         
         if not xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnablePVRThumbs)") or not title:
             return
+            
+        if self.exit: return
         
         cacheStr = title + channel + "SkinHelper.PVR.Artwork"
         
@@ -909,6 +913,8 @@ class ListItemMonitor(threading.Thread):
         title = self.liTitle
         label = self.liLabel
         artwork = artutils.getMusicArtwork(artist,album,title)
+        
+        if self.exit: return
         
         #return if another listitem was focused in the meanwhile
         if multiThreaded and label != xbmc.getInfoLabel("%sListItem.Label"%self.widgetContainerPrefix).decode('utf-8'):
@@ -1214,6 +1220,8 @@ class ListItemMonitor(threading.Thread):
         
         if not self.contentType in ["movies", "tvshows", "seasons", "episodes", "setmovies"] or not title or not self.contentType or not year or not xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnableAddonsLookups)"):
             return
+            
+        if self.exit: return
 
         if xbmc.getCondVisibility("!IsEmpty(%sListItem.TvShowTitle)" %self.widgetContainerPrefix):
             preftype = "tvshows"

@@ -129,23 +129,24 @@ class Main:
 
 if (__name__ == "__main__"):
     try:
-        if not utils.WINDOW.getProperty("SkinHelperShutdownRequested"):
-            if enableProfiling:
-                import cProfile
-                import pstats
-                import random
-                from time import gmtime, strftime
-                filename = os.path.join( ADDON_DATA_PATH, strftime( "%Y%m%d%H%M%S",gmtime() ) + "-" + str( random.randrange(0,100000) ) + ".log" )
-                cProfile.run( 'Main()', filename )
-                stream = open( filename + ".txt", 'w')
-                stream.write(sys.argv[2])
-                p = pstats.Stats( filename, stream = stream )
-                p.sort_stats( "cumulative" )
-                p.print_stats()
-            else:
-                Main()
-        else:
+        if utils.WINDOW.getProperty("SkinHelperShutdownRequested"):
             utils.logMsg("plugin.py --> Not forfilling request: Kodi is exiting" ,0)
+            xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
+        elif enableProfiling:
+            import cProfile
+            import pstats
+            import random
+            from time import gmtime, strftime
+            filename = os.path.join( ADDON_DATA_PATH, strftime( "%Y%m%d%H%M%S",gmtime() ) + "-" + str( random.randrange(0,100000) ) + ".log" )
+            cProfile.run( 'Main()', filename )
+            stream = open( filename + ".txt", 'w')
+            stream.write(sys.argv[2])
+            p = pstats.Stats( filename, stream = stream )
+            p.sort_stats( "cumulative" )
+            p.print_stats()
+        else:
+            Main()
     except Exception as e:
         utils.logMsg("Error in plugin.py --> " + str(e),0)
+        xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
 utils.logMsg('finished loading pluginentry')
