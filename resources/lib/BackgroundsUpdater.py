@@ -870,6 +870,11 @@ class BackgroundsUpdater(threading.Thread):
                         if not key in self.allSmartShortcuts: self.allSmartShortcuts.append(key)
                         createSmartShortcutSubmenu("plexbmc.%s"%i,"special://home/addons/plugin.video.plexbmc/icon.png")
                     
+                    #append type to path
+                    if "&" in path: 
+                        path = path + "&type=" + type
+                    else: 
+                        path = path + "?type=" + type
                     content = getContentPath(path)
                     nodes.append( (key, label, path, content, type ) )
             

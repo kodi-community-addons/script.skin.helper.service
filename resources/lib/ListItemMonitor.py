@@ -155,10 +155,7 @@ class ListItemMonitor(threading.Thread):
                     curFolder = ""
                     self.liLabel = ""
                     self.liTitle = ""
-                
-                curListItem = curFolder + self.liLabel + self.liTitle
-                WINDOW.setProperty("curListItem",curListItem)
-                    
+                 
                 #perform actions if the container path has changed
                 if (curFolder != curFolderLast):
                     self.resetWindowProps()
@@ -173,6 +170,9 @@ class ListItemMonitor(threading.Thread):
                         if not self.widgetContainerPrefix and self.contentType:
                             self.setForcedView()
                             self.setContentHeader()
+                            
+                curListItem = curFolder + self.liLabel + self.liTitle
+                WINDOW.setProperty("curListItem",curListItem)
 
                 #only perform actions when the listitem has actually changed
                 if curListItem and curListItem != lastListItem and self.contentType:
@@ -181,6 +181,7 @@ class ListItemMonitor(threading.Thread):
 
                     #generic props
                     self.liPath = xbmc.getInfoLabel("%sListItem.Path" %self.widgetContainerPrefix).decode('utf-8')
+                    if not self.liPath: self.liPath = xbmc.getInfoLabel("%sListItem.FolderPath" %self.widgetContainerPrefix).decode('utf-8')
                     self.liFile = xbmc.getInfoLabel("%sListItem.FileNameAndPath" %self.widgetContainerPrefix).decode('utf-8')
                     self.liDbId = ""
                     self.liImdb = ""
@@ -193,7 +194,7 @@ class ListItemMonitor(threading.Thread):
                                 self.setGenre()
                             except Exception as e:
                                 logMsg("ERROR in setMusicDetails ! --> " + str(e), 0)
-                                    
+                        
                         # monitor listitem props for video content
                         elif self.contentType in ["movies","setmovies","tvshows","seasons","episodes","sets"]:
                             try:
@@ -206,6 +207,7 @@ class ListItemMonitor(threading.Thread):
                                 self.setStudioLogo()
                                 self.setGenre()
                                 self.setDirector()
+                                
                                 if self.liPath.startswith("plugin://") and not ("plugin.video.emby" in self.liPath or "script.skin.helper.service" in self.liPath):
                                     #plugins only...
                                     thread.start_new_thread(self.setAddonDetails, (True,))
@@ -258,7 +260,7 @@ class ListItemMonitor(threading.Thread):
                 curFolder = ""
                 curFolderLast = ""
                 self.widgetContainerPrefix = ""
-            elif xbmc.getCondVisibility("Window.IsActive(fullscreenvideo)") and not self.exit:
+            elif xbmc.getCondVisibility("Window.IsActive(fullscreenvideo)"):
                 #fullscreen video active
                 self.monitor.waitForAbort(2)
                 self.delayedTaskInterval += 2
@@ -879,7 +881,8 @@ class ListItemMonitor(threading.Thread):
                 json_result = getJSON('Player.GetItem', '{ "playerid": %d, "properties": [ "title","albumid","artist","album","displayartist" ] }' %item.get("playerid"))
                 if json_result.get("title"):
                     if json_result.get("artist"):
-                        artist = json_result.get("displayartist")
+                        artist = json_result.get("artist")
+                        if isinstance(artist,list): artist = artist[0]
                         title = json_result.get("title")
                         album = json_result.get("album").split(" (")[0]
                     else:
@@ -1218,7 +1221,7 @@ class ListItemMonitor(threading.Thread):
         title = self.liTitle
         year = xbmc.getInfoLabel("%sListItem.Year"%self.widgetContainerPrefix).decode("utf8")
         
-        if not self.contentType in ["movies", "tvshows", "seasons", "episodes", "setmovies"] or not title or not self.contentType or not year or not xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnableAddonsLookups)"):
+        if not self.contentType in ["movies", "tvshows", "seasons", "episodes", "setmovies"] or not title or not year or not xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnableAddonsLookups)"):
             return
             
         if self.exit: return

@@ -400,7 +400,7 @@ def setSkinConstants(settings, values):
         result[setting] = values[count]
     updateSkinConstants(result)
         
-def setSkinSetting(setting="", windowHeader="", sublevel="", curValue="", skipSkinString=False):
+def setSkinSetting(setting="", windowHeader="", sublevel="", curValue="", skipSkinString=False, originalId=""):
     if not curValue:
         curValue = xbmc.getInfoLabel("Skin.String(%s)" %setting).decode("utf-8")
     curValueLabel = xbmc.getInfoLabel("Skin.String(%s.label)" %setting).decode("utf-8")
@@ -422,7 +422,7 @@ def setSkinSetting(setting="", windowHeader="", sublevel="", curValue="", skipSk
             id = item.attributes[ 'id' ].nodeValue
             if id.startswith("$"): id = xbmc.getInfoLabel(id).decode("utf-8")
             label = xbmc.getInfoLabel(item.attributes[ 'label' ].nodeValue).decode("utf-8")
-            if (not sublevel and id.lower() == setting.lower()) or (sublevel and sublevel.lower() == id.lower()):
+            if (not sublevel and id.lower() == setting.lower()) or (sublevel and sublevel.lower() == id.lower()) or (originalId and originalId.lower() == id.lower()):
                 value = item.attributes[ 'value' ].nodeValue
                 if value == "||MULTISELECT||": return multiSelect(item,windowHeader)
                 condition = item.attributes[ 'condition' ].nodeValue

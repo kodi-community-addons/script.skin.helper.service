@@ -661,18 +661,6 @@ def getCurrentContentType(containerprefix=""):
             contenttype = "tvrecordings"
         elif xbmc.getCondVisibility("SubString(%sListItem.FolderPath,pvr://channels)" %containerprefix):
             contenttype = "tvchannels"
-        elif xbmc.getCondVisibility("StringCompare(%sListItem.Label,%sListItem.Artist)" %(containerprefix,containerprefix)):
-            contenttype = "artists"
-        elif xbmc.getCondVisibility("StringCompare(%sListItem.Label,%sListItem.Album)" %(containerprefix,containerprefix)):
-            contenttype = "albums"
-        elif xbmc.getCondVisibility("!IsEmpty(%sListItem.Artist) + !IsEmpty(%sListItem.Album)" %(containerprefix,containerprefix)):
-            contenttype = "songs"
-        elif xbmc.getCondVisibility("StringCompare(%sListItem.Label,%sListItem.TvShowTitle)" %(containerprefix,containerprefix)):
-            contenttype = "tvshows"
-        elif xbmc.getCondVisibility("SubString(%sListItem.FolderPath,flix2kodi) + SubString(%sListItem.Genre,Series)" %(containerprefix,containerprefix)):
-            contenttype = "tvshows"
-        elif xbmc.getCondVisibility("SubString(%sListItem.FolderPath,flix2kodi)" %(containerprefix)):
-            contenttype = "movies"
         elif xbmc.getCondVisibility("!IsEmpty(%sListItem(1).DBTYPE)" %containerprefix):
             contenttype = xbmc.getInfoLabel("%sListItem(1).DBTYPE" %containerprefix) + "s"
         elif xbmc.getCondVisibility("!IsEmpty(%sListItem(1).Property(DBTYPE))" %containerprefix):
@@ -693,6 +681,26 @@ def getCurrentContentType(containerprefix=""):
             contenttype = "tvshows"
         elif xbmc.getCondVisibility("SubString(%sListItem(1).FolderPath,flix2kodi)" %(containerprefix)):
             contenttype = "movies"
+        elif xbmc.getCondVisibility("StringCompare(%sListItem.Label,%sListItem.Artist)" %(containerprefix,containerprefix)):
+            contenttype = "artists"
+        elif xbmc.getCondVisibility("StringCompare(%sListItem.Label,%sListItem.Album)" %(containerprefix,containerprefix)):
+            contenttype = "albums"
+        elif xbmc.getCondVisibility("!IsEmpty(%sListItem.Artist) + !IsEmpty(%sListItem.Album)" %(containerprefix,containerprefix)):
+            contenttype = "songs"
+        elif xbmc.getCondVisibility("StringCompare(%sListItem.Title,%sListItem.TvShowTitle)" %(containerprefix,containerprefix)):
+            contenttype = "tvshows"
+        elif xbmc.getCondVisibility("!IsEmpty(%sListItem.Property(TotalEpisodes))" %(containerprefix)):
+            contenttype = "tvshows"
+        elif xbmc.getCondVisibility("!IsEmpty(%sListItem.TvshowTitle) + !IsEmpty(%sListItem.Season)" %(containerprefix,containerprefix)):
+            contenttype = "episodes"
+        elif xbmc.getCondVisibility("IsEmpty(%sListItem.TvshowTitle) + !IsEmpty(%sListItem.Year)" %(containerprefix,containerprefix)):
+            contenttype = "movies"
+        elif xbmc.getCondVisibility("SubString(%sListItem.FolderPath,movies)" %containerprefix):
+            contenttype = "movies"
+        elif xbmc.getCondVisibility("SubString(%sListItem.FolderPath,shows)" %containerprefix):
+            contenttype = "tvshows"
+        elif xbmc.getCondVisibility("SubString(%sListItem.FolderPath,episodes)" %containerprefix):
+            contenttype = "episodes"
     
     WINDOW.setProperty("contenttype",contenttype)
     return contenttype
