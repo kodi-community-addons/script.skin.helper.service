@@ -253,15 +253,33 @@ class BackgroundsUpdater(threading.Thread):
             
             for media in media_array:
                 image = {}
-                if media.get("thumbnail"):
-                    image["thumbnail"] =  media.get("thumbnail")
-                if media.get('art') and not media['label'].lower() == "next page":
+                
+                if media['label'].lower() == "next page":
+                    continue
+                
+                #append music artwork...
+                if media.get('songid'):
+                    media['art'] = artutils.getMusicArtwork(media['artist'][0], albumName=media['album'], trackName=media['label'])
+                elif media.get('artistid') and not media.get('albumid'):
+                    media['art'] = artutils.getMusicArtwork(media['label'], albumName="", trackName="")
+                elif media.get('albumid'):
+                    media['art'] = artutils.getMusicArtwork(media['artist'][0], albumName=media['label'], trackName="")
+                
+                if media.get('art'):
                     if media['art'].get('fanart'):
                         image["fanart"] = getCleanImage(media['art']['fanart'])
                     elif media['art'].get('tvshow.fanart'):
                         image["fanart"] = getCleanImage(media['art']['tvshow.fanart'])
-                elif media.get('fanart') and not media['label'].lower() == "next page":
-                    image["fanart"] = media['fanart']
+                    if media['art'].get('thumb'):
+                        image["thumbnail"] = getCleanImage(media['art']['thumb'])
+                    if media['art'].get('thumbnail'):
+                        image["thumbnail"] = getCleanImage(media['art']['thumbnail'])
+                
+                if not image.get('fanart'):
+                    image["fanart"] = media.get('fanart','')
+                if not image.get("thumbnail"):
+                    image["thumbnail"] =  media.get("thumbnail","")
+                
                 #only append items which have a fanart image
                 if image.get("fanart"):
                     #also append other art to the dict
@@ -270,6 +288,7 @@ class BackgroundsUpdater(threading.Thread):
                     image["poster"] = media.get('art',{}).get('poster','')
                     image["clearlogo"] = media.get('art',{}).get('clearlogo','')
                     images.append(image)
+            
             #store images in cache
             self.allBackgrounds[windowProp] = images
 
@@ -357,7 +376,7 @@ class BackgroundsUpdater(threading.Thread):
        
     def setPvrBackground(self,windowProp):
         images = []
-        if not xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnablePVRThumbs)"):
+        if not xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnablePVRThumbs) + PVR.HasTVChannels"):
             return
         #get pvr images from cache first
         if (self.allBackgrounds.has_key(windowProp)):
@@ -434,7 +453,7 @@ class BackgroundsUpdater(threading.Thread):
         if xbmc.getCondVisibility("Library.HasContent(music)"):
             self.setImageFromPath("SkinHelper.AllMusicBackground","SkinHelper.AllMusicBackground","",['AudioLibrary.GetArtists','{ "properties": ["fanart","thumbnail"], "limits": {"end":250}, "sort": { "order": "ascending", "method": "random" } }'])
             self.setImageFromPath("SkinHelper.AllMusicSongsBackground","SkinHelper.AllMusicSongsBackground","",['AudioLibrary.GetSongs','{ "properties": ["title","fanart","artist","album","thumbnail"], "limits": {"end":250}, "sort": { "order": "ascending", "method": "random" } }'])
-            self.setImageFromPath("SkinHelper.RecentMusicBackground","SkinHelper.RecentMusicBackground","",['AudioLibrary.GetRecentlyAddedAlbums','{ "properties": ["title","fanart","artist","thumbnail"], "limits": {"end":50} }'])
+            self.setImageFromPath("SkinHelper.RecentMusicBackground","SkinHelper.RecentMusicBackground","",['AudioLibrary.GetRecentlyAddedAlbums','{ "properties": ["title","fanart","artist","thumbnail","artistid"], "limits": {"end":50} }'])
         
         #tmdb backgrounds (extendedinfo)
         if xbmc.getCondVisibility("System.HasAddon(script.extendedinfo)"):

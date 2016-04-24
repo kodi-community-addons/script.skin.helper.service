@@ -647,16 +647,17 @@ def searchChannelLogo(searchphrase):
         try:
             #lookup in channel list
             # Perform a JSON query to get all channels
-            json_query = getJSON('PVR.GetChannels', '{"channelgroupid": "alltv", "properties": [ "thumbnail", "channeltype", "hidden", "locked", "channel", "lastplayed", "broadcastnow" ]}' )
-            for item in json_query:
-                channelname = item["label"]
-                if channelname == searchphrase:
-                    channelicon = item['thumbnail']
-                    if channelicon: 
-                        channelicon = getCleanImage(channelicon)
-                        if xbmcvfs.exists(channelicon):
-                            image = getCleanImage(channelicon)
-                    break
+            if xbmc.getCondVisibility("PVR.HasTVChannels"):
+                json_query = getJSON('PVR.GetChannels', '{"channelgroupid": "alltv", "properties": [ "thumbnail", "channeltype", "hidden", "locked", "channel", "lastplayed", "broadcastnow" ]}' )
+                for item in json_query:
+                    channelname = item["label"]
+                    if channelname == searchphrase:
+                        channelicon = item['thumbnail']
+                        if channelicon: 
+                            channelicon = getCleanImage(channelicon)
+                            if xbmcvfs.exists(channelicon):
+                                image = getCleanImage(channelicon)
+                        break
 
             #lookup with thelogodb
             if not image:
