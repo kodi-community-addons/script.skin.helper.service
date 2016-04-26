@@ -244,10 +244,12 @@ class BackgroundSearchThread(threading.Thread):
             path = 'videodb://tvshows/titles/' + tvshowid + '/'
             liz.setPath(path)
             liz.setProperty("path", path)
+            liz.setProperty("isPlayable", "false")
             seriesResultsList.addItem(liz)
 
         # Process episodes
         json_response = getJSON('VideoLibrary.GetEpisodes', '{ "properties": [%s], "limits": {"end":50}, "sort": { "method": "title" }, "filter": {"field": "title", "operator": "contains", "value": "%s"} }' % (fields_episodes,search))
         for item in json_response:
             item = prepareListItem(item)
+            liz = createListItem(item)
             episodeResultsList.addItem(liz)
