@@ -67,7 +67,13 @@ class Main:
             elif action == "SETFORCEDVIEW":
                 contenttype = params.get("CONTENTTYPE",None)
                 mainmodule.setForcedView(contenttype)
-                
+
+            elif action == "SAVESKINIMAGE":
+                skinstring = params.get("SKINSTRING","")
+                windowHeader = params.get("HEADER","")
+                multi = params.get("MULTI","") == "true"
+                mainmodule.saveSkinImage(skinstring,multi,windowHeader)
+            
             elif action == "SETSKINSETTING":
                 setting = params.get("SETTING","")
                 windowHeader = params.get("HEADER","")
