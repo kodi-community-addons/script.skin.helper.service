@@ -72,6 +72,40 @@ class Main:
                 downloadthumbs=params.get("downloadthumbs",False)
                 if downloadthumbs: downloadthumbs = downloadthumbs[0]=="true"
                 plugincontent.getCast(movie,tvshow,movieset,episode,downloadthumbs)
+            elif action == "ALPHABET":
+                allLetters = []
+                for i in range(int(xbmc.getInfoLabel("Container.NumItems"))):
+                    allLetters.append(xbmc.getInfoLabel("Listitem(%s).SortLetter"%i).upper())
+                for letter in ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"]:
+                    li = xbmcgui.ListItem(label=letter)
+                    if not letter in allLetters:
+                        path = "noop"
+                        li.setProperty("NotAvailable","true")
+                    else:
+                        path = "plugin://script.skin.helper.service/?action=alphabetletter&letter=%s" %letter
+                    xbmcplugin.addDirectoryItem(int(sys.argv[1]), path, li)
+                xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
+            elif action == "ALPHABETLETTER":
+                letter=params.get("letter",None)
+                if letter: 
+                    letter = letter[0]
+                    lettercommands = {
+                    "A": ["JumpSMS2"], "B": ["JumpSMS2","JumpSMS2"], "C": ["JumpSMS2","JumpSMS2","JumpSMS2"],
+                    "D": ["JumpSMS3"], "E": ["JumpSMS3","JumpSMS3"], "F": ["JumpSMS3","JumpSMS3","JumpSMS3"],
+                    "G": ["JumpSMS4"], "H": ["JumpSMS4","JumpSMS4"], "I": ["JumpSMS4","JumpSMS4","JumpSMS4"],
+                    "J": ["JumpSMS5"], "K": ["JumpSMS5","JumpSMS5"], "L": ["JumpSMS5","JumpSMS5","JumpSMS5"],
+                    "M": ["JumpSMS6"], "N": ["JumpSMS6","JumpSMS6"], "O": ["JumpSMS6","JumpSMS6","JumpSMS6"],
+                    "P": ["JumpSMS7"], "Q": ["JumpSMS7","JumpSMS7"], "R": ["JumpSMS7","JumpSMS7","JumpSMS7"], "S": ["JumpSMS7","JumpSMS7","JumpSMS7","JumpSMS7"],
+                    "T": ["JumpSMS8"], "U": ["JumpSMS8","JumpSMS8"], "V": ["JumpSMS8","JumpSMS8","JumpSMS8"],
+                    "W": ["JumpSMS9"], "X": ["JumpSMS9","JumpSMS9"], "Y": ["JumpSMS9","JumpSMS9","JumpSMS9"], "Z": ["JumpSMS9","JumpSMS9","JumpSMS9","JumpSMS9"]
+                    }
+                    xbmc.executebuiltin("SetFocus(5000)")
+                    xbmc.sleep(50)
+                    for command in lettercommands[letter]:
+                        if xbmc.getInfoLabel("ListItem.SortLetter").upper() == letter: break
+                        xbmc.executebuiltin("Action(%s)" %command)
+                        xbmc.sleep(50)
+                
             else:
                 #get a widget listing
                 refresh=params.get("reload",None)

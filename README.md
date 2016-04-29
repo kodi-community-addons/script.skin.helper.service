@@ -1557,7 +1557,48 @@ ListItem.Art(fanart.X) --> fanart for movie/show X (start counting at 0) in the 
 
 For each genre, only 5 movies/tvshows are retrieved.
 Supported types: movie, tvshow (will return 5 items from the library for each genre)
-If you use randommovie or randomtvshow as type the library items will be randomized 
+If you use randommovie or randomtvshow as type the library items will be randomized
+
+
+#####Jump to alphabet list for media views
+This little workaround let's you add an alphabet strip in your media view to quickly jump to a certain sort letter in the list.
+All you have to do is include a panel inside your media view with the following path:
+
+plugin://script.skin.helper.service/?action=alphabet&amp;reload=$INFO[Container.NumItems]
+
+This will present you an alphabet listing. If you click a letter, the listing will jump to ther chosen letter.
+
+Example skin XML code:
+
+```xml
+<control type="panel" id="6000">
+    <width>40</width>
+    <right>0</right>
+    <height>100%</height>
+    <orientation>vertical</orientation>
+    <itemlayout height="41" width="40">
+        <control type="label">
+            <label>$INFO[ListItem.Label]</label>
+            <textcolor>white</textcolor>
+            <animation effect="fade" start="100" end="20" time="0" condition="!IsEmpty(ListItem.Property(NotAvailable))">Conditional</animation>
+        </control>
+        <control type="label">
+            <label>$INFO[ListItem.Label]</label>
+            <textcolor>blue</textcolor>
+            <visible>StringCompare(ListItem.Label,Container.ListItem.SortLetter)</visible>
+        </control>
+    </itemlayout>
+    <focusedlayout height="41" width="40">
+        <control type="label">
+            <label>$INFO[ListItem.Label]</label>
+            <textcolor>green</textcolor>
+            <animation effect="fade" start="100" end="20" time="0" condition="!IsEmpty(ListItem.Property(NotAvailable))">Conditional</animation>
+        </control>
+    </focusedlayout>
+    <content>plugin://script.skin.helper.service/?action=alphabet&amp;reload=$INFO[Container.NumItems]</content>
+</control>
+```
+
 ________________________________________________________________________________________________________
 ________________________________________________________________________________________________________
 
