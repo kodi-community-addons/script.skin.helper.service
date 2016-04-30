@@ -1241,6 +1241,11 @@ def getCustomFolderPath(path, foldername):
             pathfound = getCustomFolderPath(curpath,foldername)
         if pathfound: break
     return pathfound
+
+def getSongDurationString(seconds):
+    sec = timedelta(seconds=int(seconds))
+    d = datetime(1,1,1) + sec
+    return "%d:%d" %(d.minute, d.second)
     
 def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
     if not artistName:
@@ -1305,11 +1310,11 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
                         if json_response.get("musicbrainzalbumid") and not albumartwork.get("musicbrainzalbumid"): albumartwork["musicbrainzalbumid"] = json_response["musicbrainzalbumid"]
                         albumid = json_response.get("albumid")
                         #get track listing for album
-                        json_response2 = getJSON('AudioLibrary.GetSongs', '{ "properties": [ %s ], "sort": {"method":"track"}, "filter": { "albumid": %d}}'%(fields_songs,albumid))
+                        json_response2 = getJSON('AudioLibrary.GetSongs', '{ "properties": [ "file","track","title","duration" ], "sort": {"method":"track"}, "filter": { "albumid": %d}}'%(albumid))
                         for song in json_response2:
                             if not path: path = song["file"]
-                            if song.get("track"): tracklist.append(u"%s - %s" %(song["track"], song["title"]))
-                            else: tracklist.append(song["title"])
+                            if song.get("track"): tracklist.append(u"[B]%s[/B] - %s - %s" %(song["track"], song["title"], getSongDurationString(song["duration"])))
+                            else: tracklist.append(u"%s - %s" %(song["title"], getSongDurationString(song["duration"])))
                             songcount += 1
                 
             if not albumartwork.get("artistname"): albumartwork["artistname"] = artistName
@@ -1352,9 +1357,9 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
             if json_response.get("musicbrainzartistid") and not artistartwork.get("musicbrainzartistid"): artistartwork["musicbrainzartistid"] = json_response["musicbrainzartistid"]
             #get track/album listing for artist
             json_response2 = None
-            json_response2 = getJSON('AudioLibrary.GetSongs', '{ "filter":{"artistid": %d}, "properties": [ %s ] }'%(json_response.get("artistid"),fields_songs))
+            json_response2 = getJSON('AudioLibrary.GetSongs', '{ "filter":{"artistid": %d}, "properties": [ "file","track","title","duration","musicbrainzartistid","album","artist" ] }'%(json_response.get("artistid")))
             for song in json_response2:
-                tracklist.append(song["title"])
+                tracklist.append(u"%s - %s" %(song["title"], getSongDurationString(song["duration"])))
                 songcount += 1
                 if len(song.get("artist")) > 1 and not albumName and not trackName:
                     # skip multi artist song in artist listing

@@ -353,12 +353,12 @@ class ListItemMonitor(threading.Thread):
         WINDOW.setProperty("SkinHelper.TotalFavourites",str(allFavouritesCount))
 
         #GET TV CHANNELS COUNT
+        allTvChannelsCount = 0
         if xbmc.getCondVisibility("Pvr.HasTVChannels"):
-            allTvChannelsCount = 0
             media_array = getJSON('PVR.GetChannels','{"channelgroupid": "alltv" }' )
             for item in media_array:
                 allTvChannelsCount += 1
-            WINDOW.setProperty("SkinHelper.TotalTVChannels",str(allTvChannelsCount))
+        WINDOW.setProperty("SkinHelper.TotalTVChannels",str(allTvChannelsCount))
         
         #GET MOVIE SETS COUNT
         allMovieSetsCount = 0
@@ -373,12 +373,12 @@ class ListItemMonitor(threading.Thread):
         WINDOW.setProperty("SkinHelper.TotalMoviesInSets",str(allMoviesInSetCount))
 
         #GET RADIO CHANNELS COUNT
+        allRadioChannelsCount = 0
         if xbmc.getCondVisibility("Pvr.HasRadioChannels"):
-            allRadioChannelsCount = 0
             media_array = getJSON('PVR.GetChannels','{"channelgroupid": "allradio" }' )
             for item in media_array:
                 allRadioChannelsCount += 1
-            WINDOW.setProperty("SkinHelper.TotalRadioChannels",str(allRadioChannelsCount))        
+        WINDOW.setProperty("SkinHelper.TotalRadioChannels",str(allRadioChannelsCount))        
                
     def resetWindowProps(self):
         #reset all window props provided by the script...
