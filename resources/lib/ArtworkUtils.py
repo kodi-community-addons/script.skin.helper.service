@@ -1322,7 +1322,6 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
                             if not path: path = song["file"]
                             if song.get("track"): tracklist.append(u"[B]%s[/B] - %s" %(song["track"], song["title"]))
                             else: tracklist.append(song["title"])
-                            
                             if song.get("track"): tracklistwithduration.append(u"[B]%s[/B] - %s - %s" %(song["track"], song["title"], getSongDurationString(song["duration"])))
                             else: tracklistwithduration.append(u"%s - %s" %(song["title"], getSongDurationString(song["duration"])))
                             songcount += 1
