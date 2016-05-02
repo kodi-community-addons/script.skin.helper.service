@@ -1266,6 +1266,7 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
     
     albumartwork = {}
     path = ""
+    path2 = ""
     artistCacheFound = False
     albumCacheFound = False
     artistpath = ""
@@ -1276,6 +1277,7 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
     localAlbumMatch = False
     cacheStrAlbum = ""
     albumcache = None
+    isCompilation = False
     if WINDOW.getProperty("SkinHelper.IgnoreCache"): ignoreCache = True
 
     enableMusicArtScraper = WINDOW.getProperty("SkinHelper.enableMusicArtScraper") == "true"
@@ -1357,7 +1359,7 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
             if json_response.get("musicbrainzartistid") and not artistartwork.get("musicbrainzartistid"): artistartwork["musicbrainzartistid"] = json_response["musicbrainzartistid"]
             #get track/album listing for artist
             json_response2 = None
-            json_response2 = getJSON('AudioLibrary.GetSongs', '{ "filter":{"artistid": %d}, "properties": [ "file","track","title","duration","musicbrainzartistid","album","artist" ] }'%(json_response.get("artistid")))
+            json_response2 = getJSON('AudioLibrary.GetSongs', '{ "filter":{"artistid": %d}, "properties": [ "file","track","title","duration","musicbrainzartistid","album","artist","albumartistid" ] }'%(json_response.get("artistid")))
             for song in json_response2:
                 tracklist.append(u"%s - %s" %(song["title"], getSongDurationString(song["duration"])))
                 songcount += 1
@@ -1365,6 +1367,9 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
                     # skip multi artist song in artist listing
                     continue
                 if not trackName: trackName = song.get("label","")
+                if json_response["artistid"] in song["albumartistid"] and not path2 and song.get("file"):
+                    #set additional path to prevent artist lookups in compilations
+                    path2 = song.get("file")
                 if song.get("album"):
                     if not path and song.get("file"):
                         path = song.get("file")
@@ -1431,16 +1436,18 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
             artistpath = ""
             
     #LOOKUP LOCAL ARTWORK PATH PASED ON SONG FILE PATH
-    if path and enableLocalMusicArtLookup and (not artistCacheFound or (albumName and not albumCacheFound)):
+    if (path or path2) and enableLocalMusicArtLookup and (not artistCacheFound or (albumName and not albumCacheFound)):
         if "\\" in path: delim = "\\"
         else: delim = "/"
-
+        
         #determine ARTIST folder structure (there might be a disclevel too...)
         #just move up the directory tree (max 3 levels) untill we find artist artwork
-        if localArtistMatch:
-            for trypath in [path.rsplit(delim, 2)[0] + delim, path.rsplit(delim, 3)[0] + delim, path.rsplit(delim, 1)[0] + delim]:
+        if localArtistMatch and path2:
+            if "\\" in path2: delim = "\\"
+            else: delim = "/"
+            for trypath in [path2.rsplit(delim, 2)[0] + delim, path2.rsplit(delim, 3)[0] + delim, path2.rsplit(delim, 1)[0] + delim]:
                 logMsg("getMusicArtwork - lookup path %s" %trypath)
-                for item in ["artist.nfo","banner.jpg","fanart.jpg","logo.jpg","extrafanart/"]:
+                for item in ["artist.nfo","banner.jpg","fanart.jpg","logo.png","extrafanart/"]:
                     artpath = os.path.join(trypath,item)
                     if xbmcvfs.exists(artpath):
                         artistpath = trypath
@@ -1462,6 +1469,8 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
         #determine ALBUM folder structure (there might be a disclevel too...)
         #just move up the directory tree (max 2 levels) untill we find album artwork
         if albumName:
+            if "\\" in path: delim = "\\"
+            else: delim = "/"
             for trypath in [path.rsplit(delim, 1)[0] + delim, path.rsplit(delim, 2)[0] + delim]:
                 logMsg("getMusicArtwork - lookup path %s" %trypath)
                 for item in ["album.nfo","disc.png","cdart.png"]:
