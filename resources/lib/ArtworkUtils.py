@@ -1245,7 +1245,11 @@ def getCustomFolderPath(path, foldername):
 def getSongDurationString(seconds):
     sec = timedelta(seconds=int(seconds))
     d = datetime(1,1,1) + sec
-    return "%d:%d" %(d.minute, d.second)
+    if d.second < 10:
+        secstr = "0%d" %d.second
+    else:
+        secstr = str(d.second)
+    return "%d:%s" %(d.minute, secstr)
     
 def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
     if not artistName:
@@ -1299,6 +1303,7 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
             albumartwork = {}
             songcount = 0
             tracklist = []
+            tracklistwithduration = []
             json_items = getJSON('AudioLibrary.GetAlbums','{ "filter": {"operator":"is", "field":"album", "value":"%s"}, "properties": [ "description","fanart","thumbnail","artistid","artist","musicbrainzalbumid","musicbrainzalbumartistid" ] }'%(albumName.replace("\"","\\" + "\"")))
             for strictmatch in [True, False]:
                 for json_response in json_items:
@@ -1315,8 +1320,11 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
                         json_response2 = getJSON('AudioLibrary.GetSongs', '{ "properties": [ "file","track","title","duration" ], "sort": {"method":"track"}, "filter": { "albumid": %d}}'%(albumid))
                         for song in json_response2:
                             if not path: path = song["file"]
-                            if song.get("track"): tracklist.append(u"[B]%s[/B] - %s - %s" %(song["track"], song["title"], getSongDurationString(song["duration"])))
-                            else: tracklist.append(u"%s - %s" %(song["title"], getSongDurationString(song["duration"])))
+                            if song.get("track"): tracklist.append(u"[B]%s[/B] - %s" %(song["track"], song["title"]))
+                            else: tracklist.append(song["title"])
+                            
+                            if song.get("track"): tracklistwithduration.append(u"[B]%s[/B] - %s - %s" %(song["track"], song["title"], getSongDurationString(song["duration"])))
+                            else: tracklistwithduration.append(u"%s - %s" %(song["title"], getSongDurationString(song["duration"])))
                             songcount += 1
                 
             if not albumartwork.get("artistname"): albumartwork["artistname"] = artistName
@@ -1326,6 +1334,7 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
             albumartwork["tracklist.formatted"] = ""
             for trackitem in tracklist:
                 albumartwork["tracklist.formatted"] += u"• %s[CR]" %trackitem
+            albumartwork["tracklistwithduration"] = u"[CR]".join(tracklistwithduration)
             albumartwork["albumcount"] = "1"
             albumartwork["songcount"] = "%s"%songcount
             if isinstance(albumartwork.get("musicbrainzalbumid",""), list):
@@ -1346,6 +1355,7 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
         albumcount = 0
         albums = []
         tracklist = []
+        tracklistwithduration = []
         json_response = None
         json_response = getJSON('AudioLibrary.GetArtists', '{ "filter": {"operator":"is", "field":"artist", "value":"%s"}, "properties": [ "description","fanart","thumbnail","musicbrainzartistid" ] }'%artistName)
         if len(json_response) == 1:
@@ -1361,7 +1371,8 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
             json_response2 = None
             json_response2 = getJSON('AudioLibrary.GetSongs', '{ "filter":{"artistid": %d}, "properties": [ "file","track","title","duration","musicbrainzartistid","album","artist","albumartistid" ] }'%(json_response.get("artistid")))
             for song in json_response2:
-                tracklist.append(u"%s - %s" %(song["title"], getSongDurationString(song["duration"])))
+                tracklist.append(song["title"])
+                tracklistwithduration.append(u"%s - %s" %(song["title"], getSongDurationString(song["duration"])))
                 songcount += 1
                 if len(song.get("artist")) > 1 and not albumName and not trackName:
                     # skip multi artist song in artist listing
@@ -1388,6 +1399,7 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
             for trackitem in tracklist:
                 artistartwork["tracklist.formatted"] += u"• %s[CR]" %trackitem
             artistartwork["tracklist"] = u"[CR]".join(tracklist)
+            artistartwork["tracklistwithduration"] = u"[CR]".join(tracklistwithduration)
             artistartwork["albumcount"] = "%s"%albumcount
             artistartwork["songcount"] = "%s"%songcount
             if not albumartwork.get("artistname"): albumartwork["artistname"] = artistName
