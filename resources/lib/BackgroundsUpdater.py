@@ -28,9 +28,6 @@ class BackgroundsUpdater(threading.Thread):
     manualWallsLoaded = list()
     manualWalls = {}
     smartShortcutsFirstRunDone = False
-    netFlixnodes = []
-    plexNodes = []
-    allSmartShortcuts = []
     
     def __init__(self, *args):
         self.lastPicturesPath = xbmc.getInfoLabel("skin.string(SkinHelper.PicturesBackgroundPath)").decode("utf-8")
@@ -54,14 +51,15 @@ class BackgroundsUpdater(threading.Thread):
         try:
             self.getCacheFromFile()
             self.getSkinConfig()
-            self.UpdateSmartShortCuts()
             self.UpdateBackgrounds()
+            self.UpdateSmartShortCuts()
             self.updateWallImages()
+            self.UpdateWallBackgrounds()
             self.allBackgrounds = {}
             self.smartShortcuts = {}
+            self.smartShortcuts["allSmartShortcuts"] = []
             self.UpdateSmartShortCuts(True)
-            thread.start_new_thread(self.getPlexNodes, ())
-            thread.start_new_thread(self.getNetflixNodes, ())
+            self.saveCacheToFile()
         except Exception as e:
             logMsg("ERROR in BackgroundsUpdater ! --> " + str(e), 0)
          
@@ -94,6 +92,7 @@ class BackgroundsUpdater(threading.Thread):
                                 self.UpdateSmartShortCuts()
                             self.setDayNightColorTheme()
                             self.getSkinConfig()
+                            self.UpdateWallBackgrounds()
                         except Exception as e:
                             logMsg("ERROR in UpdateBackgrounds ! --> " + str(e), 0)
                             
@@ -142,6 +141,7 @@ class BackgroundsUpdater(threading.Thread):
         self.smartShortcuts = getDataFromCacheFile(self.SmartShortcutsCachePath)
         if self.smartShortcuts.get("allSmartShortcuts"):
             WINDOW.setProperty("allSmartShortcuts", repr(self.smartShortcuts["allSmartShortcuts"]))
+        else: self.smartShortcuts["allSmartShortcuts"] = []
     
     def setDayNightColorTheme(self):
         #check if a color theme should be conditionally set
@@ -238,9 +238,9 @@ class BackgroundsUpdater(threading.Thread):
             images = self.allBackgrounds[windowProp]
         else:
             #no cache file so try to load images from the path
-            
+
             #safety check: check if no library windows are active to prevent any addons setting the view
-            if xbmc.getInfoLabel("$INFO[Window.Property(xmlfile)]").endswith("Nav.xml"):
+            if xbmc.getCondVisibility("Window.IsMedia"):
                 return False
                 
             libPath = getContentPath(libPath)
@@ -426,9 +426,9 @@ class BackgroundsUpdater(threading.Thread):
     
     def UpdateBackgrounds(self):
 
-        if self.backgroundDelay == 0:
+        if self.backgroundDelay == 0 or self.exit:
             return
-        
+
         #conditional background
         WINDOW.setProperty("SkinHelper.ConditionalBackground", conditionalBackgrounds.getActiveConditionalBackground())
         
@@ -471,8 +471,8 @@ class BackgroundsUpdater(threading.Thread):
         self.setGlobalBackground("SkinHelper.AllVideosBackground", [ "SkinHelper.AllMoviesBackground", "SkinHelper.AllTvShowsBackground", "SkinHelper.AllMusicVideosBackground" ])
         self.setGlobalBackground("SkinHelper.RecentVideosBackground", [ "SkinHelper.RecentMoviesBackground", "SkinHelper.RecentEpisodesBackground" ])
         self.setGlobalBackground("SkinHelper.InProgressVideosBackground", [ "SkinHelper.InProgressMoviesBackground", "SkinHelper.InProgressShowsBackground" ])
-            
-        #wall backgrounds
+
+    def UpdateWallBackgrounds(self):
         if WINDOW.getProperty("SkinHelper.enablewallbackgrounds") == "true":
             self.setWallImageFromPath("SkinHelper.AllMoviesBackground.Wall","SkinHelper.AllMoviesBackground")
             self.setWallImageFromPath("SkinHelper.AllMoviesBackground.Poster.Wall","SkinHelper.AllMoviesBackground","poster")
@@ -482,14 +482,15 @@ class BackgroundsUpdater(threading.Thread):
             self.setWallImageFromPath("SkinHelper.AllTvShowsBackground.Poster.Wall","SkinHelper.AllTvShowsBackground","poster")
     
     def UpdateSmartShortCuts(self,buildSmartshortcuts=False):
-
+        
         #smart shortcuts --> emby nodes
         if xbmc.getCondVisibility("System.HasAddon(plugin.video.emby) + Skin.HasSetting(SmartShortcuts.emby)"):
             if self.smartShortcuts.get("emby") and not buildSmartshortcuts:
+                #randomize background image from cache
                 nodes = self.smartShortcuts["emby"]
                 for node in nodes:
                     self.setImageFromPath(node[0] + ".image",node[2])
-            
+            #build node listing
             elif WINDOW.getProperty("emby.nodes.total"):
                 embyProperty = WINDOW.getProperty("emby.nodes.total")
                 contentStrings = ["", ".recent", ".inprogress", ".unwatched", ".recentepisodes", ".inprogressepisodes", ".nextepisodes", "recommended"]
@@ -507,7 +508,7 @@ class BackgroundsUpdater(threading.Thread):
                                 nodes.append( (key, label, path ) )
                                 self.setImageFromPath("emby.nodes.%s%s.image"%(str(i),contentString),path)
                                 if contentString == "": 
-                                    if not "emby.nodes.%s"%i in self.allSmartShortcuts: self.allSmartShortcuts.append("emby.nodes.%s"%i )
+                                    if not "emby.nodes.%s"%i in self.smartShortcuts["allSmartShortcuts"]: self.smartShortcuts["allSmartShortcuts"].append("emby.nodes.%s"%i )
                                     createSmartShortcutSubmenu("emby.nodes.%s"%i,"special://home/addons/plugin.video.emby/icon.png")
                     self.smartShortcuts["emby"] = nodes
         
@@ -518,8 +519,10 @@ class BackgroundsUpdater(threading.Thread):
         if xbmc.getCondVisibility("Skin.HasSetting(SmartShortcuts.playlists)"):
             playlists = []
             if self.smartShortcuts.has_key("playlists") and not buildSmartshortcuts:
+                #randomize background image from cache
                 playlists = self.smartShortcuts["playlists"]
             else:
+                #build node listing
                 playlistCount = 0
                 paths = [['special://videoplaylists/','VideoLibrary'], ['special://musicplaylists/','MusicLibrary']]
                 for playlistpath in paths:
@@ -543,7 +546,7 @@ class BackgroundsUpdater(threading.Thread):
                                         if line.tag == "name":
                                             label = line.text
                                     path = "ActivateWindow(%s,%s,return)" %(playlistpath[1],playlist)
-                                    if not "playlist.%s"%playlistCount in self.allSmartShortcuts: self.allSmartShortcuts.append("playlist.%s"%playlistCount )
+                                    if not "playlist.%s"%playlistCount in self.smartShortcuts["allSmartShortcuts"]: self.smartShortcuts["allSmartShortcuts"].append("playlist.%s"%playlistCount )
                                     playlists.append( (playlistCount, label, path, playlist, type ))
                                     playlistCount += 1
                         except: 
@@ -567,8 +570,10 @@ class BackgroundsUpdater(threading.Thread):
         if xbmc.getCondVisibility("Skin.HasSetting(SmartShortcuts.favorites)"):
             favourites = []
             if self.smartShortcuts.has_key("favourites") and not buildSmartshortcuts:
+                #randomize background image from cache
                 favourites = self.smartShortcuts["favourites"]
             else:
+                #build node listing
                 try:
                     json_result = getJSON('Favourites.GetFavourites', '{"type": null, "properties": ["path", "thumbnail", "window", "windowparameter"]}')
                     for count, fav in enumerate(json_result):
@@ -580,7 +585,7 @@ class BackgroundsUpdater(threading.Thread):
                                 if "&" in content and "?" in content and "=" in content and not content.endswith("/"): content += "&widget=true"
                                 type = detectPluginContent(content)
                                 if type:
-                                    if not "favorite."%count in self.allSmartShortcuts: self.allSmartShortcuts.append("favorite."%count )
+                                    if not "favorite."%count in self.smartShortcuts["allSmartShortcuts"]: self.smartShortcuts["allSmartShortcuts"].append("favorite."%count )
                                     favourites.append( (count, label, path, content, type) )
                 except Exception as e:
                     #something wrong so disable the smartshortcuts for this section for now
@@ -606,63 +611,63 @@ class BackgroundsUpdater(threading.Thread):
         if xbmc.getCondVisibility("System.HasAddon(plugin.video.plexbmc) + Skin.HasSetting(SmartShortcuts.plex)"):
             nodes = []
             if self.smartShortcuts.has_key("plex") and not buildSmartshortcuts:
+                #get plex nodes from cache...
                 nodes = self.smartShortcuts["plex"]
-                for node in nodes:
-                    self.setImageFromPath(node[0] + ".image",node[3])
-            elif self.plexNodes:
-                for node in self.plexNodes:
-                    self.setImageFromPath(node[0] + ".image",node[3])
+            else:
+                #build the plex listing...
+                nodes = self.getPlexNodes()
+                self.smartShortcuts["plex"] = nodes
+            for node in nodes:
+                #randomize background image from cache
+                self.setImageFromPath(node[0] + ".image",node[3])
+                if buildSmartshortcuts or not self.smartShortcutsFirstRunDone:
+                    #set other properties at first load only
                     WINDOW.setProperty(node[0] + ".label", node[1])
                     WINDOW.setProperty(node[0] + ".title", node[1])
                     WINDOW.setProperty(node[0] + ".action", node[2])
                     WINDOW.setProperty(node[0] + ".path", node[2])
                     WINDOW.setProperty(node[0] + ".content", node[3])
                     WINDOW.setProperty(node[0] + ".type", node[4])
-                self.smartShortcuts["plex"] = self.plexNodes
-
+                
         #stop if shutdown requested in the meanwhile
         if self.exit: return
                 
         #smart shortcuts --> netflix nodes
         if xbmc.getCondVisibility("System.HasAddon(plugin.video.flix2kodi) + Skin.HasSetting(SmartShortcuts.netflix)"):
+            nodes = []
             if self.smartShortcuts.has_key("netflix") and not buildSmartshortcuts:
+                #get the netflix nodes from cache...
                 nodes = self.smartShortcuts["netflix"]
-                for node in nodes:
-                    if len(node) == 6: imagespath = node[5]
-                    else: imagespath = node[2]
-                    if not node[0].startswith("netflix.generic.suggestions"):
-                        self.setImageFromPath(node[0] + ".image",imagespath,"special://home/addons/plugin.video.flix2kodi/fanart.jpg")
-            elif self.netFlixnodes:
-                nodes = self.netFlixnodes
-                if not "netflix.generic" in self.allSmartShortcuts: self.allSmartShortcuts.append("netflix.generic")
-                if not "netflix.generic.movies" in self.allSmartShortcuts: self.allSmartShortcuts.append("netflix.movies")
-                if not "netflix.generic.tvshows" in self.allSmartShortcuts: self.allSmartShortcuts.append("netflix.tvshows")
+            else:
+                #build the netflix listing...
+                nodes = self.getNetflixNodes()
                 self.smartShortcuts["netflix"] = nodes
+            if nodes:
                 for node in nodes:
                     key = node[0]
                     if len(node) == 6: imagespath = node[5]
                     else: imagespath = node[2]
-                    WINDOW.setProperty(key + ".title", node[1])
-                    WINDOW.setProperty(key + ".content", node[2])
-                    WINDOW.setProperty(key + ".path", node[4])
-                    WINDOW.setProperty(key + ".type", node[3])
-                    if key.startswith("netflix.generic.suggestions"):
-                        WINDOW.setProperty(key + ".image", "special://home/addons/plugin.video.flix2kodi/fanart.jpg")
-                    else:
+                    #randomize background image from cache
+                    if not key.startswith("netflix.generic.suggestions"):
                         self.setImageFromPath(key + ".image",imagespath,"special://home/addons/plugin.video.flix2kodi/fanart.jpg")
+                    if buildSmartshortcuts or not self.smartShortcutsFirstRunDone:
+                        #set other properties at first load only
+                        WINDOW.setProperty(key + ".title", node[1])
+                        WINDOW.setProperty(key + ".content", node[2])
+                        WINDOW.setProperty(key + ".path", node[4])
+                        WINDOW.setProperty(key + ".type", node[3])
 
         #store all smart shortcuts for exchange with skinshortcuts
-        WINDOW.setProperty("allSmartShortcuts", repr(self.allSmartShortcuts))
+        if buildSmartshortcuts or not self.smartShortcutsFirstRunDone:
+            WINDOW.setProperty("allSmartShortcuts", repr(self.smartShortcuts["allSmartShortcuts"]))
             
         self.smartShortcutsFirstRunDone = True
     
     def getNetflixNodes(self):
         #build a listing of netflix nodes...
         
-        if not xbmc.getCondVisibility("System.HasAddon(plugin.video.flix2kodi) + Skin.HasSetting(SmartShortcuts.netflix)"):
-            return
-            
-        if self.exit: return
+        if not xbmc.getCondVisibility("System.HasAddon(plugin.video.flix2kodi) + Skin.HasSetting(SmartShortcuts.netflix)") or self.exit:
+            return []
         
         nodes = []
         netflixAddon = xbmcaddon.Addon('plugin.video.flix2kodi')
@@ -837,16 +842,22 @@ class BackgroundsUpdater(threading.Thread):
             type = "genres"
             nodes.append( (key, label, content, type, path ) )
             
+            if not "netflix.generic" in self.smartShortcuts["allSmartShortcuts"]: self.smartShortcuts["allSmartShortcuts"].append("netflix.generic")
+            if not "netflix.generic.movies" in self.smartShortcuts["allSmartShortcuts"]: self.smartShortcuts["allSmartShortcuts"].append("netflix.movies")
+            if not "netflix.generic.tvshows" in self.smartShortcuts["allSmartShortcuts"]: self.smartShortcuts["allSmartShortcuts"].append("netflix.tvshows")
+            
             logMsg("DONE Generating netflix entries --> %s"%repr(nodes))
             
         else:
             logMsg("SKIP Generating netflix entries - addon is not ready!")
         
-        self.netFlixnodes = nodes
+        return nodes
 
     def getPlexNodes(self):
-        if xbmc.getCondVisibility("System.HasAddon(plugin.video.plexbmc) + Skin.HasSetting(SmartShortcuts.plex)"):
+        nodes = []
+        if xbmc.getCondVisibility("System.HasAddon(plugin.video.plexbmc) + Skin.HasSetting(SmartShortcuts.plex)") and not self.exit:
             xbmc.executebuiltin('RunScript(plugin.video.plexbmc,amberskin)')
+            #wait a few seconds for the initialization to be finished
             self.monitor.waitForAbort(5)
             
             #get the plex setting if there are subnodes
@@ -855,7 +866,6 @@ class BackgroundsUpdater(threading.Thread):
             del plexaddon
             
             contentStrings = ["", ".ondeck", ".recent", ".unwatched"]
-            nodes = []
             totalNodes = 50
             for i in range(totalNodes):
                 if not WINDOW.getProperty("plexbmc.%s.title"%i): break
@@ -886,7 +896,7 @@ class BackgroundsUpdater(threading.Thread):
                         path = alllink.replace("/all", "/unwatched")
                     elif contentString == "":
                         if type == "show": type = "tvshows"
-                        if not key in self.allSmartShortcuts: self.allSmartShortcuts.append(key)
+                        if not key in self.smartShortcuts["allSmartShortcuts"]: self.smartShortcuts["allSmartShortcuts"].append(key)
                         createSmartShortcutSubmenu("plexbmc.%s"%i,"special://home/addons/plugin.video.plexbmc/icon.png")
                     
                     #append type to path
@@ -901,6 +911,7 @@ class BackgroundsUpdater(threading.Thread):
             #extract path from one of the nodes as a workaround because main plex addon channels listing is in error
             if nodes:
                 path = WINDOW.getProperty("plexbmc.0.path").decode("utf-8")
+                if not path: path = WINDOW.getProperty("plexbmc.0.all").decode("utf-8")
                 path = path.split("/library/")[0]
                 path = path + "/channels/all&mode=21"
                 path = path + ", return)"
@@ -908,8 +919,9 @@ class BackgroundsUpdater(threading.Thread):
                 label = "Channels"
                 content = getContentPath(path)
                 nodes.append( (key, label, path, content, "episodes" ) )
-                if not key in self.allSmartShortcuts: self.allSmartShortcuts.append(key)
-                self.plexNodes = nodes
+                if not key in self.smartShortcuts["allSmartShortcuts"]: self.smartShortcuts["allSmartShortcuts"].append(key)
+        
+        return nodes
     
     def createImageWall(self,images,windowProp,type="fanart"):
         

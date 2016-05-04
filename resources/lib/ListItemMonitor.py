@@ -147,7 +147,7 @@ class ListItemMonitor(threading.Thread):
                         curFolder = xbmc.getInfoLabel("widget-%s-$INFO[Container(%s).NumItems]" %(widgetContainer,widgetContainer)).decode('utf-8')
                     else: 
                         self.widgetContainerPrefix = ""
-                        curFolder = xbmc.getInfoLabel("$INFO[Container.FolderPath]$INFO[Container.NumItems]").decode('utf-8')
+                        curFolder = xbmc.getInfoLabel("$INFO[Container.FolderPath]$INFO[Container.NumItems]$INFO[Container.Content]").decode('utf-8')
                     self.liTitle = xbmc.getInfoLabel("%sListItem.Title" %self.widgetContainerPrefix).decode('utf-8')
                     self.liLabel = xbmc.getInfoLabel("%sListItem.Label" %self.widgetContainerPrefix).decode('utf-8')
                 except Exception as e: 
@@ -675,9 +675,9 @@ class ListItemMonitor(threading.Thread):
                 if item[0] == "SkinHelper.MovieSet.Extrafanarts":
                     if xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnableExtraFanart)"):
                         efaProp = 'EFA_FROMWINDOWPROP_' + cacheStr
-                        WINDOW.setProperty(efaProp, item[1])
+                        WINDOW.setProperty(efaProp, try_encode(item[1]))
                         WINDOW.setProperty('SkinHelper.ExtraFanArtPath', "plugin://script.skin.helper.service/?action=EXTRAFANART&path=%s" %single_urlencode(try_encode(efaProp)))
-                else: WINDOW.setProperty(item[0],item[1])
+                else: WINDOW.setProperty(item[0],try_encode(item[1]))
             
     def setContentHeader(self):
         WINDOW.clearProperty("SkinHelper.ContentHeader")

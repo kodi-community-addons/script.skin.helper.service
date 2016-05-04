@@ -64,12 +64,14 @@ def getContentPath(libPath):
         libPath = libPath.replace("$INFO[Window(Home).Property(", "")
         libPath = libPath.replace(")]", "")
         libPath = WINDOW.getProperty(libPath)    
-    if "Activate" in libPath:
-        if "ActivateWindow(MusicLibrary," in libPath:
-            libPath = libPath.replace("ActivateWindow(MusicLibrary," ,"musicdb://").lower()
+    if "activate" in libPath.lower():
+        if "activatewindow(musiclibrary," in libPath.lower():
+            libPath = libPath.lower().replace("activatewindow(musiclibrary," ,"musicdb://")
             libPath = libPath.replace(",return","/")
             libPath = libPath.replace(", return","/")
         else:
+            libPath = libPath.lower().replace(",return","")
+            libPath = libPath.lower().replace(", return","")
             if ", " in libPath:
                 libPath = libPath.split(", ",1)[1]
             elif " , " in libPath:
@@ -78,9 +80,7 @@ def getContentPath(libPath):
                 libPath = libPath.split(", ",1)[1]
             elif "," in libPath:
                 libPath = libPath.split(",",1)[1]
-            libPath = libPath.replace(",return","")
-            libPath = libPath.replace(", return","")
-        
+            
         libPath = libPath.replace(")","")
         libPath = libPath.replace("\"","")
         libPath = libPath.replace("musicdb://special://","special://")
