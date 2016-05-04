@@ -51,6 +51,7 @@ class SearchDialog(xbmcgui.WindowXMLDialog):
                 searchTerm = " "
             else:
                 searchTerm = self.searchString[:-1]
+            self.setFocusId(3056)
             self.getControl(3010).setLabel(searchTerm)
             self.searchString = searchTerm
             self.searchThread.setSearch(searchTerm)
@@ -59,10 +60,9 @@ class SearchDialog(xbmcgui.WindowXMLDialog):
         ACTION_SELECT_ITEM = 7
         ACTION_NUMBER_0 = 58
         ACTION_NUMBER_9 = 67
-        
         action = act.getId()
         button = act.getButtonCode()
-
+        
         # Upper-case values
         if button >= 0x2f041 and button <= 0x2f05b:
             self.addCharacter(chr(button - 0x2F000))
@@ -92,7 +92,12 @@ class SearchDialog(xbmcgui.WindowXMLDialog):
             #close shutdown window if visible
             xbmc.executebuiltin("Dialog.close(10111)")
             
-
+            
+    def setCharFocus(self, char):
+        alphanum =  +['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','0','1','2','3','4','5','6','7','8','9','',' '].index(str(char).upper())
+        self.setFocusId(3020 + alphanum)
+            
+            
     def onClick(self, controlID):
 
         if(controlID == 3020):
@@ -197,12 +202,14 @@ class SearchDialog(xbmcgui.WindowXMLDialog):
         
     
     def clearSearch(self):
+        self.setFocusId(3058)
         self.getControl(3010).setLabel(" ")
         self.searchString = ""
         self.searchThread.setSearch("")
         
         
     def addCharacter(self, char):
+        self.setCharFocus(char)
         searchTerm = self.searchString + char
         self.getControl(3010).setLabel(searchTerm)
         self.searchString = searchTerm
