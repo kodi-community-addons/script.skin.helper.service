@@ -57,7 +57,6 @@ class SearchDialog(xbmcgui.WindowXMLDialog):
             self.searchThread.setSearch(searchTerm)
     
     def onActionTextBox(self, act):
-        ACTION_SELECT_ITEM = 7
         ACTION_NUMBER_0 = 58
         ACTION_NUMBER_9 = 67
         action = act.getId()
