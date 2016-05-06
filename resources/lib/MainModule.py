@@ -516,7 +516,9 @@ def saveSkinImage(skinstring="",allowMulti=False,header=""):
         value = xbmcgui.Dialog().browse( 2 , header, 'files', '', True, True, curValueOrgLocation).decode("utf-8")
         if value:
             ext = value.split(".")[-1]
-            newfile = u"special://profile/addon_data/%s/custom_images/%s.%s" %(xbmc.getSkinDir(),skinstring,ext)
+            newfile = u"special://profile/addon_data/%s/custom_images/%s.%s" %(xbmc.getSkinDir(),skinstring + time.strftime("%Y%m%d%H%M%S", time.gmtime()),ext)
+            if "special://profile/addon_data/%s/custom_images/"%xbmc.getSkinDir() in curValue:
+                xbmcvfs.delete(curValue)
             xbmcvfs.copy(value, newfile)
             xbmc.executebuiltin("Skin.SetString(%s.org,%s)" %(skinstring.encode("utf-8"),value.encode("utf-8")))
             value = newfile
