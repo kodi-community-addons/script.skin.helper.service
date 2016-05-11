@@ -494,23 +494,23 @@ class BackgroundsUpdater(threading.Thread):
             elif WINDOW.getProperty("emby.nodes.total"):
                 embyProperty = WINDOW.getProperty("emby.nodes.total")
                 contentStrings = ["", ".recent", ".inprogress", ".unwatched", ".recentepisodes", ".inprogressepisodes", ".nextepisodes", "recommended"]
-                if embyProperty:
-                    nodes = []
-                    totalNodes = int(embyProperty)
-                    for i in range(totalNodes):
-                        #stop if shutdown requested in the meanwhile
-                        if self.exit: return
-                        for contentString in contentStrings:
-                            key = "emby.nodes.%s%s"%(str(i),contentString)
-                            path = WINDOW.getProperty("emby.nodes.%s%s.path"%(str(i),contentString))
-                            label = WINDOW.getProperty("emby.nodes.%s%s.title"%(str(i),contentString))
-                            if path:
-                                nodes.append( (key, label, path ) )
-                                self.setImageFromPath("emby.nodes.%s%s.image"%(str(i),contentString),path)
-                                if contentString == "": 
-                                    if not "emby.nodes.%s"%i in self.smartShortcuts["allSmartShortcuts"]: self.smartShortcuts["allSmartShortcuts"].append("emby.nodes.%s"%i )
-                                    createSmartShortcutSubmenu("emby.nodes.%s"%i,"special://home/addons/plugin.video.emby/icon.png")
-                    self.smartShortcuts["emby"] = nodes
+                nodes = []
+                totalNodes = int(embyProperty)
+                for i in range(totalNodes):
+                    #stop if shutdown requested in the meanwhile
+                    if self.exit: return
+                    for contentString in contentStrings:
+                        key = "emby.nodes.%s%s"%(str(i),contentString)
+                        path = WINDOW.getProperty("emby.nodes.%s%s.path"%(str(i),contentString))
+                        label = WINDOW.getProperty("emby.nodes.%s%s.title"%(str(i),contentString))
+                        if path:
+                            nodes.append( (key, label, path ) )
+                            self.setImageFromPath("emby.nodes.%s%s.image"%(str(i),contentString),path)
+                            if contentString == "": 
+                                if not "emby.nodes.%s"%i in self.smartShortcuts["allSmartShortcuts"]: self.smartShortcuts["allSmartShortcuts"].append("emby.nodes.%s"%i )
+                                createSmartShortcutSubmenu("emby.nodes.%s"%i,"special://home/addons/plugin.video.emby/icon.png")
+                self.smartShortcuts["emby"] = nodes
+                logMsg("Generated smart shortcuts for emby nodes: %s" %nodes)
         
         #stop if shutdown requested in the meanwhile
         if self.exit: return
@@ -552,6 +552,7 @@ class BackgroundsUpdater(threading.Thread):
                         except: 
                             logMsg("Error while processing smart shortcuts for playlist %s  --> This file seems to be corrupted, please remove it from your system to prevent any further errors."%item["file"], 0)
                 self.smartShortcuts["playlists"] = playlists
+                logMsg("Generated smart shortcuts for playlists: %s" %playlists)
             
             for playlist in playlists:
                 self.setImageFromPath("playlist." + str(playlist[0]) + ".image",playlist[3])
@@ -593,6 +594,7 @@ class BackgroundsUpdater(threading.Thread):
                     logMsg("Error while processing smart shortcuts for favourites - set disabled.... ",0)
                     logMsg(str(e),0)
                 self.smartShortcuts["favourites"] = favourites
+                logMsg("Generated smart shortcuts for favourites: %s" %favourites)
                     
             for favourite in favourites:
                 self.setImageFromPath("favorite." + str(favourite[0]) + ".image",favourite[2])
@@ -617,6 +619,7 @@ class BackgroundsUpdater(threading.Thread):
                 #build the plex listing...
                 nodes = self.getPlexNodes()
                 self.smartShortcuts["plex"] = nodes
+                logMsg("Generated smart shortcuts for plex: %s" %nodes)
             for node in nodes:
                 #randomize background image from cache
                 self.setImageFromPath(node[0] + ".image",node[3])
@@ -658,8 +661,7 @@ class BackgroundsUpdater(threading.Thread):
                         WINDOW.setProperty(key + ".type", node[3])
 
         #store all smart shortcuts for exchange with skinshortcuts
-        if buildSmartshortcuts or not self.smartShortcutsFirstRunDone:
-            WINDOW.setProperty("allSmartShortcuts", repr(self.smartShortcuts["allSmartShortcuts"]))
+        WINDOW.setProperty("allSmartShortcuts", repr(self.smartShortcuts["allSmartShortcuts"]))
             
         self.smartShortcutsFirstRunDone = True
     
