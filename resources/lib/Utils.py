@@ -5,7 +5,7 @@ import xbmcplugin, xbmcgui, xbmc, xbmcaddon, xbmcvfs
 import os,sys
 import urllib
 from traceback import print_exc
-from datetime import datetime
+from datetime import datetime, timedelta
 import _strptime
 import time
 import datetime as dt
@@ -64,12 +64,14 @@ def getContentPath(libPath):
         libPath = libPath.replace("$INFO[Window(Home).Property(", "")
         libPath = libPath.replace(")]", "")
         libPath = WINDOW.getProperty(libPath)    
-    if "Activate" in libPath:
-        if "ActivateWindow(MusicLibrary," in libPath:
-            libPath = libPath.replace("ActivateWindow(MusicLibrary," ,"musicdb://").lower()
+    if "activate" in libPath.lower():
+        if "activatewindow(musiclibrary," in libPath.lower():
+            libPath = libPath.lower().replace("activatewindow(musiclibrary," ,"musicdb://")
             libPath = libPath.replace(",return","/")
             libPath = libPath.replace(", return","/")
         else:
+            libPath = libPath.lower().replace(",return","")
+            libPath = libPath.lower().replace(", return","")
             if ", " in libPath:
                 libPath = libPath.split(", ",1)[1]
             elif " , " in libPath:
@@ -78,9 +80,7 @@ def getContentPath(libPath):
                 libPath = libPath.split(", ",1)[1]
             elif "," in libPath:
                 libPath = libPath.split(",",1)[1]
-            libPath = libPath.replace(",return","")
-            libPath = libPath.replace(", return","")
-        
+            
         libPath = libPath.replace(")","")
         libPath = libPath.replace("\"","")
         libPath = libPath.replace("musicdb://special://","special://")
@@ -141,6 +141,8 @@ def getJSON(method,params):
             return jsonobject['moviedetails']
         elif jsonobject.has_key('setdetails'):
             return jsonobject['setdetails']
+        elif jsonobject.has_key('musicvideodetails'):
+            return jsonobject['musicvideodetails']
         elif jsonobject.has_key('sets'):
             return jsonobject['sets']
         elif jsonobject.has_key('video'):
@@ -160,17 +162,22 @@ def getJSON(method,params):
         elif jsonobject.has_key('value'):
             return jsonobject['value']
         else:
-            logMsg("getJson %s - response: %s" %(method,str(jsonobject))) 
             return {}
     else:
-        logMsg("getJson - empty result for Method %s - params: %s - response: %s" %(method,params, str(jsonobject))) 
+        logMsg("getJson - invalid result for Method %s - params: %s - response: %s" %(method,params, str(jsonobject)),0) 
         return {}
 
-def setAddonsettings():
+def checkFolders():
     if not xbmcvfs.exists(SETTING("pvrthumbspath")):
         xbmcvfs.mkdirs(SETTING("pvrthumbspath"))
-    if not xbmcvfs.exists("special://profile/addon_data/script.skin.helper.service/musicart/"):
-        xbmcvfs.mkdirs("special://profile/addon_data/script.skin.helper.service/musicart/")
+    if not xbmcvfs.exists("special://profile/addon_data/script.skin.helper.service/musicartcache/"):
+        xbmcvfs.mkdirs("special://profile/addon_data/script.skin.helper.service/musicartcache/")
+    #Remove legacy musicart cache
+    if xbmcvfs.exists("special://profile/addon_data/script.skin.helper.service/musicart/"):
+        recursiveDelete("special://profile/addon_data/script.skin.helper.service/musicart/")
+        
+def setAddonsettings():
+    checkFolders()
     #get the addonsettings and store them in memory
     WINDOW.setProperty("SkinHelper.pvrthumbspath",SETTING("pvrthumbspath"))
     WINDOW.setProperty("SkinHelper.cacheRecordings",SETTING("cacheRecordings"))
@@ -199,7 +206,18 @@ def setAddonsettings():
     WINDOW.setProperty("SkinHelper.enableWidgetsArtworkLookups",SETTING("enableWidgetsArtworkLookups"))
     WINDOW.setProperty("SkinHelper.enableSpecialsInWidgets",SETTING("enableSpecialsInWidgets"))
     WINDOW.setProperty("SkinHelper.enableWidgetsAlbumBrowse",SETTING("enableWidgetsAlbumBrowse"))
-    
+    WINDOW.setProperty("SkinHelper.skipOnlineMusicArtOnLocal",SETTING("skipOnlineMusicArtOnLocal"))
+    if SETTING("enableCustomMusicArtLookup") == "true": WINDOW.setProperty("SkinHelper.custommusiclookuppath",SETTING("custommusiclookuppath"))
+    else: WINDOW.clearProperty("SkinHelper.custommusiclookuppath")
+    if SETTING("enablecontextmenu_music") == "true": WINDOW.setProperty("SkinHelper.enablecontextmenu_music","enable")
+    else: WINDOW.clearProperty("SkinHelper.enablecontextmenu_music")
+    if SETTING("enablecontextmenu_pvr") == "true": WINDOW.setProperty("SkinHelper.enablecontextmenu_pvr","enable")
+    else: WINDOW.clearProperty("SkinHelper.enablecontextmenu_pvr")
+    if SETTING("enablecontextmenu_animatedart") == "true": WINDOW.setProperty("SkinHelper.enablecontextmenu_animatedart","enable")
+    else: WINDOW.clearProperty("SkinHelper.enablecontextmenu_animatedart")
+    if SETTING("enablecontextmenu_series") == "true": WINDOW.setProperty("SkinHelper.enablecontextmenu_series","enable")
+    else: WINDOW.clearProperty("SkinHelper.enablecontextmenu_series")
+           
 def indentXML( elem, level=0 ):
     i = "\n" + level*"\t"
     if len(elem):
@@ -335,7 +353,7 @@ def prepareListItem(item):
     properties = item.get("extraproperties",{})
     
     #set type
-    for idvar in [ ('episode','DefaultTVShows.png'),('tvshow','DefaultTVShows.png'),('movie','DefaultMovies.png'),('song','DefaultAudio.png'),('musicvideo','DefaultMusicVideos.png') ]:
+    for idvar in [ ('episode','DefaultTVShows.png'),('tvshow','DefaultTVShows.png'),('movie','DefaultMovies.png'),('song','DefaultAudio.png'),('musicvideo','DefaultMusicVideos.png'),('recording','DefaultTVShows.png'),('album','DefaultAudio.png') ]:
         if item.get(idvar[0] + "id"):
             properties["DBID"] = str(item.get(idvar[0] + "id"))
             if not item.get("type"): item["type"] = idvar[0]
@@ -351,6 +369,7 @@ def prepareListItem(item):
     if not item.get('artist'): item["artist"] = []
     if item.get('type') == "album" and not item.get('album'): item['album'] = item.get('label')
     if not item.get("duration") and item.get("runtime"): item["duration"] = item.get("runtime")
+    if not item.get("plot") and item.get("comment"): item["plot"] = item.get("comment")
     if not item.get("tvshowtitle") and item.get("showtitle"): item["tvshowtitle"] = item.get("showtitle")
     if not item.get("premiered") and item.get("firstaired"): item["premiered"] = item.get("firstaired")
     if not properties.get("imdbnumber") and item.get("imdbnumber"): properties["imdbnumber"] = item.get("imdbnumber")
@@ -453,7 +472,9 @@ def prepareListItem(item):
             art["landscape"] = art.get("tvshow.landscape")
     if not art.get("fanart") and item.get('fanart'): art["fanart"] = item.get('fanart')
     if not art.get("thumb") and item.get('thumbnail'): art["thumb"] = getCleanImage(item.get('thumbnail'))
+    if not art.get("thumb") and art.get('poster'): art["thumb"] = getCleanImage(item.get('poster'))
     if not art.get("thumb") and item.get('icon'): art["thumb"] = getCleanImage(item.get('icon'))
+    if not item.get("thumbnail") and art.get('thumb'): item["thumbnail"] = art["thumb"]
     
     #return the result
     item["extraproperties"] = properties
@@ -640,38 +661,30 @@ def getCurrentContentType(containerprefix=""):
             contenttype = "tvrecordings"
         elif xbmc.getCondVisibility("SubString(%sListItem.FolderPath,pvr://channels)" %containerprefix):
             contenttype = "tvchannels"
-        elif xbmc.getCondVisibility("StringCompare(%sListItem.Label,%sListItem.Artist)" %(containerprefix,containerprefix)):
-            contenttype = "artists"
-        elif xbmc.getCondVisibility("StringCompare(%sListItem.Label,%sListItem.Album)" %(containerprefix,containerprefix)):
-            contenttype = "albums"
-        elif xbmc.getCondVisibility("!IsEmpty(%sListItem.Artist) + !IsEmpty(%sListItem.Album)" %(containerprefix,containerprefix)):
-            contenttype = "songs"
-        elif xbmc.getCondVisibility("StringCompare(%sListItem.Label,%sListItem.TvShowTitle)" %(containerprefix,containerprefix)):
-            contenttype = "tvshows"
         elif xbmc.getCondVisibility("SubString(%sListItem.FolderPath,flix2kodi) + SubString(%sListItem.Genre,Series)" %(containerprefix,containerprefix)):
             contenttype = "tvshows"
         elif xbmc.getCondVisibility("SubString(%sListItem.FolderPath,flix2kodi)" %(containerprefix)):
             contenttype = "movies"
-        elif xbmc.getCondVisibility("!IsEmpty(%sListItem(1).DBTYPE)" %containerprefix):
-            contenttype = xbmc.getInfoLabel("%sListItem(1).DBTYPE" %containerprefix) + "s"
-        elif xbmc.getCondVisibility("!IsEmpty(%sListItem(1).Property(DBTYPE))" %containerprefix):
-            contenttype = xbmc.getInfoLabel("%sListItem(1).Property(DBTYPE)" %containerprefix) + "s"
-        elif xbmc.getCondVisibility("SubString(%sListItem(1).FileNameAndPath,playrecording) | SubString(%sListItem(1).FileNameAndPath,tvtimer)" %(containerprefix,containerprefix)):
-            contenttype = "tvrecordings"
-        elif xbmc.getCondVisibility("SubString(%sListItem(1).FolderPath,pvr://channels)" %containerprefix):
-            contenttype = "tvchannels"
-        elif xbmc.getCondVisibility("StringCompare(%sListItem(1).Label,%sListItem(1).Artist)" %(containerprefix,containerprefix)):
+        elif xbmc.getCondVisibility("!IsEmpty(%sListItem.Artist) + StringCompare(%sListItem.Label,%sListItem.Artist)" %(containerprefix,containerprefix,containerprefix)):
             contenttype = "artists"
-        elif xbmc.getCondVisibility("StringCompare(%sListItem(1).Label,%sListItem(1).Album)" %(containerprefix,containerprefix)):
+        elif xbmc.getCondVisibility("!IsEmpty(%sListItem.Album) + StringCompare(%sListItem.Label,%sListItem.Album)" %(containerprefix,containerprefix,containerprefix)):
             contenttype = "albums"
-        elif xbmc.getCondVisibility("!IsEmpty(%sListItem(1).Artist) + !IsEmpty(%sListItem(1).Album)" %(containerprefix,containerprefix)):
+        elif xbmc.getCondVisibility("!IsEmpty(%sListItem.Artist) + !IsEmpty(%sListItem.Album)" %(containerprefix,containerprefix)):
             contenttype = "songs"
-        elif xbmc.getCondVisibility("StringCompare(%sListItem(1).Label,%sListItem(1).TvShowTitle)" %(containerprefix,containerprefix)):
+        elif xbmc.getCondVisibility("!IsEmpty(%sListItem.TvShowTitle) + StringCompare(%sListItem.Title,%sListItem.TvShowTitle)" %(containerprefix,containerprefix,containerprefix)):
             contenttype = "tvshows"
-        elif xbmc.getCondVisibility("SubString(%sListItem(1).FolderPath,flix2kodi) + SubString(%sListItem(1).Genre,Series)" %(containerprefix,containerprefix)):
+        elif xbmc.getCondVisibility("!IsEmpty(%sListItem.Property(TotalEpisodes))" %(containerprefix)):
             contenttype = "tvshows"
-        elif xbmc.getCondVisibility("SubString(%sListItem(1).FolderPath,flix2kodi)" %(containerprefix)):
+        elif xbmc.getCondVisibility("!IsEmpty(%sListItem.TvshowTitle) + !IsEmpty(%sListItem.Season)" %(containerprefix,containerprefix)):
+            contenttype = "episodes"
+        elif xbmc.getCondVisibility("IsEmpty(%sListItem.TvshowTitle) + !IsEmpty(%sListItem.Year)" %(containerprefix,containerprefix)):
             contenttype = "movies"
+        elif xbmc.getCondVisibility("SubString(%sListItem.FolderPath,movies)" %containerprefix):
+            contenttype = "movies"
+        elif xbmc.getCondVisibility("SubString(%sListItem.FolderPath,shows)" %containerprefix):
+            contenttype = "tvshows"
+        elif xbmc.getCondVisibility("SubString(%sListItem.FolderPath,episodes)" %containerprefix):
+            contenttype = "episodes"
     
     WINDOW.setProperty("contenttype",contenttype)
     return contenttype
@@ -799,58 +812,6 @@ def matchStudioLogo(studiostr,studiologos):
                 
     return studiologo
 
-def resetGlobalWidgetWindowProps():
-    WINDOW.setProperty("widgetreload2", time.strftime("%Y%m%d%H%M%S", time.gmtime()))
-    
-def resetPlayerWindowProps():
-    #reset all window props provided by the script...
-    WINDOW.setProperty("SkinHelper.Player.Music.Banner","") 
-    WINDOW.setProperty("SkinHelper.Player.Music.ClearLogo","") 
-    WINDOW.setProperty("SkinHelper.Player.Music.DiscArt","") 
-    WINDOW.setProperty("SkinHelper.Player.Music.FanArt","") 
-    WINDOW.setProperty("SkinHelper.Player.Music.Thumb","") 
-    WINDOW.setProperty("SkinHelper.Player.Music.Info","") 
-    WINDOW.setProperty("SkinHelper.Player.Music.TrackList","") 
-    WINDOW.setProperty("SkinHelper.Player.Music.SongCount","") 
-    WINDOW.setProperty("SkinHelper.Player.Music.albumCount","") 
-    WINDOW.setProperty("SkinHelper.Player.Music.AlbumList","")
-    WINDOW.setProperty("SkinHelper.Player.Music.ExtraFanArt","")
-    
-def resetMusicWidgetWindowProps(data="",resetAll=False):
-    #clear the cache for the music widgets
-    type = "unknown"
-    if data:
-        data = eval(data.replace("true","True").replace("false","False"))
-        type = data.get("type","")
-
-    if (type in ["song","artist","album"] or resetAll) and not WINDOW.getProperty("skinhelper-refreshmusicwidgetsbusy"):
-        logMsg("Music database changed - type: %s - resetAll: %s, refreshing widgets...." %(type,resetAll))
-        if resetAll: WINDOW.setProperty("resetMusicArtCache","reset")
-        timestr = time.strftime("%Y%m%d%H%M%S", time.gmtime())
-        WINDOW.setProperty("widgetreloadmusic", timestr)
-        WINDOW.clearProperty("skinhelper-refreshmusicwidgetsbusy")
-        
-def resetVideoWidgetWindowProps(data="",resetAll=False):
-    #clear the cache for the video widgets
-    type = "unknown"
-    if data:
-        data = eval(data.replace("true","True").replace("false","False"))
-        type = data["item"]["type"]
-
-    if (type in ["movie","tvshow","episode"] and not WINDOW.getProperty("skinhelper-refreshvideowidgetsbusy")) or resetAll:
-        logMsg("Video database changed - type: %s - resetAll: %s, refreshing widgets...." %(type,resetAll))
-        WINDOW.setProperty("skinhelper-refreshvideowidgetsbusy","busy")
-        if resetAll: WINDOW.setProperty("resetVideoDbCache","reset")
-        timestr = time.strftime("%Y%m%d%H%M%S", time.gmtime())
-        #reset specific widgets, based on item that is updated
-        if resetAll or type=="movie":
-            WINDOW.setProperty("widgetreload-movies", timestr)
-        if resetAll or type=="episode":
-            WINDOW.setProperty("widgetreload-episodes", timestr)
-        if resetAll or type=="tvshow":
-            WINDOW.setProperty("widgetreload-tvshows", timestr)
-        WINDOW.setProperty("widgetreload", timestr)
-        WINDOW.clearProperty("skinhelper-refreshvideowidgetsbusy")
 
 def getResourceAddonFiles(addonName,allFilesList=None):
     # get listing of all files (eg studio logos) inside a resource image addonName

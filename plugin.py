@@ -46,7 +46,6 @@ class Main:
             elif action == "LAUNCH":
                 xbmcplugin.setResolvedUrl(handle=int(sys.argv[1]), succeeded=False, listitem=xbmcgui.ListItem())
                 path = sys.argv[2].split("&path=")[1]
-                xbmc.executebuiltin("Action(Close)")
                 xbmc.executebuiltin(path)
             elif action == "PLAYALBUM":
                 xbmcplugin.setResolvedUrl(handle=int(sys.argv[1]), succeeded=False, listitem=xbmcgui.ListItem())
@@ -73,6 +72,60 @@ class Main:
                 downloadthumbs=params.get("downloadthumbs",False)
                 if downloadthumbs: downloadthumbs = downloadthumbs[0]=="true"
                 plugincontent.getCast(movie,tvshow,movieset,episode,downloadthumbs)
+            elif action == "ALPHABET":
+                allLetters = []
+                if xbmc.getInfoLabel("Container.NumItems"):
+                    for i in range(int(xbmc.getInfoLabel("Container.NumItems"))):
+                        allLetters.append(xbmc.getInfoLabel("Listitem(%s).SortLetter"%i).upper())
+                    
+                    startNumber = ""
+                    for number in ["2","3","4","5","6","7","8","9"]:
+                        if number in allLetters:
+                            startNumber = number
+                            break
+                    
+                    for letter in [startNumber,"A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"]:
+                        if letter == startNumber:
+                            label = "#"
+                        else: label = letter
+                        li = xbmcgui.ListItem(label=label)
+                        if not letter in allLetters:
+                            path = "noop"
+                            li.setProperty("NotAvailable","true")
+                        else:
+                            path = "plugin://script.skin.helper.service/?action=alphabetletter&letter=%s" %letter
+                        xbmcplugin.addDirectoryItem(int(sys.argv[1]), path, li)
+                xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
+            elif action == "ALPHABETLETTER":
+                letter=params.get("letter",None)
+                if letter: 
+                    letter = letter[0]
+                    if letter in ["A", "B", "C", "2"]:
+                        jumpcmd = "2"
+                    elif letter in ["D", "E", "F", "3"]:
+                        jumpcmd = "3"
+                    elif letter in ["G", "H", "I", "4"]:
+                        jumpcmd = "4"
+                    elif letter in ["J", "K", "L", "5"]:
+                        jumpcmd = "5"
+                    elif letter in ["M", "N", "O", "6"]:
+                        jumpcmd = "6"
+                    elif letter in ["P", "Q", "R", "S", "7"]:
+                        jumpcmd = "7"
+                    elif letter in ["T", "U", "V", "8"]:
+                        jumpcmd = "8"
+                    elif letter in ["W", "X", "Y", "Z", "9"]:
+                        jumpcmd = "9"
+                    else:
+                        return
+
+                    xbmc.executebuiltin("SetFocus(50)")
+                    for i in range(6):
+                        xbmc.executeJSONRPC('{ "jsonrpc": "2.0", "method": "Input.ExecuteAction", "params": { "action": "jumpsms%s" }, "id": 1 }' % (jumpcmd))
+                        xbmc.sleep(50)
+                        if xbmc.getInfoLabel("ListItem.Sortletter").upper() == letter:
+                            break
+
             else:
                 #get a widget listing
                 refresh=params.get("reload",None)
@@ -97,27 +150,28 @@ class Main:
 
         else:
             #do plugin main listing...
-            plugincontent.doMainListing(params.get("content_type",[""])[0])
+            plugincontent.doMainListing()
 
 if (__name__ == "__main__"):
     try:
-        if not utils.WINDOW.getProperty("SkinHelperShutdownRequested"):
-            if enableProfiling:
-                import cProfile
-                import pstats
-                import random
-                from time import gmtime, strftime
-                filename = os.path.join( ADDON_DATA_PATH, strftime( "%Y%m%d%H%M%S",gmtime() ) + "-" + str( random.randrange(0,100000) ) + ".log" )
-                cProfile.run( 'Main()', filename )
-                stream = open( filename + ".txt", 'w')
+        if utils.WINDOW.getProperty("SkinHelperShutdownRequested"):
+            utils.logMsg("plugin.py --> Not forfilling request: Kodi is exiting" ,0)
+            xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
+        elif enableProfiling:
+            import cProfile
+            import pstats
+            import random
+            from time import gmtime, strftime
+            filename = os.path.join( ADDON_DATA_PATH, strftime( "%Y%m%d%H%M%S",gmtime() ) + "-" + str( random.randrange(0,100000) ) + ".log" )
+            cProfile.run( 'Main()', filename )
+            with open( filename + ".txt", 'w') as stream:
                 stream.write(sys.argv[2])
                 p = pstats.Stats( filename, stream = stream )
                 p.sort_stats( "cumulative" )
                 p.print_stats()
-            else:
-                Main()
         else:
-            utils.logMsg("plugin.py --> Not forfilling request: Kodi is exiting" ,0)
+            Main()
     except Exception as e:
         utils.logMsg("Error in plugin.py --> " + str(e),0)
+        xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
 utils.logMsg('finished loading pluginentry')
