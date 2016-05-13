@@ -1007,7 +1007,7 @@ def getMusicBrainzId(artist, album="", track=""):
     #use theaudiodb as fallback
     try:
         if (not artistid or not albumid) and album:
-            audiodb_url = 'http://www.theaudiodb.com/api/v1/json/193621276b2d731671156g/searchalbum.php'
+            audiodb_url = 'http://www.theaudiodb.com/api/v1/json/32176f5352254d85853778/searchalbum.php'
             params = {'s' : artist, 'a': album}
             response = requests.get(audiodb_url, params=params)
             if response and response.content:
@@ -1020,7 +1020,7 @@ def getMusicBrainzId(artist, album="", track=""):
                         albumid = adbdetails.get("strMusicBrainzID","")
                         artistid = adbdetails.get("strMusicBrainzArtistID","")
         if (not artistid or not albumid) and artist and track:
-            audiodb_url = 'http://www.theaudiodb.com/api/v1/json/193621276b2d731671156g/searchtrack.php'
+            audiodb_url = 'http://www.theaudiodb.com/api/v1/json/32176f5352254d85853778/searchtrack.php'
             params = {'s' : artist, 't': track}
             response = requests.get(audiodb_url, params=params)
             if response and response.content:
@@ -1093,7 +1093,7 @@ def getArtistArtwork(musicbrainzartistid, artwork=None, allowoverwrite=True):
     #get audiodb info for artist  (and use as spare for artwork)
     try:
         response = None
-        audiodb_url = 'http://www.theaudiodb.com/api/v1/json/193621276b2d731671156g/artist-mb.php?i=%s' %musicbrainzartistid
+        audiodb_url = 'http://www.theaudiodb.com/api/v1/json/32176f5352254d85853778/artist-mb.php?i=%s' %musicbrainzartistid
         response = requests.get(audiodb_url)
     except Exception as e:
         logMsg("getMusicArtwork AudioDb lookup failed --> " + str(e), 0)
@@ -1155,7 +1155,7 @@ def getAlbumArtwork(musicbrainzalbumid, artwork=None, allowoverwrite=True):
     #get album info on theaudiodb (and use as spare for artwork)
     try:
         response = None
-        audiodb_url = 'http://www.theaudiodb.com/api/v1/json/193621276b2d731671156g/album-mb.php?i=%s' %musicbrainzalbumid
+        audiodb_url = 'http://www.theaudiodb.com/api/v1/json/32176f5352254d85853778/album-mb.php?i=%s' %musicbrainzalbumid
         response = requests.get(audiodb_url)
     except Exception as e:
         logMsg("getMusicArtwork AudioDB lookup failed --> " + str(e), 0)
