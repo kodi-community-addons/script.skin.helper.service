@@ -509,7 +509,8 @@ class ListItemMonitor(threading.Thread):
             WINDOW.clearProperty('SkinHelper.ListItemAudioStreams.%d.Language' % i)
             WINDOW.clearProperty('SkinHelper.ListItemAudioStreams.%d.AudioCodec' % i)
             WINDOW.clearProperty('SkinHelper.ListItemAudioStreams.%d.AudioChannels' % i)
-            WINDOW.clearProperty('SkinHelper.ListItemAudioStreams.%d'%i)
+            WINDOW.clearProperty('SkinHelper.ListItemAudioStreams.%d' %i)
+            WINDOW.clearProperty('SkinHelper.ListItemSubtitles.%d' %i) 
         for i in range(totalNodes):
             if not WINDOW.getProperty('SkinHelper.ExtraFanArt.' + str(i)):
                 break
