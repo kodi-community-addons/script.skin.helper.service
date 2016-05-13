@@ -900,15 +900,11 @@ def getGoogleImages(terms,**kwargs):
         if div.get("id") == "images":
             for a in div.findAll("a"):
                 page = a.get("href")
-                html = requests.get(page, headers={'User-agent': 'Mozilla/4.0 (compatible; MSIE 7.0; Windows Phone OS 7.0; Trident/3.1; IEMobile/7.0; LG; GW910)'}, timeout=5).text
-                soup = BeautifulSoup.BeautifulSoup(html)
-                for div in soup.findAll('div'):
-                    if div.get("id") == "img_details":
-                        img_details = div
-                        links = img_details.findAll('a')
-                        if len(links) == 2:
-                            img = links[1].get("href")
-                            results.append( img )
+                try:
+                    img = page.split("imgurl=")[-1]
+                    img = img.split("&imgrefurl=")[0]
+                    results.append( img )
+                except: pass
 
     return results
 
@@ -1043,7 +1039,7 @@ def getMusicBrainzId(artist, album="", track=""):
     if (not artistid or not albumid) and artist and album:
         try:
             lastfm_url = 'http://ws.audioscrobbler.com/2.0/'
-            params = {'method': 'album.getInfo', 'format': 'json', 'artist' : artist, 'album': album, 'api_key': '1869cecbff11c2715934b45b721e6fb0'}
+            params = {'method': 'album.getInfo', 'format': 'json', 'artist' : artist, 'album': album, 'api_key': '822eb03d95f45fbab2137d646aaf798'}
             response = requests.get(lastfm_url, params=params)
             if response and response.content:
                 data = json.loads(response.content.decode('utf-8','replace'))
@@ -1063,7 +1059,7 @@ def getMusicBrainzId(artist, album="", track=""):
     if not artistid and artist:
         try:
             lastfm_url = 'http://ws.audioscrobbler.com/2.0/'
-            params = {'method': 'artist.getInfo', 'format': 'json', 'artist' : artist, 'api_key': '1869cecbff11c2715934b45b721e6fb0'}
+            params = {'method': 'artist.getInfo', 'format': 'json', 'artist' : artist, 'api_key': '822eb03d95f45fbab2137d646aaf798'}
             response = requests.get(lastfm_url, params=params)
             if response and response.content:
                 data = json.loads(response.content.decode('utf-8','replace'))
@@ -1120,7 +1116,7 @@ def getArtistArtwork(musicbrainzartistid, artwork=None, allowoverwrite=True):
     if not artwork.get("info") or not artwork.get("artistthumb"):
         try:
             response = None
-            lastfm_url = 'http://ws.audioscrobbler.com/2.0/?method=artist.getInfo&format=json&api_key=1869cecbff11c2715934b45b721e6fb0&mbid=%s' %musicbrainzartistid
+            lastfm_url = 'http://ws.audioscrobbler.com/2.0/?method=artist.getInfo&format=json&api_key=822eb03d95f45fbab2137d646aaf798&mbid=%s' %musicbrainzartistid
             response = requests.get(lastfm_url)
         except Exception as e:
             logMsg("getMusicArtwork LastFM lookup failed --> " + str(e), 0)
@@ -1177,7 +1173,7 @@ def getAlbumArtwork(musicbrainzalbumid, artwork=None, allowoverwrite=True):
     #get lastFM info for artist  (and use as spare for artwork)
     if (not artwork.get("info") or not artwork.get("folder")) and artwork.get("artistname") and artwork.get("albumname"):
         try:
-            lastfm_url = 'http://ws.audioscrobbler.com/2.0/?method=album.getInfo&format=json&api_key=1869cecbff11c2715934b45b721e6fb0&artist=%s&album=%s' %(artwork["artistname"],artwork["albumname"])
+            lastfm_url = 'http://ws.audioscrobbler.com/2.0/?method=album.getInfo&format=json&api_key=822eb03d95f45fbab2137d646aaf798&artist=%s&album=%s' %(artwork["artistname"],artwork["albumname"])
             response = requests.get(lastfm_url)
         except Exception as e:
             logMsg("getMusicArtwork LastFM lookup failed --> " + str(e), 0)
