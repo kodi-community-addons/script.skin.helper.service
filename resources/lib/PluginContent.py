@@ -134,7 +134,7 @@ def doMainListing(mode=""):
     #music nodes
     if xbmc.getCondVisibility("Library.HasContent(music)"):
         addDirectoryItem(xbmc.getLocalizedString(359), "plugin://script.skin.helper.service/?action=recentalbums&limit=100")
-        addDirectoryItem(xbmc.getLocalizedString(32187), "plugin://script.skin.helper.service/?action=randomalbums&limit=100")
+        addDirectoryItem(ADDON.getLocalizedString(32187), "plugin://script.skin.helper.service/?action=randomalbums&limit=100")
         addDirectoryItem(ADDON.getLocalizedString(32087), "plugin://script.skin.helper.service/?action=recentsongs&limit=100")
         addDirectoryItem(ADDON.getLocalizedString(32188), "plugin://script.skin.helper.service/?action=randomsongs&limit=100")
         addDirectoryItem(xbmc.getLocalizedString(517), "plugin://script.skin.helper.service/?action=recentplayedalbums&limit=100")
