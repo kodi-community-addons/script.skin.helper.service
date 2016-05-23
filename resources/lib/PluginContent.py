@@ -1093,8 +1093,10 @@ def FAVOURITEMEDIA(limit,AllKodiFavsOnly=False):
                 allItems.append(item)
     
     #Kodi favourites
-    #all_favs = getJSON('Favourites.GetFavourites', '{"type": null, "properties": ["path", "thumbnail", "window", "windowparameter"]}')
     all_favs = getKodiFavsFromFile()
+    if not all_favs:
+        all_favs = getJSON('Favourites.GetFavourites', '{"type": null, "properties": ["path", "thumbnail", "window", "windowparameter"]}')
+        
     for fav in all_favs:
         matchFound = False
         if fav.get("windowparameter"):

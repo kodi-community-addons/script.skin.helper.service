@@ -800,6 +800,20 @@ XBMC.RunScript(script.skin.helper.service,action=togglekodisetting,setting=looka
 
 ________________________________________________________________________________________________________
 
+#### Save skin image
+The Kodi builtin Skin.SetImage() only links to a image on a external location, good enough for most situations.
+If skin settings are transfered this is a bit inconvenient as the image is lost.
+The method in this script will save the image that the user selects to the skin's folder in addon_data, that way the image is preserved.
+Also when a skin backup is made by using this script's backup feature, the image will also be copied.
+
+```
+RunScript(script.skin.helper.service,action=saveskinimage,skinstring=[THE SKIN STRING TO SET],multi=[OPTIONAL: true/false],header=[OPTIONAL: header for select window])             
+```
+You must supply the name of the skin string that must be set with the result (path will be stored as special://)
+Optional you can specify if you allow image folders to be selected (multiimage) or a custom dialog header.
+
+________________________________________________________________________________________________________
+
 #### Strip string
 Can be used to strip/split a string, the results will be stored to a window property.
 
