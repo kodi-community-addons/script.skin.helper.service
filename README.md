@@ -786,6 +786,21 @@ You must supply the name of the setting as can be found in guisettings.xml or th
 
 ________________________________________________________________________________________________________
 
+#### Set Kodi setting
+Can be used to set a specific Kodi system setting (boolean/string/int).
+
+```
+RunScript(script.skin.helper.service,action=setkodisetting,setting=[NAME OF THE SETTING IN GUISETTINGS],value=[VALUE FOR THE SETTING])             
+```
+You must supply the name of the setting as can be found in guisettings.xml or the Json API and the value.
+
+Example: Set the skin's sound addon
+```
+XBMC.RunScript(script.skin.helper.service,action=togglekodisetting,setting=lookandfeel.soundskin,value=resource.uisounds.titan.modern)
+```
+
+________________________________________________________________________________________________________
+
 #### Strip string
 Can be used to strip/split a string, the results will be stored to a window property.
 

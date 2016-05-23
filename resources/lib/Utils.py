@@ -164,7 +164,7 @@ def getJSON(method,params):
         else:
             return {}
     else:
-        logMsg("getJson - invalid result for Method %s - params: %s - response: %s" %(method,params, str(jsonobject)),0) 
+        logMsg("getJson - invalid result for Method %s - params: %s - response: %s" %(method,params, str(jsonobject))) 
         return {}
 
 def checkFolders():
@@ -452,8 +452,9 @@ def prepareListItem(item):
         properties["Date"] = fulldate
         properties["StartDateTime"] = starttime[0] + " " + starttime[1]
         item["date"] = starttime[0]
-    if item.get("channellogo"): properties["channellogo"] = item.get("channellogo","")
-    if item.get("channellogo"): properties["channelicon"] = item.get("channellogo","")
+    if item.get("channellogo"): 
+        properties["channellogo"] = item["channellogo"]
+        properties["channelicon"] = item["channellogo"]
     if item.get("episodename"): properties["episodename"] = item.get("episodename","")
     if item.get("channel"): properties["channel"] = item.get("channel","")
     if item.get("channel"): properties["channelname"] = item.get("channel","")
@@ -652,7 +653,7 @@ def getCurrentContentType(containerprefix=""):
         elif xbmc.getCondVisibility("Container.Content(files)"):
             contenttype = "files"
     #last resort: try to determine type by the listitem properties
-    if not contenttype:
+    if not contenttype and containerprefix:
         if xbmc.getCondVisibility("!IsEmpty(%sListItem.DBTYPE)" %containerprefix):
             contenttype = xbmc.getInfoLabel("%sListItem.DBTYPE" %containerprefix) + "s"
         elif xbmc.getCondVisibility("!IsEmpty(%sListItem.Property(DBTYPE))" %containerprefix):

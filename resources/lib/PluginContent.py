@@ -234,9 +234,8 @@ def getPVRArtForItem(item):
     else: pvrtype = "recordings"
     if item.get("title") and WINDOW.getProperty("SkinHelper.enableWidgetsArtworkLookups") == "true":
         item["art"] = artutils.getPVRThumbs(item["title"], item["channel"], pvrtype)
-        if not item.get("channelicon"): item["channelicon"] = item["art"].get("channelicon","")
         if not item.get("plot"): item["plot"] = item["art"].get("plot","")
-    if not item.get("channelicon"): item["channelicon"] = artutils.searchChannelLogo(item["channel"])
+    if not item.get("channellogo"): item["channellogo"] = artutils.searchChannelLogo(item["channel"])
     return item
     
 def getPVRArtForItems(items):
@@ -261,7 +260,7 @@ def PVRCHANNELS(limit):
         for channel in json_query:
             channelname = channel["label"]
             channelid = channel["channelid"]
-            channelicon = channel['thumbnail']
+            channellogo = channel['thumbnail']
             if channel.has_key('broadcastnow'):
                 #channel with epg data
                 item = channel['broadcastnow']
@@ -271,10 +270,10 @@ def PVRCHANNELS(limit):
                 item["title"] = item["label"]
                 channelname = channel["label"]
                 channelid = channel["channelid"]
-                channelicon = channel['thumbnail']
+                channellogo = channel['thumbnail']
             item["file"] = sys.argv[0] + "?action=launchpvr&path=" + str(channelid)
-            item["channelicon"] = channelicon
-            item["icon"] = channelicon
+            item["channellogo"] = channellogo
+            item["icon"] = channellogo
             item["channel"] = channelname
             item["label2"] = channelname
             item["cast"] = None
