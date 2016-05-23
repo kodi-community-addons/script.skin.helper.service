@@ -1501,6 +1501,10 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
                   
     #online lookup for details
     if enableMusicArtScraper and (not artistCacheFound or (albumName and not albumCacheFound)):
+        
+        if WINDOW.getProperty("SkinHelperShutdownRequested"):
+            return {}
+        
         #lookup details in musicbrainz
         #retrieve album id and artist id with a combined query of album name, track name and artist name to get an accurate result
         if not albumartwork.get("musicbrainzalbumid") or not artistartwork.get("musicbrainzartistid") or ignoreCache:
