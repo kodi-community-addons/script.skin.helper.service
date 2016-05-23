@@ -1231,7 +1231,7 @@ def getCustomFolderPath(path, foldername):
         dir = dir.decode("utf-8")
         curpath = os.path.join(path,dir) + delim
         match =  SM(None, foldername, dir).ratio()
-        if match >= 0.70: 
+        if match >= 0.8: 
             return curpath
         elif not pathfound:
             pathfound = getCustomFolderPath(curpath,foldername)
