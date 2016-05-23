@@ -348,7 +348,6 @@ Set it to 0 or clear the string to disable the backgrounds.
 | Window(Home).Property(SkinHelper.UnwatchedMoviesBackground) | Random fanart of unwatched movies|
 | Window(Home).Property(SkinHelper.InProgressShowsBackground) | Random fanart of in progress tv shows|
 | Window(Home).Property(SkinHelper.RecentEpisodesBackground) | Random fanart of recently added episodes|
-| Window(Home).Property(SkinHelper.GlobalFanartBackground) | Random fanart of all media types|
 | Window(Home).Property(SkinHelper.AllVideosBackground) | Random videos background (movie/show/musicvideo)|
 | Window(Home).Property(SkinHelper.RecentVideosBackground) | Recent videos background (movie or tvshow)|
 | Window(Home).Property(SkinHelper.InProgressVideosBackground) | In progress videos background (movie or tvshow)|
@@ -363,8 +362,8 @@ Set it to 0 or clear the string to disable the backgrounds.
 | Window(Home).Property(SkinHelper.AllMusicSongsBackground.Wall) | Collection of Song/Album cover images (from the library) as wall prebuilt by the script|
 | Window(Home).Property(SkinHelper.AllTvShowsBackground.Wall) | Collection of Tv show fanart images (from the library) as wall prebuilt by the script|
 | Window(Home).Property(SkinHelper.AllTvShowsBackground.Wall.BW) | Collection of Tv show fanart images (from the library) as wall (black and white) prebuilt by the script|
-| Window(Home).Property(SkinHelper.AllTvShowsBackground.Wall.Poster) | Collection of Tv show poster images (from the library) as wall prebuilt by the script|
-| Window(Home).Property(SkinHelper.AllTvShowsBackground.Wall.Poster.BW) | Collection of Tv show poster images (from the library) as wall (black and white) prebuilt by the script|
+| Window(Home).Property(SkinHelper.AllTvShowsBackground.Poster.Wall) | Collection of Tv show poster images (from the library) as wall prebuilt by the script|
+| Window(Home).Property(SkinHelper.AllTvShowsBackground.Poster.Wall.BW) | Collection of Tv show poster images (from the library) as wall (black and white) prebuilt by the script|
 
 Additional properties available for the backgrounds (e.g. SkinHelper.AllMoviesBackground.Poster)
 
