@@ -641,7 +641,7 @@ def setKodiSetting(settingname, value):
         value = 'false'
     elif isInt==False:
         value = '"%s"' %value
-    xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"Settings.SetSettingValue","params":{"setting":"%s","value":%s}}' %(settingname,newValue))
+    xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"Settings.SetSettingValue","params":{"setting":"%s","value":%s}}' %(settingname,value))
      
 def show_splash(file,duration=5):
     logMsg("show_splash --> " + file)
