@@ -940,6 +940,9 @@ def getImdbTop250():
     return results
     
 def searchYoutubeImage(searchphrase, searchphrase2=""):
+    if not xbmc.getCondVisibility("System.HasAddon(plugin.video.youtube)"):
+        return ""
+        
     image = ""
     if searchphrase2:
         searchphrase = searchphrase + " " + searchphrase2
