@@ -373,7 +373,24 @@ class BackgroundsUpdater(threading.Thread):
             for key, value in image.iteritems():
                 if key == "fanart": WINDOW.setProperty(windowProp, value)
                 else: WINDOW.setProperty(windowProp + "." + key, value)
-       
+    
+    def getPVRArtworkPersistantCacheFiles(self):
+        pvrthumbspath = WINDOW.getProperty("SkinHelper.pvrthumbspath").decode("utf-8")
+        allcachefiles = []
+        if pvrthumbspath:
+            dirs, files = xbmcvfs.listdir(pvrthumbspath)
+            for dir in dirs:
+                cachefile = os.path.join(pvrthumbspath, dir.decode("utf-8"), "pvrdetails.xml")
+                if xbmcvfs.exists( cachefile ):
+                    allcachefiles.append(cachefile)
+                else:
+                    dirs, files = xbmcvfs.listdir(dir)
+                    for dir2 in dirs:
+                        cachefile = os.path.join(pvrthumbspath, dir.decode("utf-8"), dir2.decode("utf-8"), "pvrdetails.xml")
+                        if xbmcvfs.exists( cachefile ):
+                            allcachefiles.append(cachefile)
+        return allcachefiles
+    
     def setPvrBackground(self,windowProp):
         images = []
         if not xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnablePVRThumbs) + PVR.HasTVChannels"):
@@ -397,6 +414,20 @@ class BackgroundsUpdater(threading.Thread):
                     fanart = getCleanImage(artwork.get("fanart",""))
                     if fanart and xbmcvfs.exists(fanart): images.append({"fanart": fanart, "title": artwork.get("title",""), "landscape": artwork.get("landscape",""), "poster": artwork.get("poster",""), "clearlogo": artwork.get("clearlogo","")})
                     del artwork
+                    
+            #grab max 50 random images from persistant pvr cache files
+            cachefiles = self.getPVRArtworkPersistantCacheFiles()
+            print cachefiles
+            random.shuffle(cachefiles)
+            print cachefiles
+            count = 0
+            for cachefile in cachefiles:
+                artwork = artutils.getArtworkFromCacheFile(cachefile)
+                fanart = getCleanImage(artwork.get("fanart",""))
+                if fanart and xbmcvfs.exists(fanart) and not artwork.get("fanart","") in images:
+                    count += 1
+                    images.append({"fanart": fanart, "title": artwork.get("title",""), "landscape": artwork.get("landscape",""), "poster": artwork.get("poster",""), "clearlogo": artwork.get("clearlogo","")})
+                if count >= 50: break
                 
             #store images in the cache
             self.allBackgrounds[windowProp] = images

@@ -117,7 +117,7 @@ def doMainListing(mode=""):
         addDirectoryItem(ADDON.getLocalizedString(32191), "plugin://script.skin.helper.service/?action=recommendedtvshows&limit=100")
         addDirectoryItem(ADDON.getLocalizedString(32130), "plugin://script.skin.helper.service/?action=similarshows&limit=100")
         addDirectoryItem(ADDON.getLocalizedString(32162), "plugin://script.skin.helper.service/?action=similarmedia&limit=100")
-        addDirectoryItem(ADDON.getLocalizedString(32195), "plugin://script.skin.helper.service/?action=randomshows&limit=100")
+        addDirectoryItem(ADDON.getLocalizedString(32195), "plugin://script.skin.helper.service/?action=randomtvshows&limit=100")
         if xbmc.getCondVisibility("System.HasAddon(script.tv.show.next.aired)"):
             addDirectoryItem(ADDON.getLocalizedString(32055), "plugin://script.skin.helper.service/?action=nextairedtvshows&limit=100")
     
@@ -920,7 +920,7 @@ def RANDOMMOVIES(limit):
     else:
         return getJSON('VideoLibrary.GetMovies','{ "sort": { "order": "descending", "method": "random" }, "properties": [ %s ], "limits":{"end":%d} }' %(fields_movies,limit))
 
-def RANDOMSHOWS(limit):
+def RANDOMTVSHOWS(limit):
     if hideWatchedItemsInWidgets:
         return getJSON('VideoLibrary.GetTvShows','{ "sort": { "order": "descending", "method": "random" }, "filter": {"operator":"is", "field":"playcount", "value":"0"}, "properties": [ %s ], "limits":{"end":%d} }' %(fields_tvshows,limit))
     else:
