@@ -921,10 +921,7 @@ def RANDOMMOVIES(limit):
         return getJSON('VideoLibrary.GetMovies','{ "sort": { "order": "descending", "method": "random" }, "properties": [ %s ], "limits":{"end":%d} }' %(fields_movies,limit))
 
 def RANDOMTVSHOWS(limit):
-    if hideWatchedItemsInWidgets:
-        return getJSON('VideoLibrary.GetTvShows','{ "sort": { "order": "descending", "method": "random" }, "filter": {"operator":"is", "field":"playcount", "value":"0"}, "properties": [ %s ], "limits":{"end":%d} }' %(fields_tvshows,limit))
-    else:
-        return getJSON('VideoLibrary.GetTvShows','{ "sort": { "order": "descending", "method": "random" }, "properties": [ %s ], "limits":{"end":%d} }' %(fields_tvshows,limit))
+    return getJSON('VideoLibrary.GetTvShows','{ "sort": { "order": "descending", "method": "random" }, "properties": [ %s ], "limits":{"end":%d} }' %(fields_tvshows,limit))
             
 def INPROGRESSANDRANDOMMOVIES(limit):
     allTitles = list()

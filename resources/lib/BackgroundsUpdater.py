@@ -400,34 +400,31 @@ class BackgroundsUpdater(threading.Thread):
             images = self.allBackgrounds[windowProp]
         else:
             images = []
-            allTitles = []
             if not WINDOW.getProperty("SkinHelper.pvrthumbspath"): 
                 setAddonsettings()
                 
             #only get pvr images from recordings
-            json_query = getJSON('PVR.GetRecordings', '{ "properties": [ %s ]}' %( fields_pvrrecordings))
-            for item in json_query:
-                if not item["title"] in allTitles:
-                    allTitles.append(item["title"])
+            if SETTING("pvrBackgroundRecordingsOnly") == "true":
+                json_query = getJSON('PVR.GetRecordings', '{ "properties": [ %s ]}' %( fields_pvrrecordings))
+                for item in json_query:
                     genre = " / ".join(item["genre"])
                     artwork = artutils.getPVRThumbs(item["title"],item["channel"],"recordings",item["file"],genre)
                     fanart = getCleanImage(artwork.get("fanart",""))
-                    if fanart and xbmcvfs.exists(fanart): images.append({"fanart": fanart, "title": artwork.get("title",""), "landscape": artwork.get("landscape",""), "poster": artwork.get("poster",""), "clearlogo": artwork.get("clearlogo","")})
-                    del artwork
+                    if fanart and xbmcvfs.exists(fanart): 
+                        images.append({"fanart": fanart, "title": artwork.get("title",""), "landscape": artwork.get("landscape",""), "poster": artwork.get("poster",""), "clearlogo": artwork.get("clearlogo","")})
                     
             #grab max 50 random images from persistant pvr cache files
-            cachefiles = self.getPVRArtworkPersistantCacheFiles()
-            print cachefiles
-            random.shuffle(cachefiles)
-            print cachefiles
-            count = 0
-            for cachefile in cachefiles:
-                artwork = artutils.getArtworkFromCacheFile(cachefile)
-                fanart = getCleanImage(artwork.get("fanart",""))
-                if fanart and xbmcvfs.exists(fanart) and not artwork.get("fanart","") in images:
-                    count += 1
-                    images.append({"fanart": fanart, "title": artwork.get("title",""), "landscape": artwork.get("landscape",""), "poster": artwork.get("poster",""), "clearlogo": artwork.get("clearlogo","")})
-                if count >= 50: break
+            if not SETTING("pvrBackgroundRecordingsOnly") == "true":
+                cachefiles = self.getPVRArtworkPersistantCacheFiles()
+                random.shuffle(cachefiles)
+                count = 0
+                for cachefile in cachefiles:
+                    artwork = artutils.getArtworkFromCacheFile(cachefile)
+                    fanart = getCleanImage(artwork.get("fanart",""))
+                    if fanart and xbmcvfs.exists(fanart):
+                        count += 1
+                        images.append({"fanart": fanart, "title": artwork.get("title",""), "landscape": artwork.get("landscape",""), "poster": artwork.get("poster",""), "clearlogo": artwork.get("clearlogo","")})
+                    if count >= 50: break
                 
             #store images in the cache
             self.allBackgrounds[windowProp] = images

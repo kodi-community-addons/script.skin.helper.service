@@ -299,7 +299,10 @@ class ListItemMonitor(threading.Thread):
         if data.has_key("SetsCache"):
             self.moviesetCache = data["SetsCache"]
         if data.has_key("tmdbinfocache"):
-            self.tmdbinfocache = data["tmdbinfocache"]
+            #we only want movies older than 2 years from the permanent tmdb cache...
+            for key, value in data["tmdbinfocache"].iteritems():
+                if value.get("release_year") and int(value["release_year"]) < datetime.now().year -1:
+                    self.tmdbinfocache[key] = value
             
         #actorimagescache
         data = getDataFromCacheFile(self.ActorImagesCachePath)
@@ -1204,6 +1207,12 @@ class ListItemMonitor(threading.Thread):
                         result["homepage"] = data.get("homepage","")
                         result["status"] = data.get("status","")
                         result["popularity"] = str(data.get("popularity",""))
+                        
+                        #we only want movies older than 2 years in the permanent cache so we store the year
+                        release_date = data["release_date"]
+                        release_year = release_date.split("-")[0]
+                        result["release_date"] = release_date
+                        result["release_year"] = release_year
                 
                 #save to cache
                 if result: self.tmdbinfocache[self.liImdb] = result

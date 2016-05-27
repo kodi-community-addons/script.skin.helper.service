@@ -799,3 +799,7 @@ msgstr ""
 msgctxt "#32195"
 msgid "Random Tv Shows"
 msgstr ""
+
+msgctxt "#32196"
+msgid "Only use images from recordings for random PVR background"
+msgstr ""
