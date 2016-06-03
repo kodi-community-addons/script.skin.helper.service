@@ -1353,6 +1353,8 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
         songcount = 0
         albumcount = 0
         albums = []
+        albumsartist = []
+        albumscompilations = []
         tracklist = []
         tracklistwithduration = []
         json_response = None
@@ -1388,9 +1390,15 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
                     if song["album"] not in albums:
                         albumcount +=1
                         albums.append(song["album"])
+                        if json_response["artistid"] in song["albumartistid"]:
+                            albumsartist.append(song["album"])
+                        else:
+                            albumscompilations.append(song["album"])
             
             #make sure that our results are strings
             artistartwork["albums"] = u"[CR]".join(albums)
+            artistartwork["albumsartist"] = u"[CR]".join(albumsartist)
+            artistartwork["albumscompilations"] = u"[CR]".join(albumscompilations)
             artistartwork["albums.formatted"] = ""
             for albumitem in albums:
                 artistartwork["albums.formatted"] += u"• %s[CR]" %albumitem

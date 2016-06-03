@@ -296,6 +296,16 @@ The properties will also be available for your homescreen widgets if you set the
 | Window(Home).Property(SkinHelper.PVR.Banner) | Will return the Banner for the currently selected show/movie (only if found) |
 | Window(Home).Property(SkinHelper.PVR.ChannelLogo) | Will return the channel logo for the currently selected channel (only if found) |
 | Window(Home).Property(SkinHelper.PVR.ExtraFanArt) | Will return the ExtraFanArt path (if exists) for the current selected item in the list, to be used in a multiimage control. |
+| Window(Home).Property(SkinHelper.PVR.Rating) | Will return the rating for the currently selected show/movie (only if found) |
+| Window(Home).Property(SkinHelper.PVR.tmdb_type) | Will return the type for the currently selected show/movie (only if found) |
+| Window(Home).Property(SkinHelper.PVR.Revenue) | Will return the revenue for the currently selected show/movie (only if found) |
+| Window(Home).Property(SkinHelper.PVR.Plot) | Will return the plot for the currently selected show/movie (only if found) |
+| Window(Home).Property(SkinHelper.PVR.Status) | Will return the status for the currently selected show/movie (only if found) |
+| Window(Home).Property(SkinHelper.PVR.IMDBID) | Will return the IMDBID for the currently selected show/movie (only if found) |
+| Window(Home).Property(SkinHelper.PVR.Studio) | Will return the studio for the currently selected show/movie (only if found) |
+| Window(Home).Property(SkinHelper.PVR.Genre) | Will return the genre for the currently selected show/movie (only if found) |
+| Window(Home).Property(SkinHelper.PVR.Trailer) | Will return the trailer-url for the currently selected show/movie (only if found) |
+
 
 NOTE: The images will only be scraped if you have set the following Skin Bool to true --> SkinHelper.EnablePVRThumbs
 
