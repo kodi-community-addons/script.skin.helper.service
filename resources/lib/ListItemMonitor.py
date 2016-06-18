@@ -412,7 +412,7 @@ class ListItemMonitor(threading.Thread):
     def setWindowProp(self,key,value):
         if not key in self.allWindowProps:
             self.allWindowProps.append(key)
-        WINDOW.setProperty(key,value)
+        WINDOW.setProperty(key,try_encode(value))
     
     def setMovieSetDetails(self):
         #get movie set details -- thanks to phil65 - used this idea from his skin info script
