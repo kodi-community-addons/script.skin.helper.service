@@ -895,3 +895,15 @@ def getCompareString(string,optionalreplacestring=""):
     string = normalize_string(string)
     return string
     
+def intWithCommas(x):
+    try:
+        x = int(x)
+        if x < 0:
+            return '-' + intWithCommas(-x)
+        result = ''
+        while x >= 1000:
+            x, r = divmod(x, 1000)
+            result = ",%03d%s" % (r, result)
+        return "%d%s" % (x, result)
+    except: return ""
+    

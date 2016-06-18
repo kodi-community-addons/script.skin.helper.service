@@ -1016,7 +1016,7 @@ class ListItemMonitor(threading.Thread):
                         if key == "tomatoRating": result["SkinHelper.RottenTomatoesRating"] = value
                         elif key == "tomatoMeter": result["SkinHelper.RottenTomatoesMeter"] = value
                         elif key == "tomatoFresh": result["SkinHelper.RottenTomatoesFresh"] = value
-                        elif key == "tomatoReviews": result["SkinHelper.RottenTomatoesReviews"] = value
+                        elif key == "tomatoReviews": result["SkinHelper.RottenTomatoesReviews"] = intWithCommas(value)
                         elif key == "tomatoRotten": result["SkinHelper.RottenTomatoesRotten"] = value
                         elif key == "tomatoImage": result["SkinHelper.RottenTomatoesImage"] = value
                         elif key == "tomatoConsensus": result["SkinHelper.RottenTomatoesConsensus"] = value
@@ -1025,9 +1025,11 @@ class ListItemMonitor(threading.Thread):
                         elif key == "DVD": result["SkinHelper.RottenTomatoesDVDRelease"] = value
                         elif key == "tomatoUserMeter": result["SkinHelper.RottenTomatoesAudienceMeter"] = value
                         elif key == "tomatoUserRating": result["SkinHelper.RottenTomatoesAudienceRating"] = value
-                        elif key == "tomatoUserReviews": result["SkinHelper.RottenTomatoesAudienceReviews"] = value
+                        elif key == "tomatoUserReviews": result["SkinHelper.RottenTomatoesAudienceReviews"] = intWithCommas(value)
                         elif key == "Metascore": result["SkinHelper.MetaCritic.Rating"] = value
-                        elif key == "imdbRating": result["SkinHelper.IMDB.Rating"] = value
+                        elif key == "imdbRating": 
+                            result["SkinHelper.IMDB.Rating"] = value
+                            result["SkinHelper.IMDB.Rating.Percent"] = str(int(float(value)) * 10)
                         elif key == "imdbVotes": result["SkinHelper.IMDB.Votes"] = value
                         elif key == "Rated": result["SkinHelper.IMDB.MPAA"] = value
                         elif key == "Runtime": result["SkinHelper.IMDB.Runtime"] = value
