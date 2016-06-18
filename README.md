@@ -99,6 +99,7 @@ Some additional window properties that can be used in the video library.
 |Window(Home).Property(SkinHelper.RottenTomatoesDVDRelease) | date of DVD release |
 |Window(Home).Property(SkinHelper.MetaCritic.Rating) | rating from metacritic |
 |Window(Home).Property(SkinHelper.IMDB.Rating) | rating on IMDB |
+|Window(Home).Property(SkinHelper.IMDB.Rating.Percent) | rating on IMDB as percentage |
 |Window(Home).Property(SkinHelper.IMDB.Votes) | No. of votes for rating on IMDB |
 |Window(Home).Property(SkinHelper.IMDB.MPAA) | MPAA rating on IMDB |
 |Window(Home).Property(SkinHelper.IMDB.Runtime) | Runtime on IMDB |
@@ -250,6 +251,10 @@ The artwork is detected in the music paths automatically. Also in the addon sett
 | Window(Home).Property(SkinHelper.Music.Albums.Formatted) | Same as Albums, but prefixed with a • character|
 | Window(Home).Property(SkinHelper.Music.SongCount) | Returns the number of songs for the selected artist or album |
 | Window(Home).Property(SkinHelper.Music.AlbumCount) | Returns the number of albums for the selected artist |
+| Window(Home).Property(SkinHelper.Music.AlbumsArtistCount) | Returns the number of albums (without compilations) for the selected artist |
+| Window(Home).Property(SkinHelper.Music.AlbumsArtist) | Returns the albums (without compilations) for the selected artist |
+| Window(Home).Property(SkinHelper.Music.AlbumsCompilationsCount) | Returns the number of compilation albums the artist appears on for the selected artist |
+| Window(Home).Property(SkinHelper.Music.AlbumsCompilations) | Returns the compilation albums the artist appears on for the selected artist |
 
 Note: If you also want to have the Music Properties for your homescreen widgets, you need to set a Window Property "SkinHelper.WidgetContainer" with the ID of your widget container:
 For example in home.xml: <onload>SetProperty(SkinHelper.WidgetContainer,301)</onload>

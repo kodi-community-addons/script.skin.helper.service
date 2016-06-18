@@ -1409,6 +1409,8 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
             artistartwork["tracklistwithduration"] = u"[CR]".join(tracklistwithduration)
             artistartwork["albumcount"] = "%s"%albumcount
             artistartwork["songcount"] = "%s"%songcount
+            artistartwork["AlbumsArtistCount"] = str(len(albumsartist))
+            artistartwork["AlbumsCompilationsCount"] = str(len(albumscompilations))
             if not albumartwork.get("artistname"): albumartwork["artistname"] = artistName
             if not albumartwork.get("albumname"): albumartwork["albumname"] = albumName
             if isinstance(artistartwork.get("musicbrainzartistid",""), list):
