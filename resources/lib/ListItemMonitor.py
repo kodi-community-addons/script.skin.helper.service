@@ -198,7 +198,7 @@ class ListItemMonitor(threading.Thread):
                                 logMsg("ERROR in setMusicDetails ! --> " + str(e), 0)
                         
                         # monitor listitem props for video content
-                        elif self.contentType in ["movies","setmovies","tvshows","seasons","episodes","sets"]:
+                        elif self.contentType in ["movies","setmovies","tvshows","seasons","episodes","sets","musicvideos"]:
                             try:
                                 self.liDbId = xbmc.getInfoLabel("%sListItem.DBID"%self.widgetContainerPrefix).decode('utf-8')
                                 if not self.liDbId or self.liDbId == "-1": self.liDbId = xbmc.getInfoLabel("%sListItem.Property(DBID)"%self.widgetContainerPrefix).decode('utf-8')
@@ -812,6 +812,7 @@ class ListItemMonitor(threading.Thread):
         if not self.liDbId: return
         
         cacheStr = self.liDbId + self.contentType
+        
         if self.streamdetailsCache.get(cacheStr):
             #get data from cache
             streamdetails = self.streamdetailsCache[cacheStr]
@@ -823,7 +824,7 @@ class ListItemMonitor(threading.Thread):
             elif self.contentType == "episodes" and self.liDbId:
                 json_result = getJSON('VideoLibrary.GetEpisodeDetails', '{ "episodeid": %d, "properties": [ "title", "streamdetails" ] }' %int(self.liDbId))
             elif self.contentType == "musicvideos" and self.liDbId:
-                json_result = getJSON('VideoLibrary.GetMusicVideoDetails', '{ "musicvideoid": %d, "properties": [ "title", "streamdetails" ] }' %int(self.liDbId))       
+                json_result = getJSON('VideoLibrary.GetMusicVideoDetails', '{ "musicvideoid": %d, "properties": [ "title", "streamdetails" ] }' %int(self.liDbId))
             if json_result.has_key("streamdetails"):
                 audio = json_result["streamdetails"]['audio']
                 subtitles = json_result["streamdetails"]['subtitle']
