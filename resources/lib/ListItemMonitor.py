@@ -67,6 +67,7 @@ class ListItemMonitor(threading.Thread):
         lastListItem = ""
         nextairedActive = False
         screenSaverSetting = None
+        screenSaverDisableActive = False
 
         while (self.exit != True):
         
@@ -90,14 +91,14 @@ class ListItemMonitor(threading.Thread):
                 playerItem = ""
                 lastPlayerItem = ""
             
-            if xbmc.getCondVisibility("Window.IsActive(visualisation) + Skin.HasSetting(SkinHelper.DisableScreenSaverOnFullScreenMusic)"):
-                #disable the screensaver if fullscreen music playback
-                if not screenSaverSetting:
-                    screenSaverSetting = getJSON('Settings.GetSettingValue', '{"setting":"screensaver.mode"}')
-                    if screenSaverSetting: setJSON('Settings.SetSettingValue', '{"setting":"screensaver.mode", "value": ""}')
-            elif screenSaverSetting: 
+            #disable the screensaver if fullscreen music playback
+            if xbmc.getCondVisibility("Window.IsActive(visualisation) + Skin.HasSetting(SkinHelper.DisableScreenSaverOnFullScreenMusic)") and not screenSaverDisableActive:
+                screenSaverSetting = getJSON('Settings.GetSettingValue', '{"setting":"screensaver.mode"}')
+                setJSON('Settings.SetSettingValue', '{"setting":"screensaver.mode", "value": ""}')
+                screenSaverDisableActive = True
+            elif screenSaverSetting and screenSaverDisableActive: 
                 setJSON('Settings.SetSettingValue', '{"setting":"screensaver.mode", "value": "%s"}' %screenSaverSetting)        
-                screenSaverSetting = None
+                screenSaverDisableActive = False
                 
             #auto close OSD after X seconds of inactivity
             if xbmc.getCondVisibility("Window.IsActive(videoosd) | Window.IsActive(musicosd)"):

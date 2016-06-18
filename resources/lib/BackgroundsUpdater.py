@@ -611,11 +611,13 @@ class BackgroundsUpdater(threading.Thread):
                             #check if this is a valid path with content
                             if not "script://" in content.lower() and not "mode=9" in content.lower() and not "search" in content.lower() and not "play" in content.lower():
                                 path = "ActivateWindow(%s,%s,return)" %(fav["window"],content)
-                                if "&" in content and "?" in content and "=" in content and not content.endswith("/"): content += "&widget=true"
+                                if "&" in content and "?" in content and "=" in content and not content.endswith("/"): 
+                                    content += "&widget=true"
                                 type = detectPluginContent(content)
                                 if type:
-                                    if not "favorite."%count in self.smartShortcuts["allSmartShortcuts"]: self.smartShortcuts["allSmartShortcuts"].append("favorite."%count )
-                                    favourites.append( (count, label, path, content, type) )
+                                    if not "favorite.%s" %count in self.smartShortcuts["allSmartShortcuts"]: 
+                                        self.smartShortcuts["allSmartShortcuts"].append("favorite.%s" %count )
+                                    favourites.append( (count, fav["title"], path, content, type) )
                 except Exception as e:
                     #something wrong so disable the smartshortcuts for this section for now
                     xbmc.executebuiltin("Skin.Reset(SmartShortcuts.favorites)")
