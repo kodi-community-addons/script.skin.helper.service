@@ -485,7 +485,7 @@ def detectPluginContent(plugin):
     #based on the properties in the listitem we try to detect the content
     
     #load from cache first
-    cacheStr = "skinhelper-widgetcontenttype-%s" %plugin
+    cacheStr = try_encode("skinhelper-widgetcontenttype-%s" %plugin)
     contentType = WINDOW.getProperty(cacheStr).decode("utf-8")
 
     #no cache, we need to detect the contenttype
