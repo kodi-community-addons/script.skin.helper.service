@@ -613,7 +613,7 @@ msgstr "Entrez la phrase pour la recherche"
 
 msgctxt "#32148"
 msgid "Open Configuration"
-msgstr "Ouvrir la configuration"
+msgstr "Accéder aux paramètres"
 
 msgctxt "#32149"
 msgid "Add channel to ignore list"
@@ -649,7 +649,7 @@ msgstr "Posters"
 
 msgctxt "#32157"
 msgid "Precache all music artwork"
-msgstr "Mettez préalablement en cache toutes les artworks musique"
+msgstr "Mettre en cache tous les artworks musique"
 
 msgctxt "#32158"
 msgid "Are you sure you want to continue? This can take some time, depending on your collection size."
