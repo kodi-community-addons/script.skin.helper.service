@@ -1174,7 +1174,7 @@ def getExtraFanArt(path):
     extrafanarts = []
     #get extrafanarts from window property
     if path.startswith("EFA_FROMWINDOWPROP_"):
-        extrafanarts = eval(WINDOW.getProperty(path).decode("utf-8"))
+        extrafanarts = eval(WINDOW.getProperty(try_encode(path)).decode("utf-8"))
     #get extrafanarts by passing an artwork cache xml file
     else:
         if not xbmcvfs.exists(path.encode("utf-8")):

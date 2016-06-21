@@ -388,7 +388,7 @@ class ListItemMonitor(threading.Thread):
     def resetWindowProps(self):
         #reset all window props set by the script...
         for prop in self.allWindowProps:
-            WINDOW.clearProperty(prop)
+            WINDOW.clearProperty(try_encode(prop))
     
     def resetGlobalWidgetWindowProps(self):
         WINDOW.setProperty("widgetreload2", time.strftime("%Y%m%d%H%M%S", time.gmtime()))
@@ -786,7 +786,7 @@ class ListItemMonitor(threading.Thread):
 
         #set properties
         for key, value in artwork.iteritems():
-            self.setWindowProp("SkinHelper.Player.Music." + key,value.encode("utf-8"))
+            WINDOW.setProperty("SkinHelper.Player.Music.%s" %key, value.encode("utf-8"))
     
     def setMusicDetails(self,multiThreaded=False):
         artwork = {}
