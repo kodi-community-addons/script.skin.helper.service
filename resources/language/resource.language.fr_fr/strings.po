@@ -509,7 +509,7 @@ msgstr "Arrière-plans"
 
 msgctxt "#32122"
 msgid "Music Artwork"
-msgstr "Artwork Musique"
+msgstr "Artworks Musique"
 
 msgctxt "#32123"
 msgid "Enable online lookups for music artwork"
