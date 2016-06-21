@@ -565,7 +565,7 @@ msgstr "Activer la journalisation détaillée du déboggage"
 
 msgctxt "#32136"
 msgid "Max number of extrafanarts to grab for music/pvr fanart"
-msgstr "Nombre maximum d’extrafanarts à utiliser pour le fanait musique/PVR"
+msgstr "Nombre maximum d’extrafanarts à utiliser pour le fanart musique/PVR"
 
 msgctxt "#32137"
 msgid "Title's character splitter"
