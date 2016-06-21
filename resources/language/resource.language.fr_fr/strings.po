@@ -15,6 +15,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Generator: Poedit 1.8.5\n"
 
 msgctxt "#32000"
 msgid "Favourites"
@@ -425,11 +426,11 @@ msgstr "Utiliser la vignette fournie par l’extension PVR"
 
 msgctxt "#32101"
 msgid "Download artwork for PVR Recordings"
-msgstr "Télécharger les Artwork pour les enregistrements PVR"
+msgstr "Télécharger les Artworks pour les enregistrements PVR"
 
 msgctxt "#32102"
 msgid "Download artwork for PVR Guide entries"
-msgstr "Télécharger les Artwork pour les entrées du Guide PVR"
+msgstr "Télécharger les Artworks pour les entrées du Guide PVR"
 
 msgctxt "#32103"
 msgid "Location of the persistant cache"
@@ -501,7 +502,7 @@ msgstr "Mur/Grille d’albums aléatoires"
 
 msgctxt "#32120"
 msgid "PVR Artwork"
-msgstr "Artwork PVR"
+msgstr "Artworks PVR"
 
 msgctxt "#32121"
 msgid "Backgrounds"
@@ -513,15 +514,15 @@ msgstr "Artworks Musique"
 
 msgctxt "#32123"
 msgid "Enable online lookups for music artwork"
-msgstr "Activer les recherches en ligne des Artwork musique"
+msgstr "Activer les recherches en ligne des Artworks musique"
 
 msgctxt "#32124"
 msgid "Lookup artwork in local music folders"
-msgstr "Rechercher les Artwork dans les dossiers locaux des musiques"
+msgstr "Rechercher les Artworks dans les dossiers locaux des musiques"
 
 msgctxt "#32125"
 msgid "Download artwork to local music folders"
-msgstr "Télécharger les Artwork dans les dossiers locaux des musiques"
+msgstr "Télécharger les Artworks dans les dossiers locaux des musiques"
 
 msgctxt "#32126"
 msgid "Reset persistant cache"
@@ -649,7 +650,7 @@ msgstr "Posters"
 
 msgctxt "#32157"
 msgid "Precache all music artwork"
-msgstr "Mettre en cache tous les artworks musique"
+msgstr "Mettre en cache tous les Artworks musique"
 
 msgctxt "#32158"
 msgid "Are you sure you want to continue? This can take some time, depending on your collection size."
@@ -657,7 +658,7 @@ msgstr "Êtes-vous sûr de que vouloir continuer ? Cela peut prendre un certain 
 
 msgctxt "#32159"
 msgid "Allow existing artwork to be overwritten with better quality"
-msgstr "Autoriser les artworks à être remplacés pour une meilleure qualité"
+msgstr "Autoriser les Artworks à être remplacés pour une meilleure qualité"
 
 msgctxt "#32160"
 msgid "Maximum number of wall images to create for each background"
@@ -709,7 +710,7 @@ msgstr "PVR - Enregistrements non vus suivant"
 
 msgctxt "#32172"
 msgid "Precache all artwork"
-msgstr "Mettre préalablement en cache tous les artworks"
+msgstr "Mettre en cache tous les Artworks"
 
 msgctxt "#32173"
 msgid "Manual select Animated Poster"
@@ -729,11 +730,11 @@ msgstr "Parcourir pour l’image…"
 
 msgctxt "#32177"
 msgid "Custom folder with music artwork"
-msgstr "Dossier personnalisé avec les artworks de musique"
+msgstr "Dossier personnalisé avec les Artworks de musique"
 
 msgctxt "#32178"
 msgid "Lookup artwork in custom folder"
-msgstr "Rechercher les artworks dans le dossier personnalisé"
+msgstr "Rechercher les Artworks dans le dossier personnalisé"
 
 msgctxt "#32179"
 msgid "Contextmenu"
@@ -741,15 +742,15 @@ msgstr "Menu contextuel"
 
 msgctxt "#32180"
 msgid "Show contextmenu for music artwork"
-msgstr "Afficher le menu contextuel pour les artworks musique"
+msgstr "Afficher le menu contextuel pour les Artworks musique"
 
 msgctxt "#32181"
 msgid "Show contextmenu for pvr artwork"
-msgstr "Afficher le menu contextuel pour les artworks PVR"
+msgstr "Afficher le menu contextuel pour les Artworks PVR"
 
 msgctxt "#32182"
 msgid "Show contextmenu for animated artwork"
-msgstr "Afficher le menu contextuel pour les artworks animés"
+msgstr "Afficher le menu contextuel pour les Artworks animés"
 
 msgctxt "#32183"
 msgid "Show series-level button in contextmenu"
@@ -757,7 +758,7 @@ msgstr "Afficher le bouton des niveaux des séries TV dans le menu contextuel"
 
 msgctxt "#32184"
 msgid "Skip online lookup if all artwork is found locally"
-msgstr "Ignorer la recherche en ligne si tous les artworks sont trouvés localement"
+msgstr "Ignorer la recherche en ligne si tous les Artworks sont trouvés localement"
 
 msgctxt "#32185"
 msgid "Random movies"
