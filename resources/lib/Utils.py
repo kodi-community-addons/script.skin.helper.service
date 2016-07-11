@@ -653,7 +653,7 @@ def getCurrentContentType(containerprefix=""):
         elif xbmc.getCondVisibility("Container.Content(files)"):
             contenttype = "files"
     #last resort: try to determine type by the listitem properties
-    if not contenttype and containerprefix:
+    if not contenttype and (containerprefix or xbmc.getCondVisibility("Window.IsActive(movieinformation)")):
         if xbmc.getCondVisibility("!IsEmpty(%sListItem.DBTYPE)" %containerprefix):
             contenttype = xbmc.getInfoLabel("%sListItem.DBTYPE" %containerprefix) + "s"
         elif xbmc.getCondVisibility("!IsEmpty(%sListItem.Property(DBTYPE))" %containerprefix):

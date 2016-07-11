@@ -141,10 +141,13 @@ class ListItemMonitor(threading.Thread):
                 WINDOW.clearProperty("SkinHelper.PVR.ArtWork")
                 WINDOW.clearProperty("resetPvrArtCache")
             
-            if xbmc.getCondVisibility("[Window.IsMedia | !IsEmpty(Window(Home).Property(SkinHelper.WidgetContainer))]") and not self.exit:
+            if xbmc.getCondVisibility("[Window.IsActive(movieinformation) | Window.IsMedia | !IsEmpty(Window(Home).Property(SkinHelper.WidgetContainer))]") and not self.exit:
                 try:
                     widgetContainer = WINDOW.getProperty("SkinHelper.WidgetContainer").decode('utf-8')
-                    if widgetContainer: 
+                    if xbmc.getCondVisibility("Window.IsActive(movieinformation)"): 
+                        self.widgetContainerPrefix = ""
+                        curFolder = xbmc.getInfoLabel("movieinfo-$INFO[Container.FolderPath]$INFO[Container.NumItems]$INFO[Container.Content]").decode('utf-8')
+                    elif widgetContainer: 
                         self.widgetContainerPrefix = "Container(%s)."%widgetContainer
                         curFolder = xbmc.getInfoLabel("widget-%s-$INFO[Container(%s).NumItems]" %(widgetContainer,widgetContainer)).decode('utf-8')
                     else: 
@@ -173,8 +176,8 @@ class ListItemMonitor(threading.Thread):
                             self.setForcedView()
                             self.setContentHeader()
                             
-                curListItem = curFolder + self.liLabel + self.liTitle
-                WINDOW.setProperty("curListItem",curListItem)
+                curListItem ="%s--%s--%s--%s" %(curFolder, self.liLabel, self.liTitle, self.contentType)
+                WINDOW.setProperty("curListItem",try_encode(curListItem))
 
                 #only perform actions when the listitem has actually changed
                 if curListItem and curListItem != lastListItem and self.contentType:
