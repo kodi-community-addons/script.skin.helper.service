@@ -1379,7 +1379,7 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
                     # skip multi artist song in artist listing
                     continue
                 if not trackName: trackName = song.get("label","")
-                if json_response["artistid"] in song["albumartistid"] and not path2 and song.get("file"):
+                if song.get("albumartistid") and song.get("file") and json_response["artistid"] in song["albumartistid"] and not path2:
                     #set additional path to prevent artist lookups in compilations
                     path2 = song.get("file")
                 if song.get("album"):
@@ -1390,7 +1390,7 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
                     if song["album"] not in albums:
                         albumcount +=1
                         albums.append(song["album"])
-                        if json_response["artistid"] in song["albumartistid"]:
+                        if song.get("albumartistid") and json_response["artistid"] in song["albumartistid"]:
                             albumsartist.append(song["album"])
                         else:
                             albumscompilations.append(song["album"])
@@ -1595,9 +1595,10 @@ def updateMusicArt(type,id):
     WINDOW.setProperty("updateMusicArt.busy","busy")
     if type == "song" and id:
         item = getJSON('AudioLibrary.GetSongDetails','{ "songid": %s, "properties": [ "title","album","artist" ] }' %id)
-        logMsg("updateMusicArt - update detected for song " + item["title"])
-        for artist in item["artist"]:
-            getMusicArtwork(artist,item["album"],item["title"],True)
+        if item and item.get("title"):
+            logMsg("updateMusicArt - update detected for song " + item["title"])
+            for artist in item["artist"]:
+                getMusicArtwork(artist,item["album"],item["title"],True)
     elif type == "artist" and id:
         item = getJSON('AudioLibrary.GetArtistDetails','{ "artistid": %s }' %id)
         logMsg("updateMusicArt - update detected for artist " + item["label"])
