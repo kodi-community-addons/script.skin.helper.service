@@ -528,7 +528,10 @@ def detectPluginContent(plugin):
             logMsg("detectPluginContent probing contenttype for: " + plugin)
             media_array = getJSON('Files.GetDirectory','{ "directory": "%s", "media": "files", "properties": ["title", "file", "thumbnail", "episode", "showtitle", "season", "album", "artist", "imdbnumber", "firstaired", "mpaa", "trailer", "studio", "art"], "limits": {"end":1} }' %plugin)
             for item in media_array:
-                if not item.has_key("showtitle") and not item.has_key("artist"):
+                if item.get("filetype","") == "directory":
+                    contentType = "folder"
+                    break
+                elif not item.has_key("showtitle") and not item.has_key("artist"):
                     #these properties are only returned in the json response if we're looking at actual file content...
                     # if it's missing it means this is a main directory listing and no need to scan the underlying listitems.
                     contentType = "files"
