@@ -803,3 +803,11 @@ msgstr ""
 msgctxt "#32196"
 msgid "Only use images from recordings for random PVR background"
 msgstr ""
+
+msgctxt "#32197"
+msgid "Unaired episodes"
+msgstr ""
+
+msgctxt "#32198"
+msgid "Next airing episodes"
+msgstr ""

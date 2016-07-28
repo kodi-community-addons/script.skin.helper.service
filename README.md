@@ -1567,7 +1567,27 @@ plugin://script.skin.helper.service/?action=favourites&amp;limit=[LIMIT]&amp;rel
 Provides the Kodi favourites as list content.
 Note: By providing the reload-parameter set to the widgetreload2 property, the widget will be updated every 10 minutes.
 
+
 ________________________________________________________________________________________________________
+
+##### Unaired episodes
+```
+plugin://script.skin.helper.service/?action=unairedepisodes&amp;reload=$INFO[Window(Home).Property(widgetreload2)]
+```
+Provides a listing for episodes for tvshows in the Kodi library that are airing within the next 2 months.
+
+CAUTION: Requires script.module.thetvdb which is not yet in any repo (BETA stage), get it from github for now.
+________________________________________________________________________________________________________
+
+##### Next airing episodes
+```
+plugin://script.skin.helper.service/?action=unairedepisodes&amp;reload=$INFO[Window(Home).Property(widgetreload2)]
+```
+Provides the next unaired episode for each tvshow in the library which is airing within the next 2 months.
+
+CAUTION: Requires script.module.thetvdb which is not yet in any repo (BETA stage), get it from github for now.
+________________________________________
+_______________________________________________________________________________________________________
 
 #####Cast Details
 ```

@@ -43,6 +43,8 @@ def getPluginListing(action,limit,refresh=None,optionalParam=None,randomize=Fals
         refresh = WINDOW.getProperty("widgetreload2")
         xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_LABEL)
     else: type = "files"
+    if "AIRED" in action:
+        refresh = WINDOW.getProperty("widgetreload2")
     if "RECENT" in action and not "PLAYED" in action:
         xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATEADDED)
     if "RECENT" in action and "PLAYED" in action:
@@ -118,8 +120,10 @@ def doMainListing(mode=""):
         addDirectoryItem(ADDON.getLocalizedString(32130), "plugin://script.skin.helper.service/?action=similarshows&limit=100")
         addDirectoryItem(ADDON.getLocalizedString(32162), "plugin://script.skin.helper.service/?action=similarmedia&limit=100")
         addDirectoryItem(ADDON.getLocalizedString(32195), "plugin://script.skin.helper.service/?action=randomtvshows&limit=100")
-        if xbmc.getCondVisibility("System.HasAddon(script.tv.show.next.aired)"):
-            addDirectoryItem(ADDON.getLocalizedString(32055), "plugin://script.skin.helper.service/?action=nextairedtvshows&limit=100")
+    
+    #next aired episodes
+    addDirectoryItem(ADDON.getLocalizedString(32197), "plugin://script.skin.helper.service/?action=unairedepisodes&limit=100")
+    addDirectoryItem(ADDON.getLocalizedString(32198), "plugin://script.skin.helper.service/?action=nextairedepisodes&limit=100")
     
     #musicvideos nodes
     if xbmc.getCondVisibility("Library.HasContent(musicvideos)"):
@@ -514,6 +518,16 @@ def NEXTAIREDTVSHOWS(limit):
                         break
     return allItems
 
+def UNAIREDEPISODES(limit):
+    import thetvdb
+    thetvdb.DAYS_AHEAD = 120
+    return thetvdb.getKodiSeriesUnairedEpisodesList(False)
+    
+def NEXTAIREDEPISODES(limit):
+    import thetvdb
+    thetvdb.DAYS_AHEAD = 45
+    return thetvdb.getKodiSeriesUnairedEpisodesList(True)  
+    
 def RECOMMENDEDMOVIES(limit):
     allItems = []
     
@@ -983,8 +997,7 @@ def RECENTEPISODES(limit):
         return getJSON('VideoLibrary.GetEpisodes','{ "sort": { "order": "descending", "method": "dateadded" }, "filter": {"operator":"is", "field":"playcount", "value":"0"}, "properties": [ %s ], "limits":{"end":%d} }' %(fields_episodes,limit))
     else:
         return getJSON('VideoLibrary.GetEpisodes','{ "sort": { "order": "descending", "method": "dateadded" }, "properties": [ %s ], "limits":{"end":%d} }' %(fields_episodes,limit))
-                    
-    
+                      
 def RECENTMEDIA(limit):
     count = 0
     allItems = []
