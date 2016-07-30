@@ -19,6 +19,10 @@ s.mount('http://', HTTPAdapter(max_retries=retries))
 s.mount('https://', HTTPAdapter(max_retries=retries))
 
 m.set_useragent("script.skin.helper.service", "1.0.0", "https://github.com/marcelveldt/script.skin.helper.service")
+m.set_rate_limit(limit_or_interval=2.0, new_requests=1)
+if WINDOW.getProperty("SkinHelper.musicbrainzmirror"):
+    m.set_hostname(WINDOW.getProperty("SkinHelper.musicbrainzmirror"))
+    
 tmdb_apiKey = "ae06df54334aa653354e9a010f4b81cb"
 
 def getPVRThumbs(title,channel,type="channels",path="",genre="",year="",ignoreCache=False, manualLookup=False, override=None):
@@ -1002,7 +1006,6 @@ def getMusicBrainzId(artist, album="", track=""):
                             if foundartist and foundartist in matchartist:
                                 artistid = MBartist.get("artist").get("id")
                                 break
-                        
         except Exception as e:
             logMsg("MusicBrainz ERROR (servers busy?) - temporary disabling musicbrainz lookups (fallback to theaudiodb)", 0)
             WINDOW.setProperty("SkinHelper.TempDisableMusicBrainz","disable")

@@ -207,6 +207,7 @@ def setAddonsettings():
     WINDOW.setProperty("SkinHelper.enableSpecialsInWidgets",SETTING("enableSpecialsInWidgets"))
     WINDOW.setProperty("SkinHelper.enableWidgetsAlbumBrowse",SETTING("enableWidgetsAlbumBrowse"))
     WINDOW.setProperty("SkinHelper.skipOnlineMusicArtOnLocal",SETTING("skipOnlineMusicArtOnLocal"))
+    WINDOW.setProperty("SkinHelper.musicbrainzmirror",SETTING("musicbrainzmirror"))
     if SETTING("enableCustomMusicArtLookup") == "true": WINDOW.setProperty("SkinHelper.custommusiclookuppath",SETTING("custommusiclookuppath"))
     else: WINDOW.clearProperty("SkinHelper.custommusiclookuppath")
     if SETTING("enablecontextmenu_music") == "true": WINDOW.setProperty("SkinHelper.enablecontextmenu_music","enable")
