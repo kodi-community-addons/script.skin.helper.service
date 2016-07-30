@@ -480,6 +480,8 @@ def setSkinSetting(setting="", windowHeader="", sublevel="", curValue="", skipSk
                     value = saveSkinImage(setting,True,label)
                 if value == "||BROWSESINGLEIMAGE||":
                     value = saveSkinImage(setting,False,label)
+                if value == "||BROWSEMULTIIMAGE||":
+                    value = saveSkinImage(setting,True,label,True)
                 if value == "||PROMPTNUMERIC||":
                     value = xbmcgui.Dialog().input( label,curValue, 1).decode("utf-8")
                 if value == "||PROMPTSTRING||":
@@ -505,13 +507,13 @@ def setSkinSetting(setting="", windowHeader="", sublevel="", curValue="", skipSk
                 return (value,label)
         else: return (None,None)
 
-def saveSkinImage(skinstring="",allowMulti=False,header=""):
+def saveSkinImage(skinstring="",allowMulti=False,header="",forceMulti=False):
     #let the user select an image and save it to addon_data for easy backup
     curValue = xbmc.getInfoLabel("Skin.String(%s)" %skinstring).decode("utf-8")
     curValueOrgLocation = xbmc.getInfoLabel("Skin.String(%s.org)" %skinstring).decode("utf-8")
     if not header: header = xbmc.getLocalizedString(1030)
     
-    if not allowMulti or xbmcgui.Dialog().yesno( header, ADDON.getLocalizedString(32064), yeslabel=ADDON.getLocalizedString(32065), nolabel=ADDON.getLocalizedString(32066) ):
+    if not forceMulti and (not allowMulti or xbmcgui.Dialog().yesno( header, ADDON.getLocalizedString(32064), yeslabel=ADDON.getLocalizedString(32065), nolabel=ADDON.getLocalizedString(32066) )):
         #single image (allow copy to addon_data)
         value = xbmcgui.Dialog().browse( 2 , header, 'files', '', True, True, curValueOrgLocation).decode("utf-8")
         if value:

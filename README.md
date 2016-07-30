@@ -951,6 +951,8 @@ In that case you have to use a special syntax as the value:
 
 ||BROWSESINGLEIMAGE|| --> Asks the user to select a single image
 
+||BROWSEMULTIIMAGE|| --> Asks the user to select a image path (multiimage)
+
 ||SKIPSTRING|| --> Do not write the results to a skin string (can be used if you only use the script with the onselect actions)
 
 
@@ -1577,15 +1579,37 @@ plugin://script.skin.helper.service/?action=unairedepisodes&amp;reload=$INFO[Win
 Provides a listing for episodes for tvshows in the Kodi library that are airing within the next 2 months.
 
 CAUTION: Requires script.module.thetvdb which is not yet in any repo (BETA stage), get it from github for now.
+
+All listitem properties should be the same as any other episode listitem, 
+all properties should be correctly filled with the correct info.
+Just treat the widget as any other episode widget and you should have all the details properly set.
+If not, let me know ;-)
+
+Listitem.Title --> title of the episode
+Listitem.Season, ListItem.Episode --> season/episode of the episode
+ListItem.TvShowTitle --> Name of the show
+ListItem.Studio --> Network of the show
+ListItem.FirstAired --> Airdate for the episode
+ListItem.Art(fanart, poster etc.) --> Artwork from the TV show
+ListItem.Thumb or Listitem.Art(thumb) --> Episode thumb (if provided by tvdb)
+
+Besides the default Kodi ListItem properties for episodes the following properties will exist:
+
+ListItem.Property(airday) --> The weekday the show will air on the network (e.g. Monday)
+ListItem.Property(airtime) --> The time the show will air on the network (e.g. 8:00 PM)
 ________________________________________________________________________________________________________
 
 ##### Next airing episodes
 ```
-plugin://script.skin.helper.service/?action=unairedepisodes&amp;reload=$INFO[Window(Home).Property(widgetreload2)]
+plugin://script.skin.helper.service/?action=nextairedepisodes&amp;reload=$INFO[Window(Home).Property(widgetreload2)]
 ```
 Provides the next unaired episode for each tvshow in the library which is airing within the next 2 months.
+Difference with the unaired episodes is that it will only show the first airing episode for each show while unaired episodes shows all airing episodes.
+Also, the next airing episodes looks 45 days ahead for airing episodes while the unaired episodes looks 120 days ahead.
 
 CAUTION: Requires script.module.thetvdb which is not yet in any repo (BETA stage), get it from github for now.
+
+For the listitem properties, see the "unaired episodes" plugin path.
 ________________________________________
 _______________________________________________________________________________________________________
 

@@ -461,6 +461,7 @@ def NEXTAIREDTVSHOWS(limit):
     count = 0
     allItems = []
     #get data from next aired script
+    #legacy: to be removed in the future - superseded by new unairedepisodes entrypoints
     nextairedTotal = WINDOW.getProperty("NextAired.Total")
     if nextairedTotal:
         nextairedTotal = int(nextairedTotal)
@@ -521,12 +522,24 @@ def NEXTAIREDTVSHOWS(limit):
 def UNAIREDEPISODES(limit):
     import thetvdb
     thetvdb.DAYS_AHEAD = 120
-    return thetvdb.getKodiSeriesUnairedEpisodesList(False)
+    episodes = thetvdb.getKodiSeriesUnairedEpisodesList(False)
+    for episode in episodes:
+        extraprops = {}
+        extraprops["airday"] = episode["seriesinfo"]["airsDayOfWeek"]
+        extraprops["airtime"] = episode["seriesinfo"]["airsTime"]
+        episode["extraproperties"] = extraprops
+    return episodes
     
 def NEXTAIREDEPISODES(limit):
     import thetvdb
     thetvdb.DAYS_AHEAD = 45
-    return thetvdb.getKodiSeriesUnairedEpisodesList(True)  
+    episodes = thetvdb.getKodiSeriesUnairedEpisodesList(True)
+    for episode in episodes:
+        extraprops = {}
+        extraprops["airday"] = episode["seriesinfo"]["airsDayOfWeek"]
+        extraprops["airtime"] = episode["seriesinfo"]["airsTime"]
+        episode["extraproperties"] = extraprops
+    return episodes
     
 def RECOMMENDEDMOVIES(limit):
     allItems = []
