@@ -3,6 +3,15 @@
 from Utils import *
 
 #This file contains methods to connect skinhelper to skinshortcuts for smartshortcuts, widgets and backgrounds
+
+
+#extendedinfo has some login-required widgets, these must not be probed without login details
+hasTMDBCredentials = False
+if xbmc.getCondVisibility("System.HasAddon(script.extendedinfo)"):
+    exinfoaddon = xbmcaddon.Addon(id="script.extendedinfo")
+    if exinfoaddon.getSetting("tmdb_username") != "" and exinfoaddon.getSetting("tmdb_password") != "":
+        hasTMDBCredentials = True
+    del exinfoaddon
     
 def addSmartShortcutDirectoryItem(entry, isFolder=True, widget=None, widget2=None):
     
@@ -311,6 +320,40 @@ def getPlayListsWidgetListing():
                     if not type: type = detectPluginContent(playlist)
                     foundWidgets.append([label, playlist, type])
     return foundWidgets
+
+def buildAddonWidgetItem(pluginpath,sublevel=""):
+    foundWidgets = []
+    if sublevel:
+        media_array = getJSON('Files.GetDirectory','{ "directory": "%s", "media": "files" }' %pluginpath)
+    else:
+        media_array = getJSON('Files.GetDirectory','{ "directory": "plugin://%s", "media": "files" }' %pluginpath)
+    for item in media_array:
+        logMsg("buildWidgetsListing processing: %s - %s" %(pluginpath,item["label"]))
+        content = item["file"]
+        label = item["label"]
+        if sublevel:
+            label = "%s - %s" %(sublevel,label)
+        #extendedinfo has some login-required widgets, skip those
+        if ("script.extendedinfo" in pluginpath and hasTMDBCredentials==False and ("info=starred" in content or "info=rated" in content or "info=account" in content)):
+            continue
+        type = detectPluginContent(item["file"])
+        if type == "empty": 
+            continue
+        elif type == "folder":
+            foundWidgets += buildAddonWidgetItem(item["file"],label)
+        else:
+            #add reload param for skinhelper and libraryprovider widgets
+            if not "reload=" in content and (pluginpath == "script.skin.helper.service" or pluginpath == "service.library.data.provider"):
+                if "albums" in content or "songs" in content or "artists" in content:
+                    reloadstr = "&reload=$INFO[Window(Home).Property(widgetreloadmusic)]"
+                elif ("pvr" in content or "media" in content or "favourite" in content) and not "progress" in content:
+                    reloadstr = "&reload=$INFO[Window(Home).Property(widgetreload)]$INFO[Window(Home).Property(widgetreload2)]"
+                else:
+                    reloadstr = "&reload=$INFO[Window(Home).Property(widgetreload)]"
+                content = content + reloadstr
+            content = content.replace("&limit=100","&limit=25")
+            foundWidgets.append([label, content, type])
+    return foundWidgets
     
 def getAddonWidgetListing(addonShortName):
     #gets the widget listing for an addon
@@ -324,34 +367,9 @@ def getAddonWidgetListing(addonShortName):
         if addon[1] == addonShortName:
             logMsg("buildWidgetsListing processing: " + addon[0])
             if xbmc.getCondVisibility("System.HasAddon(%s)" %addon[0]):
-                hasTMDBCredentials = False
-                #extendedinfo has some login-required widgets, skip those
-                if addon[0] == "script.extendedinfo":
-                    exinfoaddon = xbmcaddon.Addon(id=addon[0])
-                    if exinfoaddon.getSetting("tmdb_username") != "" and exinfoaddon.getSetting("tmdb_password") != "":
-                        hasTMDBCredentials = True
-                    del exinfoaddon
-                media_array = getJSON('Files.GetDirectory','{ "directory": "plugin://%s", "media": "files" }' %addon[0])
-                for item in media_array:
-                    logMsg("buildWidgetsListing processing: %s - %s" %(addon[0],item["label"]))
-                    content = item["file"]
-                    #extendedinfo has some login-required widgets, skip those
-                    if (addon[0] == "script.extendedinfo" and hasTMDBCredentials==False and ("info=starred" in content or "info=rated" in content or "info=account" in content)):
-                        continue
-                    #add reload param for skinhelper and libraryprovider widgets
-                    if not "reload=" in content and (addon[0] == "script.skin.helper.service" or addon[0] == "service.library.data.provider"):
-                        if "albums" in content or "songs" in content or "artists" in content:
-                            reloadstr = "&reload=$INFO[Window(Home).Property(widgetreloadmusic)]"
-                        elif ("pvr" in content or "media" in content or "favourite" in content) and not "progress" in content:
-                            reloadstr = "&reload=$INFO[Window(Home).Property(widgetreload)]$INFO[Window(Home).Property(widgetreload2)]"
-                        else:
-                            reloadstr = "&reload=$INFO[Window(Home).Property(widgetreload)]"
-                        content = content + reloadstr
-                    content = content.replace("&limit=100","&limit=25")
-                    label = item["label"]
-                    type = detectPluginContent(item["file"])
-                    if type == "empty": continue
-                    foundWidgets.append([label, content, type])
+                
+                foundWidgets += buildAddonWidgetItem(addon[0])
+                
                 if addon[1] == "extendedinfo":
                     #some additional entrypoints for extendedinfo...
                     entrypoints = ["plugin://script.extendedinfo?info=youtubeusersearch&&id=Eurogamer","plugin://script.extendedinfo?info=youtubeusersearch&&id=Engadget","plugin://script.extendedinfo?info=youtubeusersearch&&id=MobileTechReview"]

@@ -492,37 +492,36 @@ def detectPluginContent(plugin):
     #no cache, we need to detect the contenttype
     if not contentType:
         #detect content based on the path
-        if not contentType:
-            if ("movie" in plugin.lower() or 
-                "box" in plugin.lower() or 
-                "dvd" in plugin.lower() or 
-                "rentals" in plugin.lower() or 
-                "incinemas" in plugin.lower() or 
-                "comingsoon" in plugin.lower() or 
-                "upcoming" in plugin.lower() or 
-                "opening" in plugin.lower() or 
-                "intheaters" in plugin.lower()):
-                    contentType = "movies"
-            elif "album" in plugin.lower():
-                contentType = "albums"
-            elif "show" in plugin.lower():
-                contentType = "tvshows"
-            elif "episode" in plugin.lower():
-                contentType = "episodes"
-            elif "media" in plugin.lower():
+        if ("movie" in plugin.lower() or 
+            "box" in plugin.lower() or 
+            "dvd" in plugin.lower() or 
+            "rentals" in plugin.lower() or 
+            "incinemas" in plugin.lower() or 
+            "comingsoon" in plugin.lower() or 
+            "upcoming" in plugin.lower() or 
+            "opening" in plugin.lower() or 
+            "intheaters" in plugin.lower()):
                 contentType = "movies"
-            elif "favourites" in plugin.lower():
-                contentType = "movies"
-            elif "song" in plugin.lower():
-                contentType = "songs"
-            elif "musicvideo" in plugin.lower():
-                contentType = "musicvideos"
-            elif "type=dynamic" in plugin.lower():
-                contentType = "movies"
-            elif "videos" in plugin.lower():
-                contentType = "movies"
-            elif "type=both" in plugin.lower():
-                contentType = "movies"
+        elif "album" in plugin.lower():
+            contentType = "albums"
+        elif "show" in plugin.lower():
+            contentType = "tvshows"
+        elif "episode" in plugin.lower():
+            contentType = "episodes"
+        elif "media" in plugin.lower():
+            contentType = "movies"
+        elif "favourites" in plugin.lower():
+            contentType = "movies"
+        elif "song" in plugin.lower():
+            contentType = "songs"
+        elif "musicvideo" in plugin.lower():
+            contentType = "musicvideos"
+        elif "type=dynamic" in plugin.lower():
+            contentType = "movies"
+        elif "videos" in plugin.lower():
+            contentType = "movies"
+        elif "type=both" in plugin.lower():
+            contentType = "movies"
 
         #if we didn't get the content based on the path, we need to probe the addon...
         if not contentType and not xbmc.getCondVisibility("Window.IsMedia"): #safety check: check if no library windows are active to prevent any addons setting the view
