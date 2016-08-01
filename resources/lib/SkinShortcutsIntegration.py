@@ -168,7 +168,7 @@ def getWidgets(itemstoInclude = None):
             else: isFolder = False
             if type == "movies":
                 image = "DefaultMovies.png"
-                mediaLibrary = "VideoLibrary"
+                mediaLibrary = "Videos"
                 target = "video"
             elif type == "pvr":
                 mediaLibrary = "TvChannels"
@@ -176,29 +176,29 @@ def getWidgets(itemstoInclude = None):
                 target = "pvr"
             elif type == "tvshows":
                 image = "DefaultTVShows.png"
-                mediaLibrary = "VideoLibrary"
+                mediaLibrary = "Videos"
                 target = "video"
             elif type == "episodes":
                 image = "DefaultTVShows.png"
-                mediaLibrary = "VideoLibrary"
+                mediaLibrary = "Videos"
                 target = "video"
             elif type == "albums":
                 image = "DefaultMusicAlbums.png"
-                mediaLibrary = "MusicLibrary"
+                mediaLibrary = "Music"
                 target = "music"
             elif type == "songs":
                 image = "DefaultMusicSongs.png"
-                mediaLibrary = "MusicLibrary"
+                mediaLibrary = "Music"
                 target = "music"
             elif type == "artists":
                 image = "DefaultMusicArtists.png"
-                mediaLibrary = "MusicLibrary"
+                mediaLibrary = "Music"
                 target = "music"
             elif type == "musicvideos":
                 image = "DefaultMusicVideos.png"
             else:
                 image = "DefaultAddon.png"
-                mediaLibrary = "VideoLibrary"
+                mediaLibrary = "Videos"
                 target = "video"
             
             if isFolder:
