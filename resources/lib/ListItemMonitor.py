@@ -913,7 +913,7 @@ class ListItemMonitor(threading.Thread):
         extraFanArtfiles = []
         filename = self.liFile
         
-        if xbmc.getCondVisibility("Window.IsActive(movieinformation) | !Skin.HasSetting(SkinHelper.EnableExtraFanart)"):
+        if xbmc.getCondVisibility("!Skin.HasSetting(SkinHelper.EnableExtraFanart)"):
             return
         
         cachePath = self.liPath
