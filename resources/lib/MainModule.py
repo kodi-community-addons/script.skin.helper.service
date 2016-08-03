@@ -547,6 +547,7 @@ def correctSkinSettings():
             id = item.attributes[ 'id' ].nodeValue
             value = item.attributes[ 'value' ].nodeValue
             curvalue = xbmc.getInfoLabel("Skin.String(%s)" %id.encode("utf-8")).decode("utf-8")
+            logMsg("correctSkinSettings --> id: %s - value: %s - curvalue: %s" %(id,value,curvalue),0)
             label = xbmc.getInfoLabel(item.attributes[ 'label' ].nodeValue).decode("utf-8")
             if "%" in label: label = label %value
             additionalactions = item.getElementsByTagName( 'onselect' )
@@ -609,7 +610,7 @@ def correctSkinSettings():
                     if "$" in command: command = xbmc.getInfoLabel(command)
                     xbmc.executebuiltin(command)
             #set the default constant value if current value is empty
-            if xbmc.getCondVisibility( constantdefault ):
+            if xbmc.getCondVisibility( constantdefault ) and not curvalue:
                 skinconstants[id] = value
                 #additional onselect actions
                 for action in additionalactions:
