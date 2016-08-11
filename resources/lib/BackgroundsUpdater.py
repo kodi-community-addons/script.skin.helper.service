@@ -436,21 +436,24 @@ class BackgroundsUpdater(threading.Thread):
                 if key == "fanart": WINDOW.setProperty(windowProp, value)
                 else: WINDOW.setProperty(windowProp + "." + key, value)      
             
-    def setGlobalBackground(self, windowProp, keys=[], fallbackImage=""):
+    def setGlobalBackground(self, windowProp, keys=[]):
         #gets a random background from multiple other collections
-        image = fallbackImage
         images = []
-        if self.allBackgrounds:
-            #get images from the global cache...
+        if self.allBackgrounds.get(windowProp):
+            images = self.allBackgrounds[windowProp]
+        elif self.allBackgrounds:
+            #get images from given keys in the global cache...
             for key, value in self.allBackgrounds.iteritems():
-                if key in keys or (windowProp == "SkinHelper.GlobalFanartBackground" and not "wall" in key.lower() and not "pvr" in key.lower() and not "netflix" in key.lower() ):
+                if key in keys:
                     images += value
-            #pick a random image from the collection of images
-            if images:  
-                image = random.choice(images)
-                for key, value in image.iteritems():
-                    if key == "fanart": WINDOW.setProperty(windowProp, value)
-                    else: WINDOW.setProperty(windowProp + "." + key, value)
+            self.allBackgrounds[windowProp] = images
+        
+        #pick a random image from the collection of images
+        if images:  
+            image = random.choice(images)
+            for key, value in image.iteritems():
+                if key == "fanart": WINDOW.setProperty(windowProp, value)
+                else: WINDOW.setProperty(windowProp + "." + key, value)
     
     def UpdateBackgrounds(self):
 
@@ -495,10 +498,14 @@ class BackgroundsUpdater(threading.Thread):
         self.setPvrBackground("SkinHelper.PvrBackground")
         
         #global backgrounds
-        self.setGlobalBackground("SkinHelper.GlobalFanartBackground")
-        self.setGlobalBackground("SkinHelper.AllVideosBackground", [ "SkinHelper.AllMoviesBackground", "SkinHelper.AllTvShowsBackground", "SkinHelper.AllMusicVideosBackground" ])
-        self.setGlobalBackground("SkinHelper.RecentVideosBackground", [ "SkinHelper.RecentMoviesBackground", "SkinHelper.RecentEpisodesBackground" ])
-        self.setGlobalBackground("SkinHelper.InProgressVideosBackground", [ "SkinHelper.InProgressMoviesBackground", "SkinHelper.InProgressShowsBackground" ])
+        if xbmc.getCondVisibility("![Library.HasContent(movies) | Library.HasContent(tvshows) |  | Library.HasContent(music)] + System.HasAddon(script.extendedinfo)"):
+            self.setGlobalBackground("SkinHelper.GlobalFanartBackground", [ "SkinHelper.TopRatedMovies", "SkinHelper.TopRatedShows" ])
+        else:
+            self.setGlobalBackground("SkinHelper.GlobalFanartBackground", [ "SkinHelper.AllMoviesBackground", "SkinHelper.AllTvShowsBackground", "SkinHelper.AllMusicVideosBackground","SkinHelper.AllMusicBackground" ])
+            self.setGlobalBackground("SkinHelper.AllVideosBackground", [ "SkinHelper.AllMoviesBackground", "SkinHelper.AllTvShowsBackground", "SkinHelper.AllMusicVideosBackground" ])
+            self.setGlobalBackground("SkinHelper.AllVideosBackground2", [ "SkinHelper.AllMoviesBackground", "SkinHelper.AllTvShowsBackground" ])
+            self.setGlobalBackground("SkinHelper.RecentVideosBackground", [ "SkinHelper.RecentMoviesBackground", "SkinHelper.RecentEpisodesBackground" ])
+            self.setGlobalBackground("SkinHelper.InProgressVideosBackground", [ "SkinHelper.InProgressMoviesBackground", "SkinHelper.InProgressShowsBackground" ])
 
     def UpdateWallBackgrounds(self):
         if WINDOW.getProperty("SkinHelper.enablewallbackgrounds") == "true":

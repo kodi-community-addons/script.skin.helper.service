@@ -815,3 +815,7 @@ msgstr ""
 msgctxt "#32199"
 msgid "Use custom MusicBrainz mirror"
 msgstr ""
+
+msgctxt "#32200"
+msgid "Random videos background (movie/show)"
+msgstr ""

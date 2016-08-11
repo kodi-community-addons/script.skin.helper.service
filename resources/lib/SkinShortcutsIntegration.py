@@ -245,6 +245,7 @@ def getBackgrounds():
     
     globalBackgrounds.append((ADDON.getLocalizedString(32038), "SkinHelper.GlobalFanartBackground"))
     globalBackgrounds.append((ADDON.getLocalizedString(32138), "SkinHelper.AllVideosBackground"))
+    globalBackgrounds.append((ADDON.getLocalizedString(32200), "SkinHelper.AllVideosBackground2"))
     globalBackgrounds.append((ADDON.getLocalizedString(32139), "SkinHelper.RecentVideosBackground"))
     globalBackgrounds.append((ADDON.getLocalizedString(32140), "SkinHelper.InProgressVideosBackground"))
     
