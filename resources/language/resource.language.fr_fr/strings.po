@@ -814,3 +814,7 @@ msgstr "Episodes à venir"
 msgctxt "#32198"
 msgid "Next airing episodes"
 msgstr "Episodes diffusés prochainement"
+
+msgctxt "#32199"
+msgid "Use custom MusicBrainz mirror"
+msgstr "Utiliser le miroir MusicBrainz personnalisé" 
