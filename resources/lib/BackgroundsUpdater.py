@@ -498,7 +498,7 @@ class BackgroundsUpdater(threading.Thread):
         self.setPvrBackground("SkinHelper.PvrBackground")
         
         #global backgrounds
-        if xbmc.getCondVisibility("![Library.HasContent(movies) | Library.HasContent(tvshows) |  | Library.HasContent(music)] + System.HasAddon(script.extendedinfo)"):
+        if xbmc.getCondVisibility("![Library.HasContent(movies) | Library.HasContent(tvshows) | Library.HasContent(music)] + System.HasAddon(script.extendedinfo)"):
             self.setGlobalBackground("SkinHelper.GlobalFanartBackground", [ "SkinHelper.TopRatedMovies", "SkinHelper.TopRatedShows" ])
         else:
             self.setGlobalBackground("SkinHelper.GlobalFanartBackground", [ "SkinHelper.AllMoviesBackground", "SkinHelper.AllTvShowsBackground", "SkinHelper.AllMusicVideosBackground","SkinHelper.AllMusicBackground" ])
