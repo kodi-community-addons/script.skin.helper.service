@@ -312,6 +312,7 @@ class Main:
             
             elif action == "STRIPSTRING":
                 splitchar = params.get("SPLITCHAR")
+                if splitchar == "[SPACE]": splitchar = " "
                 string = params.get("STRING")
                 output = params.get("OUTPUT")
                 index = params.get("INDEX",0)
