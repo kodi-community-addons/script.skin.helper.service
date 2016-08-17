@@ -1536,6 +1536,9 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
             #download images if we want them local
             if artistartwork.get("custompath"):
                 artistpath = artistartwork["custompath"]
+            if not artistpath and custommusiclookuppath:
+                artistpath = os.path.join(custommusiclookuppath,normalize_string(artistName))
+                xbmcvfs.mkdir(artistpath)
             if downloadMusicArt and artistpath:
                 for artType in KodiArtTypes:
                     if artistartwork.has_key(artType[0]): artistartwork[artType[0]] = downloadImage(artistartwork[artType[0]],artistpath,artType[1],allowoverwrite)
@@ -1557,7 +1560,10 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
             albumartwork = getAlbumArtwork(albumartwork.get("musicbrainzalbumid"), albumartwork, allowoverwrite)
             
             #download images if we want them local
-            if downloadMusicArt and albumpath and localAlbumMatch:
+            if not albumpath and custommusiclookuppath and artistpath:
+                albumpath = os.path.join(artistpath,normalize_string(albumName))
+                xbmcvfs.mkdir(albumpath)
+            if downloadMusicArt and albumpath and (localAlbumMatch or custommusiclookuppath):
                 for artType in KodiArtTypes:
                     if albumartwork.has_key(artType[0]): albumartwork[artType[0]] = downloadImage(albumartwork[artType[0]],albumpath,artType[1],allowoverwrite)
         
