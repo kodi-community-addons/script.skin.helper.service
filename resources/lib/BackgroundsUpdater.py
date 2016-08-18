@@ -566,7 +566,7 @@ class BackgroundsUpdater(threading.Thread):
                     for item in media_array:
                         try:
                             label = ""
-                            if item["file"].endswith(".xsp"):
+                            if item["file"].endswith(".xsp") and not "Emby" in item["file"]:
                                 playlist = item["file"]
                                 contents = xbmcvfs.File(playlist, 'r')
                                 contents_data = contents.read()
@@ -742,7 +742,10 @@ class BackgroundsUpdater(threading.Thread):
             
             #get dynamic entries...
             media_array = getJSON('Files.GetDirectory','{ "properties": ["title"], "directory": "plugin://plugin.video.flix2kodi/?mode=main&type=dynamic&widget=true", "media": "files", "limits": {"end":50} }')
-            if media_array:
+            if not media_array:
+                #if no result the plugin is in error, exit processing
+                return []
+            elif media_array:
                 itemscount = 0
                 suggestionsNodefound = False
                 for item in media_array:
