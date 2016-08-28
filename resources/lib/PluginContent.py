@@ -1315,7 +1315,7 @@ def getCast(movie=None,tvshow=None,movieset=None,episode=None,downloadThumbs=Fal
             tmdbdetails = artutils.getTmdbDetails(movie,None,"movie","",True)
         elif tvshow and not allCast and not itemId:
             tmdbdetails = artutils.getTmdbDetails(tvshow,None,"tv","",True)
-        if tmdbdetails:
+        if tmdbdetails.get("cast"):
             allCast = eval(tmdbdetails.get("cast"))
         
         #optional: download missing actor thumbs
