@@ -141,7 +141,12 @@ class ListItemMonitor(threading.Thread):
                 WINDOW.clearProperty("SkinHelper.PVR.ArtWork")
                 WINDOW.clearProperty("resetPvrArtCache")
             
-            if xbmc.getCondVisibility("[Window.IsActive(movieinformation) | Window.IsMedia | !IsEmpty(Window(Home).Property(SkinHelper.WidgetContainer))]") and not self.exit:
+            if xbmc.getCondVisibility("System.HasModalDialog"):
+                #skip when modal dialogs are opened (e.g. textviewer in musicinfo dialog)
+                self.monitor.waitForAbort(1)
+                self.delayedTaskInterval += 1
+                self.widgetTaskInterval += 1
+            elif xbmc.getCondVisibility("[Window.IsMedia | !IsEmpty(Window(Home).Property(SkinHelper.WidgetContainer))]") and not self.exit:
                 try:
                     widgetContainer = WINDOW.getProperty("SkinHelper.WidgetContainer").decode('utf-8')
                     if xbmc.getCondVisibility("Window.IsActive(movieinformation)"): 
@@ -248,7 +253,7 @@ class ListItemMonitor(threading.Thread):
                     liPathLast = self.liPath
                     lastListItem = curListItem
 
-                xbmc.sleep(100)
+                self.monitor.waitForAbort(0.1)
                 self.delayedTaskInterval += 0.1
                 self.widgetTaskInterval += 0.1
             elif lastListItem and not self.exit:
@@ -265,6 +270,9 @@ class ListItemMonitor(threading.Thread):
                 curFolder = ""
                 curFolderLast = ""
                 self.widgetContainerPrefix = ""
+                self.monitor.waitForAbort(0.5)
+                self.delayedTaskInterval += 0.5
+                self.widgetTaskInterval += 0.5
             elif xbmc.getCondVisibility("Window.IsActive(fullscreenvideo)"):
                 #fullscreen video active
                 self.monitor.waitForAbort(2)
