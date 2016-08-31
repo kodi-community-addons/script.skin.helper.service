@@ -1243,16 +1243,16 @@ def getCast(movie=None,tvshow=None,movieset=None,episode=None,downloadThumbs=Fal
     cachedataStr = ""
     try:
         if movieset:
-            cachedataStr = "movieset.castcache-%s-%s" %(movieset, downloadThumbs)
+            cachedataStr = "movieset.castcache-%s-%s" %(movieset.encode("utf-8"),downloadThumbs)
             itemId = int(movieset)
         elif tvshow:
-            cachedataStr = "tvshow.castcache-%s-%s" %(tvshow,downloadThumbs)
+            cachedataStr = "tvshow.castcache-%s-%s" %(tvshow.encode("utf-8"),downloadThumbs)
             itemId = int(tvshow)
         elif movie:
-            cachedataStr = "movie.castcache-%s-%s" %(movie,downloadThumbs)
+            cachedataStr = "movie.castcache-%s-%s" %(movie.encode("utf-8"),downloadThumbs)
             itemId = int(movie)
         elif episode:
-            cachedataStr = "episode.castcache-%s-%s" %(episode,downloadThumbs)
+            cachedataStr = "episode.castcache-%s-%s" %(episode.encode("utf-8"),downloadThumbs)
             itemId = int(episode)
         elif not (movie or tvshow or episode or movieset) and xbmc.getCondVisibility("Window.IsActive(DialogVideoInfo.xml)"):
             cachedataStr = xbmc.getInfoLabel("ListItem.Title") + xbmc.getInfoLabel("ListItem.FileNameAndPath") + str(downloadThumbs)
