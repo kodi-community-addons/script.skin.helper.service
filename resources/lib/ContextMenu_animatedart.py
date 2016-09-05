@@ -19,6 +19,7 @@ if __name__ == '__main__':
             if ret == 1: type = "fanart"
         
         liImdb = xbmc.getInfoLabel("ListItem.IMDBNumber")
+        if not liImdb: liImdb = xbmc.getInfoLabel("ListItem.Title").decode("utf-8")
         liDbId = xbmc.getInfoLabel("ListItem.DBID")
         if liImdb and WINDOW.getProperty("contenttype") in ["movies","setmovies"]:
             WINDOW.clearProperty("SkinHelper.Animated%s"%type)

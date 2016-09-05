@@ -15,7 +15,7 @@
         <menu id="kodi.core.main">
             <item library="resources\lib\ContextMenu_animatedart.py">
               <label>32175</label>
-              <visible>!IsEmpty(Window(Home).Property(SkinHelper.enablecontextmenu_animatedart)) + [Container.Content(movies) + Skin.HasSetting(SkinHelper.EnableAnimatedPosters) + !IsEmpty(ListItem.IMDBNumber)]</visible>
+              <visible>!IsEmpty(Window(Home).Property(SkinHelper.enablecontextmenu_animatedart)) + [Container.Content(movies) + Skin.HasSetting(SkinHelper.EnableAnimatedPosters)]</visible>
             </item>
             <item library="resources\lib\ContextMenu_pvr.py">
                 <label>32120</label>
