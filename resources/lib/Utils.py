@@ -648,7 +648,7 @@ def getCurrentContentType(containerprefix=""):
         elif xbmc.getCondVisibility("Window.IsActive(MyPVRRecordings.xml) | Window.IsActive(MyPVRTimers.xml) | Window.IsActive(pvrrecordinginfo)"):
             contenttype = "tvrecordings"
         elif xbmc.getCondVisibility("Window.IsActive(programs) | Window.IsActive(addonbrowser)"):
-            contenttype = "programs"
+            contenttype = "addons"
         elif xbmc.getCondVisibility("Window.IsActive(pictures)"):
             contenttype = "pictures"
         elif xbmc.getCondVisibility("Container.Content(genres)"):

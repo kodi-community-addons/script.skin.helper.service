@@ -122,7 +122,7 @@ def backup(filterString="",silent=None,promptfilename="false"):
                                     thumb = thumb[0].firstChild
                                     if thumb:
                                         thumb = thumb.data
-                                        if thumb and(".jpg" in thumb.lower() or ".png" in thumb.lower()) and not xbmc.getSkinDir() in thumb and not thumb.startswith("$") and not thumb.startswith("androidapp"):
+                                        if thumb and(".jpg" in thumb.lower() or ".png" in thumb.lower() or ".gif" in thumb.lower()) and not xbmc.getSkinDir() in thumb and not thumb.startswith("$") and not thumb.startswith("androidapp"):
                                             thumb = getCleanImage(thumb) 
                                             extension = thumb.split(".")[-1]
                                             newthumb = os.path.join(skinshortcuts_path,"%s-thumb-%s.%s" %(xbmc.getSkinDir(),normalize_string(defaultID),extension))

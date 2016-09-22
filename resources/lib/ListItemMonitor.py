@@ -983,6 +983,7 @@ class ListItemMonitor(threading.Thread):
     def setAnimatedPoster(self,multiThreaded=False,liImdb=""):
         #check animated posters
         if not liImdb: liImdb = self.liImdb
+        if not liImdb: liImdb = self.liTitle
         if not xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnableAnimatedPosters)") or not liImdb:
             return
         if WINDOW.getProperty("artworkcontextmenu"): return

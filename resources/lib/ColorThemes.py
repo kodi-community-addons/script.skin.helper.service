@@ -352,10 +352,9 @@ def restoreColorTheme():
         
         dirs, files = xbmcvfs.listdir(temp_path)
         for file in files:
-            if file.endswith(".theme") or file.endswith(".jpg"):
-                sourcefile = os.path.join(temp_path,file)
-                destfile = os.path.join(userThemesPath,file)
-                xbmcvfs.copy(sourcefile,destfile)
+            sourcefile = os.path.join(temp_path,file)
+            destfile = os.path.join(userThemesPath,file)
+            xbmcvfs.copy(sourcefile,destfile)
         xbmcgui.Dialog().ok(ADDON.getLocalizedString(32022), ADDON.getLocalizedString(32021))
         
 def createColorTheme():
@@ -396,14 +395,32 @@ def createColorTheme():
 
         #read the guisettings file to get all skin settings
         import BackupRestore as backup
-        newlist = backup.getSkinSettings(["color","opacity","texture","panel","colour"])
-        if newlist:
+        skinsettingslist = backup.getSkinSettings(["color","opacity","texture","panel","colour","background","image"])
+        newlist = []
+        if skinsettingslist:
             newlist.append(("THEMENAME", themeName))
             newlist.append(("DESCRIPTION", ADDON.getLocalizedString(32025)))
             newlist.append(("SKINTHEME", xbmc.getInfoLabel("Skin.CurrentTheme")))
             newlist.append(("SKINFONT", currentSkinFont))
             newlist.append(("SKINCOLORS", currentSkinColors))
-                
+            
+            #look for any images in the skin settings and translate them so they can be included in the theme backup
+            for skinsetting in skinsettingslist:
+                setting_type = skinsetting[0]
+                setting_name = skinsetting[1]
+                setting_value = skinsetting[2]
+                if setting_type == "string" and setting_value:
+                    if setting_value and(".jpg" in setting_value.lower() or ".png" in setting_value.lower() or ".gif" in setting_value.lower()) and not setting_value.startswith("$") and not setting_value.startswith("androidapp"):
+                        image = getCleanImage(setting_value)
+                        extension = image.split(".")[-1]
+                        newimage = "%s_%s.%s" %(themeName,normalize_string(setting_name),extension)
+                        newimage_path = os.path.join(userThemesPath,newimage)
+                        if xbmcvfs.exists(image):
+                            xbmcvfs.copy(image,newimage_path)
+                            newimage_vfs = "special://profile/addon_data/%s/themes/%s"%(xbmc.getSkinDir(),newimage)
+                            skinsetting = (setting_type, setting_name, newimage_vfs)
+                newlist.append(skinsetting)
+            
             #save guisettings
             text_file_path = os.path.join(userThemesPath, themeName + ".theme")
             text_file = xbmcvfs.File(text_file_path, "w")
