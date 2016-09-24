@@ -26,6 +26,26 @@ class Main:
         
         utils.logMsg("Parameter string: " + str(params))
         return params
+        
+        
+    def deprecatedMethod(self,params,newaddon):
+        '''
+            used when one of the deprecated methods is called
+            print warning in log and call the external script with the same parameters
+        '''
+        action = params.get("ACTION","").upper()
+        utils.logMsg("Deprecated method: %s. Please call %s directly" %(action,newaddon),0 )
+        paramstring = ""
+        for key, value in params.iteritems():
+            paramstring += ",%s=%s" %(key,value)
+        if xbmc.getCondVisibility("System.HasAddon(%s)" %newaddon):
+            xbmc.executebuiltin("RunAddon(script.skin.helper.colorpicker%s)" %paramstring)
+        else:
+            #trigger install of the addon
+            if utils.KODI_VERSION >= 17:
+                xbmc.executebuiltin("InstallAddon(%s)" %newaddon)
+            else:
+                xbmc.executebuiltin("RunPlugin(plugin://%s)" %newaddon)
     
     def __init__(self):
         
@@ -169,27 +189,7 @@ class Main:
                             xbmc.executebuiltin(resultAction)
                 
             elif action == "COLORPICKER":
-                from resources.lib.ColorPicker import ColorPicker
-                colorPicker = ColorPicker("script-skin_helper_service-ColorPicker.xml", utils.ADDON_PATH, "Default", "1080i")
-                colorPicker.skinString = params.get("SKINSTRING","")
-                colorPicker.winProperty = params.get("WINPROPERTY","")
-                colorPicker.activePalette = params.get("PALETTE","")
-                colorPicker.headerLabel = params.get("HEADER","")
-                propname = params.get("SHORTCUTPROPERTY","")
-                colorPicker.shortcutProperty = propname
-                colorPicker.doModal()
-                if propname and not isinstance(colorPicker.result, int):
-                    mainmodule.waitForSkinShortcutsWindow()
-                    xbmc.sleep(400)
-                    currentWindow = xbmcgui.Window( xbmcgui.getCurrentWindowDialogId() )
-                    currentWindow.setProperty("customProperty",propname)
-                    currentWindow.setProperty("customValue",colorPicker.result[0])
-                    xbmc.executebuiltin("SendClick(404)")
-                    xbmc.sleep(250)
-                    currentWindow.setProperty("customProperty",propname+".name")
-                    currentWindow.setProperty("customValue",colorPicker.result[1])
-                    xbmc.executebuiltin("SendClick(404)")
-                del colorPicker
+                self.deprecatedMethod(params,"script.skin.helper.colorpicker")
             
             elif action == "COLORTHEMES":
                 from resources.lib.ColorThemes import ColorThemes
