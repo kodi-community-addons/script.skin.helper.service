@@ -818,3 +818,7 @@ msgstr "Episodes diffusés prochainement"
 msgctxt "#32199"
 msgid "Use custom MusicBrainz mirror"
 msgstr "Utiliser le miroir MusicBrainz personnalisé" 
+
+msgctxt "#32200"
+msgid "Random videos background (movie/show)"
+msgstr "Arrière-plan de vidéos aléatoires (films/séries TV)"
