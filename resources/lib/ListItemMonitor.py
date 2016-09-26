@@ -7,7 +7,6 @@ import random
 import xml.etree.ElementTree as etree
 from Utils import *
 import ArtworkUtils as artutils
-import SkinShortcutsIntegration as skinshortcuts
 
 
 class ListItemMonitor(threading.Thread):
@@ -400,6 +399,7 @@ class ListItemMonitor(threading.Thread):
         #reset all window props set by the script...
         for prop in self.allWindowProps:
             WINDOW.clearProperty(try_encode(prop))
+        self.allWindowProps = []
     
     def resetGlobalWidgetWindowProps(self):
         WINDOW.setProperty("widgetreload2", time.strftime("%Y%m%d%H%M%S", time.gmtime()))
@@ -421,8 +421,7 @@ class ListItemMonitor(threading.Thread):
         WINDOW.setProperty("SkinHelper.Player.Music.ExtraFanArt","")
     
     def setWindowProp(self,key,value):
-        if not key in self.allWindowProps:
-            self.allWindowProps.append(key)
+        self.allWindowProps.append(key)
         WINDOW.setProperty(try_encode(key),try_encode(value))
     
     def setMovieSetDetails(self):
