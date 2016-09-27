@@ -42,7 +42,7 @@ class Main:
         backgroundsUpdater.start()
         webService.start()
         
-        while not (KodiMonitor.abortRequested() or utils.WINDOW.getProperty("SkinHelperShutdownRequested")):
+        while not (KodiMonitor.abortRequested()):
             self.checkSkinVersion()
             KodiMonitor.waitForAbort(10)
         else:
