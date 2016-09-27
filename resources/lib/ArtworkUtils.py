@@ -171,11 +171,11 @@ def getPVRThumbs(title,channel,type="channels",path="",genre="",year="",ignoreCa
                     #grab artwork from tmdb/fanart.tv
                     if WINDOW.getProperty("SkinHelper.useTMDBLookups") == "true" or manualLookup:
                         if "movie" in genre.lower():
-                            artwork = getTmdbDetails(searchtitle,artwork,"movie",year)
+                            artwork = getTmdbDetails(searchtitle,artwork,"movie",year,includeCast=False,manualLookup=manualLookup)
                         elif "tv" in genre.lower():
-                            artwork = getTmdbDetails(searchtitle,artwork,"tv",year)
+                            artwork = getTmdbDetails(searchtitle,artwork,"tv",year,includeCast=False,manualLookup=manualLookup)
                         else:
-                            artwork = getTmdbDetails(searchtitle,artwork,"",year)
+                            artwork = getTmdbDetails(searchtitle,artwork,"",year,includeCast=False,manualLookup=manualLookup)
                     
                     #set thumb to fanart or landscape to prevent youtube/google lookups
                     if not artwork.get("thumb") and artwork.get("landscape"):
@@ -414,7 +414,7 @@ def getfanartTVimages(type,id,artwork=None,allowoverwrite=True):
         artwork["extrafanarts"] = repr(extrafanarts)
     return artwork
 
-def getTmdbDetails(title,artwork=None,type=None,year="",includeCast=False):
+def getTmdbDetails(title,artwork=None,type=None,year="",includeCast=False, manualLookup=False):
     #perform search on TMDB and return artwork
     if not artwork: artwork={}
     coverUrl = ""
@@ -428,37 +428,57 @@ def getTmdbDetails(title,artwork=None,type=None,year="",includeCast=False):
         response = requests.get(url, timeout=5)
         if response.status_code == 200:
             data = json.loads(response.content.decode('utf-8','replace'))
-            #find year match
-            if data and year and data.get("results"):
-                for item in data["results"]:
-                    if item.get("first_air_date") and year in item.get("first_air_date"):
-                        matchFound = item
-                        break
-                    elif item.get("release_date") and year in item.get("release_date"):
-                        matchFound = item
-                        break
-                        
-            #find exact match based on title
-            if not matchFound and data and data.get("results",None):
-                for item in data["results"]:
-                    name = item.get("name")
-                    if not name: name = item.get("title")
-                    original_name = item.get("original_name","")
-                    title_alt = title.lower().replace(" ","").replace("-","").replace(":","").replace("&","").replace(",","")
-                    name_alt = name.lower().replace(" ","").replace("-","").replace(":","").replace("&","").replace(",","")
-                    org_name_alt = original_name.lower().replace(" ","").replace("-","").replace(":","").replace("&","").replace(",","")
-                    if name == title or original_name == title:
-                        #match found for exact title name
-                        matchFound = item
-                        break
-                    elif name.split(" (")[0] == title or title_alt == name_alt or title_alt == org_name_alt:
-                        #match found with substituting some stuff
-                        matchFound = item
-                        break
-            
-                #if a match was not found, we accept the closest match from TMDB
-                if not matchFound and len(data.get("results")) > 0 and not len(data.get("results")) > 5:
-                    matchFound = item = data.get("results")[0]
+            if data and data.get("results"):
+                #Manual lookup: show dialog for user to select entry
+                if manualLookup:
+                    tmdbresults = []
+                    for item in data["results"]:
+                        name = item.get("name")
+                        if not name: name = item.get("title")
+                        year = item.get("first_air_date")
+                        if not year: year = item.get("release_date")
+                        listitem = xbmcgui.ListItem(label="%s (%s)" %(name,year))
+                        if item.get("poster_path"):
+                            listitem.setProperty("icon","http://image.tmdb.org/t/p/original%s" %item["poster_path"])
+                        tmdbresults.append(listitem)
+                    import Dialogs as dialogs
+                    w = dialogs.DialogSelectBig( "DialogSelect.xml", ADDON_PATH, listing=tmdbresults, windowtitle=ADDON.getLocalizedString(32201),multiselect=False )
+                    w.doModal()
+                    selectedItem = w.result
+                    if selectedItem != -1:
+                        matchFound = data["results"][selectedItem]
+                else:
+                    #find year match
+                    if data and year and data.get("results"):
+                        for item in data["results"]:
+                            if item.get("first_air_date") and year in item.get("first_air_date"):
+                                matchFound = item
+                                break
+                            elif item.get("release_date") and year in item.get("release_date"):
+                                matchFound = item
+                                break
+                                
+                    #find exact match based on title
+                    if not matchFound and data and data.get("results",None):
+                        for item in data["results"]:
+                            name = item.get("name")
+                            if not name: name = item.get("title")
+                            original_name = item.get("original_name","")
+                            title_alt = title.lower().replace(" ","").replace("-","").replace(":","").replace("&","").replace(",","")
+                            name_alt = name.lower().replace(" ","").replace("-","").replace(":","").replace("&","").replace(",","")
+                            org_name_alt = original_name.lower().replace(" ","").replace("-","").replace(":","").replace("&","").replace(",","")
+                            if name == title or original_name == title:
+                                #match found for exact title name
+                                matchFound = item
+                                break
+                            elif name.split(" (")[0] == title or title_alt == name_alt or title_alt == org_name_alt:
+                                #match found with substituting some stuff
+                                matchFound = item
+                                break
+                    
+                        #if a match was not found, we accept the closest match from TMDB
+                        if not matchFound and len(data.get("results")) > 0 and not len(data.get("results")) > 5:
+                            matchFound = item = data.get("results")[0]
    
         if matchFound and not type=="person":
             coverUrl = matchFound.get("poster_path","")
@@ -733,7 +753,7 @@ def searchGoogleImage(searchphrase1, searchphrase2="",manualLookup=False):
         
         if manualLookup and imagesList:
             import Dialogs as dialogs
-            w = dialogs.DialogSelectBig( "DialogSelect.xml", ADDON_PATH, listing=imagesList, windowtitle="",multiselect=False )
+            w = dialogs.DialogSelectBig( "DialogSelect.xml", ADDON_PATH, listing=imagesList, windowtitle=ADDON.getLocalizedString(32202),multiselect=False )
             w.doModal()
             selectedItem = w.result
             if selectedItem != -1:

@@ -562,6 +562,10 @@ You can also supply multiple arttypes by using , (comma) as a seperator. In that
 Optional parameter: fallback --> Allows you to set a fallback image if no image was found.
 For example &amp;fallback=$INFO[ListItem.Icon]
 
+Optional parameter: year --> For more accurate results the year (or release date) is passed to the TMDB lookup.
+For example &amp;year=$INFO[ListItem.Year]
+
+
 ##### General thumb/image for searchphrase
 You can use this to search for a general thumb using google images. For example to get a actor thumb.
 

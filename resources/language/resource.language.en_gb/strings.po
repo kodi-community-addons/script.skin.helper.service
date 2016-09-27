@@ -819,3 +819,11 @@ msgstr ""
 msgctxt "#32200"
 msgid "Random videos background (movie/show)"
 msgstr ""
+
+msgctxt "#32201"
+msgid "TMDB Results"
+msgstr ""
+
+msgctxt "#32202"
+msgid "Google Images Results"
+msgstr ""

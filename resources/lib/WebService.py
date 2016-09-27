@@ -138,7 +138,8 @@ class StoppableHttpRequestHandler (SimpleHTTPServer.SimpleHTTPRequestHandler):
             preferred_type = params.get("type","")
             if xbmc.getCondVisibility("Window.IsActive(MyPVRRecordings.xml)"): type = "recordings"
             else: type = "channels"
-            artwork = artutils.getPVRThumbs(title, channel, type)
+            year = params.get("year","")
+            artwork = artutils.getPVRThumbs(title, channel, type, year=year)
             if preferred_type:
                 preferred_types = preferred_type.split(",")
                 for preftype in preferred_types:
