@@ -95,9 +95,11 @@ class ListItemMonitor(threading.Thread):
                 screenSaverSetting = getJSON('Settings.GetSettingValue', '{"setting":"screensaver.mode"}')
                 setJSON('Settings.SetSettingValue', '{"setting":"screensaver.mode", "value": ""}')
                 screenSaverDisableActive = True
+                logMsg("Disabled screensaver while fullscreen music playback - previous setting: %s" %screenSaverSetting)
             elif screenSaverSetting and screenSaverDisableActive: 
                 setJSON('Settings.SetSettingValue', '{"setting":"screensaver.mode", "value": "%s"}' %screenSaverSetting)        
                 screenSaverDisableActive = False
+                logMsg("fullscreen music playback ended - restoring screensaver: %s" %screenSaverSetting)
                 
             #auto close OSD after X seconds of inactivity
             if xbmc.getCondVisibility("Window.IsActive(videoosd) | Window.IsActive(musicosd)"):
@@ -1040,7 +1042,7 @@ class ListItemMonitor(threading.Thread):
                         elif key == "Metascore": result["SkinHelper.MetaCritic.Rating"] = value
                         elif key == "imdbRating": 
                             result["SkinHelper.IMDB.Rating"] = value
-                            result["SkinHelper.IMDB.Rating.Percent"] = str(int(float(value)) * 10)
+                            result["SkinHelper.IMDB.Rating.Percent"] = "%s" %(int(float(value) * 10))
                         elif key == "imdbVotes": result["SkinHelper.IMDB.Votes"] = value
                         elif key == "Rated": result["SkinHelper.IMDB.MPAA"] = value
                         elif key == "Runtime": result["SkinHelper.IMDB.Runtime"] = value

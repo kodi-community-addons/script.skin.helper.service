@@ -7,15 +7,15 @@ msgstr ""
 "Project-Id-Version: XBMC-Addons\n"
 "Report-Msgid-Bugs-To: alanwww1@xbmc.org\n"
 "POT-Creation-Date: 2014-10-26 17:05+0000\n"
-"PO-Revision-Date: 2016-05-12 15:36-0400\n"
+"PO-Revision-Date: 2016-09-28 11:10-0400\n"
+"Last-Translator: \n"
 "Language-Team: \n"
+"Language: es_ES\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 1.8.7\n"
-"Last-Translator: \n"
-"Language: es_ES\n"
+"X-Generator: Poedit 1.8.8\n"
 
 msgctxt "#32000"
 msgid "Favourites"
@@ -792,3 +792,67 @@ msgstr "Películas Aleatorias"
 msgctxt "#32186"
 msgid "In-progress and random movies"
 msgstr "Películas En Progreso y Aleatorias"
+
+msgctxt "#32187"
+msgid "Random albums"
+msgstr "Álbumes al azar"
+
+msgctxt "#32188"
+msgid "Random songs"
+msgstr "Canciones al azar"
+
+msgctxt "#32189"
+msgid "Hide watched items in video widgets"
+msgstr "Esconder ítems ya vistos en widgets de vídeo"
+
+msgctxt "#32190"
+msgid "Only use in-progress shows in next episodes widget"
+msgstr "Sólo utilizar series en progreso en widget de próximos episodios"
+
+msgctxt "#32191"
+msgid "Recommended Tv Shows"
+msgstr "Series Recomendadas"
+
+msgctxt "#32192"
+msgid "Recently added movies"
+msgstr "Películas Añadidas Recientemente"
+
+msgctxt "#32193"
+msgid "Recently added episodes"
+msgstr "Episodios Añadidos Recientemente"
+
+msgctxt "#32194"
+msgid "Recently added musicvideos"
+msgstr "Videoclips Añadidos Recientemente"
+
+msgctxt "#32195"
+msgid "Random Tv Shows"
+msgstr "Series al azar"
+
+msgctxt "#32196"
+msgid "Only use images from recordings for random PVR background"
+msgstr "Sólo utilizar imágenes de grabaciones para el fondo aleatorio PVR"
+
+msgctxt "#32197"
+msgid "Unaired episodes"
+msgstr "Episodios sin estrenar"
+
+msgctxt "#32198"
+msgid "Next airing episodes"
+msgstr "Episodios de próximo estreno"
+
+msgctxt "#32199"
+msgid "Use custom MusicBrainz mirror"
+msgstr "Utilizar servidor espejo personalizado de MusicBrainz"
+
+msgctxt "#32200"
+msgid "Random videos background (movie/show)"
+msgstr "Fondo de vídeos aleatorios (películas/series)"
+
+msgctxt "#32201"
+msgid "TMDB Results"
+msgstr "Resultados de TMDB"
+
+msgctxt "#32202"
+msgid "Google Images Results"
+msgstr "Resultados de Imágenes de Google"
