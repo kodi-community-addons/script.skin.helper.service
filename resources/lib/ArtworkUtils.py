@@ -25,179 +25,176 @@ if WINDOW.getProperty("SkinHelper.musicbrainzmirror"):
     
 tmdb_apiKey = "ae06df54334aa653354e9a010f4b81cb"
 
-def getPVRThumbs(title,channel,type="channels",path="",genre="",year="",ignoreCache=False, manualLookup=False, override=None):
-    cacheFound = False
-    ignore = False
-    artwork = {}
-    pvrThumbPath = None
-    if WINDOW.getProperty("SkinHelper.IgnoreCache"): ignoreCache = True
+def getPVRThumbs(title,channel,pvrtype="channels",path="",genre="",
+                year="",ignoreCache=False, manualLookup=False, override=None):
     
-    #ignore back entry
+    if WINDOW.getProperty("SkinHelper.IgnoreCache"): 
+        ignoreCache = True
+        
+    if "channels" in pvrtype and WINDOW.getProperty("SkinHelper.enablePVRThumbsRecordingsOnly")=="true":
+        return {} #pvr artwork disabled for channels
+        
     if title == ".." or not title: 
-        logMsg("getPVRThumbs empty title, skipping...")
-        return {}
-    
-    if title: title = urllib.unquote(title)
-    if channel: channel = urllib.unquote(channel)
+        return {} #ignore back entry
         
-    #should we ignore this path ?
-    ignoretitles = WINDOW.getProperty("SkinHelper.ignoretitles")
-    ignorechannels = WINDOW.getProperty("SkinHelper.ignorechannels")
-    stripwords = WINDOW.getProperty("SkinHelper.stripwords")
-    splittitlechar = WINDOW.getProperty("SkinHelper.splittitlechar")
-    if splittitlechar:
-        for splitchar in splittitlechar.split(";"):
-            if splitchar in title:
-                title = title.split(splitchar)[0]
-    if ignorechannels:
-        for item in ignorechannels.split(";"):
-            if item.lower() == channel.lower(): ignore = True
-    if ignoretitles:
-        for item in ignoretitles.split(";"):
-            if item.lower() in title.lower(): ignore = True
-    if stripwords:
-        for word in stripwords.split(";"): title = title.replace(word,"")
-        
-    if ignore and not manualLookup:
-        logMsg("getPVRThumb ignore filter active for %s %s--> "%(title,channel))
-        return {}
-        
-    # Strip channel from title
-    title = title.replace(channel,"")
-    if title.endswith("-"): title = title[:-1]
-    if title.endswith(" - "): title = title[:-3]
-
-    comparetitle = getCompareString(title)
-    dbID = comparetitle + channel
-    
-    #make sure we have our settings cached in memory...
-    if not WINDOW.getProperty("SkinHelper.pvrthumbspath"):
-        setAddonsettings()
-        
-    if type=="channels" and WINDOW.getProperty("SkinHelper.enablePVRThumbsRecordingsOnly")=="true":
-        #pvr artwork disabled for channels
-        return {}
-    if type=="channels" and WINDOW.getProperty("SkinHelper.cacheGuideEntries")=="true":
-        downloadLocal = True
-    elif type=="recordings" and WINDOW.getProperty("SkinHelper.cacheRecordings")=="true":
-        downloadLocal = True
+    #get the item from memory cache first
+    cacheStr = (u"SkinHelper.PVR.Artwork.%s%s%s" %(channel,title,year)).encode("utf-8")
+    cache = WINDOW.getProperty(cacheStr).decode('utf-8')
+    if cache and not ignoreCache and not override:
+        logMsg("getPVRThumb - return data from cache for %s - %s" %(title,channel))
+        return eval(cache)
     else:
-        downloadLocal = False
+        #no data in cache, proceed...
+        title = urllib.unquote(title)
+        if channel: channel = urllib.unquote(channel)
+            
+        #should we ignore this path ?
+        ignore = False
+        ignoretitles = WINDOW.getProperty("SkinHelper.ignoretitles").decode('utf-8')
+        ignorechannels = WINDOW.getProperty("SkinHelper.ignorechannels").decode('utf-8')
+        stripwords = WINDOW.getProperty("SkinHelper.stripwords").decode('utf-8')
+        splittitlechar = WINDOW.getProperty("SkinHelper.splittitlechar").decode('utf-8')
+        if splittitlechar:
+            for splitchar in splittitlechar.split(";"):
+                if splitchar in title:
+                    title = title.split(splitchar)[0]
+        if ignorechannels:
+            for item in ignorechannels.split(";"):
+                if item.lower() == channel.lower():
+                    ignore = True
+        if ignoretitles:
+            for item in ignoretitles.split(";"):
+                if item.lower() in title.lower():
+                    ignore = True
+        if stripwords:
+            for word in stripwords.split(";"): title = title.replace(word,"")
+            
+        if ignore and not manualLookup:
+            logMsg("getPVRThumb ignore filter active for %s %s--> "%(title,channel))
+            artwork["title"] = title
+            WINDOW.setProperty(cacheStr, repr(artwork).encode('utf-8'))
+            return {}
+            
+        # Strip channel from title
+        title = title.replace(channel,"")
+        if title.endswith("-"): title = title[:-1]
+        if title.endswith(" - "): title = title[:-3]
+
+        comparetitle = getCompareString(title)
         
-    #get the items from cache first
-    cache = WINDOW.getProperty("SkinHelper.PVR.Artwork").decode('utf-8')
-    if cache and ignoreCache==False and not override:
-        cache = eval(cache)
-        if cache.has_key(dbID): 
-            artwork = cache[dbID]
-            cacheFound = True
-    else: cache = {}
-    
-    if not cacheFound:
+        #make sure we have our settings cached in memory...
+        if not WINDOW.getProperty("SkinHelper.pvrthumbspath"):
+            setAddonsettings()
         
-        pvrThumbPath = getPvrThumbPath(channel,title)
         #Do we have a persistant cache file (pvrdetails.xml) for this item ?
+        pvrThumbPath = getPvrThumbPath(channel,title)
         cachefile = os.path.join(pvrThumbPath, "pvrdetails.xml")
-        if not ignoreCache and not override:
-            artwork = getArtworkFromCacheFile(cachefile,artwork)
-        if artwork:
-            cacheFound = True
-                
-        if not cacheFound:
-            logMsg("getPVRThumb for dbID: %s" %dbID)
+        cache = getArtworkFromCacheFile(cachefile)
+        if cache and not ignoreCache and not override:
+            logMsg("getPVRThumb - return data from persistant cache for %s - %s" %(title,channel))
+            WINDOW.setProperty(cacheStr, repr(cache).encode('utf-8'))
+            return cache
+        
+        if override:
+            artwork = override
+        else:
+            #no memory cache and no permanent cache, start lookup
+            logMsg("getPVRThumbs no data in cache, starting lookup for title: %s - channel: %s" %(title, channel))
+            artwork = {}
             searchtitle = title
+            
             if manualLookup:
                 searchtitle = xbmcgui.Dialog().input(ADDON.getLocalizedString(32147), title, type=xbmcgui.INPUT_ALPHANUM).decode("utf-8")
             
-            if not override:
-                #lookup actual recordings to get details for grouped recordings
-                #also grab a thumb provided by the pvr
-                #NOTE: for episode level in series recordings, skinners should just get the pvr provided thumbs (listitem.thumb) in the skin itself because the cache is based on title not episode
-                #the thumb image will be filled with just one thumb from the series (or google image if pvr doesn't provide a thumb)
-                json_query = getJSON('PVR.GetRecordings', '{ "properties": [ %s ]}' %( fields_pvrrecordings))
-                for item in json_query:
-                    if (path and path in item["file"]) or (not path and title in item["file"]) or (not channel and title in item["file"]):
-                        logMsg("getPVRThumbs - title or path matches an existing recording: " + title)
-                        if not channel: 
-                            channel = item["channel"]
-                            artwork["channel"] = channel
-                        if not genre:
-                            artwork["genre"] = " / ".join(item["genre"])
-                            genre = " / ".join(item["genre"])
-                        if item.get("art"):
-                            artwork = item["art"]
-                        if item.get("plot"):
-                            artwork["plot"] = item["plot"]
-                            break
-            
-                #delete existing files on disk (only at default location)
-                if manualLookup and pvrThumbPath.startswith(WINDOW.getProperty("SkinHelper.pvrthumbspath").decode("utf-8")):
-                    recursiveDelete(pvrThumbPath)
+            #lookup actual recordings to get details for grouped recordings
+            #also grab a thumb provided by the pvr
+            #NOTE: for episode level in series recordings, skinners should just get the pvr provided thumbs (listitem.thumb) in the skin itself because the cache is based on title not episode
+            #the thumb image will be filled with just one thumb from the series (or google image if pvr doesn't provide a thumb)
+            json_query = getJSON('PVR.GetRecordings', '{ "properties": [ %s ]}' %( fields_pvrrecordings))
+            for item in json_query:
+                if (path and path in item["file"]) or (not path and title in item["file"]) or (not channel and title in item["file"]):
+                    logMsg("getPVRThumbs - title or path matches an existing recording: " + title)
+                    if not channel: 
+                        channel = item["channel"]
+                        artwork["channel"] = channel
+                    if not genre:
+                        artwork["genre"] = " / ".join(item["genre"])
+                        genre = " / ".join(item["genre"])
+                    if item.get("art"):
+                        artwork = item["art"]
+                    if item.get("plot"):
+                        artwork["plot"] = item["plot"]
+                        break
+        
+            #delete existing files on disk (only at default location)
+            if manualLookup and pvrThumbPath.startswith(WINDOW.getProperty("SkinHelper.pvrthumbspath").decode("utf-8")):
+                if xbmcvfs.exists(pvrThumbPath): recursiveDelete(pvrThumbPath)
+                xbmc.sleep(1500)
                 
-                #lookup existing artwork in pvrthumbs paths
-                if xbmcvfs.exists(pvrThumbPath) and not ("special" in pvrThumbPath and manualLookup):
-                    logMsg("thumbspath found on disk for " + title)
-                    for artType in KodiArtTypes:
-                        artpath = os.path.join(pvrThumbPath,artType[1])
-                        if xbmcvfs.exists(artpath) and not artwork.get(artType[0]):
-                            artwork[artType[0]] = artpath
-                            logMsg("%s found on disk for %s" %(artType[0],title))
-                        
-                #lookup local library
-                if WINDOW.getProperty("SkinHelper.useLocalLibraryLookups") == "true":
-                    item = None
-                    json_result = getJSON('VideoLibrary.GetTvShows','{ "filter": {"operator":"is", "field":"title", "value":"%s"}, "properties": [ %s ] }' %(searchtitle,fields_tvshows))
+            #lookup existing artwork in pvrthumbs paths
+            if xbmcvfs.exists(pvrThumbPath) and not ("special" in pvrThumbPath and manualLookup):
+                logMsg("thumbspath found on disk for " + title)
+                for artType in KodiArtTypes:
+                    artpath = os.path.join(pvrThumbPath,artType[1])
+                    if xbmcvfs.exists(artpath) and not artwork.get(artType[0]):
+                        artwork[artType[0]] = artpath
+                        logMsg("%s found on disk for %s" %(artType[0],title))
+                    
+            #lookup local library
+            if WINDOW.getProperty("SkinHelper.useLocalLibraryLookups") == "true":
+                item = None
+                json_result = getJSON('VideoLibrary.GetTvShows','{ "filter": {"operator":"is", "field":"title", "value":"%s"}, "properties": [ %s ] }' %(searchtitle,fields_tvshows))
+                if len(json_result) > 0:
+                    item = json_result[0]
+                else:
+                    json_result = getJSON('VideoLibrary.GetMovies','{ "filter": {"operator":"is", "field":"title", "value":"%s"}, "properties": [ %s ] }' %(searchtitle,fields_movies))
                     if len(json_result) > 0:
                         item = json_result[0]
+                if item and item.has_key("art"): 
+                    artwork = item["art"]
+                    if item.get("plot"): artwork["plot"] = item["plot"]
+                    logMsg("getPVRThumb artwork found in local library for dbID--> " + dbID)
+                    
+            #Perform the internet scraping
+            if not WINDOW.getProperty("SkinHelper.DisableInternetLookups"):
+
+                #grab artwork from tmdb/fanart.tv
+                if WINDOW.getProperty("SkinHelper.useTMDBLookups") == "true" or manualLookup:
+                    if "movie" in genre.lower():
+                        artwork = getTmdbDetails(searchtitle,artwork,"movie",year,includeCast=False,manualLookup=manualLookup)
+                    elif "tv" in genre.lower():
+                        artwork = getTmdbDetails(searchtitle,artwork,"tv",year,includeCast=False,manualLookup=manualLookup)
                     else:
-                        json_result = getJSON('VideoLibrary.GetMovies','{ "filter": {"operator":"is", "field":"title", "value":"%s"}, "properties": [ %s ] }' %(searchtitle,fields_movies))
-                        if len(json_result) > 0:
-                            item = json_result[0]
-                    if item and item.has_key("art"): 
-                        artwork = item["art"]
-                        if item.get("plot"): artwork["plot"] = item["plot"]
-                        logMsg("getPVRThumb artwork found in local library for dbID--> " + dbID)
-                        
-                #get logo if none found
-                if not artwork.has_key("channellogo") and channel:
-                    artwork["channellogo"] = searchChannelLogo(channel)
-            else:
-                artwork = override
-            
-            #if nothing in library or persistant cache, perform the internet scraping
-            if not cacheFound and not WINDOW.getProperty("SkinHelper.DisableInternetLookups"):
-                    
-                if not override:
-                    #grab artwork from tmdb/fanart.tv
-                    if WINDOW.getProperty("SkinHelper.useTMDBLookups") == "true" or manualLookup:
-                        if "movie" in genre.lower():
-                            artwork = getTmdbDetails(searchtitle,artwork,"movie",year,includeCast=False,manualLookup=manualLookup)
-                        elif "tv" in genre.lower():
-                            artwork = getTmdbDetails(searchtitle,artwork,"tv",year,includeCast=False,manualLookup=manualLookup)
-                        else:
-                            artwork = getTmdbDetails(searchtitle,artwork,"",year,includeCast=False,manualLookup=manualLookup)
-                    
-                    #set thumb to fanart or landscape to prevent youtube/google lookups
-                    if not artwork.get("thumb") and artwork.get("landscape"):
-                        artwork["thumb"] = artwork.get("landscape")
-                    if not artwork.get("thumb") and artwork.get("fanart"):
-                        artwork["thumb"] = artwork.get("fanart")
-                    
-                    #lookup thumb on google as fallback
-                    if not artwork.get("thumb") and channel and WINDOW.getProperty("SkinHelper.useGoogleLookups") == "true":
-                        artwork["thumb"] = searchGoogleImage(searchtitle, channel, manualLookup)
-                    
-                    #lookup thumb on youtube as fallback
-                    if not artwork.get("thumb") and channel and WINDOW.getProperty("SkinHelper.useYoutubeLookups") == "true":
-                        if manualLookup:
-                            artwork["thumb"] = searchYoutubeImage("'%s'" %searchtitle )
-                        else:
-                            artwork["thumb"] = searchYoutubeImage("'%s' '%s'" %(searchtitle, channel) )
+                        artwork = getTmdbDetails(searchtitle,artwork,"",year,includeCast=False,manualLookup=manualLookup)
+                
+                #set thumb to fanart or landscape to prevent youtube/google lookups
+                if not artwork.get("thumb") and artwork.get("landscape"):
+                    artwork["thumb"] = artwork.get("landscape")
+                if not artwork.get("thumb") and artwork.get("fanart"):
+                    artwork["thumb"] = artwork.get("fanart")
+                
+                #lookup thumb on google as fallback
+                if not artwork.get("thumb") and (WINDOW.getProperty("SkinHelper.useGoogleLookups") == "true" or manualLookup):
+                    artwork["thumb"] = searchGoogleImage(searchtitle, channel, manualLookup)
+                
+                #lookup thumb on youtube as fallback
+                if not artwork.get("thumb") and channel and WINDOW.getProperty("SkinHelper.useYoutubeLookups") == "true":
+                    if manualLookup:
+                        artwork["thumb"] = searchYoutubeImage("'%s'" %searchtitle )
+                    else:
+                        artwork["thumb"] = searchYoutubeImage("'%s' '%s'" %(searchtitle, channel) )
+                
+                #Do we have to download the images ?
+                downloadLocal = False
+                if "channels" in pvrtype and WINDOW.getProperty("SkinHelper.cacheGuideEntries")=="true":
+                    downloadLocal = True
+                elif "recordings" in pvrtype and WINDOW.getProperty("SkinHelper.cacheRecordings")=="true":
+                    downloadLocal = True
                 
                 if downloadLocal == True:
                     #download images if we want them local
                     for artType in KodiArtTypes:
-                        if artwork.has_key(artType[0]) and artType[0] != "channellogo": artwork[artType[0]] = downloadImage(artwork[artType[0]],pvrThumbPath,artType[1])
+                        if artwork.has_key(artType[0]): artwork[artType[0]] = downloadImage(artwork[artType[0]],pvrThumbPath,artType[1])
                 
                 #extrafanart images
                 if artwork.get("extrafanarts"):
@@ -209,91 +206,69 @@ def getPVRThumbs(title,channel,type="channels",path="",genre="",year="",ignoreCa
                             count += 1
                         artwork["extrafanart"] = efadir
                     else: artwork["extrafanart"] = "plugin://script.skin.helper.service/?action=EXTRAFANART&path=%s" %(single_urlencode(try_encode(cachefile)))
-                
-                #create persistant cache pvrdetails.xml file...
-                artwork["title"] = title
-                artwork["channel"] = channel
-                artwork["date_scraped"] = "%s" %datetime.now()
-                if path: artwork["path"] = path
-                if genre: artwork["genre"] = genre
-                if not xbmcvfs.exists(pvrThumbPath): xbmcvfs.mkdirs(pvrThumbPath)
-                createNFO(cachefile,artwork)
-                    
+            
+            #add some details to the result
+            artwork["pvr_title"] = title
+            artwork["date_scraped"] = "%s" %datetime.now()
+            artwork["pvr_genre"] = genre
+
         #store in cache for quick access later
-        cache[dbID] = artwork
-        WINDOW.setProperty("SkinHelper.PVR.ArtWork",repr(cache).encode('utf-8'))
+        WINDOW.setProperty(cacheStr, repr(artwork).encode('utf-8'))
+        if not xbmcvfs.exists(pvrThumbPath) or manualLookup: xbmcvfs.mkdir(pvrThumbPath)
+        createNFO(cachefile,artwork)
     
     return artwork
 
 def getAddonArtwork(title,year="",preftype="",ignoreCache=False, manualLookup=False):
+
+    if not year or not title: return {}
+    
+    #get the items from window cache first
+    cacheStr = (u"SkinHelper.Addons.Artwork-%s-%s" %(title,year)).encode("utf-8")
+    cache = WINDOW.getProperty(cacheStr).decode("utf-8")
+    if cache and not ignoreCache:
+        logMsg("getAddonArtwork - return data from cache for %s - year: %s" %(title,year))
+        return eval(cache)
+    
+    #Do we have a persistant cache file for this item ?
+    addonsArtPath = "special://profile/addon_data/script.skin.helper.service/artworkcache/"
+    cachefile = os.path.join(addonsArtPath, normalize_string(u"%s-%s" %(title,year)) + ".xml")
+    cache = getArtworkFromCacheFile(cachefile,artwork)
+    if cache and not ignoreCache:
+        WINDOW.setProperty(cacheStr, repr(artwork).encode("utf-8"))
+        logMsg("getAddonArtwork - return data from permanent cache for %s - year: %s" %(title,year))
+        return cache
+    
+    #nothing in our cache, proceed with lookup...
+    logMsg("getAddonArtwork - no data in cache for %s - year: %s - Starting lookup..." %(title,year))
+    searchtitle = title
     artwork = {}
-    downloadLocal = False
     includeCast = True
-    cacheFound = False
-    
-    if not year: return {}
-    
-    try:
-        dbID = "%s-%s" %(title,year)
+    if manualLookup:
+        searchtitle = xbmcgui.Dialog().input(ADDON.getLocalizedString(32147), title, type=xbmcgui.INPUT_ALPHANUM).decode("utf-8")
+            
+    #if nothing in persistant cache, perform the internet scraping
+    if not WINDOW.getProperty("SkinHelper.DisableInternetLookups"):
+        logMsg("getAddonArtwork no cache found for %s - starting lookup..."%dbID)    
+        #grab artwork from tmdb/fanart.tv
+        if "movie" in preftype:
+            artwork = getTmdbDetails(searchtitle,artwork,"movie",year,includeCast)
+        elif "tv" in preftype or "show" in preftype or "series" in preftype:
+            artwork = getTmdbDetails(searchtitle,artwork,"tv",year,includeCast)
+        else:
+            artwork = getTmdbDetails(searchtitle,artwork,"",year,includeCast)
         
-        #get the items from window cache first
-        cacheStr = "SkinHelper.Addons.Artwork-%s" %dbID
-        cache = WINDOW.getProperty(try_encode(cacheStr)).decode("utf-8")
-        if cache and not ignoreCache:
-            return eval(cache)
-            cacheFound = True
-        
-        #Do we have a persistant cache file (pvrdetails.xml) for this item ?
-        addonsArtPath = "special://profile/addon_data/script.skin.helper.service/artworkcache/"
-        cachefile = os.path.join(addonsArtPath, normalize_string(dbID) + ".xml")
-        if not ignoreCache:
-            artwork = getArtworkFromCacheFile(cachefile,artwork)
-            if artwork: return artwork
-        
-        #nothing in our cache, proceed with lookup...
-        searchtitle = title
-        if manualLookup:
-            searchtitle = xbmcgui.Dialog().input(ADDON.getLocalizedString(32147), title, type=xbmcgui.INPUT_ALPHANUM).decode("utf-8")
+        #extrafanart images
+        if artwork.get("extrafanarts"):
+            artwork["extrafanart"] = "plugin://script.skin.helper.service/?action=EXTRAFANART&path=%s" %(single_urlencode(try_encode(cachefile)))
                 
-        #if nothing in persistant cache, perform the internet scraping
-        if not cacheFound and not WINDOW.getProperty("SkinHelper.DisableInternetLookups"):
-            logMsg("getAddonArtwork no cache found for %s - starting lookup..."%dbID)    
-            #grab artwork from tmdb/fanart.tv
-            if "movie" in preftype:
-                artwork = getTmdbDetails(searchtitle,artwork,"movie",year,includeCast)
-            elif "tv" in preftype or "show" in preftype or "series" in preftype:
-                artwork = getTmdbDetails(searchtitle,artwork,"tv",year,includeCast)
-            else:
-                artwork = getTmdbDetails(searchtitle,artwork,"",year,includeCast)
-            
-            if downloadLocal == True:
-                #download images if we want them local
-                for artType in KodiArtTypes:
-                    if artwork.has_key(artType[0]): artwork[artType[0]] = downloadImage(artwork[artType[0]],addonsArtPath,artType[1])
-            
-            #extrafanart images
-            if artwork.get("extrafanarts"):
-                if downloadLocal:
-                    efadir = os.path.join(addonsArtPath,"extrafanart/")
-                    count = 1
-                    for fanart in eval(artwork.get("extrafanarts")):
-                        downloadImage(fanart,efadir,"fanart%s.jpg"%count)
-                        count += 1
-                    artwork["extrafanart"] = efadir
-                else: artwork["extrafanart"] = "plugin://script.skin.helper.service/?action=EXTRAFANART&path=%s" %(single_urlencode(try_encode(cachefile)))
-            
-            #create persistant cache file...
-            if title:
-                artwork["title"] = title
-                if year and not artwork.get("year"): artwork["year"] = year
-                if not xbmcvfs.exists(addonsArtPath): xbmcvfs.mkdirs(addonsArtPath)
-                createNFO(cachefile,artwork)
-                    
-        #store in cache for quick access later
-        WINDOW.setProperty(try_encode(cacheStr), repr(artwork))
-    except Exception as e:
-        logMsg("ERROR in getAddonArtwork --> " + str(e), 0)
-        
+    #store in cache for quick access later
+    artwork["title"] = title
+    if year and not artwork.get("year"): artwork["year"] = year
+    if not xbmcvfs.exists(addonsArtPath): xbmcvfs.mkdirs(addonsArtPath)
+    createNFO(cachefile,artwork)
+    WINDOW.setProperty(cacheStr, repr(artwork).encode("utf-8"))
+
     return artwork
    
 def getPvrThumbPath(channel,title):
@@ -665,11 +640,14 @@ def searchChannelLogo(searchphrase):
     #get's a thumb image for the given search phrase
     image = ""
     
-    cache = WINDOW.getProperty(searchphrase.encode('utf-8') + "SkinHelper.PVR.ChannelLogo")
-    if cache: return cache
+    cacheStr = "SkinHelper.PVR.ChannelLogo.%s" %searchphrase
+    cache = WINDOW.getProperty(cacheStr.encode('utf-8')).decode("utf-8")
+    if cache: 
+        return cache
     else:
         try:
             #lookup in channel list
+            image = ""
             # Perform a JSON query to get all channels
             if xbmc.getCondVisibility("PVR.HasTVChannels"):
                 json_query = getJSON('PVR.GetChannels', '{"channelgroupid": "alltv", "properties": [ "thumbnail", "channeltype", "hidden", "locked", "channel", "lastplayed", "broadcastnow" ]}' )
@@ -726,7 +704,7 @@ def searchChannelLogo(searchphrase):
             if ".jpg/" in image:
                 image = image.split(".jpg/")[0] + ".jpg"
         
-        WINDOW.setProperty(searchphrase.encode('utf-8') + "SkinHelper.PVR.ChannelLogo",image)
+        WINDOW.setProperty(cacheStr.encode('utf-8'), image.encode("utf-8"))
         return image
 
 def searchGoogleImage(searchphrase1, searchphrase2="",manualLookup=False):

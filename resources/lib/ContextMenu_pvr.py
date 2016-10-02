@@ -24,15 +24,16 @@ if __name__ == '__main__':
     genre = xbmc.getInfoLabel("ListItem.Genre").decode('utf-8')
     year = xbmc.getInfoLabel("ListItem.Year").decode('utf-8')
     ret = xbmcgui.Dialog().select(header, options)
+    pvrtype=WINDOW.getProperty("contenttype")
     if ret == 0:
         #Refresh item (auto lookup)
-        artwork = artworkutils.getPVRThumbs(title,channel,type,path,genre,year,ignoreCache=True, manualLookup=False)
+        artwork = artworkutils.getPVRThumbs(title,channel,pvrtype,path,genre,year,ignoreCache=True, manualLookup=False)
     elif ret == 1:
         #Refresh item (manual lookup)
-        artwork = artworkutils.getPVRThumbs(title,channel,type,path,genre,year,ignoreCache=True, manualLookup=True)
+        artwork = artworkutils.getPVRThumbs(title,channel,pvrtype,path,genre,year,ignoreCache=True, manualLookup=True)
     elif ret == 2:
         #Choose art
-        artwork = artworkutils.getPVRThumbs(title,channel,type,path,genre,year)
+        artwork = artworkutils.getPVRThumbs(title,channel,pvrtype,path,genre,year)
 
         import Dialogs as dialogs
         abort = False
@@ -77,7 +78,7 @@ if __name__ == '__main__':
                     if image:
                         artwork[label] = image
         #save modifications
-        artwork = artworkutils.getPVRThumbs(title,channel,type,path,genre,year,ignoreCache=False, manualLookup=False,override=artwork)
+        artwork = artworkutils.getPVRThumbs(title,channel,pvrtype,path,genre,year,ignoreCache=False, manualLookup=False,override=artwork)
         
     elif ret == 3:
         #Add channel to ignore list
@@ -102,7 +103,6 @@ if __name__ == '__main__':
     #flush properties and set new ones (if any)
     if artwork or ret==3 or ret==4:
         xbmc.sleep(150)
-        WINDOW.setProperty("resetPvrArtCache","reset")
         WINDOW.clearProperty("SkinHelper.PVR.Thumb") 
         WINDOW.clearProperty("SkinHelper.PVR.FanArt") 
         WINDOW.clearProperty("SkinHelper.PVR.ChannelLogo")

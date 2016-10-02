@@ -13,7 +13,6 @@ class Kodi_Monitor(xbmc.Monitor):
     def onSettingsChanged(self):
         utils.setAddonsettings()
         utils.logMsg("onNotification - Addon settings changed!")
-        utils.WINDOW.setProperty("resetPvrArtCache","reset")
     
     def onDatabaseUpdated(self,database):
         utils.logMsg("Kodi_Monitor: onDatabaseUpdated: " + database)

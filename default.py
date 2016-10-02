@@ -226,10 +226,8 @@ class Main:
                 path = params.get("PATH")
                 if path == "pvr":
                     path = utils.WINDOW.getProperty("SkinHelper.pvrthumbspath").decode("utf-8")
-                    utils.WINDOW.setProperty("resetPvrArtCache","reset")
                 elif path == "music":
                     path = "special://profile/addon_data/script.skin.helper.service/musicartcache/"
-                    utils.WINDOW.setProperty("resetMusicArtCache","reset")
                 elif path == "wallbackgrounds":
                     path = "special://profile/addon_data/script.skin.helper.service/wallbackgrounds/"
                     utils.WINDOW.setProperty("resetWallArtCache","reset")

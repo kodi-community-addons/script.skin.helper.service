@@ -32,7 +32,6 @@ class ListItemMonitor(threading.Thread):
     moviesetCache = {}
     extraFanartCache = {}
     streamdetailsCache = {}
-    pvrArtCache = {}
     tmdbinfocache = {}
     omdbinfocache = {}
     imdb_top250 = {}
@@ -135,12 +134,6 @@ class ListItemMonitor(threading.Thread):
                 self.extraFanartCache = {}
                 self.streamdetailsCache = {}
                 WINDOW.clearProperty("resetVideoDbCache")
-
-            #flush cache if pvr settings have changed
-            if WINDOW.getProperty("resetPvrArtCache") == "reset":
-                self.pvrArtCache = {}
-                WINDOW.clearProperty("SkinHelper.PVR.ArtWork")
-                WINDOW.clearProperty("resetPvrArtCache")
             
             if xbmc.getCondVisibility("System.HasModalDialog"):
                 #skip when modal dialogs are opened (e.g. textviewer in musicinfo dialog)
@@ -246,6 +239,7 @@ class ListItemMonitor(threading.Thread):
                             try:
                                 self.setDuration()
                                 thread.start_new_thread(self.setPVRThumbs, (True,))
+                                thread.start_new_thread(self.setPVRChannelLogo, (True,))
                                 self.setGenre()
                             except Exception as e:
                                 logMsg("ERROR in LibraryMonitor ! --> " + str(e), 0)
@@ -631,32 +625,19 @@ class ListItemMonitor(threading.Thread):
         self.setWindowProp('SkinHelper.ListItemDirectors', "[CR]".join(directors))
        
     def setPVRThumbs(self, multiThreaded=False):
-        if WINDOW.getProperty("artworkcontextmenu"): return        
+        if WINDOW.getProperty("artworkcontextmenu"): 
+            return        
         title = self.liTitle
-        channel = xbmc.getInfoLabel("%sListItem.ChannelName"%self.widgetContainerPrefix).decode('utf-8')
-        #path = self.liFile
-        path = self.liPath
-        genre = xbmc.getInfoLabel("%sListItem.Genre"%self.widgetContainerPrefix).decode('utf-8')
-        
+
         if xbmc.getCondVisibility("%sListItem.IsFolder"%self.widgetContainerPrefix) and not channel and not title:
-            #assume grouped recordings curFolder
             title = self.liLabel
         
         if not xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnablePVRThumbs)") or not title:
             return
             
-        if self.exit: return
-        
-        cacheStr = title + channel + "SkinHelper.PVR.Artwork"
-        
-        if self.pvrArtCache.has_key(cacheStr):
-            artwork = self.pvrArtCache[cacheStr]
-        else:           
-            if self.contentType == "tvrecordings": type = "recordings"
-            else: type = "channels"
-            
-            artwork = artutils.getPVRThumbs(title, channel, type, path, genre)
-            self.pvrArtCache[cacheStr] = artwork
+        channel = xbmc.getInfoLabel("%sListItem.ChannelName"%self.widgetContainerPrefix).decode('utf-8')
+        genre = xbmc.getInfoLabel("%sListItem.Genre"%self.widgetContainerPrefix).decode('utf-8')
+        artwork = artutils.getPVRThumbs(title, channel, self.contentType, self.liPath, genre)
         
         #return if another listitem was focused in the meanwhile
         if multiThreaded and not (title == xbmc.getInfoLabel("ListItem.Title").decode('utf-8') or title == xbmc.getInfoLabel("%sListItem.Title"%self.widgetContainerPrefix).decode('utf-8') or title == xbmc.getInfoLabel("%sListItem.Label"%self.widgetContainerPrefix).decode('utf-8')):
@@ -664,7 +645,23 @@ class ListItemMonitor(threading.Thread):
         
         #set window props
         for key, value in artwork.iteritems():
-            self.setWindowProp("SkinHelper.PVR." + key,value)
+            if key != "channellogo":
+                self.setWindowProp("SkinHelper.PVR." + key,value)
+    
+    def setPVRChannelLogo(self, multiThreaded=False):
+        channel = xbmc.getInfoLabel("%sListItem.ChannelName"%self.widgetContainerPrefix).decode('utf-8')
+        if not channel: 
+            return
+
+        icon = artutils.searchChannelLogo(channel)
+        
+        #return if another listitem was focused in the meanwhile
+        if multiThreaded and not (channel == xbmc.getInfoLabel("%sListItem.ChannelName"%self.widgetContainerPrefix).decode('utf-8')):
+            return
+        
+        #set window prop
+        if icon:
+            self.setWindowProp("SkinHelper.PVR.ChannelLogo",icon)
 
     def setStudioLogo(self,studio=""):
         
@@ -1121,24 +1118,16 @@ class ListItemMonitor(threading.Thread):
         #try to lookup additional artwork and properties for plugin content
         preftype = self.contentType
         title = self.liTitle
-        year = xbmc.getInfoLabel("%sListItem.Year"%self.widgetContainerPrefix).decode("utf8")
-        
+
         if not self.contentType in ["movies", "tvshows", "seasons", "episodes", "setmovies"] or not title or not year or not xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnableAddonsLookups)"):
             return
-            
-        if self.exit: return
 
         if xbmc.getCondVisibility("!IsEmpty(%sListItem.TvShowTitle)" %self.widgetContainerPrefix):
             preftype = "tvshows"
             title = xbmc.getInfoLabel("%sListItem.TvShowTitle"%self.widgetContainerPrefix).decode("utf8")
-        
-        cacheStr = title + preftype + "SkinHelper.PVR.Artwork"
 
-        if self.pvrArtCache.has_key(cacheStr):
-            artwork = self.pvrArtCache[cacheStr]
-        else:
-            artwork = artutils.getAddonArtwork(title,year,preftype)
-            self.pvrArtCache[cacheStr] = artwork
+        year = xbmc.getInfoLabel("%sListItem.Year"%self.widgetContainerPrefix).decode("utf8")
+        artwork = artutils.getAddonArtwork(title,year,preftype)
         
         #return if another listitem was focused in the meanwhile
         if multiThreaded and not (title == xbmc.getInfoLabel("%sListItem.Title"%self.widgetContainerPrefix).decode('utf-8') or title == xbmc.getInfoLabel("%sListItem.TvShowTitle"%self.widgetContainerPrefix).decode("utf8")):
