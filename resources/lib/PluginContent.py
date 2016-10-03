@@ -6,6 +6,7 @@ from operator import itemgetter
 from Utils import *
 import ArtworkUtils as artutils
 import random
+import simplecache
 
 hideWatchedItemsInWidgets = SETTING("hideWatchedItemsInWidgets") == "true"
 nextupInprogressShowsOnly = SETTING("nextupInprogressShowsOnly") == "true"
@@ -44,7 +45,7 @@ def getPluginListing(action,limit,refresh=None,optionalParam=None,randomize=Fals
         xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_LABEL)
     else: type = "files"
     if "AIRED" in action:
-        refresh = WINDOW.getProperty("widgetreload2")
+        refresh = WINDOW.getProperty("widgetreload2")+WINDOW.getProperty("widgetreload-tvshows")
     if "RECENT" in action and not "PLAYED" in action:
         xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATEADDED)
     if "RECENT" in action and "PLAYED" in action:
@@ -55,16 +56,15 @@ def getPluginListing(action,limit,refresh=None,optionalParam=None,randomize=Fals
         xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_UNSORTED)
     if "FAVOURITE" in action: 
         refresh = time.strftime("%Y%m%d%H%M%S", time.gmtime())
-    
-    cacheStr = "skinhelper-%s-%s-%s-%s-%s" %(action,limit,optionalParam,refresh,randomize)
-    
+
     #set widget content type
     xbmcplugin.setContent(int(sys.argv[1]), type)
     
     #try to get from cache first...
-    cache = WINDOW.getProperty(cacheStr).decode("utf-8")
+    cacheChecksum = "%s-%s-%s-%s" %(limit,optionalParam,refresh,randomize)
+    cache = simplecache.get(action,cacheChecksum)
     if cache:
-        allItems = eval(cache)
+        allItems = cache
             
     #Call the correct method to get the content from json when no cache
     if not allItems:
@@ -73,20 +73,16 @@ def getPluginListing(action,limit,refresh=None,optionalParam=None,randomize=Fals
             allItems = eval(action)(limit,optionalParam)
         else:
             allItems = eval(action)(limit)
-        if randomize: allItems = sorted(allItems, key=lambda k: random.random())
+        if randomize: 
+            allItems = sorted(allItems, key=lambda k: random.random())
+        
+        #prepare listitems and store in cache
         allItems = prepareListItems(allItems)
-        #save the cache
-        WINDOW.setProperty(cacheStr, repr(allItems).encode("utf-8"))
+        simplecache.set(action,allItems,cacheChecksum)
     
     #fill that listing...
-    for item in allItems:
-        if item.get("file"):
-            liz = createListItem(item)
-            isFolder = item.get("isFolder",False)
-            xbmcplugin.addDirectoryItem(int(sys.argv[1]), item['file'], liz, isFolder)
-            count += 1
-            if count == limit or WINDOW.getProperty("SkinHelperShutdownRequested"):
-                break
+    allItems = createListItems(allItems)
+    xbmcplugin.addDirectoryItems(int(sys.argv[1]), allItems, len(allItems))
     
     #end directory listing
     xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
@@ -297,7 +293,7 @@ def PVRCHANNELGROUPS(limit):
         for item in json_query:
             item["file"] = "pvr://channels/tv/%s/" %(item["label"])
             item["title"] = item["label"]
-            liz = createListItem(item)
+            liz = createListItem(item,False)
             liz.setProperty('IsPlayable', 'false')
             xbmcplugin.addDirectoryItem(int(sys.argv[1]), item['file'], liz, True)
             count += 1
@@ -538,6 +534,7 @@ def NEXTAIREDEPISODES(limit):
         extraprops = {}
         extraprops["airday"] = episode["seriesinfo"]["airsDayOfWeek"]
         extraprops["airtime"] = episode["seriesinfo"]["airsTime"]
+        extraprops["DBTYPE"] = "episode"
         episode["extraproperties"] = extraprops
     return episodes
     

@@ -176,12 +176,17 @@ class ListItemMonitor(threading.Thread):
                             self.setContentHeader()
                             
                 curListItem ="%s--%s--%s--%s" %(curFolder, self.liLabel, self.liTitle, self.contentType)
-                WINDOW.setProperty("curListItem",try_encode(curListItem))
 
                 #only perform actions when the listitem has actually changed
                 if curListItem and curListItem != lastListItem and self.contentType:
                     #clear all window props first
                     self.resetWindowProps()
+                    
+                    self.setWindowProp("curListItem",curListItem)
+                    
+                    #widget properties
+                    if self.widgetContainerPrefix:
+                        self.setWidgetDetails()
 
                     #generic props
                     self.liPath = xbmc.getInfoLabel("%sListItem.Path" %self.widgetContainerPrefix).decode('utf-8')
@@ -623,19 +628,42 @@ class ListItemMonitor(threading.Thread):
             directors.append(director)
         
         self.setWindowProp('SkinHelper.ListItemDirectors', "[CR]".join(directors))
-       
+    
+    def setWidgetDetails(self):
+        #sets all listitem properties as window prop for easy use in a widget details pane
+        props = [ "Label","Label2","Title","Date","Year","TvShowTitle","Genre",
+                "Premiered","Duration","Plot", "PlotOutline", "icon", "thumb", "Property(FanArt)", 
+                "dbtype", "Property(dbtype)", "Property(plot)", "FolderPath", "Tagline", "rating" ]
+        if self.contentType in ["movies", "tvshows", "seasons", "episodes", "musicvideos"]:
+            props += ["imdbnumber","Art(poster)","Art(clearlogo)","Art(clearart)", "Art(landscape)", "studio", 
+                      "director", "writer", "firstaired" ]
+        if self.contentType in ["episodes"]:
+            props += ["season","episode", "Art(tvshow.landscape)","Art(tvshow.clearlogo)","Art(tvshow.poster)"]
+        if self.contentType in ["musicvideos", "artists", "albums", "songs"]:
+            props += ["artist", "album", ""]
+        if self.contentType in ["tvrecordings", "tvchannels"]:
+            props += ["Property(Channel)", "Property(StartDateTime)", "DateTime", "Date", "ChannelName", "Property(ChannelLogo)"]
+
+        for prop in props:
+            propvalue = xbmc.getInfoLabel('%sListItem.%s'%(self.widgetContainerPrefix, prop)).decode('utf-8')
+            if propvalue:
+                self.setWindowProp('SkinHelper.ListItem.%s' %prop, propvalue)
+                if prop.startswith("Property"): 
+                    prop = prop.replace("Property(","").replace(")","")
+                    self.setWindowProp('SkinHelper.ListItem.%s' %prop, propvalue)
+    
     def setPVRThumbs(self, multiThreaded=False):
         if WINDOW.getProperty("artworkcontextmenu"): 
             return        
         title = self.liTitle
-
+        
+        channel = xbmc.getInfoLabel("%sListItem.ChannelName"%self.widgetContainerPrefix).decode('utf-8')
         if xbmc.getCondVisibility("%sListItem.IsFolder"%self.widgetContainerPrefix) and not channel and not title:
             title = self.liLabel
         
         if not xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnablePVRThumbs)") or not title:
             return
             
-        channel = xbmc.getInfoLabel("%sListItem.ChannelName"%self.widgetContainerPrefix).decode('utf-8')
         genre = xbmc.getInfoLabel("%sListItem.Genre"%self.widgetContainerPrefix).decode('utf-8')
         artwork = artutils.getPVRThumbs(title, channel, self.contentType, self.liPath, genre)
         

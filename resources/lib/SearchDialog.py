@@ -281,14 +281,14 @@ class BackgroundSearchThread(threading.Thread):
         json_response = getJSON('VideoLibrary.GetMovies', '{"properties": [%s], "limits": {"end":50}, "sort": { "method": "label" }, "filter": {"field":"title","operator":"contains","value":"%s"} }' % (fields_movies,search))
         for item in json_response:
             item = prepareListItem(item)
-            liz = createListItem(item)
+            liz = createListItem(item,False)
             movieResultsList.addItem(liz)
 
         # Process TV Shows
         json_response = getJSON('VideoLibrary.GetTVShows', '{"properties": [%s], "limits": {"end":50}, "sort": { "method": "label" }, "filter": {"field": "title", "operator": "contains", "value": "%s"} }' % (fields_tvshows,search))
         for item in json_response:
             item = prepareListItem(item)
-            liz = createListItem(item)
+            liz = createListItem(item,False)
             tvshowid = str(item['tvshowid'])
             path = 'videodb://tvshows/titles/' + tvshowid + '/'
             liz.setPath(path)
@@ -300,5 +300,5 @@ class BackgroundSearchThread(threading.Thread):
         json_response = getJSON('VideoLibrary.GetEpisodes', '{ "properties": [%s], "limits": {"end":50}, "sort": { "method": "title" }, "filter": {"field": "title", "operator": "contains", "value": "%s"} }' % (fields_episodes,search))
         for item in json_response:
             item = prepareListItem(item)
-            liz = createListItem(item)
+            liz = createListItem(item,False)
             episodeResultsList.addItem(liz)

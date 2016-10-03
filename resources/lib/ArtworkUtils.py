@@ -153,7 +153,7 @@ def getPVRThumbs(title,channel,pvrtype="channels",path="",genre="",
                 if item and item.has_key("art"): 
                     artwork = item["art"]
                     if item.get("plot"): artwork["plot"] = item["plot"]
-                    logMsg("getPVRThumb artwork found in local library for dbID--> " + dbID)
+                    logMsg("getPVRThumb artwork found in local library for %s" %title)
                     
             #Perform the internet scraping
             if not WINDOW.getProperty("SkinHelper.DisableInternetLookups"):
@@ -249,7 +249,7 @@ def getAddonArtwork(title,year="",preftype="",ignoreCache=False, manualLookup=Fa
             
     #if nothing in persistant cache, perform the internet scraping
     if not WINDOW.getProperty("SkinHelper.DisableInternetLookups"):
-        logMsg("getAddonArtwork no cache found for %s - starting lookup..."%dbID)    
+        logMsg("getAddonArtwork no cache found for %s - starting lookup..."%title)    
         #grab artwork from tmdb/fanart.tv
         if "movie" in preftype:
             artwork = getTmdbDetails(searchtitle,artwork,"movie",year,includeCast)

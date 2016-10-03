@@ -9,6 +9,7 @@
         <import addon="script.module.beautifulsoup" version="3.0.8" />
         <import addon="script.module.thetvdb" version="0.0.1" />
         <import addon="script.module.musicbrainz" version="0.0.1" />
+        <import addon="script.module.simplecache" version="1.0.0"/>
 	</requires>
 	
     <extension point="kodi.context.item">

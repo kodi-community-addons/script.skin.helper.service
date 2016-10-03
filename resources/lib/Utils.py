@@ -246,7 +246,7 @@ def try_decode(text, encoding="utf-8"):
     except:
         return text       
  
-def createListItem(item):
+def createListItem(item,asTuple=True):
     liz = xbmcgui.ListItem(label=item.get("label",""),label2=item.get("label2",""))
     liz.setProperty('IsPlayable', item.get('IsPlayable','true'))
     liz.setPath(item.get('file'))
@@ -335,8 +335,24 @@ def createListItem(item):
         liz.setIconImage(item.get('icon'))
     if item.get("thumbnail"):
         liz.setThumbnailImage(item.get('thumbnail'))
-    return liz
+        
+    if asTuple:
+        return (item["file"], liz, item.get("isFolder",False))
+    else:
+        return liz
 
+def createListItems(items):
+    listitems = []
+    if supportsPool:
+        pool = Pool()
+        listitems = pool.map(createListItem, items)
+        pool.close()
+        pool.join()
+    else:
+        for item in items:
+            listitems.append(createListItem(item,True))
+    return listitems
+    
 def prepareListItems(items):
     listitems = []
     if supportsPool:

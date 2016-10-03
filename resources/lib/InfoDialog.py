@@ -51,7 +51,7 @@ class GUI( xbmcgui.WindowXMLDialog ):
         
         if item:        
             liz = prepareListItem(item)
-            liz = createListItem(item)
+            liz = createListItem(item,False)
             self.listitem = liz
             self.lastwidgetcontainer = params.get("lastwidgetcontainer","")
             WINDOW.setProperty("SkinHelper.WidgetContainer","999")
@@ -141,7 +141,7 @@ class BackgroundInfoThread(threading.Thread):
             for item in similarcontent:
                 if not self.active: break
                 item = plugincontent.prepareListItem(item)
-                liz = plugincontent.createListItem(item)
+                liz = plugincontent.createListItem(item,False)
                 liz.setThumbnailImage(item["art"].get("poster"))
                 similarlist.addItem(liz)
         except Exception as e:
