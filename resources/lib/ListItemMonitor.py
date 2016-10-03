@@ -28,7 +28,7 @@ class ListItemMonitor(threading.Thread):
     allStudioLogos = {}
     allStudioLogosColor = {}
     LastCustomStudioImagesPath = ""
-    widgetTaskInterval = 590
+    widgetTaskInterval = 520
     moviesetCache = {}
     extraFanartCache = {}
     streamdetailsCache = {}
@@ -631,9 +631,10 @@ class ListItemMonitor(threading.Thread):
     
     def setWidgetDetails(self):
         #sets all listitem properties as window prop for easy use in a widget details pane
-        props = [ "Label","Label2","Title","Date","Year","TvShowTitle","Genre",
-                "Premiered","Duration","Plot", "PlotOutline", "icon", "thumb", "Property(FanArt)", 
-                "dbtype", "Property(dbtype)", "Property(plot)", "FolderPath", "Tagline", "rating" ]
+        props = [ "Label","Label2","Title","Date","Year","TvShowTitle","Genre", "Filenameandpath", "FileName", "Property(Video3DFormat)",
+                "FileExtension","Premiered","Duration","Plot", "PlotOutline", "icon", "thumb", "Property(FanArt)", 
+                "dbtype", "Property(dbtype)", "Property(plot)", "FolderPath", "Tagline", "rating", "Date", "Property(Date)", 
+                "VideoResolution","AudioCodec","AudioChannels","VideoCodec","VideoAspect","SubtitleLanguage","AudioLanguage","MPAA", "IsStereoScopic"]
         if self.contentType in ["movies", "tvshows", "seasons", "episodes", "musicvideos"]:
             props += ["imdbnumber","Art(poster)","Art(clearlogo)","Art(clearart)", "Art(landscape)", "studio", 
                       "director", "writer", "firstaired" ]
@@ -642,7 +643,9 @@ class ListItemMonitor(threading.Thread):
         if self.contentType in ["musicvideos", "artists", "albums", "songs"]:
             props += ["artist", "album", ""]
         if self.contentType in ["tvrecordings", "tvchannels"]:
-            props += ["Property(Channel)", "Property(StartDateTime)", "DateTime", "Date", "ChannelName", "Property(ChannelLogo)"]
+            props += ["Channel", "Property(Channel)", "Property(StartDateTime)", "DateTime",
+                      "Property(DateTime)", "ChannelName", "Property(ChannelLogo)", "Property(ChannelName)",
+                      "StartTime","Property(StartTime)","StartDate","Property(StartDate)","EndTime","Property(EndTime)","EndDate","Property(EndDate)"]
 
         for prop in props:
             propvalue = xbmc.getInfoLabel('%sListItem.%s'%(self.widgetContainerPrefix, prop)).decode('utf-8')
@@ -1146,6 +1149,7 @@ class ListItemMonitor(threading.Thread):
         #try to lookup additional artwork and properties for plugin content
         preftype = self.contentType
         title = self.liTitle
+        year = xbmc.getInfoLabel("%sListItem.Year"%self.widgetContainerPrefix).decode('utf-8')
 
         if not self.contentType in ["movies", "tvshows", "seasons", "episodes", "setmovies"] or not title or not year or not xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnableAddonsLookups)"):
             return
@@ -1154,7 +1158,6 @@ class ListItemMonitor(threading.Thread):
             preftype = "tvshows"
             title = xbmc.getInfoLabel("%sListItem.TvShowTitle"%self.widgetContainerPrefix).decode("utf8")
 
-        year = xbmc.getInfoLabel("%sListItem.Year"%self.widgetContainerPrefix).decode("utf8")
         artwork = artutils.getAddonArtwork(title,year,preftype)
         
         #return if another listitem was focused in the meanwhile

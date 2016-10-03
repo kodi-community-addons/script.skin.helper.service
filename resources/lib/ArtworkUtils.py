@@ -11,6 +11,7 @@ import BeautifulSoup
 import htmlentitydefs
 import urllib2, re
 from difflib import SequenceMatcher as SM
+import simplecache
 
 requests.packages.urllib3.disable_warnings()
 s = requests.Session()
@@ -219,37 +220,24 @@ def getPVRThumbs(title,channel,pvrtype="channels",path="",genre="",
     
     return artwork
 
-def getAddonArtwork(title,year="",preftype="",ignoreCache=False, manualLookup=False):
+def getAddonArtwork(title,year="",preftype=""):
 
-    if not year or not title: return {}
+    if not year or not title: 
+        return {}
     
-    #get the items from window cache first
-    cacheStr = (u"SkinHelper.Addons.Artwork-%s-%s" %(title,year)).encode("utf-8")
-    cache = WINDOW.getProperty(cacheStr).decode("utf-8")
-    if cache and not ignoreCache:
+    #get the items from cache first
+    cacheStr = u"SkinHelper.Artwork-%s-%s" %(title,year)
+    cache = simplecache.get(cacheStr)
+    if cache:
         logMsg("getAddonArtwork - return data from cache for %s - year: %s" %(title,year))
-        return eval(cache)
-    
-    #Do we have a persistant cache file for this item ?
-    addonsArtPath = "special://profile/addon_data/script.skin.helper.service/artworkcache/"
-    cachefile = os.path.join(addonsArtPath, normalize_string(u"%s-%s" %(title,year)) + ".xml")
-    cache = getArtworkFromCacheFile(cachefile,artwork)
-    if cache and not ignoreCache:
-        WINDOW.setProperty(cacheStr, repr(artwork).encode("utf-8"))
-        logMsg("getAddonArtwork - return data from permanent cache for %s - year: %s" %(title,year))
         return cache
     
     #nothing in our cache, proceed with lookup...
-    logMsg("getAddonArtwork - no data in cache for %s - year: %s - Starting lookup..." %(title,year))
-    searchtitle = title
     artwork = {}
-    includeCast = True
-    if manualLookup:
-        searchtitle = xbmcgui.Dialog().input(ADDON.getLocalizedString(32147), title, type=xbmcgui.INPUT_ALPHANUM).decode("utf-8")
-            
-    #if nothing in persistant cache, perform the internet scraping
     if not WINDOW.getProperty("SkinHelper.DisableInternetLookups"):
-        logMsg("getAddonArtwork no cache found for %s - starting lookup..."%title)    
+        logMsg("getAddonArtwork - no data in cache for %s - year: %s - Starting lookup..." %(title,year))
+        searchtitle = title
+        includeCast = True
         #grab artwork from tmdb/fanart.tv
         if "movie" in preftype:
             artwork = getTmdbDetails(searchtitle,artwork,"movie",year,includeCast)
@@ -260,14 +248,12 @@ def getAddonArtwork(title,year="",preftype="",ignoreCache=False, manualLookup=Fa
         
         #extrafanart images
         if artwork.get("extrafanarts"):
-            artwork["extrafanart"] = "plugin://script.skin.helper.service/?action=EXTRAFANART&path=%s" %(single_urlencode(try_encode(cachefile)))
+            artwork["extrafanart"] = "plugin://script.skin.helper.service/?action=EXTRAFANART&path=%s" %(single_urlencode(try_encode(simplecache.getCacheFile(cacheStr))))
                 
-    #store in cache for quick access later
-    artwork["title"] = title
-    if year and not artwork.get("year"): artwork["year"] = year
-    if not xbmcvfs.exists(addonsArtPath): xbmcvfs.mkdirs(addonsArtPath)
-    createNFO(cachefile,artwork)
-    WINDOW.setProperty(cacheStr, repr(artwork).encode("utf-8"))
+        #store in cache for quick access later
+        artwork["title"] = title
+        if year and not artwork.get("year"): artwork["year"] = year
+        simplecache.set(cacheStr,artwork)
 
     return artwork
    
@@ -575,12 +561,13 @@ def getActorImage(actorname):
 
 def searchThumb(searchphrase, searchphrase2=""):
     #general method to perform online image search by querying all providers
-    thumb = WINDOW.getProperty("SkinHelper.Thumbcache-" + try_encode(searchphrase)).decode("utf-8")
+    cacheStr = "SkinHelper.Thumb.%s.%s" %(searchphrase,searchphrase2)
+    thumb = simplecache.get(cacheStr)
     if not thumb: thumb = getActorImage(searchphrase).get("thumb","")
     if not thumb: thumb = getTmdbDetails(searchphrase).get("poster","")
     if not thumb: thumb = searchGoogleImage(searchphrase,searchphrase2)
     if not thumb: thumb = searchYoutubeImage(searchphrase,searchphrase2)
-    WINDOW.setProperty("SkinHelper.Thumbcache-"+try_encode(searchphrase),thumb)
+    simplecache.set(cacheStr)
     return thumb
     
 def downloadImage(imageUrl,thumbsPath, filename, allowoverwrite=False):
@@ -641,7 +628,7 @@ def searchChannelLogo(searchphrase):
     image = ""
     
     cacheStr = "SkinHelper.PVR.ChannelLogo.%s" %searchphrase
-    cache = WINDOW.getProperty(cacheStr.encode('utf-8')).decode("utf-8")
+    cache = simplecache.get(cacheStr)
     if cache: 
         return cache
     else:
@@ -704,7 +691,7 @@ def searchChannelLogo(searchphrase):
             if ".jpg/" in image:
                 image = image.split(".jpg/")[0] + ".jpg"
         
-        WINDOW.setProperty(cacheStr.encode('utf-8'), image.encode("utf-8"))
+        simplecache.set(cacheStr,image)
         return image
 
 def searchGoogleImage(searchphrase1, searchphrase2="",manualLookup=False):
@@ -763,8 +750,9 @@ def getAnimatedPostersDb():
     
     #try window cache first
     cacheStr = "SkinHelper.AnimatedArtwork"
-    cache = WINDOW.getProperty(cacheStr).decode("utf-8")
-    if cache: return eval(cache)
+    cache = simplecache.get(cacheStr)
+    if cache: 
+        return cache
 
     #get all animated posters from the online json file
     
@@ -788,7 +776,7 @@ def getAnimatedPostersDb():
                 allItems[imdbid + 'poster'] = posters
                 allItems[imdbid + 'fanart'] = fanarts
     #store in cache
-    WINDOW.setProperty(cacheStr, repr(allItems))
+    simplecache.set(cacheStr,allItems,expiration=timedelta(days=2))
     return allItems
               
 def getAnimatedArtwork(imdbid,arttype="poster",dbid=None,manualHeader=""):
@@ -797,91 +785,94 @@ def getAnimatedArtwork(imdbid,arttype="poster",dbid=None,manualHeader=""):
     
     #get the item from cache first
     cacheStr = "SkinHelper.AnimatedArtwork.%s.%s" %(imdbid,arttype)
-    cache = WINDOW.getProperty(cacheStr).decode('utf-8')
+    cache = simplecache.get(cacheStr)
     if cache and not manualHeader:
-        image = cache
-    else:
-        image = ""
-        logMsg("Get Animated %s for imdbid: %s " %(arttype,imdbid))
+        return cache
+
+    #no cache - proceed with lookup
+    image = ""
+    logMsg("Get Animated %s for imdbid: %s " %(arttype,imdbid))
+    
+    #check local first
+    localfilename = "special://thumbnails/animatedgifs/%s_%s.gif" %(imdbid,arttype)
+    localfilenamenone = "special://thumbnails/animatedgifs/%s_%s.none" %(imdbid,arttype)
+    if xbmcvfs.exists(localfilename) and not manualHeader:
+        image = localfilename
+    elif xbmcvfs.exists(localfilenamenone) and not manualHeader:
+        image = "None"
+    else:    
+        #lookup in database
+        all_artwork = getAnimatedPostersDb()
         
-        #check local first
-        localfilename = "special://thumbnails/animatedgifs/%s_%s.gif" %(imdbid,arttype)
-        localfilenamenone = "special://thumbnails/animatedgifs/%s_%s.none" %(imdbid,arttype)
-        if xbmcvfs.exists(localfilename) and not manualHeader:
+        if manualHeader:
+            #present selectbox to let the user choose the artwork
+            imagesList = []
+            #add none entry
+            listitem = xbmcgui.ListItem(label=ADDON.getLocalizedString(32013))
+            listitem.setProperty("icon","DefaultAddonNone.png")
+            imagesList.append(listitem)
+            #add browse entry
+            listitem = xbmcgui.ListItem(label=ADDON.getLocalizedString(32176))
+            listitem.setProperty("icon","DefaultFolder.png")
+            imagesList.append(listitem)
+            #append online images
+            if all_artwork.get(imdbid + arttype):
+                for img in all_artwork[imdbid + arttype]:
+                    listitem = xbmcgui.ListItem(label=img)
+                    listitem.setProperty("icon","http://www.consiliumb.com/animatedgifs/%s"%img)
+                    imagesList.append(listitem)
+            import Dialogs as dialogs
+            w = dialogs.DialogSelectBig( "DialogSelect.xml", ADDON_PATH, listing=imagesList, windowtitle=manualHeader, multiselect=False )
+            xbmc.executebuiltin( "Dialog.Close(busydialog)" )
+            w.doModal()
+            selectedItem = w.result
+            xbmc.executebuiltin( "ActivateWindow(busydialog)" )
+            if selectedItem == 0:
+                image = "None"
+            elif selectedItem == 1:
+                image = xbmcgui.Dialog().browse( 2 , ADDON.getLocalizedString(32176), 'files', mask='.gif').decode("utf-8")
+            elif selectedItem != -1:
+                selectedItem = imagesList[selectedItem]
+                image = selectedItem.getProperty("icon").decode("utf-8")
+                    
+        elif all_artwork.get(imdbid + arttype):
+            #just select the first image...
+            image = "http://www.consiliumb.com/animatedgifs/%s" %all_artwork[imdbid + arttype][0]
+            
+        #save to file
+        xbmcvfs.delete(localfilename)
+        xbmcvfs.delete(localfilenamenone)
+        if image == "None":
+            #write empty file to prevent recurring lookups
+            file =  xbmcvfs.File(localfilenamenone,"w")
+            file.write("")
+            file.close()
+        elif image:
+            try:
+                urllib.URLopener().retrieve(image.replace(".gif","_original.gif"), xbmc.translatePath(localfilename).decode("utf-8"))
+            except:
+                if "consiliumb" in image:
+                    image = image.replace(".gif","_original.gif")
+                xbmcvfs.copy(image,localfilename)
+                xbmc.sleep(150)
             image = localfilename
-        elif xbmcvfs.exists(localfilenamenone) and not manualHeader:
-            image = "None"
-        else:    
-            #lookup in database
-            all_artwork = getAnimatedPostersDb()
-            
-            if manualHeader:
-                #present selectbox to let the user choose the artwork
-                imagesList = []
-                #add none entry
-                listitem = xbmcgui.ListItem(label=ADDON.getLocalizedString(32013))
-                listitem.setProperty("icon","DefaultAddonNone.png")
-                imagesList.append(listitem)
-                #add browse entry
-                listitem = xbmcgui.ListItem(label=ADDON.getLocalizedString(32176))
-                listitem.setProperty("icon","DefaultFolder.png")
-                imagesList.append(listitem)
-                #append online images
-                if all_artwork.get(imdbid + arttype):
-                    for img in all_artwork[imdbid + arttype]:
-                        listitem = xbmcgui.ListItem(label=img)
-                        listitem.setProperty("icon","http://www.consiliumb.com/animatedgifs/%s"%img)
-                        imagesList.append(listitem)
-                import Dialogs as dialogs
-                w = dialogs.DialogSelectBig( "DialogSelect.xml", ADDON_PATH, listing=imagesList, windowtitle=manualHeader, multiselect=False )
-                xbmc.executebuiltin( "Dialog.Close(busydialog)" )
-                w.doModal()
-                selectedItem = w.result
-                xbmc.executebuiltin( "ActivateWindow(busydialog)" )
-                if selectedItem == 0:
-                    image = "None"
-                elif selectedItem == 1:
-                    image = xbmcgui.Dialog().browse( 2 , ADDON.getLocalizedString(32176), 'files', mask='.gif').decode("utf-8")
-                elif selectedItem != -1:
-                    selectedItem = imagesList[selectedItem]
-                    image = selectedItem.getProperty("icon").decode("utf-8")
-                        
-            elif all_artwork.get(imdbid + arttype):
-                #just select the first image...
-                image = "http://www.consiliumb.com/animatedgifs/%s" %all_artwork[imdbid + arttype][0]
-                
-            #save to file
-            xbmcvfs.delete(localfilename)
-            xbmcvfs.delete(localfilenamenone)
-            if image == "None":
-                #write empty file to prevent recurring lookups
-                file =  xbmcvfs.File(localfilenamenone,"w")
-                file.write("")
-                file.close()
-            elif image:
-                try:
-                    urllib.URLopener().retrieve(image.replace(".gif","_original.gif"), xbmc.translatePath(localfilename).decode("utf-8"))
-                except:
-                    if "consiliumb" in image:
-                        image = image.replace(".gif","_original.gif")
-                    xbmcvfs.copy(image,localfilename)
-                    xbmc.sleep(150)
-                image = localfilename
-            
-            #save in kodi db
-            if dbid and image and image != "None":
-                setJSON('VideoLibrary.SetMovieDetails','{ "movieid": %i, "art": { "animated%s": "%s" } }'%(int(dbid),arttype,image))
-            elif dbid and image == "None":
-                setJSON('VideoLibrary.SetMovieDetails','{ "movieid": %i, "art": { "animated%s": null } }'%(int(dbid),arttype))
-            
-            #set image to none if empty to prevent further lookups untill next restart
-            if not image: image = "None"
-            
-            #save in window cache
-            WINDOW.setProperty(cacheStr,image)
-            
-            if manualHeader: 
-                xbmc.executebuiltin( "Dialog.Close(busydialog)" )
+        
+        #save in kodi db
+        if dbid and image and image != "None":
+            setJSON('VideoLibrary.SetMovieDetails','{ "movieid": %i, "art": { "animated%s": "%s" } }'%(int(dbid),arttype,image))
+        elif dbid and image == "None":
+            setJSON('VideoLibrary.SetMovieDetails','{ "movieid": %i, "art": { "animated%s": null } }'%(int(dbid),arttype))
+        
+        #set image to none if empty to prevent further lookups untill next restart
+        if not image: image = "None"
+        
+    #save in cache
+    if image == "None":
+        simplecache.set(cacheStr,image,expiration=timedelta(days=2))
+    else:
+        simplecache.set(cacheStr,image,expiration=timedelta(days=30))
+    if manualHeader: 
+        xbmc.executebuiltin( "Dialog.Close(busydialog)" )
     return image
     
 def getGoogleImages(terms,**kwargs):
@@ -1203,9 +1194,7 @@ def getAlbumArtwork(musicbrainzalbumid, artwork=None, allowoverwrite=True):
                 f.close()
             artwork["folder"] = new_file
         except: pass
-    
-    
-    
+
     return artwork
     
 def preCacheAllMusicArt(skipOnCache=False):

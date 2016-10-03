@@ -1493,18 +1493,6 @@ Note: By providing the reload-parameter set to the widgetreload2 property, the w
 
 ________________________________________________________________________________________________________
 
-#####My TV Shows Airing today
-```
-plugin://script.skin.helper.service/?action=nextairedtvshows&amp;reload=$INFO[Window(Home).Property(widgetreload2)]
-```
-Provides a list of the shows from the library that are airing today - requires script.tv.show.next.aired
-The listitems will have the properties as described here: http://kodi.wiki/view/Add-on:TV_Show_-_Next_Aired#Airing_today
-For example: ListItem.Property(NextTitle)
-Note: By providing the reload-parameter set to the widgetreload2 property, the widget will be updated every 10 minutes.
-
-
-________________________________________________________________________________________________________
-
 #####PVR TV Channels widget
 ```
 plugin://script.skin.helper.service/?action=pvrchannels&amp;limit=[LIMIT]&amp;reload=$INFO[Window(Home).Property(widgetreload2)]
@@ -1540,8 +1528,6 @@ plugin://script.skin.helper.service/?action=unairedepisodes&amp;reload=$INFO[Win
 ```
 Provides a listing for episodes for tvshows in the Kodi library that are airing within the next 2 months.
 
-CAUTION: Requires script.module.thetvdb which is not yet in any repo (BETA stage), get it from github for now.
-
 All listitem properties should be the same as any other episode listitem, 
 all properties should be correctly filled with the correct info.
 Just treat the widget as any other episode widget and you should have all the details properly set.
@@ -1568,8 +1554,6 @@ plugin://script.skin.helper.service/?action=nextairedepisodes&amp;reload=$INFO[W
 Provides the next unaired episode for each tvshow in the library which is airing within the next 2 months.
 Difference with the unaired episodes is that it will only show the first airing episode for each show while unaired episodes shows all airing episodes.
 Also, the next airing episodes looks 45 days ahead for airing episodes while the unaired episodes looks 120 days ahead.
-
-CAUTION: Requires script.module.thetvdb which is not yet in any repo (BETA stage), get it from github for now.
 
 For the listitem properties, see the "unaired episodes" plugin path.
 ________________________________________

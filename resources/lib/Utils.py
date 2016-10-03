@@ -469,6 +469,7 @@ def prepareListItem(item):
         properties["Date"] = fulldate
         properties["StartDateTime"] = starttime[0] + " " + starttime[1]
         item["date"] = starttime[0]
+        item["premiered"] = starttime[0]
     if item.get("channellogo"): 
         properties["channellogo"] = item["channellogo"]
         properties["channelicon"] = item["channellogo"]
@@ -679,6 +680,8 @@ def getCurrentContentType(containerprefix=""):
             contenttype = xbmc.getInfoLabel("%sListItem.Property(DBTYPE)" %containerprefix) + "s"
         elif xbmc.getCondVisibility("SubString(%sListItem.FileNameAndPath,playrecording) | SubString(%sListItem.FileNameAndPath,tvtimer)" %(containerprefix,containerprefix)):
             contenttype = "tvrecordings"
+        elif xbmc.getCondVisibility("SubString(%sListItem.FileNameAndPath,launchpvr)" %(containerprefix)):
+            contenttype = "tvchannels"
         elif xbmc.getCondVisibility("SubString(%sListItem.FolderPath,pvr://channels)" %containerprefix):
             contenttype = "tvchannels"
         elif xbmc.getCondVisibility("SubString(%sListItem.FolderPath,flix2kodi) + SubString(%sListItem.Genre,Series)" %(containerprefix,containerprefix)):

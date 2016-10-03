@@ -16,7 +16,7 @@ def getPluginListing(action,limit,refresh=None,optionalParam=None,randomize=Fals
     #general method to get a widget/plugin listing and check cache etc.
     count = 0
     allItems = []
-    cachePath = os.path.join(ADDON_DATA_PATH,"widgetcache-%s.json" %action)
+
     #get params for each action
     if "EPISODES" in action: 
         type = "episodes"
@@ -30,11 +30,14 @@ def getPluginListing(action,limit,refresh=None,optionalParam=None,randomize=Fals
     elif "MEDIA" in action: 
         type = "movies"
         refresh = WINDOW.getProperty("widgetreload2")
-    elif "PVR" in action: 
+    elif "PVR" in action:
         type = "episodes"
         refresh = WINDOW.getProperty("widgetreload2")
     elif "ALBUM" in action: 
         type = "albums"
+        refresh = WINDOW.getProperty("widgetreloadmusic")
+    elif "SONG" in action: 
+        type = "songs"
         refresh = WINDOW.getProperty("widgetreloadmusic")
     elif "SONG" in action: 
         type = "songs"
@@ -174,6 +177,7 @@ def PVRRECORDINGS(limit):
                 channelname = item["channel"]
                 item["channel"] = channelname
                 item["cast"] = None
+                item["type"] = "tvrecording"
                 item["file"] = sys.argv[0] + "?action=playrecording&path=" + str(item["recordingid"])
                 allItems.append(item)
                
@@ -198,6 +202,7 @@ def NEXTPVRRECORDINGS(limit,reversed="false"):
             if not (item.get("directory") and item["directory"] in allTitles) and item["playcount"] == 0 and not ("mythtv" in pvr_backend.lower() and "/livetv/" in item.get("file","").lower()):
                 channelname = item["channel"]
                 item["cast"] = None
+                item["type"] = "tvrecording"
                 allItems.append(item)
                 if item.get("directory"): allTitles.append(item["directory"])
                 
@@ -219,6 +224,7 @@ def PVRTIMERS(limit):
             channelname = channel_details.get("label","")
             item["channel"] = channelname
             if not item.get("plot"): item["plot"] = item.get("summary","")
+            item["type"] = "tvrecording"
             allItems.append(item)
                 
         #sort the list so we return the list with the oldest unwatched first
@@ -237,6 +243,8 @@ def getPVRArtForItem(item):
         item["art"] = artutils.getPVRThumbs(item["title"], item["channel"], pvrtype)
         if not item.get("plot"): item["plot"] = item["art"].get("plot","")
     if not item.get("channellogo"): item["channellogo"] = artutils.searchChannelLogo(item["channel"])
+    item["label"] = item["channel"]
+    item["label2"] = item["channel"]
     return item
     
 def getPVRArtForItems(items):
@@ -265,19 +273,17 @@ def PVRCHANNELS(limit):
             if channel.has_key('broadcastnow'):
                 #channel with epg data
                 item = channel['broadcastnow']
+                item["runtime"] = item["runtime"] * 60
             else:
                 #channel without epg
                 item = channel
-                item["title"] = item["label"]
-                channelname = channel["label"]
-                channelid = channel["channelid"]
-                channellogo = channel['thumbnail']
+                item["title"] = xbmc.getLocalizedString(161)
             item["file"] = sys.argv[0] + "?action=launchpvr&path=" + str(channelid)
             item["channellogo"] = channellogo
             item["icon"] = channellogo
             item["channel"] = channelname
-            item["label2"] = channelname
             item["cast"] = None
+            item["type"] = "tvchannel"
             allItems.append(item)
         
     #return result including artwork...
@@ -454,66 +460,7 @@ def NEXTEPISODES(limit):
     return result
 
 def NEXTAIREDTVSHOWS(limit):
-    count = 0
-    allItems = []
-    #get data from next aired script
-    #legacy: to be removed in the future - superseded by new unairedepisodes entrypoints
-    nextairedTotal = WINDOW.getProperty("NextAired.Total")
-    if nextairedTotal:
-        nextairedTotal = int(nextairedTotal)
-        for count in range(nextairedTotal):
-            tvshow = WINDOW.getProperty("NextAired.%s.Label"%str(count)).decode("utf-8")
-            if tvshow:
-                json_result = getJSON('VideoLibrary.GetTvShows','{ "filter": {"operator":"is", "field":"title", "value":"%s"}, "properties": [ %s ] }' %(tvshow,fields_tvshows))
-                if len(json_result) > 0:
-                    item = json_result[0]
-                    extraprops = {}
-                    extraprops["airtime"] = WINDOW.getProperty("NextAired.%s.AirTime"%str(count)).decode("utf-8")
-                    extraprops["Path"] = WINDOW.getProperty("NextAired.%s.Path"%str(count)).decode("utf-8")
-                    extraprops["Library"] = WINDOW.getProperty("NextAired.%s.Library"%str(count)).decode("utf-8")
-                    extraprops["Status"] = WINDOW.getProperty("NextAired.%s.Status"%str(count)).decode("utf-8")
-                    extraprops["StatusID"] = WINDOW.getProperty("NextAired.%s.StatusID"%str(count)).decode("utf-8")
-                    extraprops["Network"] = WINDOW.getProperty("NextAired.%s.Network"%str(count)).decode("utf-8")
-                    extraprops["Started"] = WINDOW.getProperty("NextAired.%s.Started"%str(count)).decode("utf-8")
-                    extraprops["Genre"] = WINDOW.getProperty("NextAired.%s.Genre"%str(count)).decode("utf-8")
-                    extraprops["Premiered"] = WINDOW.getProperty("NextAired.%s.Premiered"%str(count)).decode("utf-8")
-                    extraprops["Country"] = WINDOW.getProperty("NextAired.%s.Country"%str(count)).decode("utf-8")
-                    extraprops["Runtime"] = WINDOW.getProperty("NextAired.%s.Runtime"%str(count)).decode("utf-8")
-                    extraprops["Fanart"] = WINDOW.getProperty("NextAired.%s.Fanart"%str(count)).decode("utf-8")
-                    extraprops["Today"] = WINDOW.getProperty("NextAired.%s.Today"%str(count)).decode("utf-8")
-                    extraprops["NextDate"] = WINDOW.getProperty("NextAired.%s.NextDate"%str(count)).decode("utf-8")
-                    extraprops["NextDay"] = WINDOW.getProperty("NextAired.%s.NextDay"%str(count)).decode("utf-8")
-                    extraprops["NextTitle"] = WINDOW.getProperty("NextAired.%s.NextTitle"%str(count)).decode("utf-8")
-                    extraprops["NextNumber"] = WINDOW.getProperty("NextAired.%s.NextNumber"%str(count)).decode("utf-8")
-                    extraprops["NextEpisodeNumber"] = WINDOW.getProperty("NextAired.%s.NextEpisodeNumber"%str(count)).decode("utf-8")
-                    extraprops["NextSeasonNumber"] = WINDOW.getProperty("NextAired.%s.NextSeasonNumber"%str(count)).decode("utf-8")
-                    extraprops["LatestDate"] = WINDOW.getProperty("NextAired.%s.LatestDate"%str(count)).decode("utf-8")
-                    extraprops["LatestDay"] = WINDOW.getProperty("NextAired.%s.LatestDay"%str(count)).decode("utf-8")
-                    extraprops["LatestTitle"] = WINDOW.getProperty("NextAired.%s.LatestTitle"%str(count)).decode("utf-8")
-                    extraprops["LatestNumber"] = WINDOW.getProperty("NextAired.%s.LatestNumber"%str(count)).decode("utf-8")
-                    extraprops["LatestEpisodeNumber"] = WINDOW.getProperty("NextAired.%s.LatestEpisodeNumber"%str(count)).decode("utf-8")
-                    extraprops["LatestSeasonNumber"] = WINDOW.getProperty("NextAired.%s.LatestSeasonNumber"%str(count)).decode("utf-8")
-                    extraprops["AirDay"] = WINDOW.getProperty("NextAired.%s.AirDay"%str(count)).decode("utf-8")
-                    extraprops["ShortTime"] = WINDOW.getProperty("NextAired.%s.ShortTime"%str(count)).decode("utf-8")
-                    extraprops["SecondWeek"] = WINDOW.getProperty("NextAired.%s.SecondWeek"%str(count)).decode("utf-8")
-                    extraprops["Art(poster)"] = WINDOW.getProperty("NextAired.%s.Art(poster)"%str(count)).decode("utf-8")
-                    extraprops["Art(fanart)"] = WINDOW.getProperty("NextAired.%s.Art(fanart)"%str(count)).decode("utf-8")
-                    extraprops["Art(landscape)"] = WINDOW.getProperty("NextAired.%s.Art(landscape)"%str(count)).decode("utf-8")
-                    extraprops["Art(clearlogo)"] = WINDOW.getProperty("NextAired.%s.Art(clearlogo)"%str(count)).decode("utf-8")
-                    extraprops["Art(clearart)"] = WINDOW.getProperty("NextAired.%s.Art(clearart)"%str(count)).decode("utf-8")
-                    extraprops["Art(characterart)"] = WINDOW.getProperty("NextAired.%s.Art(characterart)"%str(count)).decode("utf-8")
-                    item["extraproperties"] = extraprops
-                    tvshowpath = "ActivateWindow(Videos,videodb://tvshows/titles/%s/,return)" %str(item["tvshowid"])
-                    item["file"]="plugin://script.skin.helper.service?action=LAUNCH&path=" + tvshowpath
-                    item["tvshowtitle"] = WINDOW.getProperty("NextAired.%s.Label"%str(count)).decode("utf-8")
-                    item["title"] = WINDOW.getProperty("NextAired.%s.NextTitle"%str(count)).decode("utf-8")
-                    item["season"] = WINDOW.getProperty("NextAired.%s.NextSeasonNumber"%str(count)).decode("utf-8")
-                    item["episode"] = WINDOW.getProperty("NextAired.%s.NextEpisodeNumber"%str(count)).decode("utf-8")
-                    allItems.append(item)
-                    count += 1
-                    if count == limit:
-                        break
-    return allItems
+    return NEXTAIREDEPISODES(limit)
 
 def UNAIREDEPISODES(limit):
     import thetvdb
@@ -1195,19 +1142,28 @@ def FAVOURITEMEDIA(limit,AllKodiFavsOnly=False):
     
 def getExtraFanArt(path):
     extrafanarts = []
-    #get extrafanarts from window property
-    if path.startswith("EFA_FROMWINDOWPROP_"):
-        extrafanarts = eval(WINDOW.getProperty(try_encode(path)).decode("utf-8"))
-    #get extrafanarts by passing an artwork cache xml file
+    cachedataStr = "getExtraFanArt.%s"%path
+    cachedata = simplecache.get(cachedataStr)
+    if cachedata:
+        extrafanarts = cachedata
     else:
-        if not xbmcvfs.exists(path.encode("utf-8")):
-            filepart = path.split("/")[-1]
-            path = path.replace(filepart,"") + normalize_string(filepart)
-            if not xbmcvfs.exists(path):
-                logMsg("getExtraFanArt FAILED for path: %s" %path,0)
-        artwork = artutils.getArtworkFromCacheFile(path)
-        if artwork.get("extrafanarts"):
-            extrafanarts = eval( artwork.get("extrafanarts") )
+        #get extrafanarts from window property
+        if path.startswith("EFA_FROMWINDOWPROP_"):
+            extrafanarts = eval(WINDOW.getProperty(try_encode(path)).decode("utf-8"))
+        #get extrafanarts by passing an artwork cache xml file
+        else:
+            if not xbmcvfs.exists(path.encode("utf-8")):
+                filepart = path.split("/")[-1]
+                path = path.replace(filepart,"") + normalize_string(filepart)
+                if not xbmcvfs.exists(path):
+                    logMsg("getExtraFanArt FAILED for path: %s" %path,0)
+            if path.endswith(".xml"):
+                artwork = artutils.getArtworkFromCacheFile(path)
+            else:
+                artwork = simplecache.read_cachefile(path).get("data",{})
+            if artwork.get("extrafanarts"):
+                extrafanarts = eval( artwork.get("extrafanarts") )
+            simplecache.set(cachedataStr,extrafanarts,timedelta(days=7))
             
     #process extrafanarts
     for item in extrafanarts:
@@ -1255,10 +1211,10 @@ def getCast(movie=None,tvshow=None,movieset=None,episode=None,downloadThumbs=Fal
             cachedataStr = xbmc.getInfoLabel("ListItem.Title") + xbmc.getInfoLabel("ListItem.FileNameAndPath") + str(downloadThumbs)
     except: pass
     
-    cachedata = WINDOW.getProperty(cachedataStr).decode("utf-8")
+    cachedata = simplecache.get(cachedataStr)
     if cachedata:
         #get data from cache
-        allCast = eval(cachedata)
+        allCast = cachedata
     else:
         
         #retrieve data from json api...
@@ -1323,8 +1279,8 @@ def getCast(movie=None,tvshow=None,movieset=None,episode=None,downloadThumbs=Fal
                     artwork = artutils.getTmdbDetails(cast["name"],None,"person")
                     cast["thumbnail"] = artwork.get("thumb","")
 
-        #save to cache    
-        WINDOW.setProperty(cachedataStr,repr(allCast))
+        #save to cache
+        simplecache.set(cachedataStr,allCast)
     
     #process listing with the results...
     if listOnly: return allCast
