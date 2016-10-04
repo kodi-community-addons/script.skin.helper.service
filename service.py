@@ -26,7 +26,8 @@ class Main:
                 utils.WINDOW.setProperty("SkinHelper.Version",utils.ADDON_VERSION.replace(".",""))
                 mainmodule.correctSkinSettings()
         except Exception as e:
-            utils.logMsg("Error in setSkinVersion --> " + str(e), 0)
+            utils.logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
+            utils.logMsg("ERROR in service.setSkinVersion ! --> %s" %e, xbmc.LOGERROR)
     
     def __init__(self):
         
@@ -48,13 +49,13 @@ class Main:
         else:
             # Abort was requested while waiting. We should exit
             utils.WINDOW.setProperty("SkinHelperShutdownRequested","shutdown")
-            utils.logMsg('Shutdown requested !',0)
+            utils.logMsg('Shutdown requested !',xbmc.LOGNOTICE)
             #stop the extra threads
             backgroundsUpdater.stop()
             listItemMonitor.stop()
             webService.stop()
 
-utils.logMsg('skin helper service version %s started' % utils.ADDON_VERSION,0)
+utils.logMsg('skin helper service version %s started' % utils.ADDON_VERSION,xbmc.LOGNOTICE)
 Main()
-utils.logMsg('skin helper service version %s stopped' % utils.ADDON_VERSION,0)
+utils.logMsg('skin helper service version %s stopped' % utils.ADDON_VERSION,xbmc.LOGNOTICE)
 

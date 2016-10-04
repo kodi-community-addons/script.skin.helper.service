@@ -112,7 +112,7 @@ class Main:
 if (__name__ == "__main__"):
     try:
         if utils.WINDOW.getProperty("SkinHelperShutdownRequested"):
-            utils.logMsg("plugin.py --> Not forfilling request: Kodi is exiting" ,0)
+            utils.logMsg("plugin.py --> Not forfilling request: Kodi is exiting" ,xbmc.LOGWARNING)
             xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
         elif enableProfiling:
             import cProfile
@@ -129,6 +129,7 @@ if (__name__ == "__main__"):
         else:
             Main()
     except Exception as e:
-        utils.logMsg("Error in plugin.py --> " + str(e),0)
+        utils.logMsg(utils.format_exc(sys.exc_info()),xbmc.LOGDEBUG)
+        utils.logMsg("ERROR in plugin.py ! --> %s" %e, xbmc.LOGERROR)
         xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
-utils.logMsg('finished loading pluginentry')
+utils.logMsg('finished loading pluginentry', xbmc.LOGDEBUG)

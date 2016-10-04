@@ -33,8 +33,9 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
                 xbmc.executebuiltin(try_encode("Skin.SetString(SkinHelper.ColorTheme.%s.time,%s)" % (self.daynight,timevalue)))
                 xbmc.executebuiltin(try_encode("Skin.SetString(SkinHelper.ColorTheme.%s,%s  (%s %s))" % (self.daynight,selectedTheme,ADDON.getLocalizedString(32071),timevalue)))
                 xbmc.executebuiltin(try_encode("Skin.SetString(SkinHelper.ColorTheme.%s.file,%s)" % (self.daynight,item.getProperty("filename"))))
-            except:
-                print_exc()
+            except Exception:
+                exc_trace = format_exc(sys.exc_info())
+                logMsg(exc_trace,xbmc.LOGDEBUG)
                 xbmcgui.Dialog().ok(xbmc.getLocalizedString(329), ADDON.getLocalizedString(32070))
 
         self.closeDialog()
@@ -190,7 +191,7 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
         self.getControl(3).setVisible(False)
         try:
             self.getControl(7).setVisible(False)
-        except: pass
+        except Exception: pass
         
         list = self.refreshListing()
         xbmc.executebuiltin("Control.SetFocus(6)")

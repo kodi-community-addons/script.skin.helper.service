@@ -4,7 +4,7 @@
 import xbmcplugin, xbmcgui, xbmc, xbmcaddon, xbmcvfs
 import os,sys
 import urllib
-from traceback import print_exc
+from traceback import format_exc
 from datetime import datetime, timedelta
 import _strptime
 import time
@@ -17,11 +17,11 @@ from operator import itemgetter
 try:
     from multiprocessing.pool import ThreadPool as Pool
     supportsPool = True
-except: supportsPool = False
+except Exception: supportsPool = False
 
 try:
     import simplejson as json
-except:
+except Exception:
     import json
 
 ADDON = xbmcaddon.Addon()
@@ -49,15 +49,11 @@ fields_albums = '"title", "fanart", "thumbnail", "genre", "displayartist", "arti
 fields_pvrrecordings = '"art", "channel", "directory", "endtime", "file", "genre", "icon", "playcount", "plot", "plotoutline", "resume", "runtime", "starttime", "streamurl", "title"'
 KodiArtTypes = [ ("thumb","thumb.jpg"),("poster","poster.jpg"),("fanart","fanart.jpg"),("banner","banner.jpg"),("landscape","landscape.jpg"),("clearlogo","logo.png"),("clearart","clearart.png"),("channellogo","channellogo.png"),("discart","disc.png"),("discart","cdart.png"),("extrafanart","extrafanart/"),("characterart","characterart.png"),("folder","folder.jpg") ]
 
-def logMsg(msg, level = 1):
-    if WINDOW.getProperty("SkinHelper.enableDebugLog") == "true" or level == 0:
+def logMsg(msg, loglevel = xbmc.LOGDEBUG):
+    if WINDOW.getProperty("SkinHelper.enableDebugLog") == "true" or loglevel != xbmc.LOGDEBUG:
         if isinstance(msg, unicode):
             msg = msg.encode('utf-8')
-        if "exception" in msg.lower() or "error" in msg.lower():
-            xbmc.log("Skin Helper Service --> " + msg, level=xbmc.LOGERROR)
-            print_exc()
-        else: 
-            xbmc.log("Skin Helper Service --> " + msg, level=xbmc.LOGNOTICE)
+        xbmc.log("Skin Helper Service --> %s" %msg, level=loglevel)
                    
 def getContentPath(libPath):
     if "$INFO" in libPath and not "reload=" in libPath:
@@ -237,13 +233,13 @@ def indentXML( elem, level=0 ):
 def try_encode(text, encoding="utf-8"):
     try:
         return text.encode(encoding,"ignore")
-    except:
+    except Exception:
         return text       
 
 def try_decode(text, encoding="utf-8"):
     try:
         return text.decode(encoding,"ignore")
-    except:
+    except Exception:
         return text       
  
 def createListItem(item,asTuple=True):
@@ -605,8 +601,9 @@ def getLocalDateTimeFromUtc(timestring):
             return (correcttime.strftime("%Y-%m-%d"),correcttime.strftime("%I:%M %p"))
         else:
             return (correcttime.strftime("%d-%m-%Y"),correcttime.strftime("%H:%M"))
-    except:
-        logMsg("ERROR in getLocalDateTimeFromUtc --> " + timestring, 0)
+    except Exception as e:
+        logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
+        logMsg("ERROR in Utils.getLocalDateTimeFromUtc ! --> %s" %e, xbmc.LOGERROR)
         
         return (timestring,timestring)
 
@@ -633,7 +630,8 @@ def createSmartShortcutSubmenu(windowProp,iconimage):
                 with open(shortcutFile, 'w') as f:
                     f.write(data)
     except Exception as e:
-        logMsg("ERROR in createSmartShortcutSubmenu ! --> " + str(e), 0)
+        logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
+        logMsg("ERROR in Utils.createSmartShortcutSubmenu ! --> %s" %e, xbmc.LOGERROR)
 
 def getCurrentContentType(containerprefix=""):
     contenttype = ""
@@ -759,7 +757,7 @@ def addToZip(src, zf, abs_src):
         try:
             #newer python can use unicode for the files in the zip
             zf.write(absname, arcname)
-        except:
+        except Exception:
             #older python version uses utf-8 for filenames in the zip
             zf.write(absname.encode("utf-8"), arcname.encode("utf-8"))
     for dir in dirs:
@@ -789,11 +787,11 @@ def unzip(zip_file,path):
         if "\\" in filename: xbmcvfs.mkdirs(os.path.join(path,filename.rsplit("\\", 1)[0]))
         elif "/" in filename: xbmcvfs.mkdirs(os.path.join(path,filename.rsplit("/", 1)[0]))
         filename = os.path.join(path,filename)
-        logMsg("unzipping " + filename)
+        logMsg("unzipping " + filename, xbmc.LOGDEBUG)
         try:
             #newer python uses unicode
             outputfile = open(filename, "wb")
-        except:
+        except Exception:
             #older python uses utf-8
             outputfile = open(filename.encode("utf-8"), "wb")
         #use shutil to support non-ascii formatted files in the zip
@@ -893,7 +891,8 @@ def getDataFromCacheFile(file):
             f.close()
             if text: data = eval(text)   
     except Exception as e:
-        logMsg("ERROR in getDataFromCacheFile for file %s --> %s" %(file,str(e)), 0)
+        logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
+        logMsg("ERROR in Utils.getDataFromCacheFile ! --> %s" %e, xbmc.LOGERROR)
     return data
       
 def saveDataToCacheFile(file,data):
@@ -906,7 +905,8 @@ def saveDataToCacheFile(file,data):
         f.write(str_data)
         f.close()
     except Exception as e:
-        logMsg("ERROR in saveDataToCacheFile for file %s --> %s" %(file,str(e)), 0)
+        logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
+        logMsg("ERROR in Utils.saveDataToCacheFile ! --> %s" %e, xbmc.LOGERROR)
 
 def getCompareString(string,optionalreplacestring=""):
     #strip all kinds of chars from a string to be used in compare actions
@@ -927,5 +927,5 @@ def intWithCommas(x):
             x, r = divmod(x, 1000)
             result = ",%03d%s" % (r, result)
         return "%d%s" % (x, result)
-    except: return ""
+    except Exception: return ""
     

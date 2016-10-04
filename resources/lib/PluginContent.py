@@ -1027,7 +1027,7 @@ def getKodiFavsFromFile():
             action = action.replace('"','')
             label = fav.attributes['name'].nodeValue
             try: thumb = fav.attributes['thumb'].nodeValue
-            except: thumb = ""
+            except Exception: thumb = ""
             window = ""
             windowparameter = ""
             type = "unknown"
@@ -1078,7 +1078,7 @@ def FAVOURITEMEDIA(limit,AllKodiFavsOnly=False):
                 #it's a tv show
                 try:
                     tvshowid = int(fav["windowparameter"].split("/")[-2])
-                except: continue
+                except Exception: continue
                 json_result = getJSON('VideoLibrary.GetTVShowDetails', '{ "tvshowid": %d, "properties": [ %s ]}' %(tvshowid, fields_tvshows))
                 if json_result:
                     matchFound = True
@@ -1156,7 +1156,7 @@ def getExtraFanArt(path):
                 filepart = path.split("/")[-1]
                 path = path.replace(filepart,"") + normalize_string(filepart)
                 if not xbmcvfs.exists(path):
-                    logMsg("getExtraFanArt FAILED for path: %s" %path,0)
+                    logMsg("getExtraFanArt FAILED for path: %s" %path,xbmc.LOGWARNING)
             if path.endswith(".xml"):
                 artwork = artutils.getArtworkFromCacheFile(path)
             else:
@@ -1209,7 +1209,7 @@ def getCast(movie=None,tvshow=None,movieset=None,episode=None,downloadThumbs=Fal
             itemId = int(episode)
         elif not (movie or tvshow or episode or movieset) and xbmc.getCondVisibility("Window.IsActive(DialogVideoInfo.xml)"):
             cachedataStr = xbmc.getInfoLabel("ListItem.Title") + xbmc.getInfoLabel("ListItem.FileNameAndPath") + str(downloadThumbs)
-    except: pass
+    except Exception: pass
     
     cachedata = simplecache.get(cachedataStr)
     if cachedata:

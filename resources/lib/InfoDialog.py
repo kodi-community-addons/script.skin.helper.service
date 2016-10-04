@@ -13,7 +13,6 @@ class GUI( xbmcgui.WindowXMLDialog ):
     def __init__( self, *args, **kwargs ):
         xbmcgui.WindowXMLDialog.__init__( self )
         params = kwargs[ "params" ]
-        logMsg( repr(params) )
         if params.get("MOVIEID"):
             item = getJSON('VideoLibrary.GetMovieDetails', '{ "movieid": %s, "properties": [ %s ] }' %(params["MOVIEID"],fields_movies))
             self.content = "movies"
@@ -89,7 +88,6 @@ class GUI( xbmcgui.WindowXMLDialog ):
         if controlId == 5:
             type = self.getControl( 999 ).getSelectedItem().getProperty('dbtype')
             id = self.getControl( 999 ).getSelectedItem().getProperty('dbid')
-            logMsg("type: %s - id: %s" %(type,id))
             if type and id and self.content != "tvshows":
                 self._close_dialog('{ "jsonrpc": "2.0", "method": "Player.Open", "params": { "item": { "%sid": %s } }, "id": 1 }' % (type,id))
             elif self.content == 'tvshows':
@@ -145,7 +143,7 @@ class BackgroundInfoThread(threading.Thread):
                 liz.setThumbnailImage(item["art"].get("poster"))
                 similarlist.addItem(liz)
         except Exception as e:
-            plugincontent.logMsg("ERROR in InfoDialog - getrecommendedmedia ! --> " + str(e), 0)
+            plugincontent.logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
 
         try: #optional: cast list
             castlist = self.infoDialog.getControl( 998 )
@@ -166,4 +164,4 @@ class BackgroundInfoThread(threading.Thread):
                 castlist.addItem(liz)
                     
         except Exception as e:
-            plugincontent.logMsg("ERROR in InfoDialog - getcast ! --> " + str(e), 0)
+            plugincontent.logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)

@@ -39,7 +39,6 @@ class Kodi_Monitor(xbmc.Monitor):
         if method == "Player.OnStop":
             utils.WINDOW.clearProperty("Skinhelper.PlayerPlaying")
             utils.WINDOW.clearProperty("TrailerPlaying")
-            if xbmc.getCondVisibility("Skin.String(videoinfo_traileraction,fullscreen) + !IsEmpty(Window(Home).Property(TrailerPlaying)) + !Window.IsActive(movieinformation)"): xbmc.executebuiltin("Action(info)")
             self.resetPlayerWindowProps()
             self.resetVideoWidgetProps(data)
             self.resetMusicWidgetProps(data)
@@ -48,7 +47,7 @@ class Kodi_Monitor(xbmc.Monitor):
             #skip if the player is already playing
             if utils.WINDOW.getProperty("Skinhelper.PlayerPlaying") == "playing": return
             try: secondsToDisplay = int(xbmc.getInfoLabel("Skin.String(SkinHelper.ShowInfoAtPlaybackStart)"))
-            except: return
+            except Exception: return
             
             utils.logMsg("onNotification - ShowInfoAtPlaybackStart - number of seconds: " + str(secondsToDisplay))
             utils.WINDOW.setProperty("Skinhelper.PlayerPlaying","playing")

@@ -104,7 +104,7 @@ class ConditionalBackgrounds(xbmcgui.WindowXMLDialog):
                     #check if the dates are valid
                     dt = datetime(*(time.strptime(startdate, dateFormat)[0:6]))
                     dt = datetime(*(time.strptime(startdate, dateFormat)[0:6]))
-                except:
+                except Exception:
                     error = True
                 
                 if not name or not background or error:
@@ -132,7 +132,7 @@ class ConditionalBackgrounds(xbmcgui.WindowXMLDialog):
                         #check if the dates are valid
                         dt = datetime(*(time.strptime(startdate, dateFormat)[0:6]))
                         dt = datetime(*(time.strptime(startdate, dateFormat)[0:6]))
-                    except:
+                    except Exception:
                         error = True
                     
                     if not name or not background or error:

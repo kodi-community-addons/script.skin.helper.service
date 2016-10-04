@@ -209,10 +209,11 @@ def backup(filterString="",silent=None,promptfilename="false"):
             xbmcvfs.delete(zip_temp + ".zip")
 
     except Exception as e:
+        logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
         error = True
         
     if error:
-        logMsg("ERROR while creating backup ! --> " + str(e), 0)            
+        logMsg("ERROR while creating backup ! --> %e" %e, xbmc.LOGERROR)            
         if not silent: xbmcgui.Dialog().ok(ADDON.getLocalizedString(32028), ADDON.getLocalizedString(32030), str(e))
     elif not silent:
         xbmcgui.Dialog().ok(ADDON.getLocalizedString(32028), ADDON.getLocalizedString(32029))
@@ -232,10 +233,10 @@ def restoreSkinSettings(filename, progressDialog=None):
             settingvalue = skinsetting[2]
 
             try: setting = setting.encode('utf-8')
-            except: pass
+            except Exception: pass
             
             try: settingvalue = settingvalue.encode('utf-8')
-            except: pass
+            except Exception: pass
 
             if progressDialog:
                 progressDialog.update((count * 100) / len(importstring), ADDON.getLocalizedString(32033) + ' %s' % setting.decode("utf-8"))
@@ -255,14 +256,16 @@ def restoreSkinSettings(filename, progressDialog=None):
 def restore(silent=None):
     #return if silent file doesn't exist
     if silent and not xbmcvfs.exists(silent):
-        logMsg("ERROR while restoring backup ! --> Path invalid. Make sure you provide the FULL path, for example special://skin/extras/mybackup.zip", 0)
+        logMsg("ERROR while restoring backup ! --> Path invalid. Make sure you provide the FULL path, for example special://skin/extras/mybackup.zip", xbmc.LOGERROR)
         return
     #if silent file submitted is not zipfile, treat as skinsettings only
     if silent and not silent.lower().endswith("zip"):
         xbmc.executebuiltin( "ActivateWindow(busydialog)" )
         try:
             restoreSkinSettings(silent)
-        except: logMsg("ERROR while restoring backup !",0)
+        except Exception:
+            exc_trace = format_exc(sys.exc_info())
+            logMsg("ERROR while restoring backup ! --> %s" %exc_trace,xbmc.LOGERROR)
         xbmc.executebuiltin( "Dialog.Close(busydialog)" )
     else:
         #perform full restore

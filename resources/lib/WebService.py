@@ -16,7 +16,7 @@ class WebService(threading.Thread):
     exit = False
     
     def __init__(self, *args):
-        logMsg("WebService - start helper webservice on port " + str(port),0)
+        logMsg("WebService - start helper webservice on port " + str(port),xbmc.LOGNOTICE)
         self.event =  threading.Event()
         threading.Thread.__init__(self, *args)
     
@@ -28,7 +28,8 @@ class WebService(threading.Thread):
             conn.getresponse()
             self.exit = True
             self.event.set()
-        except Exception as e: logMsg("WebServer exception occurred " + str(e),0)
+        except Exception as e: 
+            logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
 
     def run(self):
         try:
@@ -62,7 +63,8 @@ class StoppableHttpRequestHandler (SimpleHTTPServer.SimpleHTTPRequestHandler):
     def __init__(self, request, client_address, server):
         try:
             SimpleHTTPServer.SimpleHTTPRequestHandler.__init__(self, request, client_address, server)
-        except Exception as e: logMsg("WebServer error in request --> " + str(e))
+        except Exception:
+            logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
     
     def do_QUIT (self):
         #send 200 OK response, and set server.stop to True
@@ -129,7 +131,7 @@ class StoppableHttpRequestHandler (SimpleHTTPServer.SimpleHTTPRequestHandler):
             if xbmcvfs.exists(image_tmp):
                 if image_tmp.startswith("resource://"):
                     #texture packed resource images are failing: http://trac.kodi.tv/ticket/16366
-                    logMsg("WebService ERROR --> resource images are currently not supported due to a bug in Kodi" ,0)
+                    logMsg("WebService --> resource images are currently not supported due to a bug in Kodi" ,xbmc.LOGWARNING)
                 else:
                     image = image_tmp
         

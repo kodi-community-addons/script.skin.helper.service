@@ -40,7 +40,7 @@ class BackgroundsUpdater(threading.Thread):
         threading.Thread.__init__(self, *args)
 
     def stop(self):
-        logMsg("BackgroundsUpdater - stop called",0)
+        logMsg("BackgroundsUpdater - stop called")
         self.saveCacheToFile()
         self.exit = True
         self.event.set()
@@ -61,7 +61,7 @@ class BackgroundsUpdater(threading.Thread):
             self.UpdateSmartShortCuts(True)
             self.saveCacheToFile()
         except Exception as e:
-            logMsg("ERROR in BackgroundsUpdater ! --> " + str(e), 0)
+            logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
          
         while (self.exit != True):
         
@@ -71,7 +71,7 @@ class BackgroundsUpdater(threading.Thread):
                 try:
                     self.setDayNightColorTheme()
                 except Exception as e:
-                    logMsg("ERROR in setDayNightColorTheme ! --> " + str(e), 0)
+                    logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
             
             #Process backgrounds
             if xbmc.getCondVisibility("![Window.IsActive(fullscreenvideo) | Window.IsActive(script.pseudotv.TVOverlay.xml) | Window.IsActive(script.pseudotv.live.TVOverlay.xml)] | Window.IsActive(script.pseudotv.live.EPG.xml)") and self.backgroundDelay != 0:
@@ -79,7 +79,7 @@ class BackgroundsUpdater(threading.Thread):
                 # force refresh smart shortcuts on request
                 if WINDOW.getProperty("refreshsmartshortcuts") and self.smartShortcutsFirstRunDone:
                     try: self.UpdateSmartShortCuts(True)
-                    except Exception as e: logMsg("ERROR in UpdateSmartShortCuts ! --> " + str(e), 0)
+                    except Exception as e: logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
                     WINDOW.clearProperty("refreshsmartshortcuts")   
 
                 # Update home backgrounds every interval (if enabled by skinner)
@@ -94,7 +94,7 @@ class BackgroundsUpdater(threading.Thread):
                             self.getSkinConfig()
                             self.UpdateWallBackgrounds()
                         except Exception as e:
-                            logMsg("ERROR in UpdateBackgrounds ! --> " + str(e), 0)
+                            logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
                             
                 # Update manual wall images - if enabled by the skinner
                 if self.wallImagesDelay != 0:
@@ -103,7 +103,7 @@ class BackgroundsUpdater(threading.Thread):
                         try:
                             self.updateWallImages()
                         except Exception as e:
-                            logMsg("ERROR in UpdateBackgrounds.updateWallImages ! --> " + str(e), 0)
+                            logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
                             
             self.monitor.waitForAbort(1)
             self.backgroundsTaskInterval += 1
@@ -113,7 +113,7 @@ class BackgroundsUpdater(threading.Thread):
     def getSkinConfig(self):
         #gets the settings for the script as set by the skinner..
         try: self.backgroundDelay = int(xbmc.getInfoLabel("Skin.String(SkinHelper.RandomFanartDelay)"))
-        except: self.backgroundDelay = 0
+        except Exception: self.backgroundDelay = 0
         
         try: 
             wallImagesDelay = xbmc.getInfoLabel("Skin.String(SkinHelper.WallImagesDelay)")
@@ -129,7 +129,7 @@ class BackgroundsUpdater(threading.Thread):
                             if limitrange:
                                 self.manualWalls[key] = int(limitrange)
         except Exception as e:
-            logMsg("ERROR in UpdateBackgrounds.getSkinConfig ! --> " + str(e), 0)
+            logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
             self.wallImagesDelay = 0
     
     def saveCacheToFile(self):
@@ -166,7 +166,7 @@ class BackgroundsUpdater(threading.Thread):
                         import resources.lib.ColorThemes as colorThemes
                         colorThemes.loadColorTheme(themefile)
             except Exception as e:
-                logMsg("ERROR in setDayNightColorTheme ! --> " + str(e), 0)
+                logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
                 xbmc.executebuiltin( "Dialog.Close(busydialog)" )
     
     def setWallImageFromPath(self, windowProp, libPath, type="fanart"):
@@ -178,7 +178,7 @@ class BackgroundsUpdater(threading.Thread):
             image = random.choice(self.allBackgrounds[windowProp])
             if image.get("wall"):
                 if not xbmcvfs.exists(image.get("wall")): 
-                    logMsg("Wall images cleared - starting rebuild...",0)
+                    logMsg("Wall images cleared - starting rebuild...",xbmc.LOGWARNING)
                     del self.allBackgrounds[windowProp]
                 else:
                     WINDOW.setProperty(windowProp, image.get("wall"))
@@ -191,7 +191,8 @@ class BackgroundsUpdater(threading.Thread):
             try:
                 images = self.createImageWall(self.allBackgrounds[libPath],windowProp,type)
             except Exception as e:
-                logMsg("ERROR in createImageWall ! --> " + str(e), 0)
+                logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
+                logMsg("ERROR in createImageWall ! --> %s" %e, xbmc.LOGERROR)
             self.allBackgrounds[windowProp] = images
             if images:
                 image = random.choice(images)
@@ -584,8 +585,8 @@ class BackgroundsUpdater(threading.Thread):
                                     if not "playlist.%s"%playlistCount in self.smartShortcuts["allSmartShortcuts"]: self.smartShortcuts["allSmartShortcuts"].append("playlist.%s"%playlistCount )
                                     playlists.append( (playlistCount, label, path, playlist, type ))
                                     playlistCount += 1
-                        except: 
-                            logMsg("Error while processing smart shortcuts for playlist %s  --> This file seems to be corrupted, please remove it from your system to prevent any further errors."%item["file"], 0)
+                        except Exception: 
+                            logMsg("Error while processing smart shortcuts for playlist %s  --> This file seems to be corrupted, please remove it from your system to prevent any further errors."%item["file"], xbmc.LOGWARNING)
                 self.smartShortcuts["playlists"] = playlists
                 logMsg("Generated smart shortcuts for playlists: %s" %playlists)
             
@@ -628,7 +629,7 @@ class BackgroundsUpdater(threading.Thread):
                 except Exception as e:
                     #something wrong so disable the smartshortcuts for this section for now
                     xbmc.executebuiltin("Skin.Reset(SmartShortcuts.favorites)")
-                    logMsg("Error while processing smart shortcuts for favourites - set disabled.... ",0)
+                    logMsg("Error while processing smart shortcuts for favourites - set disabled.... ",xbmc.LOGWARNING)
                     logMsg(str(e),0)
                 self.smartShortcuts["favourites"] = favourites
                 logMsg("Generated smart shortcuts for favourites: %s" %favourites)
@@ -979,11 +980,11 @@ class BackgroundsUpdater(threading.Thread):
             from PIL import Image
             im = Image.new("RGB", (1, 1))
             del im
-        except:
+        except Exception:
             hasPilModule = False
         
         if not hasPilModule:
-            logMsg("Building WALL background skipped - no PIL module present on this system!",0)
+            logMsg("Building WALL background skipped - no PIL module present on this system!", xbmc.LOGWARNING)
             return []
         
         if type=="thumbnail":
@@ -1025,7 +1026,7 @@ class BackgroundsUpdater(threading.Thread):
         #build wall images if we do not already have (enough) images
         if len(return_images) < numWallImages: 
             #build the wall images
-            logMsg("Building Wall background for %s - this might take a while..." %windowProp,0)
+            logMsg("Building Wall background for %s - this might take a while..." %windowProp, xbmc.LOGNOTICE)
             images_required = img_columns*img_rows
             for image in images:
                 image = image.get(type,"")
@@ -1037,7 +1038,7 @@ class BackgroundsUpdater(threading.Thread):
                         img = Image.open(img_obj)
                         img = img.resize(size)
                         wall_images.append(img)
-                    except: pass
+                    except Exception: pass
                     finally: file.close()
             if wall_images:
                 #duplicate images if we don't have enough

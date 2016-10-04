@@ -308,7 +308,7 @@ def getfanartTVimages(type,id,artwork=None,allowoverwrite=True):
     try:
         maxfanarts = WINDOW.getProperty("SkinHelper.maxNumFanArts")
         if maxfanarts: maxfanarts = int(maxfanarts)
-    except: maxfanarts = 0
+    except Exception: maxfanarts = 0
     
     if type == "movie":
         url = 'http://webservice.fanart.tv/v3/movies/%s?api_key=%s' %(id,api_key)
@@ -321,7 +321,7 @@ def getfanartTVimages(type,id,artwork=None,allowoverwrite=True):
     try:
         response = requests.get(url, timeout=15)
     except Exception as e:
-        logMsg("getfanartTVimages lookup failed--> " + str(e), 0)
+        logMsg("getfanartTVimages lookup failed--> %s" %e, xbmc.LOGDEBUG)
         return artwork
     if response and response.content and response.status_code == 200:
         data = json.loads(response.content.decode('utf-8','replace'))
@@ -529,12 +529,13 @@ def getTmdbDetails(title,artwork=None,type=None,year="",includeCast=False, manua
             artwork["thumb"] = "http://image.tmdb.org/t/p/original"+matchFound.get("profile_path")
     
     except Exception as e:
+        logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
         if "getaddrinfo failed" in str(e):
             #no internet access - disable lookups for now
             WINDOW.setProperty("SkinHelper.DisableInternetLookups","disable")
-            logMsg("getTmdbDetails - no internet access, disabling internet lookups for now",0)
+            logMsg("getTmdbDetails - no internet access, disabling internet lookups for now",xbmc.LOGERROR)
         else:
-            logMsg("getTmdbDetails - Error in getTmdbDetails --> " + str(e),0)
+            logMsg("getTmdbDetails - Error in getTmdbDetails --> %s" %e, xbmc.LOGERROR)
     
     if artwork.get("cast"): 
         artwork["cast"] = repr(artwork.get("cast"))
@@ -586,7 +587,7 @@ def downloadImage(imageUrl,thumbsPath, filename, allowoverwrite=False):
             xbmcvfs.copy(imageUrl,newFile)
         return newFile
     except Exception as e:
-        logMsg("ERROR in downloadImage --> " + str(e), 0)
+        logMsg("ERROR in downloadImage --> %e" %e, xbmc.LOGDEBUG)
         return imageUrl
 
 def createNFO(cachefile, artwork):
@@ -604,7 +605,7 @@ def createNFO(cachefile, artwork):
         f.write(xmlstring)
         f.close()
     except Exception as e:
-        logMsg("ERROR in createNFO --> " + str(e), 0)
+        logMsg("ERROR in createNFO --> %s" %e, xbmc.LOGDEBUG)
       
 def getArtworkFromCacheFile(cachefile,artwork=None):
     if not artwork: artwork={}
@@ -620,7 +621,8 @@ def getArtworkFromCacheFile(cachefile,artwork=None):
                     artwork[child.tag] = value
             del root
         except Exception as e:
-            logMsg("ERROR in getArtworkFromCacheFile %s  --> %s" %(cachefile,str(e)), 0)
+            logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
+            logMsg("ERROR in getArtworkFromCacheFile %s  --> %s" %(cachefile,str(e)), xbmc.LOGDEBUG)
     return artwork
          
 def searchChannelLogo(searchphrase):
@@ -680,12 +682,13 @@ def searchChannelLogo(searchphrase):
                                         image = rest
                                         break
         except Exception as e:
+            logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
             if "getaddrinfo failed" in str(e):
                 #no internet access - disable lookups for now
                 WINDOW.setProperty("SkinHelper.DisableInternetLookups","disable")
-                logMsg("searchChannelLogo - no internet access, disabling internet lookups for now")
+                logMsg("searchChannelLogo - no internet access, disabling internet lookups for now", xbmc.LOGERROR)
             else:
-                logMsg("ERROR in searchChannelLogo ! --> " + str(e), 0)
+                logMsg("ERROR in searchChannelLogo ! --> %s" %e, xbmc.LOGERROR)
 
         if image:
             if ".jpg/" in image:
@@ -726,11 +729,12 @@ def searchGoogleImage(searchphrase1, searchphrase2="",manualLookup=False):
                 image = selectedItem.getProperty("icon")
         
     except Exception as e:
+        logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
         if "getaddrinfo failed" in str(e):
             WINDOW.setProperty("SkinHelper.DisableInternetLookups","disable")
-            logMsg("searchGoogleImage - no internet access, disabling internet lookups for now",0)
+            logMsg("searchGoogleImage - no internet access, disabling internet lookups for now", xbmc.LOGERROR)
         else:
-            logMsg("searchGoogleImage - ERROR in searchGoogleImage ! --> " + str(e),0)
+            logMsg("searchGoogleImage - ERROR in searchGoogleImage ! --> %s" %e, xbmc.LOGERROR)
     if manualLookup: 
         xbmc.executebuiltin( "Dialog.Close(busydialog)" )
     return image
@@ -850,7 +854,7 @@ def getAnimatedArtwork(imdbid,arttype="poster",dbid=None,manualHeader=""):
         elif image:
             try:
                 urllib.URLopener().retrieve(image.replace(".gif","_original.gif"), xbmc.translatePath(localfilename).decode("utf-8"))
-            except:
+            except Exception:
                 if "consiliumb" in image:
                     image = image.replace(".gif","_original.gif")
                 xbmcvfs.copy(image,localfilename)
@@ -897,7 +901,7 @@ def getGoogleImages(terms,**kwargs):
                     img = page.split("imgurl=")[-1]
                     img = img.split("&imgrefurl=")[0]
                     results.append( img )
-                except: pass
+                except Exception: pass
 
     return results
 
@@ -996,7 +1000,8 @@ def getMusicBrainzId(artist, album="", track=""):
                                 artistid = MBartist.get("artist").get("id")
                                 break
         except Exception as e:
-            logMsg("MusicBrainz ERROR (servers busy?) - temporary disabling musicbrainz lookups (fallback to theaudiodb)", 0)
+            logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
+            logMsg("MusicBrainz ERROR (servers busy?) - temporary disabling musicbrainz lookups (fallback to theaudiodb)", xbmc.LOGWARNING)
             WINDOW.setProperty("SkinHelper.TempDisableMusicBrainz","disable")
     
     #use theaudiodb as fallback
@@ -1028,7 +1033,8 @@ def getMusicBrainzId(artist, album="", track=""):
                         albumid = adbdetails.get("strMusicBrainzAlbumID","")
                         artistid = adbdetails.get("strMusicBrainzArtistID","")
     except Exception as e:
-        logMsg("getMusicArtwork AudioDb lookup failed --> " + str(e), 0)
+        logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
+        logMsg("getMusicArtwork AudioDb lookup failed --> %s" %e, xbmc.LOGWARNING)
     
     #try lastfm by asrtist and album
     if (not artistid or not albumid) and artist and album:
@@ -1047,8 +1053,8 @@ def getMusicBrainzId(artist, album="", track=""):
                                 artistid = track["artist"]["mbid"]
                                 break;
         except Exception as e:
-            logMsg("getMusicArtwork LastFM lookup failed --> " + str(e), 0)
-    
+            logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
+            logMsg("getMusicArtwork LastFM lookup failed --> %s" %e, xbmc.LOGWARNING)    
     
     #get lastFM by artist name as last resort
     if not artistid and artist:
@@ -1062,7 +1068,8 @@ def getMusicBrainzId(artist, album="", track=""):
                     lfmdetails = data["artist"]
                     if lfmdetails.get("mbid") and not artistid: artistid = lfmdetails.get("mbid")
         except Exception as e:
-            logMsg("getMusicArtwork LastFM lookup failed --> " + str(e), 0)
+            logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
+            logMsg("getMusicArtwork LastFM lookup failed --> %s" %e, xbmc.LOGWARNING)
     
     logMsg("getMusicBrainzId results for artist %s  - artistid:  %s  - albumid:  %s" %(artist,artistid,albumid))
     return (artistid, albumid)
@@ -1091,7 +1098,8 @@ def getArtistArtwork(musicbrainzartistid, artwork=None, allowoverwrite=True):
         audiodb_url = 'http://www.theaudiodb.com/api/v1/json/32176f5352254d85853778/artist-mb.php?i=%s' %musicbrainzartistid
         response = requests.get(audiodb_url)
     except Exception as e:
-        logMsg("getMusicArtwork AudioDb lookup failed --> " + str(e), 0)
+        logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
+        logMsg("getMusicArtwork AudioDb lookup failed --> %s" %e, xbmc.LOGWARNING)
     if response and response.content:
         data = json.loads(response.content.decode('utf-8','replace'))
         if data and data.get("artists") and len(data.get("artists")) > 0:
@@ -1114,7 +1122,8 @@ def getArtistArtwork(musicbrainzartistid, artwork=None, allowoverwrite=True):
             lastfm_url = 'http://ws.audioscrobbler.com/2.0/?method=artist.getInfo&format=json&api_key=822eb03d95f45fbab2137d646aaf798&mbid=%s' %musicbrainzartistid
             response = requests.get(lastfm_url)
         except Exception as e:
-            logMsg("getMusicArtwork LastFM lookup failed --> " + str(e), 0)
+            logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
+            logMsg("getMusicArtwork LastFM lookup failed --> %s" %e, xbmc.LOGWARNING)
         if response and response.content:
             data = json.loads(response.content.decode('utf-8','replace'))
             if data and data.get("artist"):
@@ -1153,7 +1162,8 @@ def getAlbumArtwork(musicbrainzalbumid, artwork=None, allowoverwrite=True):
         audiodb_url = 'http://www.theaudiodb.com/api/v1/json/32176f5352254d85853778/album-mb.php?i=%s' %musicbrainzalbumid
         response = requests.get(audiodb_url)
     except Exception as e:
-        logMsg("getMusicArtwork AudioDB lookup failed --> " + str(e), 0)
+        logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
+        logMsg("getMusicArtwork AudioDb lookup failed --> %s" %e, xbmc.LOGWARNING)
         return {}
     if response and response.content:
         data = json.loads(response.content.decode('utf-8','replace'))
@@ -1171,7 +1181,8 @@ def getAlbumArtwork(musicbrainzalbumid, artwork=None, allowoverwrite=True):
             lastfm_url = 'http://ws.audioscrobbler.com/2.0/?method=album.getInfo&format=json&api_key=822eb03d95f45fbab2137d646aaf798&artist=%s&album=%s' %(artwork["artistname"],artwork["albumname"])
             response = requests.get(lastfm_url)
         except Exception as e:
-            logMsg("getMusicArtwork LastFM lookup failed --> " + str(e), 0)
+            logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
+            logMsg("getMusicArtwork LastFM lookup failed --> %s" %e, xbmc.LOGWARNING)
         if response and response.content:
             data = json.loads(response.content.decode('utf-8','replace'))
             if data and data.get("album"):
@@ -1193,7 +1204,7 @@ def getAlbumArtwork(musicbrainzalbumid, artwork=None, allowoverwrite=True):
                 f.write(thumbfile)
                 f.close()
             artwork["folder"] = new_file
-        except: pass
+        except Exception: pass
 
     return artwork
     
@@ -1210,9 +1221,8 @@ def preCacheAllMusicArt(skipOnCache=False):
                 albumName = item["label"]
                 progressDialog.update((count * 100) / len(json_response),ADDON.getLocalizedString(32157), artistName + " - " + albumName)
                 getMusicArtwork(artistName,albumName,"",False)
-                logMsg("preCacheAllMusicArt -- " + artistName + " - " + albumName, 0)
     except Exception as e:
-        logMsg("ERROR in preCacheAllMusicArt --> " + str(e), 0)
+        logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
     progressDialog.close()
 
 def getCustomFolderPath(path, foldername):

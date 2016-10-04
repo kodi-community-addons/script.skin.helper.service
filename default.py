@@ -6,7 +6,7 @@ import xbmc,xbmcgui,xbmcplugin,xbmcvfs
 try:
     import resources.lib.MainModule as mainmodule
     import resources.lib.Utils as utils
-except:
+except Exception:
     xbmcgui.Dialog().ok(heading="Skin Helper Service", line1="Installation is missing files. Please reinstall the skin helper service addon to fix this issue.")
 
 class Main:
@@ -34,7 +34,7 @@ class Main:
             print warning in log and call the external script with the same parameters
         '''
         action = params.get("ACTION","").upper()
-        utils.logMsg("Deprecated method: %s. Please call %s directly" %(action,newaddon),0 )
+        utils.logMsg("Deprecated method: %s. Please call %s directly" %(action,newaddon), xbmc.LOGWARNING )
         paramstring = ""
         for key, value in params.iteritems():
             paramstring += ",%s=%s" %(key,value)
@@ -354,6 +354,32 @@ class Main:
                 
                 xbmc.executebuiltin("Skin.SetString(%s,%s)" %(skinstring,percentage))    
 
+            elif action == "PLAYTRAILER":
+                #auto play windowed trailer inside video listing
+                if not xbmc.getCondVisibility("Player.HasMedia | Container.Scrolling | Container.OnNext | Container.OnPrevious | !IsEmpty(Window(Home).Property(traileractionbusy))"):
+                    utils.WINDOW.setProperty("traileractionbusy","traileractionbusy")
+                    widgetContainer = params.get("widgetcontainer","")
+                    trailerMode = params.get("MODE","").replace("auto_","")
+                    if not trailerMode: 
+                        trailerMode = "windowed"
+                    if widgetContainer: 
+                        widgetContainerPrefix = "Container(%s)."%widgetContainer
+                    else: widgetContainerPrefix = ""
+                    
+                    liTitle = xbmc.getInfoLabel("%sListItem.Title" %widgetContainerPrefix).decode('utf-8')
+                    liTrailer = xbmc.getInfoLabel("%sListItem.Trailer" %widgetContainerPrefix).decode('utf-8')
+                    xbmc.Monitor().waitForAbort(1) #always wait a bit to prevent trailer start playing when we're scrolling the list
+                    if liTitle == xbmc.getInfoLabel("%sListItem.Title" %widgetContainerPrefix).decode('utf-8'):
+                        if trailerMode == "fullscreen" and liTrailer:
+                            xbmc.executebuiltin('PlayMedia("%s")' %liTrailer)
+                        elif trailerMode == "fullscreen" and not liTrailer:
+                            mainmodule.searchYouTube("%s Trailer"%liTitle,windowHeader="",autoplay="true",windowed="false")
+                        elif trailerMode != "fullscreen" and not liTrailer:
+                            mainmodule.searchYouTube("%s Trailer"%liTitle,windowHeader="",autoplay="true",windowed="true")
+                        else:
+                            xbmc.executebuiltin('PlayMedia("%s",1)' %liTrailer)
+                        utils.WINDOW.setProperty("TrailerPlaying",trailerMode)
+                    utils.WINDOW.clearProperty("traileractionbusy")
 
 if (__name__ == "__main__"):
     xbmc.executebuiltin( "Dialog.Close(busydialog)" )

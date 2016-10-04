@@ -216,7 +216,7 @@ def searchYouTube(title,windowHeader="",autoplay="",windowed=""):
     if path and windowed:
         xbmc.executebuiltin('PlayMedia("%s",1)' %path)
         if "Trailer" in title:
-            WINDOW.setProperty("TrailerPlaying","Playing")
+            WINDOW.setProperty("TrailerPlaying","windowed")
     elif path:
         if xbmc.getCondVisibility("Window.IsActive(script-skin_helper_service-CustomInfo.xml) | Window.IsActive(movieinformation)"):
             xbmc.executebuiltin("Dialog.Close(movieinformation)")
@@ -493,7 +493,7 @@ def setSkinSetting(setting="", windowHeader="", sublevel="", curValue="", skipSk
                             value = xbmcgui.Dialog().input( label,curValue, 0).decode("utf-8")
                             valueint = int(value)
                             validInput = True
-                        except:
+                        except Exception:
                             value = xbmcgui.Dialog().notification( "Invalid input", "Please enter a number...")
                             
                 #write skin strings
@@ -551,9 +551,9 @@ def correctSkinSettings():
             if "%" in label: label = label %value
             additionalactions = item.getElementsByTagName( 'onselect' )
             try: default = item.attributes[ 'default' ].nodeValue
-            except: default = ""
+            except Exception: default = ""
             try: constantdefault = item.attributes[ 'constantdefault' ].nodeValue
-            except: constantdefault = ""
+            except Exception: constantdefault = ""
             
             #skip submenu level itself, this happens when a setting id also exists as a submenu value for an item
             skip = False
@@ -568,9 +568,9 @@ def correctSkinSettings():
                 for count2, item2 in enumerate(listing):
                     if item2.attributes[ 'id' ].nodeValue == sublevel:
                         try: subdefault = item2.attributes[ 'default' ].nodeValue
-                        except: subdefault = ""
+                        except Exception: subdefault = ""
                         try: subconstantdefault = item2.attributes[ 'constantdefault' ].nodeValue
-                        except: subconstantdefault = ""
+                        except Exception: subconstantdefault = ""
                         #match in sublevel or default found in sublevel values
                         if (item2.attributes[ 'value' ].nodeValue.lower() == curvalue.lower()) or (not curvalue and xbmc.getCondVisibility( subdefault )):
                             label = xbmc.getInfoLabel(item2.attributes[ 'label' ].nodeValue).decode("utf-8")
@@ -636,7 +636,7 @@ def setKodiSetting(settingname, value):
     try: 
         valueint = int(value)
         isInt = True
-    except: pass
+    except Exception: pass
     if value.lower() == "true":
         value = 'true'
     elif value.lower() == "false":

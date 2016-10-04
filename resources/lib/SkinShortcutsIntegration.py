@@ -317,7 +317,7 @@ def getPlayListsWidgetListing():
                     try:
                         languageid = int(label)
                         label = xbmc.getLocalizedString(languageid)
-                    except: pass
+                    except Exception: pass
                     if not type: type = detectPluginContent(playlist)
                     foundWidgets.append([label, playlist, type])
     return foundWidgets

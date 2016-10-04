@@ -7,7 +7,7 @@ if __name__ == '__main__':
     
     ##### Music Artwork ########
     
-    logMsg("Context menu artwork settings for PVR artwork",0)
+    logMsg("Context menu artwork settings for Music artwork")
     WINDOW.setProperty("artworkcontextmenu", "busy")
     options=[]
     options.append(ADDON.getLocalizedString(32144)) #Refresh item (auto lookup)

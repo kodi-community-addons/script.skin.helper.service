@@ -46,7 +46,7 @@ class ListItemMonitor(threading.Thread):
         threading.Thread.__init__(self, *args)
     
     def stop(self):
-        logMsg("ListItemMonitor - stop called",0)
+        logMsg("ListItemMonitor - stop called")
         self.saveCacheToFile()
         self.exit = True
         self.event.set()
@@ -82,7 +82,8 @@ class ListItemMonitor(threading.Thread):
                         self.setMusicPlayerDetails()
                         lastPlayerItem = playerItem       
                 except Exception as e:
-                    logMsg("ERROR in setMusicPlayerDetails ! --> " + str(e), 0)
+                    logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
+                    logMsg("ERROR in setMusicPlayerDetails ! --> %s" %e, xbmc.LOGERROR)
             elif lastPlayerItem:
                 #cleanup remaining window props
                 self.resetPlayerWindowProps()
@@ -202,7 +203,8 @@ class ListItemMonitor(threading.Thread):
                                 thread.start_new_thread(self.setMusicDetails, (True,))
                                 self.setGenre()
                             except Exception as e:
-                                logMsg("ERROR in setMusicDetails ! --> " + str(e), 0)
+                                logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
+                                logMsg("ERROR in setMusicDetails ! --> %s" %e, xbmc.LOGERROR)
                         
                         # monitor listitem props for video content
                         elif self.contentType in ["movies","setmovies","tvshows","seasons","episodes","sets","musicvideos"]:
@@ -237,7 +239,8 @@ class ListItemMonitor(threading.Thread):
                                     nextairedActive = False
                                     xbmc.executebuiltin("RunScript(script.tv.show.next.aired,tvshowtitle=165628787629692696)")
                             except Exception as e:
-                                logMsg("ERROR in LibraryMonitor ! --> " + str(e), 0)
+                                logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
+                                logMsg("ERROR in LibraryMonitor ! --> %s" %e, xbmc.LOGERROR)
                         
                         # monitor listitem props when PVR is active
                         elif self.contentType in ["tvchannels","tvrecordings"]:
@@ -247,7 +250,8 @@ class ListItemMonitor(threading.Thread):
                                 thread.start_new_thread(self.setPVRChannelLogo, (True,))
                                 self.setGenre()
                             except Exception as e:
-                                logMsg("ERROR in LibraryMonitor ! --> " + str(e), 0)
+                                logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
+                                logMsg("ERROR in LibraryMonitor ! --> %s" %e, xbmc.LOGERROR)
                             
                     #set some globals
                     liPathLast = self.liPath
@@ -295,7 +299,8 @@ class ListItemMonitor(threading.Thread):
             self.saveCacheToFile()
             logMsg("Ended Background worker...")
         except Exception as e:
-            logMsg("ERROR in ListitemMonitor doBackgroundWork ! --> " + str(e), 0)
+            logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
+            logMsg("ERROR in ListItemMonitor.doBackgroundWork ! --> %s" %e, xbmc.LOGERROR)
     
     def saveCacheToFile(self):
         libraryCache = {}
@@ -338,7 +343,8 @@ class ListItemMonitor(threading.Thread):
                     dialog.notification(xbmc.getLocalizedString(31295), WINDOW.getProperty("NextAired.TodayShow"), xbmcgui.NOTIFICATION_WARNING, 8000)
                     self.lastNextAiredNotificationCheck = currentHour
         except Exception as e:
-            logMsg("ERROR in checkNotifications ! --> " + str(e), 0)
+            logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
+            logMsg("ERROR in ListItemMonitor.checkNotifications ! --> %s" %e, xbmc.LOGERROR)
     
     def genericWindowProps(self):
         
@@ -785,7 +791,8 @@ class ListItemMonitor(threading.Thread):
             hours   = str(full_minutes // 60)
             durationString = hours + ':' + minutes
         except Exception as e:
-            logMsg("ERROR in getDurationString ! --> " + str(e), 0)
+            logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
+            logMsg("ERROR in ListItemMonitor.getDurationString ! --> %s" %e, xbmc.LOGERROR)
             return None
         return ( hours, minutes, durationString )
               

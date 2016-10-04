@@ -6,7 +6,7 @@ import ArtworkUtils as artworkutils
 if __name__ == '__main__':
     
     #### Animated artwork #######
-    logMsg("Context menu artwork settings for Animated artwork",0)
+    logMsg("Context menu artwork settings for Animated artwork")
     WINDOW.setProperty("artworkcontextmenu", "busy")
     options=[]
     options.append(ADDON.getLocalizedString(32173)) #animated poster

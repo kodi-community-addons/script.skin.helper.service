@@ -9,7 +9,7 @@ if __name__ == '__main__':
         dbId = xbmc.getInfoLabel("ListItem.Property(DBID)")
         
     if dbId:
-        logMsg("Context menu open series level for episodeId " + dbId,0)
+        logMsg("Context menu open series level for episodeId " + dbId)
         json_result = getJSON('VideoLibrary.GetEpisodeDetails','{ "episodeid": %d, "properties": [ "tvshowid" ] }' %(int(dbId)))
         if json_result:
             path = "videodb://tvshows/titles/%s/" %str(json_result["tvshowid"])
