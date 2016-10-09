@@ -3,7 +3,7 @@ import Dialogs as dialogs
 
 
 def musicSearch():
-    xbmc.executebuiltin( "ActivateWindow(MusicLibrary)" )
+    xbmc.executebuiltin( "ActivateWindow(Music)" )
     xbmc.executebuiltin( "SendClick(8)" )
 
 def addShortcutWorkAround():
@@ -178,15 +178,13 @@ def setView():
         #set view
         xbmc.executebuiltin("Container.SetViewMode(%s)" %viewid)
     
-def searchYouTube(title,windowHeader="",autoplay="",windowed=""):
+def searchYouTube(title,windowHeader="",autoSelect=False):
     xbmc.executebuiltin( "ActivateWindow(busydialog)" )
-    libPath = "plugin://plugin.video.youtube/kodion/search/query/?q=" + title
+    libPath = u"plugin://plugin.video.youtube/kodion/search/query/?q=%s" %title
     media_array = None
     allResults = []
-    autoplay = autoplay.lower() == "true"
-    windowed = windowed.lower() == "true"
     path = ""
-    media_array = getJSON('Files.GetDirectory','{ "properties": ["title","art","plot"], "directory": "%s", "media": "files", "limits": {"end":25} }' %libPath)
+    media_array = getJSON('Files.GetDirectory','{ "properties": ["title","art","plot"], "directory": "%s", "media": "files", "limits": {"end":25} }' %try_encode(libPath))
     for media in media_array:
         if not media["filetype"] == "directory":
             label = media["label"]
@@ -200,10 +198,10 @@ def searchYouTube(title,windowHeader="",autoplay="",windowed=""):
             listitem.setProperty("path",path)
             listitem.setProperty("icon",image)
             allResults.append(listitem)
-            if autoplay: break
+            if autoSelect: break
             
     xbmc.executebuiltin( "Dialog.Close(busydialog)" )
-    if not autoplay:
+    if not autoSelect:
         w = dialogs.DialogSelectBig( "DialogSelect.xml", ADDON_PATH, listing=allResults, windowtitle=windowHeader,multiselect=False )
         w.doModal()
         selectedItem = w.result
@@ -212,11 +210,9 @@ def searchYouTube(title,windowHeader="",autoplay="",windowed=""):
             path = allResults[selectedItem].getProperty("path")
         else: path = ""
     
-    #play video...
-    if path and windowed:
-        xbmc.executebuiltin('PlayMedia("%s",1)' %path)
-        if "Trailer" in title:
-            WINDOW.setProperty("TrailerPlaying","windowed")
+    #play video or return result only
+    if autoSelect:
+        return path
     elif path:
         if xbmc.getCondVisibility("Window.IsActive(script-skin_helper_service-CustomInfo.xml) | Window.IsActive(movieinformation)"):
             xbmc.executebuiltin("Dialog.Close(movieinformation)")

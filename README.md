@@ -163,17 +163,12 @@ This will prevent you from having to sort out that logic yourself in your skin.
 
 The script handles this logic to locate the fanart:
 
-1. custom path set by you in the skin: Skin.String(SkinHelper.CustomStudioImagesPath)
-
-2. try to locate the images in skin\extras\flags\studios  (and flags\studioscolor for coloured images)
-
-3. try to locate the images in the new image resource addons provided by the Kodi team
-
+Note: You must set the path where the images can be found in a skin string: SkinHelper.StudioLogos.Path
+This path can be a Kodi resource addon or just a path on the filesystem
 
 | property 			| description |
 |:-----------------------------	| :----------- |
-|Window(Home).Property(SkinHelper.ListItemStudioLogo) | Will return the full image path of the (default/white) studio logo for the current selected item in a list. |
-|Window(Home).Property(SkinHelper.ListItemStudioLogoColor) | Will return the full image path of the coloured studio logo for the current selected item in a list. |
+|Window(Home).Property(SkinHelper.ListItemStudioLogo) | Will return the full image path of the studio logo for the current selected item in a list. |
 |Window(Home).Property(SkinHelper.ListItemStudio) | Will just return the first studio of the listitem if you want to locate the images yourself. |
 |Window(Home).Property(SkinHelper.ListItemStudios) | Will return all studios seperated by [CR] |
 

@@ -83,15 +83,16 @@ class Kodi_Monitor(xbmc.Monitor):
     def resetVideoWidgetProps(self,data="",resetAll=False):
         #clear the cache for the video widgets
         type = "unknown"
+        id = None
         if data:
             data = eval(data.replace("true","True").replace("false","False"))
             if data and data.get("item"):
                 type = data["item"].get("type","unknown")
+                id = data["item"].get("id",None)
 
         if (type in ["movie","tvshow","episode"] and not utils.WINDOW.getProperty("skinhelper-refreshvideowidgetsbusy")) or resetAll:
             utils.logMsg("Video database changed - type: %s - resetAll: %s, refreshing widgets...." %(type,resetAll))
             utils.WINDOW.setProperty("skinhelper-refreshvideowidgetsbusy","busy")
-            if resetAll: utils.WINDOW.setProperty("resetVideoDbCache","reset")
             timestr = time.strftime("%Y%m%d%H%M%S", time.gmtime())
             #reset specific widgets, based on item that is updated
             if resetAll or type=="movie":
@@ -102,6 +103,9 @@ class Kodi_Monitor(xbmc.Monitor):
                 utils.WINDOW.setProperty("widgetreload-tvshows", timestr)
             utils.WINDOW.setProperty("widgetreload", timestr)
             utils.WINDOW.clearProperty("skinhelper-refreshvideowidgetsbusy")
+            if id:
+                #refresh cache for specific item
+                artutils.getStreamDetails(id,type,ignoreCache=True)
             
     def resetPlayerWindowProps(self):
         #reset all window props provided by the script...

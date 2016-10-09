@@ -67,9 +67,7 @@ class Main:
             elif action == "SEARCHYOUTUBE":
                 title = params.get("TITLE",None)
                 windowHeader = params.get("HEADER","")
-                autoplay = params.get("AUTOPLAY","")
-                windowed = params.get("WINDOWED","")
-                mainmodule.searchYouTube(title,windowHeader,autoplay,windowed)
+                mainmodule.searchYouTube(title,windowHeader)
             
             elif action == "SETFOCUS":
                 control = params.get("CONTROL",None)
@@ -83,6 +81,17 @@ class Main:
                         xbmc.executebuiltin("Control.SetFocus(%s)"%control)
                         xbmc.sleep(50)
                         count += 1
+                        
+            elif action == "SETWIDGETCONTAINER":
+                controls = params.get("CONTROLS","").split("-")
+                xbmc.sleep(150)
+                for i in range(10):
+                    for control in controls:
+                        if xbmc.getCondVisibility("Control.IsVisible(%s) + IntegerGreaterThan(Container(%s).NumItems,0)" %(control,control)):
+                            utils.WINDOW.setProperty("SkinHelper.WidgetContainer",control)
+                            return
+                    xbmc.sleep(50)
+                utils.WINDOW.clearProperty("SkinHelper.WidgetContainer")
                 
             elif action == "SETFORCEDVIEW":
                 contenttype = params.get("CONTENTTYPE",None)
@@ -358,8 +367,9 @@ class Main:
                 #auto play windowed trailer inside video listing
                 if not xbmc.getCondVisibility("Player.HasMedia | Container.Scrolling | Container.OnNext | Container.OnPrevious | !IsEmpty(Window(Home).Property(traileractionbusy))"):
                     utils.WINDOW.setProperty("traileractionbusy","traileractionbusy")
-                    widgetContainer = params.get("widgetcontainer","")
+                    widgetContainer = params.get("WIDGETCONTAINER","")
                     trailerMode = params.get("MODE","").replace("auto_","")
+                    allowYoutube = params.get("YOUTUBE","") == "true"
                     if not trailerMode: 
                         trailerMode = "windowed"
                     if widgetContainer: 
@@ -368,14 +378,12 @@ class Main:
                     
                     liTitle = xbmc.getInfoLabel("%sListItem.Title" %widgetContainerPrefix).decode('utf-8')
                     liTrailer = xbmc.getInfoLabel("%sListItem.Trailer" %widgetContainerPrefix).decode('utf-8')
-                    xbmc.Monitor().waitForAbort(1) #always wait a bit to prevent trailer start playing when we're scrolling the list
-                    if liTitle == xbmc.getInfoLabel("%sListItem.Title" %widgetContainerPrefix).decode('utf-8'):
+                    if not liTrailer and allowYoutube:
+                        liTrailer = mainmodule.searchYouTube("%s Trailer"%liTitle,"",True)
+                    xbmc.Monitor().waitForAbort(3) #always wait a bit to prevent trailer start playing when we're scrolling the list
+                    if liTrailer and (liTitle == xbmc.getInfoLabel("%sListItem.Title" %widgetContainerPrefix).decode('utf-8')):
                         if trailerMode == "fullscreen" and liTrailer:
                             xbmc.executebuiltin('PlayMedia("%s")' %liTrailer)
-                        elif trailerMode == "fullscreen" and not liTrailer:
-                            mainmodule.searchYouTube("%s Trailer"%liTitle,windowHeader="",autoplay="true",windowed="false")
-                        elif trailerMode != "fullscreen" and not liTrailer:
-                            mainmodule.searchYouTube("%s Trailer"%liTitle,windowHeader="",autoplay="true",windowed="true")
                         else:
                             xbmc.executebuiltin('PlayMedia("%s",1)' %liTrailer)
                         utils.WINDOW.setProperty("TrailerPlaying",trailerMode)

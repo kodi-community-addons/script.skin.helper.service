@@ -892,7 +892,12 @@ def RANDOMMOVIES(limit):
         return getJSON('VideoLibrary.GetMovies','{ "sort": { "order": "descending", "method": "random" }, "properties": [ %s ], "limits":{"end":%d} }' %(fields_movies,limit))
 
 def RANDOMTVSHOWS(limit):
-    return getJSON('VideoLibrary.GetTvShows','{ "sort": { "order": "descending", "method": "random" }, "properties": [ %s ], "limits":{"end":%d} }' %(fields_tvshows,limit))
+    shows = getJSON('VideoLibrary.GetTvShows','{ "sort": { "order": "descending", "method": "random" }, "properties": [ %s ], "limits":{"end":%d} }' %(fields_tvshows,limit))
+    for item in shows:
+        item["file"] = "videodb://tvshows/titles/%s/" %item["tvshowid"]
+        item["IsPlayable"] = "false"
+        item["isFolder"] = True
+    return shows
             
 def INPROGRESSANDRANDOMMOVIES(limit):
     allTitles = list()
@@ -950,11 +955,55 @@ def RECENTMUSICVIDEOS(limit):
         return getJSON('VideoLibrary.GetMusicVideos','{ "sort": { "order": "descending", "method": "dateadded" }, "properties": [ %s ], "limits":{"end":%d} }' %(fields_musicvideos,limit))
 
 def RECENTEPISODES(limit):
-    if hideWatchedItemsInWidgets:
-        return getJSON('VideoLibrary.GetEpisodes','{ "sort": { "order": "descending", "method": "dateadded" }, "filter": {"operator":"is", "field":"playcount", "value":"0"}, "properties": [ %s ], "limits":{"end":%d} }' %(fields_episodes,limit))
-    else:
-        return getJSON('VideoLibrary.GetEpisodes','{ "sort": { "order": "descending", "method": "dateadded" }, "properties": [ %s ], "limits":{"end":%d} }' %(fields_episodes,limit))
-                      
+    showepisodes = {}
+    allItems = []
+    count = 0
+    uniquecount = 0
+    while uniquecount < limit:
+        if hideWatchedItemsInWidgets:
+            recent_episodes = getJSON('VideoLibrary.GetEpisodes','{ "sort": { "order": "descending", "method": "dateadded" }, "filter": {"operator":"is", "field":"playcount", "value":"0"}, "properties": [ %s ], "limits":{"start":%d,"end":%d} }' %(fields_episodes,count,limit+count))
+        else:
+            recent_episodes = getJSON('VideoLibrary.GetEpisodes','{ "sort": { "order": "descending", "method": "dateadded" }, "properties": [ %s ], "limits":{"start":%d,"end":%d} }' %(fields_episodes,count,limit+count))
+        if len(recent_episodes) < limit:
+            uniquecount = limit
+            
+        #if multiple episodes for the same show with same addition date, we combine them into one
+        #to do that we build a dict with recent episodes for each show
+        
+        for episode in recent_episodes:
+            count += 1
+            uniquekey = "%s-%s-%s" %(episode["tvshowid"],episode["dateadded"].split(" ")[0],episode["season"])
+            if not showepisodes.has_key(uniquekey):
+                showepisodes[uniquekey] = []
+                uniquecount += 1
+            showepisodes[uniquekey].append(episode)
+            
+    for tvshow, episodes in showepisodes.iteritems():
+        
+        firstepisode = episodes[0]
+        if len(episodes) > 2:
+            #add as season entry if there were multiple episodes for the same show - use first episode as reference to keep the correct sorting order
+            item = {}
+            item["art"] = {}
+            item["type"] = "season"
+            item["tvshowid"] = firstepisode["tvshowid"]
+            item["title"] = firstepisode["showtitle"]
+            item["label"] = "%s %s" %(xbmc.getLocalizedString(20373), firstepisode["season"])
+            item["art"] = firstepisode["art"]
+            item["cast"] = firstepisode["cast"]
+                    
+            item["plot"] = u"[B]%s[/B] • %s %s[CR]%s: %s" %(item["label"],len(episodes),xbmc.getLocalizedString(20387),xbmc.getLocalizedString(570),firstepisode["dateadded"].split(" ")[0])      
+            item["dateadded"] = firstepisode["dateadded"]
+            item["extraproperties"] = {"UnWatchedEpisodes": "%s"%len(episodes)}
+            item["file"] = "videodb://tvshows/titles/%s/%s/" %(firstepisode["tvshowid"],firstepisode["season"])
+            item["isFolder"] = "true"
+            allItems.append(item)
+        else:
+            #just add the single item
+            allItems.append(firstepisode)
+
+    return sorted(allItems,key=itemgetter("dateadded"),reverse=True)
+                           
 def RECENTMEDIA(limit):
     count = 0
     allItems = []

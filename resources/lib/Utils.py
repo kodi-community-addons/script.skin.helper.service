@@ -105,6 +105,8 @@ def getJSON(method,params):
             return jsonobject['tvshows']
         elif jsonobject.has_key('episodes'):
             return jsonobject['episodes']
+        elif jsonobject.has_key('seasons'):
+            return jsonobject['seasons']
         elif jsonobject.has_key('musicvideos'):
             return jsonobject['musicvideos']
         elif jsonobject.has_key('channels'):
@@ -362,137 +364,151 @@ def prepareListItems(items):
     return listitems
     
 def prepareListItem(item):
-    #fix values returned from json to be used as listitem values
-    properties = item.get("extraproperties",{})
-    
-    #set type
-    for idvar in [ ('episode','DefaultTVShows.png'),('tvshow','DefaultTVShows.png'),('movie','DefaultMovies.png'),('song','DefaultAudio.png'),('musicvideo','DefaultMusicVideos.png'),('recording','DefaultTVShows.png'),('album','DefaultAudio.png') ]:
-        if item.get(idvar[0] + "id"):
-            properties["DBID"] = str(item.get(idvar[0] + "id"))
-            if not item.get("type"): item["type"] = idvar[0]
-            if not item.get("icon"): item["icon"] = idvar[1]
-            break
-    
-    #general properties
-    if item.get('genre') and isinstance(item.get('genre'), list): item["genre"] = " / ".join(item.get('genre'))
-    if item.get('studio') and isinstance(item.get('studio'), list): item["studio"] = " / ".join(item.get('studio'))
-    if item.get('writer') and isinstance(item.get('writer'), list): item["writer"] = " / ".join(item.get('writer'))
-    if item.get('director') and isinstance(item.get('director'), list): item["director"] = " / ".join(item.get('director'))
-    if not isinstance(item.get('artist'), list) and item.get('artist'): item["artist"] = [item.get('artist')]
-    if not item.get('artist'): item["artist"] = []
-    if item.get('type') == "album" and not item.get('album'): item['album'] = item.get('label')
-    if not item.get("duration") and item.get("runtime"): item["duration"] = item.get("runtime")
-    if not item.get("plot") and item.get("comment"): item["plot"] = item.get("comment")
-    if not item.get("tvshowtitle") and item.get("showtitle"): item["tvshowtitle"] = item.get("showtitle")
-    if not item.get("premiered") and item.get("firstaired"): item["premiered"] = item.get("firstaired")
-    if not properties.get("imdbnumber") and item.get("imdbnumber"): properties["imdbnumber"] = item.get("imdbnumber")
-    properties["dbtype"] = item.get("type")
-    properties["type"] = item.get("type")
-    properties["path"] = item.get("file")
+    try:
+        #fix values returned from json to be used as listitem values
+        properties = item.get("extraproperties",{})
+        
+        #set type
+        for idvar in [ ('episode','DefaultTVShows.png'),('tvshow','DefaultTVShows.png'),('movie','DefaultMovies.png'),('song','DefaultAudio.png'),('musicvideo','DefaultMusicVideos.png'),('recording','DefaultTVShows.png'),('album','DefaultAudio.png') ]:
+            if item.get(idvar[0] + "id"):
+                properties["DBID"] = str(item.get(idvar[0] + "id"))
+                if not item.get("type"): item["type"] = idvar[0]
+                if not item.get("icon"): item["icon"] = idvar[1]
+                break
+        
+        #general properties
+        if item.get('genre') and isinstance(item.get('genre'), list): item["genre"] = " / ".join(item.get('genre'))
+        if item.get('studio') and isinstance(item.get('studio'), list): item["studio"] = " / ".join(item.get('studio'))
+        if item.get('writer') and isinstance(item.get('writer'), list): item["writer"] = " / ".join(item.get('writer'))
+        if item.get('director') and isinstance(item.get('director'), list): item["director"] = " / ".join(item.get('director'))
+        if not isinstance(item.get('artist'), list) and item.get('artist'): item["artist"] = [item.get('artist')]
+        if not item.get('artist'): item["artist"] = []
+        if item.get('type') == "album" and not item.get('album'): item['album'] = item.get('label')
+        if not item.get("duration") and item.get("runtime"): item["duration"] = item.get("runtime")
+        if not item.get("plot") and item.get("comment"): item["plot"] = item.get("comment")
+        if not item.get("tvshowtitle") and item.get("showtitle"): item["tvshowtitle"] = item.get("showtitle")
+        if not item.get("premiered") and item.get("firstaired"): item["premiered"] = item.get("firstaired")
+        if not properties.get("imdbnumber") and item.get("imdbnumber"): properties["imdbnumber"] = item.get("imdbnumber")
+        properties["dbtype"] = item.get("type")
+        properties["type"] = item.get("type")
+        properties["path"] = item.get("file")
 
-    #cast
-    listCast = []
-    listCastAndRole = []
-    if item.get("cast"):
-        for castmember in item.get("cast"):
-            if castmember:
-                listCast.append( castmember["name"] )
-                listCastAndRole.append( (castmember["name"], castmember["role"]) )
-    item["cast"] = listCast
-    item["castandrole"] = listCastAndRole
-    
-    if item.get("season") and item.get("episode"):
-        properties["episodeno"] = "s%se%s" %(item.get("season"),item.get("episode"))
-    if item.get("resume"):
-        properties["resumetime"] = str(item['resume']['position'])
-        properties["totaltime"] = str(item['resume']['total'])
-        properties['StartOffset'] = str(item['resume']['position'])
-    
-    #streamdetails
-    if item.get("streamdetails"):
-        streamdetails = item["streamdetails"]
-        audiostreams = streamdetails.get('audio',[])
-        videostreams = streamdetails.get('video',[])
-        subtitles = streamdetails.get('subtitle',[])
-        if len(videostreams) > 0:
-            stream = videostreams[0]
-            height = stream.get("height","")
-            width = stream.get("width","")
-            if height and width:
-                resolution = ""
-                if width <= 720 and height <= 480: resolution = "480"
-                elif width <= 768 and height <= 576: resolution = "576"
-                elif width <= 960 and height <= 544: resolution = "540"
-                elif width <= 1280 and height <= 720: resolution = "720"
-                elif width <= 1920 and height <= 1080: resolution = "1080"
-                elif width * height >= 6000000: resolution = "4K"
-                properties["VideoResolution"] = resolution
-            if stream.get("codec",""):   
-                properties["VideoCodec"] = str(stream["codec"])
-            if stream.get("aspect",""):
-                properties["VideoAspect"] = str(round(stream["aspect"], 2))
-            item["streamdetails"]["video"] = stream
+        #cast
+        listCast = []
+        listCastAndRole = []
+        if item.get("cast") and isinstance(item["cast"],list):
+            for castmember in item["cast"]:
+                if isinstance(castmember,dict):
+                    listCast.append( castmember.get("name","") )
+                    listCastAndRole.append( (castmember["name"], castmember["role"]) )
+                else:
+                    listCast.append( castmember )
+                    listCastAndRole.append( (castmember, "") )
+
+        item["cast"] = listCast
+        item["castandrole"] = listCastAndRole
         
-        #grab details of first audio stream
-        if len(audiostreams) > 0:
-            stream = audiostreams[0]
-            properties["AudioCodec"] = stream.get('codec','')
-            properties["AudioChannels"] = str(stream.get('channels',''))
-            properties["AudioLanguage"] = stream.get('language','')
-            item["streamdetails"]["audio"] = stream
+        if item.get("season") and item.get("episode"):
+            properties["episodeno"] = "s%se%s" %(item.get("season"),item.get("episode"))
+        if item.get("resume"):
+            properties["resumetime"] = str(item['resume']['position'])
+            properties["totaltime"] = str(item['resume']['total'])
+            properties['StartOffset'] = str(item['resume']['position'])
         
-        #grab details of first subtitle
-        if len(subtitles) > 0:
-            properties["SubtitleLanguage"] = subtitles[0].get('language','')
-            item["streamdetails"]["subtitle"] = subtitles[0]
-    else:
-        item["streamdetails"] = {}
-        item["streamdetails"]["video"] =  {'duration': item.get('duration',0)}
-    
-    #additional music properties
-    if item.get('album_description'):
-        properties["Album_Description"] = item.get('album_description')
-    
-    #pvr properties
-    if item.get("starttime"):
-        starttime = getLocalDateTimeFromUtc(item['starttime'])
-        endtime = getLocalDateTimeFromUtc(item['endtime'])
-        properties["StartTime"] = starttime[1]
-        properties["StartDate"] = starttime[0]
-        properties["EndTime"] = endtime[1]
-        properties["EndDate"] = endtime[0]
-        fulldate = starttime[0] + " " + starttime[1] + "-" + endtime[1]
-        properties["Date"] = fulldate
-        properties["StartDateTime"] = starttime[0] + " " + starttime[1]
-        item["date"] = starttime[0]
-        item["premiered"] = starttime[0]
-    if item.get("channellogo"): 
-        properties["channellogo"] = item["channellogo"]
-        properties["channelicon"] = item["channellogo"]
-    if item.get("episodename"): properties["episodename"] = item.get("episodename","")
-    if item.get("channel"): properties["channel"] = item.get("channel","")
-    if item.get("channel"): properties["channelname"] = item.get("channel","")
-    if item.get("channel"): item["label2"] = item.get("channel","")
-    
-    #artwork
-    art = item.get("art",{})
-    if item.get("type") == "episode":
-        if not art.get("fanart") and art.get("tvshow.fanart"):
-            art["fanart"] = art.get("tvshow.fanart")
-        if not art.get("poster") and art.get("tvshow.poster"):
-            art["poster"] = art.get("tvshow.poster")
-        if not art.get("clearlogo") and art.get("tvshow.clearlogo"):
-            art["clearlogo"] = art.get("tvshow.clearlogo")
-        if not art.get("landscape") and art.get("tvshow.landscape"):
-            art["landscape"] = art.get("tvshow.landscape")
-    if not art.get("fanart") and item.get('fanart'): art["fanart"] = item.get('fanart')
-    if not art.get("thumb") and item.get('thumbnail'): art["thumb"] = getCleanImage(item.get('thumbnail'))
-    if not art.get("thumb") and art.get('poster'): art["thumb"] = getCleanImage(item.get('poster'))
-    if not art.get("thumb") and item.get('icon'): art["thumb"] = getCleanImage(item.get('icon'))
-    if not item.get("thumbnail") and art.get('thumb'): item["thumbnail"] = art["thumb"]
-    
-    #return the result
-    item["extraproperties"] = properties
+        #streamdetails
+        if item.get("streamdetails"):
+            streamdetails = item["streamdetails"]
+            audiostreams = streamdetails.get('audio',[])
+            videostreams = streamdetails.get('video',[])
+            subtitles = streamdetails.get('subtitle',[])
+            if len(videostreams) > 0:
+                stream = videostreams[0]
+                height = stream.get("height","")
+                width = stream.get("width","")
+                if height and width:
+                    resolution = ""
+                    if width <= 720 and height <= 480: resolution = "480"
+                    elif width <= 768 and height <= 576: resolution = "576"
+                    elif width <= 960 and height <= 544: resolution = "540"
+                    elif width <= 1280 and height <= 720: resolution = "720"
+                    elif width <= 1920 and height <= 1080: resolution = "1080"
+                    elif width * height >= 6000000: resolution = "4K"
+                    properties["VideoResolution"] = resolution
+                if stream.get("codec",""):   
+                    properties["VideoCodec"] = str(stream["codec"])
+                if stream.get("aspect",""):
+                    properties["VideoAspect"] = str(round(stream["aspect"], 2))
+                item["streamdetails"]["video"] = stream
+            
+            #grab details of first audio stream
+            if len(audiostreams) > 0:
+                stream = audiostreams[0]
+                properties["AudioCodec"] = stream.get('codec','')
+                properties["AudioChannels"] = str(stream.get('channels',''))
+                properties["AudioLanguage"] = stream.get('language','')
+                item["streamdetails"]["audio"] = stream
+            
+            #grab details of first subtitle
+            if len(subtitles) > 0:
+                properties["SubtitleLanguage"] = subtitles[0].get('language','')
+                item["streamdetails"]["subtitle"] = subtitles[0]
+        else:
+            item["streamdetails"] = {}
+            item["streamdetails"]["video"] =  {'duration': item.get('duration',0)}
+        
+        #additional music properties
+        if item.get('album_description'):
+            properties["Album_Description"] = item.get('album_description')
+        
+        #pvr properties
+        if item.get("starttime"):
+            starttime = getLocalDateTimeFromUtc(item['starttime'])
+            endtime = getLocalDateTimeFromUtc(item['endtime'])
+            properties["StartTime"] = starttime[1]
+            properties["StartDate"] = starttime[0]
+            properties["EndTime"] = endtime[1]
+            properties["EndDate"] = endtime[0]
+            fulldate = starttime[0] + " " + starttime[1] + "-" + endtime[1]
+            properties["Date"] = fulldate
+            properties["StartDateTime"] = starttime[0] + " " + starttime[1]
+            item["date"] = starttime[0]
+            item["premiered"] = starttime[0]
+        if item.get("channellogo"): 
+            properties["channellogo"] = item["channellogo"]
+            properties["channelicon"] = item["channellogo"]
+        if item.get("episodename"): properties["episodename"] = item.get("episodename","")
+        if item.get("channel"): properties["channel"] = item.get("channel","")
+        if item.get("channel"): properties["channelname"] = item.get("channel","")
+        if item.get("channel"): item["label2"] = item.get("channel","")
+        
+        #artwork
+        art = item.get("art",{})
+        if item.get("type") == "episode":
+            if not art.get("fanart") and art.get("season.fanart"):
+                art["fanart"] = art["season.fanart"]
+            if not art.get("poster") and art.get("season.poster"):
+                art["poster"] = art["season.poster"]
+            if not art.get("landscape") and art.get("season.landscape"):
+                art["poster"] = art["season.landscape"]
+            if not art.get("fanart") and art.get("tvshow.fanart"):
+                art["fanart"] = art.get("tvshow.fanart")
+            if not art.get("poster") and art.get("tvshow.poster"):
+                art["poster"] = art.get("tvshow.poster")
+            if not art.get("clearlogo") and art.get("tvshow.clearlogo"):
+                art["clearlogo"] = art.get("tvshow.clearlogo")
+            if not art.get("landscape") and art.get("tvshow.landscape"):
+                art["landscape"] = art.get("tvshow.landscape")
+        if not art.get("fanart") and item.get('fanart'): art["fanart"] = item.get('fanart')
+        if not art.get("thumb") and item.get('thumbnail'): art["thumb"] = getCleanImage(item.get('thumbnail'))
+        if not art.get("thumb") and art.get('poster'): art["thumb"] = getCleanImage(item.get('poster'))
+        if not art.get("thumb") and item.get('icon'): art["thumb"] = getCleanImage(item.get('icon'))
+        if not item.get("thumbnail") and art.get('thumb'): item["thumbnail"] = art["thumb"]
+        
+        #return the result
+        item["extraproperties"] = properties
+    except Exception as e:
+        logMsg(format_exc(sys.exc_info()),xbmc.LOGERROR)
+        logMsg("ERROR Preparing ListItem --> %s" %e, xbmc.LOGERROR)
     return item
     
 def detectPluginContent(plugin):
@@ -681,7 +697,7 @@ def getCurrentContentType(containerprefix=""):
         elif xbmc.getCondVisibility("SubString(%sListItem.FileNameAndPath,launchpvr)" %(containerprefix)):
             contenttype = "tvchannels"
         elif xbmc.getCondVisibility("SubString(%sListItem.FolderPath,pvr://channels)" %containerprefix):
-            contenttype = "tvchannels"
+            contenttype = "tvchannels"    
         elif xbmc.getCondVisibility("SubString(%sListItem.FolderPath,flix2kodi) + SubString(%sListItem.Genre,Series)" %(containerprefix,containerprefix)):
             contenttype = "tvshows"
         elif xbmc.getCondVisibility("SubString(%sListItem.FolderPath,flix2kodi)" %(containerprefix)):
@@ -706,8 +722,9 @@ def getCurrentContentType(containerprefix=""):
             contenttype = "tvshows"
         elif xbmc.getCondVisibility("SubString(%sListItem.FolderPath,episodes)" %containerprefix):
             contenttype = "episodes"
+        elif xbmc.getCondVisibility("!IsEmpty(%sListItem.Property(ChannelLogo))" %(containerprefix)):
+            contenttype = "tvchannels"
     
-    WINDOW.setProperty("contenttype",contenttype)
     return contenttype
          
 def getCleanImage(image):
@@ -800,88 +817,6 @@ def unzip(zip_file,path):
     f.close()
     logMsg("UNZIP DONE of file %s  to path %s " %(zipfile,path))
     
-def matchStudioLogo(studiostr,studiologos):
-    #try to find a matching studio logo
-    studiologo = ""
-    studios = []
-    if "/" in studiostr:
-        studios = studiostr.split(" / ")
-    else:
-        studios.append(studiostr)
-    
-    for studio in studios:
-        studio = studio.lower()
-        #find logo normal
-        if studiologos.has_key(studio):
-            studiologo = studiologos[studio]
-        
-        if not studiologo:
-            #find logo by substituting characters
-            if " (" in studio:
-                studio = studio.split(" (")[0]
-                if studiologos.has_key(studio):
-                    studiologo = studiologos[studio]
-        
-        if not studiologo:
-            #find logo by substituting characters for pvr channels
-            if " HD" in studio:
-                studio = studio.replace(" HD","")
-            elif " " in studio:
-                studio = studio.replace(" ","")
-            if studiologos.has_key(studio):
-                studiologo = studiologos[studio]
-                
-    return studiologo
-
-
-def getResourceAddonFiles(addonName,allFilesList=None):
-    # get listing of all files (eg studio logos) inside a resource image addonName
-    # listing is delivered by the addon and not read live because of some issues with listdir and resourceaddons.
-    # http://forum.kodi.tv/showthread.php?tid=246245
-    if not allFilesList: 
-        allFilesList = {}
-        
-    # read data from our permanent cache file to prevent that we have to query the resource addon
-    cachefile = os.path.join(ADDON_PATH, 'resources', addonName + '.json' ).decode("utf-8")
-    data = getDataFromCacheFile(cachefile)
-    if not data:
-        # safe data to our permanent cache file, only to be written if the resource addon changes.
-        data = listFilesInPath("resource://%s/"%addonName)
-        saveDataToCacheFile(cachefile,data)
-    
-    #return the data
-    if data:
-        for key, value in data.iteritems():
-            if not allFilesList.get(key):
-                allFilesList[key] = value
-    return allFilesList
-     
-def listFilesInPath(path, allFilesList=None):
-    #used for easy matching of studio logos
-    if not allFilesList: 
-        allFilesList = {}
-    dirs, files = xbmcvfs.listdir(path)
-    for file in files:
-        file = file.decode("utf-8")
-        name = file.split(".png")[0].lower()
-        if not allFilesList.has_key(name):
-            allFilesList[name] = path + file
-    for dir in dirs:
-        dirs2, files2 = xbmcvfs.listdir(os.path.join(path,dir)+os.sep)
-        for file in files2:
-            file = file.decode("utf-8")
-            dir = dir.decode("utf-8")
-            name = dir + "/" + file.split(".png")[0].lower()
-            if not allFilesList.has_key(name):
-                if "/" in path:
-                    sep = "/"
-                else:
-                    sep = "\\"
-                allFilesList[name] = path + dir + sep + file
-    
-    #return the list
-    return allFilesList
-   
 def getDataFromCacheFile(file):
     data = {}
     try:

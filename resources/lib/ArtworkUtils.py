@@ -318,6 +318,7 @@ def getfanartTVimages(type,id,artwork=None,allowoverwrite=True):
         url = 'http://webservice.fanart.tv/v3/music/albums/%s?api_key=%s' %(id,api_key)
     else:
         url = 'http://webservice.fanart.tv/v3/tv/%s?api_key=%s' %(id,api_key)
+        
     try:
         response = requests.get(url, timeout=15)
     except Exception as e:
@@ -752,7 +753,7 @@ def preCacheAllAnimatedArt():
 def getAnimatedPostersDb():
     allItems = {}
     
-    #try window cache first
+    #try cache first
     cacheStr = "SkinHelper.AnimatedArtwork"
     cache = simplecache.get(cacheStr)
     if cache: 
@@ -780,7 +781,7 @@ def getAnimatedPostersDb():
                 allItems[imdbid + 'poster'] = posters
                 allItems[imdbid + 'fanart'] = fanarts
     #store in cache
-    simplecache.set(cacheStr,allItems,expiration=timedelta(days=2))
+    simplecache.set(cacheStr,allItems,expiration=timedelta(days=1))
     return allItems
               
 def getAnimatedArtwork(imdbid,arttype="poster",dbid=None,manualHeader=""):
@@ -906,6 +907,13 @@ def getGoogleImages(terms,**kwargs):
     return results
 
 def getImdbTop250():
+    
+    #try cache first
+    cacheStr = "SkinHelper.ImdbTop250"
+    cache = simplecache.get(cacheStr)
+    if cache: 
+        return cache
+
     results = {}
     #movie top250
     html = requests.get("http://www.imdb.com/chart/top", headers={'User-agent': 'Mozilla/5.0'}, timeout=20)
@@ -934,9 +942,18 @@ def getImdbTop250():
                         imdb_id = url.split("/")[2]
                         imdb_rank = url.split("chttvtp_tt_")[1]
                         results[imdb_id] = imdb_rank
+    
+    #store in cache and return results
+    simplecache.set(cacheStr,results,expiration=timedelta(days=5))
     return results
     
 def searchYoutubeImage(searchphrase, searchphrase2=""):
+    
+    #try cache first
+    cacheStr = u"SkinHelper.searchYoutubeImage.%s-%s" %(searchphrase,searchphrase2)
+    cache = simplecache.get(cacheStr)
+    if cache: return cache
+    
     if not xbmc.getCondVisibility("System.HasAddon(plugin.video.youtube)"):
         return ""
         
@@ -966,9 +983,17 @@ def searchYoutubeImage(searchphrase, searchphrase2=""):
         logMsg("searchYoutubeImage - YOUTUBE match NOT found for %s" %searchphrase)
     
     WINDOW.clearProperty("youtubescanrunning")
+    #store in cache and return results
+    simplecache.set(cacheStr,image,expiration=timedelta(days=7))
     return image
  
 def getMusicBrainzId(artist, album="", track=""):
+    
+    #try cache first
+    cacheStr = u"SkinHelper.getMusicBrainzId.%s-%s" %(artist,album)
+    cache = simplecache.get(cacheStr)
+    if cache: return cache
+    
     albumid = ""
     artistid = ""
     response = None
@@ -1071,8 +1096,10 @@ def getMusicBrainzId(artist, album="", track=""):
             logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
             logMsg("getMusicArtwork LastFM lookup failed --> %s" %e, xbmc.LOGWARNING)
     
-    logMsg("getMusicBrainzId results for artist %s  - artistid:  %s  - albumid:  %s" %(artist,artistid,albumid))
-    return (artistid, albumid)
+    logMsg("getMusicBrainzId results for artist %s  - %s" %result)
+    result = (artistid, albumid)
+    simplecache.set(cacheStr,result)
+    return result
 
 def getArtistArtwork(musicbrainzartistid, artwork=None, allowoverwrite=True):
     if not artwork: artwork = {}
@@ -1616,4 +1643,131 @@ def updateMusicArt(type,id):
             getMusicArtwork(artist,item["title"],"",True)
     WINDOW.clearProperty("updateMusicArt.busy")
         
+def getExtraFanart(folderpath):
+    #lookup extrafanart path for listitem's path
     
+    if ("plugin://" in folderpath or "addon://" in folderpath or "sources" in folderpath) and not "plugin.video.emby" in folderpath:
+        #no extrafanart lookup for addons, except for emby
+        return {}
+    
+    #get the item from cache first
+    cacheStr = "SkinHelper.ExtraFanArt.%s" %folderpath
+    cache = simplecache.get(cacheStr)
+    if cache:
+        return cache
+        
+    #lookup the extrafanart in the media location
+    efaProps = {}
+    efaPath = None
+    if "plugin.video.emby" in folderpath:
+        #workaround for emby addon
+        efaPath = u"plugin://plugin.video.emby/extrafanart?path=" + folderpath
+    else:
+        #normal library path, look for extrafanart folder
+        if "/" in folderpath: splitchar = u"/"
+        else: splitchar = u"\\"
+    
+        if xbmcvfs.exists(folderpath + "extrafanart"+splitchar):
+            efaPath = folderpath + u"extrafanart"+splitchar
+        else:
+            pPath = folderpath.rpartition(splitchar)[0]
+            pPath = pPath.rpartition(splitchar)[0]
+            sublevelPath = pPath + splitchar + "extrafanart"+splitchar
+            if xbmcvfs.exists(sublevelPath):
+                efaPath = sublevelPath
+                
+    efaProps["SkinHelper.ExtraFanArtPath"] = efaPath
+    
+    #get extrafanarts
+    if efaPath:
+        dirs, files = xbmcvfs.listdir(efaPath)
+        count = 0
+        for file in files:
+            if file.lower().endswith(".jpg"):
+                efaProps["SkinHelper.ExtraFanArt.%s"%count] = efaPath+file.decode("utf-8")
+                count +=1
+
+    simplecache.set(cacheStr,efaProps,expiration=timedelta(days=7))
+    return efaProps
+    
+def getStreamDetails(dbid,contenttype,ignoreCache=False):
+    streamdetails = {}
+    if not contenttype.endswith("s"):
+        contenttype = contenttype + "s"
+    if not dbid or not contenttype in ["movies","episodes","musicvideos"]: 
+        return streamdetails
+
+    #get the item from cache first
+    cacheStr = u"SkinHelper.StreamDetails.%s.%s" %(dbid,contenttype)
+    cache = simplecache.get(cacheStr)
+    if cache and not ignoreCache:
+        return cache
+        
+    # no cache - get data from json
+    json_result = {}
+    # get data from json
+    if "movies" in contenttype and dbid:
+        json_result = getJSON('VideoLibrary.GetMovieDetails', '{ "movieid": %d, "properties": [ "title", "streamdetails", "tag" ] }' %int(dbid))
+    elif contenttype == "episodes" and dbid:
+        json_result = getJSON('VideoLibrary.GetEpisodeDetails', '{ "episodeid": %d, "properties": [ "title", "streamdetails" ] }' %int(dbid))
+    elif contenttype == "musicvideos" and dbid:
+        json_result = getJSON('VideoLibrary.GetMusicVideoDetails', '{ "musicvideoid": %d, "properties": [ "title", "streamdetails" ] }' %int(dbid))
+    if json_result.has_key("streamdetails"):
+        audio = json_result["streamdetails"]['audio']
+        subtitles = json_result["streamdetails"]['subtitle']
+        video = json_result["streamdetails"]['video']
+        allAudio = []
+        allAudioStr = []
+        allSubs = []
+        allLang = []
+        count = 0
+        for item in audio:
+            codec = item['codec']
+            channels = item['channels']
+            if "ac3" in codec: codec = "Dolby D"
+            elif "dca" in codec: codec = "DTS"
+            elif "dts-hd" in codec or "dtshd" in codec: codec = "DTS HD"
+            if channels == 1: channels = "1.0"
+            elif channels == 2: channels = "2.0"
+            elif channels == 3: channels = "2.1"
+            elif channels == 4: channels = "4.0"
+            elif channels == 5: channels = "5.0"
+            elif channels == 6: channels = "5.1"
+            elif channels == 7: channels = "6.1"
+            elif channels == 8: channels = "7.1"
+            elif channels == 9: channels = "8.1"
+            elif channels == 10: channels = "9.1"
+            else: channels = str(channels)
+            language = item.get('language','')
+            if language and language not in allLang:
+                allLang.append(language)
+            streamdetails['SkinHelper.ListItemAudioStreams.%d.Language'% count] = item['language']
+            streamdetails['SkinHelper.ListItemAudioStreams.%d.AudioCodec'%count] = item['codec']
+            streamdetails['SkinHelper.ListItemAudioStreams.%d.AudioChannels'%count] = str(item['channels'])
+            sep = "•".decode('utf-8')
+            audioStr = '%s %s %s %s %s' %(language,sep,codec,sep,channels)
+            streamdetails['SkinHelper.ListItemAudioStreams.%d'%count] = audioStr
+            allAudioStr.append(audioStr)
+            count += 1
+        subscount = 0
+        subscountUnique = 0
+        for item in subtitles:
+            subscount += 1
+            if item['language'] not in allSubs:
+                allSubs.append(item['language'])
+                streamdetails['SkinHelper.ListItemSubtitles.%d'%subscountUnique] = item['language']
+                subscountUnique += 1
+        streamdetails['SkinHelper.ListItemSubtitles'] = " / ".join(allSubs)
+        streamdetails['SkinHelper.ListItemSubtitles.Count'] = str(subscount)
+        streamdetails['SkinHelper.ListItemAllAudioStreams'] = " / ".join(allAudioStr)
+        streamdetails['SkinHelper.ListItemAudioStreams.Count'] = str(len(allAudioStr))
+        streamdetails['SkinHelper.ListItemLanguages'] = " / ".join(allLang)
+        streamdetails['SkinHelper.ListItemLanguages.Count'] = str(len(allLang))
+        if len(video) > 0:
+            stream = video[0]
+            streamdetails['SkinHelper.ListItemVideoHeight'] = str(stream.get("height",""))
+            streamdetails['SkinHelper.ListItemVideoWidth'] = str(stream.get("width",""))
+    if json_result.get("tag"):
+        streamdetails["SkinHelper.ListItemTags"] = " / ".join(json_result["tag"])
+    simplecache.set(cacheStr,streamdetails)
+    return streamdetails

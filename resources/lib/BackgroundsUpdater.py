@@ -920,6 +920,7 @@ class BackgroundsUpdater(threading.Thread):
                     if type == "movie": type = "movies"
                     if hasSecondaryMenus: path = WINDOW.getProperty("plexbmc.%s.all"%i).decode("utf-8")
                     else: path = WINDOW.getProperty("plexbmc.%s.path"%i).decode("utf-8")
+                    path = path.replace("VideoLibrary","Videos") #fix for krypton ?
                     alllink = path
                     alllink = alllink.replace("mode=1", "mode=0")
                     alllink = alllink.replace("mode=2", "mode=0")
