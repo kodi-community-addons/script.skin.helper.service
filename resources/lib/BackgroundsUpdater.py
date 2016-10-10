@@ -173,7 +173,7 @@ class BackgroundsUpdater(threading.Thread):
         image = None
         windowPropBW = windowProp + ".BW"
         
-        #load wall from cache    
+        #load wall from cache
         if self.allBackgrounds.get(windowProp):
             image = random.choice(self.allBackgrounds[windowProp])
             if image.get("wall"):
@@ -411,7 +411,7 @@ class BackgroundsUpdater(threading.Thread):
                     genre = " / ".join(item["genre"])
                     artwork = artutils.getPVRThumbs(item["title"],item["channel"],"recordings",item["file"],genre)
                     fanart = getCleanImage(artwork.get("fanart",""))
-                    if fanart and xbmcvfs.exists(fanart): 
+                    if fanart and xbmcvfs.exists(fanart):
                         images.append({"fanart": fanart, "title": artwork.get("title",""), "landscape": artwork.get("landscape",""), "poster": artwork.get("poster",""), "clearlogo": artwork.get("clearlogo","")})
                     
             #grab max 50 random images from persistant pvr cache files
@@ -1059,7 +1059,7 @@ class BackgroundsUpdater(threading.Thread):
                     
                     #save the files..
                     out_file = xbmc.translatePath(os.path.join(wallpath.decode("utf-8"),windowProp + "." + str(i) + ".jpg")).decode("utf-8")
-                    if xbmcvfs.exists(out_file): 
+                    if xbmcvfs.exists(out_file):
                         xbmcvfs.delete(out_file)
                         xbmc.sleep(500)
                     img_canvas.save(out_file, "JPEG")

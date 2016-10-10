@@ -245,99 +245,106 @@ def try_decode(text, encoding="utf-8"):
         return text       
  
 def createListItem(item,asTuple=True):
-    liz = xbmcgui.ListItem(label=item.get("label",""),label2=item.get("label2",""))
-    liz.setProperty('IsPlayable', item.get('IsPlayable','true'))
-    liz.setPath(item.get('file'))
-    
-    nodetype = "Video"
-    if item.get("type","") in ["song","album","artist"]:
-        nodetype = "Music"
-    
-    #extra properties
-    for key, value in item.get("extraproperties",{}).iteritems():
-        liz.setProperty(key, value)
-        
-    #video infolabels
-    if nodetype == "Video":
-        infolabels = { 
-            "title": item.get("title"),
-            "size": item.get("size"),
-            "genre": item.get("genre"),
-            "year": item.get("year"),
-            "top250": item.get("top250"),
-            "tracknumber": item.get("tracknumber"),
-            "rating": item.get("rating"),
-            "playcount": item.get("playcount"),
-            "overlay": item.get("overlay"),
-            "cast": item.get("cast"),
-            "castandrole": item.get("castandrole"),
-            "director": item.get("director"),
-            "mpaa": item.get("mpaa"),
-            "plot": item.get("plot"),
-            "plotoutline": item.get("plotoutline"),
-            "originaltitle": item.get("originaltitle"),
-            "sorttitle": item.get("sorttitle"),
-            "duration": item.get("duration"),
-            "studio": item.get("studio"),
-            "tagline": item.get("tagline"),
-            "writer": item.get("writer"),
-            "tvshowtitle": item.get("tvshowtitle"),
-            "premiered": item.get("premiered"),
-            "status": item.get("status"),
-            "code": item.get("imdbnumber"),
-            "aired": item.get("aired"),
-            "credits": item.get("credits"),
-            "album": item.get("album"),
-            "artist": item.get("artist"),
-            "votes": item.get("votes"),
-            "trailer": item.get("trailer"),
-            "progress": item.get('progresspercentage')
-        }
-        if item.get("date"): infolabels["date"] = item.get("date")
-        if item.get("lastplayed"): infolabels["lastplayed"] = item.get("lastplayed")
-        if item.get("dateadded"): infolabels["dateadded"] = item.get("dateadded")
-        if item.get("type") == "episode":
-            infolabels["season"] = item.get("season")
-            infolabels["episode"] = item.get("episode")
 
-        liz.setInfo( type="Video", infoLabels=infolabels)
-        #streamdetails
-        if item.get("streamdetails"):
-            liz.addStreamInfo("video", item["streamdetails"].get("video",{}))
-            liz.addStreamInfo("audio", item["streamdetails"].get("audio",{}))
-            liz.addStreamInfo("subtitle", item["streamdetails"].get("subtitle",{}))       
+    try:
+        liz = xbmcgui.ListItem(label=item.get("label",""),label2=item.get("label2",""))
+        liz.setProperty('IsPlayable', item.get('IsPlayable','true'))
+        liz.setPath(item.get('file'))
         
-    #music infolabels
-    if nodetype == "Music":
-        infolabels = { 
-            "title": item.get("title"),
-            "size": item.get("size"),
-            "genre": item.get("genre"),
-            "year": item.get("year"),
-            "tracknumber": item.get("track"),
-            "album": item.get("album"),
-            "artist": " / ".join(item.get('artist')),
-            "rating": str(item.get("rating",0)),
-            "lyrics": item.get("lyrics"),
-            "playcount": item.get("playcount")
-        }
-        if item.get("date"): infolabels["date"] = item.get("date")
-        if item.get("duration"): infolabels["duration"] = item.get("duration")
-        if item.get("lastplayed"): infolabels["lastplayed"] = item.get("lastplayed")
-        liz.setInfo( type="Music", infoLabels=infolabels)
-    
-    #artwork
-    if item.get("art"):
-        liz.setArt( item.get("art"))
-    if item.get("icon"):
-        liz.setIconImage(item.get('icon'))
-    if item.get("thumbnail"):
-        liz.setThumbnailImage(item.get('thumbnail'))
+        nodetype = "Video"
+        if item.get("type","") in ["song","album","artist"]:
+            nodetype = "Music"
         
-    if asTuple:
-        return (item["file"], liz, item.get("isFolder",False))
-    else:
-        return liz
+        #extra properties
+        for key, value in item.get("extraproperties",{}).iteritems():
+            liz.setProperty(key, value)
+            
+        #video infolabels
+        if nodetype == "Video":
+            infolabels = { 
+                "title": item.get("title"),
+                "size": item.get("size"),
+                "genre": item.get("genre"),
+                "year": item.get("year"),
+                "top250": item.get("top250"),
+                "tracknumber": item.get("tracknumber"),
+                "rating": item.get("rating"),
+                "playcount": item.get("playcount"),
+                "overlay": item.get("overlay"),
+                "cast": item.get("cast"),
+                "castandrole": item.get("castandrole"),
+                "director": item.get("director"),
+                "mpaa": item.get("mpaa"),
+                "plot": item.get("plot"),
+                "plotoutline": item.get("plotoutline"),
+                "originaltitle": item.get("originaltitle"),
+                "sorttitle": item.get("sorttitle"),
+                "duration": item.get("duration"),
+                "studio": item.get("studio"),
+                "tagline": item.get("tagline"),
+                "writer": item.get("writer"),
+                "tvshowtitle": item.get("tvshowtitle"),
+                "premiered": item.get("premiered"),
+                "status": item.get("status"),
+                "code": item.get("imdbnumber"),
+                "aired": item.get("aired"),
+                "credits": item.get("credits"),
+                "album": item.get("album"),
+                "artist": item.get("artist"),
+                "votes": item.get("votes"),
+                "trailer": item.get("trailer"),
+                "progress": item.get('progresspercentage')
+            }
+            if item.get("date"): infolabels["date"] = item.get("date")
+            if item.get("lastplayed"): infolabels["lastplayed"] = item.get("lastplayed")
+            if item.get("dateadded"): infolabels["dateadded"] = item.get("dateadded")
+            if item.get("type") == "episode":
+                infolabels["season"] = item.get("season")
+                infolabels["episode"] = item.get("episode")
+
+            liz.setInfo( type="Video", infoLabels=infolabels)
+            #streamdetails
+            if item.get("streamdetails"):
+                liz.addStreamInfo("video", item["streamdetails"].get("video",{}))
+                liz.addStreamInfo("audio", item["streamdetails"].get("audio",{}))
+                liz.addStreamInfo("subtitle", item["streamdetails"].get("subtitle",{}))       
+            
+        #music infolabels
+        if nodetype == "Music":
+            infolabels = { 
+                "title": item.get("title"),
+                "size": item.get("size"),
+                "genre": item.get("genre"),
+                "year": item.get("year"),
+                "tracknumber": item.get("track"),
+                "album": item.get("album"),
+                "artist": " / ".join(item.get('artist')),
+                "rating": str(item.get("rating",0)),
+                "lyrics": item.get("lyrics"),
+                "playcount": item.get("playcount")
+            }
+            if item.get("date"): infolabels["date"] = item.get("date")
+            if item.get("duration"): infolabels["duration"] = item.get("duration")
+            if item.get("lastplayed"): infolabels["lastplayed"] = item.get("lastplayed")
+            liz.setInfo( type="Music", infoLabels=infolabels)
+        
+        #artwork
+        if item.get("art"):
+            liz.setArt( item.get("art"))
+        if item.get("icon"):
+            liz.setIconImage(item.get('icon'))
+        if item.get("thumbnail"):
+            liz.setThumbnailImage(item.get('thumbnail'))
+            
+        if asTuple:
+            return (item["file"], liz, item.get("isFolder",False))
+        else:
+            return liz
+    except Exception as e:
+        logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
+        logMsg("ERROR Preparing ListItem --> %s" %e, xbmc.LOGERROR)
+        return None
+        
 
 def createListItems(items):
     listitems = []
@@ -504,12 +511,14 @@ def prepareListItem(item):
         if not art.get("thumb") and item.get('icon'): art["thumb"] = getCleanImage(item.get('icon'))
         if not item.get("thumbnail") and art.get('thumb'): item["thumbnail"] = art["thumb"]
         
-        #return the result
         item["extraproperties"] = properties
+        #return the result
+        return item
+        
     except Exception as e:
-        logMsg(format_exc(sys.exc_info()),xbmc.LOGERROR)
+        logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
         logMsg("ERROR Preparing ListItem --> %s" %e, xbmc.LOGERROR)
-    return item
+        return None
     
 def detectPluginContent(plugin):
     #based on the properties in the listitem we try to detect the content

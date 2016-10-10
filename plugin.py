@@ -94,8 +94,8 @@ class Main:
                 if genre: optionalParam = genre[0]
                 browse=params.get("browse","")
                 if browse: optionalParam = browse[0]
-                reversed=params.get("reversed","")
-                if reversed: optionalParam = reversed[0]
+                _reversed=params.get("reversed","")
+                if reversed: optionalParam = _reversed[0]
                 type=params.get("type","")
                 if type: optionalParam = type[0]
                 name=params.get("name","")

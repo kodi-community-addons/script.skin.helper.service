@@ -227,7 +227,7 @@ class Main:
             elif action == "BUSYTEXTURE":    
                 mainmodule.selectBusyTexture()
                 
-            elif action == "CACHEALLMUSICART": 
+            elif action == "CACHEALLMUSICART":
                 import resources.lib.ArtworkUtils as artworkutils
                 artworkutils.preCacheAllMusicArt()
 

@@ -631,18 +631,18 @@ class ListItemMonitor(threading.Thread):
             listOfPropsToSet.append(("Label", self.liLabel))
             listOfPropsToSet.append(("Title", self.liTitle))
             listOfPropsToSet.append(("Filenameandpath", self.liFile))
-            props = [ 
+            props = [
                         "Year","Genre","Filenameandpath","FileName","Label2",
                         "Art(fanart)","Art(poster)","Art(clearlogo)","Art(clearart)","Art(landscape)",
-                        "FileExtension","Duration","Plot", "PlotOutline","icon","thumb", 
+                        "FileExtension","Duration","Plot", "PlotOutline","icon","thumb",
                         "Property(FanArt)","dbtype","Property(dbtype)","Property(plot)","FolderPath"
                     ]
             if self.contentType in ["movies", "tvshows", "seasons", "episodes", "musicvideos", "setmovies"]:
                 props += [
-                            "imdbnumber","Art(characterart)", "studio", "TvShowTitle","Premiered", "director", "writer", 
+                            "imdbnumber","Art(characterart)", "studio", "TvShowTitle","Premiered", "director", "writer",
                             "firstaired", "VideoResolution","AudioCodec","AudioChannels", "VideoCodec",
-                            "VideoAspect","SubtitleLanguage","AudioLanguage","MPAA", "IsStereoScopic", 
-                            "Property(Video3DFormat)", "tagline", "rating" 
+                            "VideoAspect","SubtitleLanguage","AudioLanguage","MPAA", "IsStereoScopic",
+                            "Property(Video3DFormat)", "tagline", "rating"
                          ]
             if self.contentType in ["episodes"]:
                 props += [
@@ -662,7 +662,7 @@ class ListItemMonitor(threading.Thread):
                 propvalue = xbmc.getInfoLabel('%sListItem.%s'%(self.widgetContainerPrefix, prop)).decode('utf-8')
                 if propvalue:
                     listOfPropsToSet.append( (prop, propvalue) )
-                    if prop.startswith("Property"): 
+                    if prop.startswith("Property"):
                         prop = prop.replace("Property(","").replace(")","")
                         listOfPropsToSet.append( (prop, propvalue) )
             if self.liTitle != xbmc.getInfoLabel('%sListItem.Title'%(self.widgetContainerPrefix)).decode('utf-8'):
@@ -713,7 +713,7 @@ class ListItemMonitor(threading.Thread):
             self.setWindowProp("SkinHelper.PVR.ChannelLogo",icon)
 
     def setStudioLogo(self,studio=""):
-        if not studio: 
+        if not studio:
             studio = xbmc.getInfoLabel('%sListItem.Studio'%self.widgetContainerPrefix).decode('utf-8')
         for key, value in studiologos.getStudioLogo(studio).iteritems():
             self.setWindowProp(key,value)
