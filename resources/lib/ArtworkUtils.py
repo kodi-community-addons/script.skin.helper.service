@@ -27,7 +27,7 @@ tmdb_apiKey = "ae06df54334aa653354e9a010f4b81cb"
 def getPVRThumbs(title,channel,pvrtype="channels",path="",genre="",
                 year="",ignoreCache=False, manualLookup=False, override=None):
 
-    if WINDOW.getProperty("SkinHelper.IgnoreCache"): 
+    if WINDOW.getProperty("SkinHelper.IgnoreCache"):
         ignoreCache = True
 
     if "channels" in pvrtype and WINDOW.getProperty("SkinHelper.enablePVRThumbsRecordingsOnly")=="true":
@@ -47,7 +47,7 @@ def getPVRThumbs(title,channel,pvrtype="channels",path="",genre="",
         artwork = {}
         title = urllib.unquote(title)
         if channel: channel = urllib.unquote(channel)
-            
+
         #should we ignore this path ?
         ignore = False
         ignoretitles = WINDOW.getProperty("SkinHelper.ignoretitles").decode('utf-8')
@@ -68,22 +68,22 @@ def getPVRThumbs(title,channel,pvrtype="channels",path="",genre="",
                     ignore = True
         if stripwords:
             for word in stripwords.split(";"): title = title.replace(word,"")
-            
+
         if ignore and not manualLookup:
             logMsg("getPVRThumb ignore filter active for %s %s--> "%(title,channel))
             artwork["title"] = title
             WINDOW.setProperty(cacheStr, repr(artwork).encode('utf-8'))
             return {}
-            
+
         # Strip channel from title
         title = title.replace(channel,"")
         if title.endswith("-"): title = title[:-1]
         if title.endswith(" - "): title = title[:-3]
-        
+
         #make sure we have our settings cached in memory...
         if not WINDOW.getProperty("SkinHelper.pvrthumbspath"):
             setAddonsettings()
-        
+
         #Do we have a persistant cache file (pvrdetails.xml) for this item ?
         pvrThumbPath = getPvrThumbPath(channel,title)
         cachefile = os.path.join(pvrThumbPath, "pvrdetails.xml")
@@ -92,17 +92,17 @@ def getPVRThumbs(title,channel,pvrtype="channels",path="",genre="",
             logMsg("getPVRThumb - return data from persistant cache for %s - %s" %(title,channel))
             WINDOW.setProperty(cacheStr, repr(cache).encode('utf-8'))
             return cache
-        
+
         if override:
             artwork = override
         else:
             #no memory cache and no permanent cache, start lookup
             logMsg("getPVRThumbs no data in cache, starting lookup for title: %s - channel: %s" %(title, channel))
             searchtitle = title
-            
+
             if manualLookup:
                 searchtitle = xbmcgui.Dialog().input(ADDON.getLocalizedString(32147), title, type=xbmcgui.INPUT_ALPHANUM).decode("utf-8")
-            
+
             #lookup actual recordings to get details for grouped recordings
             #also grab a thumb provided by the pvr
             #NOTE: for episode level in series recordings, skinners should just get the pvr provided thumbs (listitem.thumb) in the skin itself because the cache is based on title not episode
@@ -122,12 +122,12 @@ def getPVRThumbs(title,channel,pvrtype="channels",path="",genre="",
                     if item.get("plot"):
                         artwork["plot"] = item["plot"]
                         break
-        
+
             #delete existing files on disk (only at default location)
             if manualLookup and pvrThumbPath.startswith(WINDOW.getProperty("SkinHelper.pvrthumbspath").decode("utf-8")):
                 if xbmcvfs.exists(pvrThumbPath): recursiveDelete(pvrThumbPath)
                 xbmc.sleep(1500)
-                
+
             #lookup existing artwork in pvrthumbs paths
             if xbmcvfs.exists(pvrThumbPath) and not ("special" in pvrThumbPath and manualLookup):
                 logMsg("thumbspath found on disk for " + title)
@@ -136,7 +136,7 @@ def getPVRThumbs(title,channel,pvrtype="channels",path="",genre="",
                     if xbmcvfs.exists(artpath) and not artwork.get(artType[0]):
                         artwork[artType[0]] = artpath
                         logMsg("%s found on disk for %s" %(artType[0],title))
-                    
+
             #lookup local library
             if WINDOW.getProperty("SkinHelper.useLocalLibraryLookups") == "true":
                 item = None
@@ -151,7 +151,7 @@ def getPVRThumbs(title,channel,pvrtype="channels",path="",genre="",
                     artwork = item["art"]
                     if item.get("plot"): artwork["plot"] = item["plot"]
                     logMsg("getPVRThumb artwork found in local library for %s" %title)
-                    
+
             #Perform the internet scraping
             if not WINDOW.getProperty("SkinHelper.DisableInternetLookups"):
 
@@ -163,36 +163,36 @@ def getPVRThumbs(title,channel,pvrtype="channels",path="",genre="",
                         artwork = getTmdbDetails(searchtitle,artwork,"tv",year,includeCast=False,manualLookup=manualLookup)
                     else:
                         artwork = getTmdbDetails(searchtitle,artwork,"",year,includeCast=False,manualLookup=manualLookup)
-                
+
                 #set thumb to fanart or landscape to prevent youtube/google lookups
                 if not artwork.get("thumb") and artwork.get("landscape"):
                     artwork["thumb"] = artwork.get("landscape")
                 if not artwork.get("thumb") and artwork.get("fanart"):
                     artwork["thumb"] = artwork.get("fanart")
-                
+
                 #lookup thumb on google as fallback
                 if not artwork.get("thumb") and (WINDOW.getProperty("SkinHelper.useGoogleLookups") == "true" or manualLookup):
                     artwork["thumb"] = searchGoogleImage(searchtitle, channel, manualLookup)
-                
+
                 #lookup thumb on youtube as fallback
                 if not artwork.get("thumb") and channel and WINDOW.getProperty("SkinHelper.useYoutubeLookups") == "true":
                     if manualLookup:
                         artwork["thumb"] = searchYoutubeImage("'%s'" %searchtitle )
                     else:
                         artwork["thumb"] = searchYoutubeImage("'%s' '%s'" %(searchtitle, channel) )
-                
+
                 #Do we have to download the images ?
                 downloadLocal = False
                 if "channels" in pvrtype and WINDOW.getProperty("SkinHelper.cacheGuideEntries")=="true":
                     downloadLocal = True
                 elif "recordings" in pvrtype and WINDOW.getProperty("SkinHelper.cacheRecordings")=="true":
                     downloadLocal = True
-                
+
                 if downloadLocal == True:
                     #download images if we want them local
                     for artType in KodiArtTypes:
                         if artwork.has_key(artType[0]): artwork[artType[0]] = downloadImage(artwork[artType[0]],pvrThumbPath,artType[1])
-                
+
                 #extrafanart images
                 if artwork.get("extrafanarts"):
                     if downloadLocal:
@@ -203,7 +203,7 @@ def getPVRThumbs(title,channel,pvrtype="channels",path="",genre="",
                             count += 1
                         artwork["extrafanart"] = efadir
                     else: artwork["extrafanart"] = "plugin://script.skin.helper.service/?action=EXTRAFANART&path=%s" %(single_urlencode(try_encode(cachefile)))
-            
+
             #add some details to the result
             artwork["pvr_title"] = title
             artwork["date_scraped"] = "%s" %datetime.now()
@@ -213,21 +213,21 @@ def getPVRThumbs(title,channel,pvrtype="channels",path="",genre="",
         WINDOW.setProperty(cacheStr, repr(artwork).encode('utf-8'))
         if not xbmcvfs.exists(pvrThumbPath) or manualLookup: xbmcvfs.mkdir(pvrThumbPath)
         createNFO(cachefile,artwork)
-    
+
     return artwork
 
 def getAddonArtwork(title,year="",preftype=""):
 
     if not year or not title:
         return {}
-    
+
     #get the items from cache first
     cacheStr = u"SkinHelper.Artwork-%s-%s" %(title,year)
     cache = simplecache.get(cacheStr)
     if cache:
         logMsg("getAddonArtwork - return data from cache for %s - year: %s" %(title,year))
         return cache
-    
+
     #nothing in our cache, proceed with lookup...
     artwork = {}
     if not WINDOW.getProperty("SkinHelper.DisableInternetLookups"):
@@ -241,18 +241,18 @@ def getAddonArtwork(title,year="",preftype=""):
             artwork = getTmdbDetails(searchtitle,artwork,"tv",year,includeCast)
         else:
             artwork = getTmdbDetails(searchtitle,artwork,"",year,includeCast)
-        
+
         #extrafanart images
         if artwork.get("extrafanarts"):
             artwork["extrafanart"] = "plugin://script.skin.helper.service/?action=EXTRAFANART&path=%s" %(single_urlencode(try_encode(simplecache.getCacheFile(cacheStr))))
-                
+
         #store in cache for quick access later
         artwork["title"] = title
         if year and not artwork.get("year"): artwork["year"] = year
         simplecache.set(cacheStr,artwork)
 
     return artwork
-   
+
 def getPvrThumbPath(channel,title):
     pvrThumbPath = ""
     comparetitle = getCompareString(title)
@@ -278,7 +278,7 @@ def getPvrThumbPath(channel,title):
                     if comparedir == comparetitle:
                         pvrThumbPath = os.path.join(customlookuppath,_dir,dir2)
                         break
-    
+
     if not pvrThumbPath:
         #nothing found in user custom path so use the global one...
         directory_structure = WINDOW.getProperty("SkinHelper.directory_structure")
@@ -286,14 +286,14 @@ def getPvrThumbPath(channel,title):
         if directory_structure == "1": pvrThumbPath = os.path.join(pvrthumbspath,normalize_string(channel),normalize_string(title))
         elif directory_structure == "2": os.path.join(pvrthumbspath,normalize_string(channel + " - " + title))
         else: pvrThumbPath = pvrThumbPath = os.path.join(pvrthumbspath,normalize_string(title))
-   
+
     #make sure our path ends with a slash
     if "/" in pvrThumbPath: sep = "/"
     else: sep = "\\"
     if not pvrThumbPath.endswith(sep): pvrThumbPath = pvrThumbPath + sep
-    
+
     return pvrThumbPath
-    
+
 def getfanartTVimages(type,ID,artwork=None,allowoverwrite=True):
     #gets fanart.tv images for given id
     if not artwork: artwork={}
@@ -305,7 +305,7 @@ def getfanartTVimages(type,ID,artwork=None,allowoverwrite=True):
         maxfanarts = WINDOW.getProperty("SkinHelper.maxNumFanArts")
         if maxfanarts: maxfanarts = int(maxfanarts)
     except Exception: maxfanarts = 0
-    
+
     if type == "movie":
         url = 'http://webservice.fanart.tv/v3/movies/%s?api_key=%s' %(ID,api_key)
     elif type == "artist":
@@ -314,7 +314,7 @@ def getfanartTVimages(type,ID,artwork=None,allowoverwrite=True):
         url = 'http://webservice.fanart.tv/v3/music/albums/%s?api_key=%s' %(ID,api_key)
     else:
         url = 'http://webservice.fanart.tv/v3/tv/%s?api_key=%s' %(ID,api_key)
-        
+
     try:
         response = requests.get(url, timeout=15)
     except Exception as e:
@@ -381,7 +381,7 @@ def getTmdbDetails(title,artwork=None,mediatype=None,year="",includeCast=False, 
     media_id = None
     media_type = None
     if not mediatype: mediatype="multi"
-    try: 
+    try:
         url = 'http://api.themoviedb.org/3/search/%s?api_key=%s&language=%s&query=%s' %(mediatype,tmdb_apiKey,KODILANGUAGE,try_encode(title))
         response = requests.get(url, timeout=5)
         if response.status_code == 200:
@@ -415,7 +415,7 @@ def getTmdbDetails(title,artwork=None,mediatype=None,year="",includeCast=False, 
                             elif item.get("release_date") and year in item.get("release_date"):
                                 matchFound = item
                                 break
-                                
+
                     #find exact match based on title
                     if not matchFound and data and data.get("results",None):
                         for item in data["results"]:
@@ -433,11 +433,11 @@ def getTmdbDetails(title,artwork=None,mediatype=None,year="",includeCast=False, 
                                 #match found with substituting some stuff
                                 matchFound = item
                                 break
-                    
+
                         #if a match was not found, we accept the closest match from TMDB
                         if not matchFound and len(data.get("results")) > 0 and not len(data.get("results")) > 5:
                             matchFound = item = data.get("results")[0]
-   
+
         if matchFound and not mediatype=="person":
             coverUrl = matchFound.get("poster_path","")
             fanartUrl = matchFound.get("backdrop_path","")
@@ -466,7 +466,7 @@ def getTmdbDetails(title,artwork=None,mediatype=None,year="",includeCast=False, 
                         if not media_id and data.get("imdb_id"):
                             media_id = str(data.get("imdb_id"))
                             artwork["imdb_id"] = media_id
-                        if not media_id and data.get("external_ids"): 
+                        if not media_id and data.get("external_ids"):
                             media_id = str(data["external_ids"].get("tvdb_id"))
                             artwork["tvdb_id"] = media_id
                         if data.get("vote_average"): artwork["rating"] = str(data.get("vote_average"))
@@ -516,15 +516,15 @@ def getTmdbDetails(title,artwork=None,mediatype=None,year="",includeCast=False, 
         #lookup artwork on fanart.tv
         if media_id and media_type:
             artwork = getfanartTVimages(media_type,media_id,artwork)
-        
+
         #use tmdb art as fallback when no fanart.tv art
         if coverUrl and not artwork.get("poster"):
-            artwork["poster"] = "http://image.tmdb.org/t/p/original"+coverUrl  
+            artwork["poster"] = "http://image.tmdb.org/t/p/original"+coverUrl
         if fanartUrl and not artwork.get("fanart"):
             artwork["fanart"] = "http://image.tmdb.org/t/p/original"+fanartUrl
         if mediatype=="person" and matchFound.get("profile_path"):
             artwork["thumb"] = "http://image.tmdb.org/t/p/original"+matchFound.get("profile_path")
-    
+
     except Exception as e:
         logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
         if "getaddrinfo failed" in str(e):
@@ -533,11 +533,11 @@ def getTmdbDetails(title,artwork=None,mediatype=None,year="",includeCast=False, 
             logMsg("getTmdbDetails - no internet access, disabling internet lookups for now",xbmc.LOGERROR)
         else:
             logMsg("getTmdbDetails - Error in getTmdbDetails --> %s" %e, xbmc.LOGERROR)
-    
-    if artwork.get("cast"): 
+
+    if artwork.get("cast"):
         artwork["cast"] = repr(artwork.get("cast"))
         artwork["castandrole"] = repr(artwork.get("castandrole"))
-    
+
     return artwork
 
 def getActorImage(actorname):
@@ -546,10 +546,10 @@ def getActorImage(actorname):
     cache = WINDOW.getProperty("SkinHelper.ActorImages").decode('utf-8')
     if cache:
         cache = eval(cache)
-        if cache.has_key(actorname): 
+        if cache.has_key(actorname):
             return cache[actorname]
     else: cache = {}
-    
+
     #lookup image online
     thumb = getTmdbDetails(actorname,None,"person")
     #save in cache
@@ -567,7 +567,7 @@ def searchThumb(searchphrase, searchphrase2=""):
     if not thumb: thumb = searchYoutubeImage(searchphrase,searchphrase2)
     simplecache.set(cacheStr)
     return thumb
-    
+
 def downloadImage(imageUrl,thumbsPath, filename, allowoverwrite=False):
     try:
         if not xbmcvfs.exists(thumbsPath):
@@ -595,7 +595,7 @@ def createNFO(cachefile, artwork):
             if value:
                 child = xmltree.SubElement( root, key )
                 child.text = try_decode(value)
-        
+
         indentXML( tree.getroot() )
         xmlstring = xmltree.tostring(tree.getroot(), encoding="utf-8")
         f = xbmcvfs.File(cachefile, 'w')
@@ -603,7 +603,7 @@ def createNFO(cachefile, artwork):
         f.close()
     except Exception as e:
         logMsg("ERROR in createNFO --> %s" %e, xbmc.LOGDEBUG)
-      
+
 def getArtworkFromCacheFile(cachefile,artwork=None):
     if not artwork: artwork={}
     if xbmcvfs.exists(cachefile):
@@ -620,14 +620,14 @@ def getArtworkFromCacheFile(cachefile,artwork=None):
             logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
             logMsg("ERROR in getArtworkFromCacheFile %s  --> %s" %(cachefile,str(e)), xbmc.LOGDEBUG)
     return artwork
-         
+
 def searchChannelLogo(searchphrase):
     #get's a thumb image for the given search phrase
     image = ""
-    
+
     cacheStr = "SkinHelper.PVR.ChannelLogo.%s" %searchphrase
     cache = simplecache.get(cacheStr)
-    if cache: 
+    if cache:
         return cache
     else:
         try:
@@ -640,7 +640,7 @@ def searchChannelLogo(searchphrase):
                     channelname = item["label"]
                     if channelname == searchphrase:
                         channelicon = item['thumbnail']
-                        if channelicon: 
+                        if channelicon:
                             channelicon = getCleanImage(channelicon)
                             if xbmcvfs.exists(channelicon):
                                 image = getCleanImage(channelicon)
@@ -655,13 +655,13 @@ def searchChannelLogo(searchphrase):
                     if data and data.has_key('channels'):
                         results = data['channels']
                         if results:
-                            for i in results: 
+                            for i in results:
                                 rest = i['strLogoWide']
                                 if rest:
                                     if ".jpg" in rest or ".png" in rest:
                                         image = rest
                                         break
-                
+
             if not image:
                 search_alt = searchphrase.replace(" HD","")
                 url = 'http://www.thelogodb.com/api/json/v1/3241/tvchannel.php?s=%s' %try_encode(search_alt)
@@ -671,7 +671,7 @@ def searchChannelLogo(searchphrase):
                     if data and data.has_key('channels'):
                         results = data['channels']
                         if results:
-                            for i in results: 
+                            for i in results:
                                 rest = i['strLogoWide']
                                 if rest:
                                     if ".jpg" in rest or ".png" in rest:
@@ -689,7 +689,7 @@ def searchChannelLogo(searchphrase):
         if image:
             if ".jpg/" in image:
                 image = image.split(".jpg/")[0] + ".jpg"
-        
+
         simplecache.set(cacheStr,image)
         return image
 
@@ -713,7 +713,7 @@ def searchGoogleImage(searchphrase1, searchphrase2="",manualLookup=False):
                 listitem = xbmcgui.ListItem(label=img)
                 listitem.setProperty("icon",img)
                 imagesList.append(listitem)
-        
+
         if manualLookup and imagesList:
             import Dialogs as dialogs
             w = dialogs.DialogSelectBig( "DialogSelect.xml", ADDON_PATH, listing=imagesList, windowtitle=ADDON.getLocalizedString(32202),multiselect=False )
@@ -722,7 +722,7 @@ def searchGoogleImage(searchphrase1, searchphrase2="",manualLookup=False):
             if selectedItem != -1:
                 selectedItem = imagesList[selectedItem]
                 image = selectedItem.getProperty("icon")
-        
+
     except Exception as e:
         logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
         if "getaddrinfo failed" in str(e):
@@ -730,7 +730,7 @@ def searchGoogleImage(searchphrase1, searchphrase2="",manualLookup=False):
             logMsg("searchGoogleImage - no internet access, disabling internet lookups for now", xbmc.LOGERROR)
         else:
             logMsg("searchGoogleImage - ERROR in searchGoogleImage ! --> %s" %e, xbmc.LOGERROR)
-    if manualLookup: 
+    if manualLookup:
         xbmc.executebuiltin( "Dialog.Close(busydialog)" )
     return image
 
@@ -743,22 +743,22 @@ def preCacheAllAnimatedArt():
             getAnimatedArtwork(movie["imdbnumber"],"poster",movie["movieid"])
             getAnimatedArtwork(movie["imdbnumber"],"fanart",movie["movieid"])
         logMsg("Precache all animated artwork FINISHED")
-    
+
 def getAnimatedPostersDb():
     allItems = {}
-    
+
     #try cache first
     cacheStr = "SkinHelper.AnimatedArtwork"
     cache = simplecache.get(cacheStr)
-    if cache: 
+    if cache:
         return cache
 
     #get all animated posters from the online json file
-    
+
     #create local thumbs directory
     if not xbmcvfs.exists("special://thumbnails/animatedgifs/"):
         xbmcvfs.mkdir("special://thumbnails/animatedgifs/")
-        
+
     response = requests.get('http://www.consiliumb.com/animatedgifs/movies.json')
     if response.content:
         data = json.loads(response.content.decode('utf-8','replace'))
@@ -777,11 +777,11 @@ def getAnimatedPostersDb():
     #store in cache
     simplecache.set(cacheStr,allItems,expiration=timedelta(days=1))
     return allItems
-              
+
 def getAnimatedArtwork(imdbid,arttype="poster",dbid=None,manualHeader=""):
-    if manualHeader: 
+    if manualHeader:
         xbmc.executebuiltin( "ActivateWindow(busydialog)" )
-    
+
     #get the item from cache first
     cacheStr = "SkinHelper.AnimatedArtwork.%s.%s" %(imdbid,arttype)
     cache = simplecache.get(cacheStr)
@@ -791,7 +791,7 @@ def getAnimatedArtwork(imdbid,arttype="poster",dbid=None,manualHeader=""):
     #no cache - proceed with lookup
     image = ""
     logMsg("Get Animated %s for imdbid: %s " %(arttype,imdbid))
-    
+
     #check local first
     localfilename = "special://thumbnails/animatedgifs/%s_%s.gif" %(imdbid,arttype)
     localfilenamenone = "special://thumbnails/animatedgifs/%s_%s.none" %(imdbid,arttype)
@@ -799,10 +799,10 @@ def getAnimatedArtwork(imdbid,arttype="poster",dbid=None,manualHeader=""):
         image = localfilename
     elif xbmcvfs.exists(localfilenamenone) and not manualHeader:
         image = "None"
-    else:    
+    else:
         #lookup in database
         all_artwork = getAnimatedPostersDb()
-        
+
         if manualHeader:
             #present selectbox to let the user choose the artwork
             imagesList = []
@@ -833,11 +833,11 @@ def getAnimatedArtwork(imdbid,arttype="poster",dbid=None,manualHeader=""):
             elif selectedItem != -1:
                 selectedItem = imagesList[selectedItem]
                 image = selectedItem.getProperty("icon").decode("utf-8")
-                    
+
         elif all_artwork.get(imdbid + arttype):
             #just select the first image...
             image = "http://www.consiliumb.com/animatedgifs/%s" %all_artwork[imdbid + arttype][0]
-            
+
         #save to file
         xbmcvfs.delete(localfilename)
         xbmcvfs.delete(localfilenamenone)
@@ -855,25 +855,25 @@ def getAnimatedArtwork(imdbid,arttype="poster",dbid=None,manualHeader=""):
                 xbmcvfs.copy(image,localfilename)
                 xbmc.sleep(150)
             image = localfilename
-        
+
         #save in kodi db
         if dbid and image and image != "None":
             setJSON('VideoLibrary.SetMovieDetails','{ "movieid": %i, "art": { "animated%s": "%s" } }'%(int(dbid),arttype,image))
         elif dbid and image == "None":
             setJSON('VideoLibrary.SetMovieDetails','{ "movieid": %i, "art": { "animated%s": null } }'%(int(dbid),arttype))
-        
+
         #set image to none if empty to prevent further lookups untill next restart
         if not image: image = "None"
-        
+
     #save in cache
     if image == "None":
         simplecache.set(cacheStr,image,expiration=timedelta(days=2))
     else:
         simplecache.set(cacheStr,image,expiration=timedelta(days=30))
-    if manualHeader: 
+    if manualHeader:
         xbmc.executebuiltin( "Dialog.Close(busydialog)" )
     return image
-    
+
 def getGoogleImages(terms,**kwargs):
     start = ''
     page = 1
@@ -901,11 +901,11 @@ def getGoogleImages(terms,**kwargs):
     return results
 
 def getImdbTop250():
-    
+
     #try cache first
     cacheStr = "SkinHelper.ImdbTop250"
     cache = simplecache.get(cacheStr)
-    if cache: 
+    if cache:
         return cache
 
     results = {}
@@ -922,7 +922,7 @@ def getImdbTop250():
                         imdb_id = url.split("/")[2]
                         imdb_rank = url.split("chttp_tt_")[1]
                         results[imdb_id] = imdb_rank
-                        
+
     #tvshows top250
     html = requests.get("http://www.imdb.com/chart/toptv", headers={'User-agent': 'Mozilla/5.0'}, timeout=20)
     soup = BeautifulSoup.BeautifulSoup(html.text)
@@ -936,21 +936,21 @@ def getImdbTop250():
                         imdb_id = url.split("/")[2]
                         imdb_rank = url.split("chttvtp_tt_")[1]
                         results[imdb_id] = imdb_rank
-    
+
     #store in cache and return results
     simplecache.set(cacheStr,results,expiration=timedelta(days=5))
     return results
-    
+
 def searchYoutubeImage(searchphrase, searchphrase2=""):
-    
+
     #try cache first
     cacheStr = u"SkinHelper.searchYoutubeImage.%s-%s" %(searchphrase,searchphrase2)
     cache = simplecache.get(cacheStr)
     if cache: return cache
-    
+
     if not xbmc.getCondVisibility("System.HasAddon(plugin.video.youtube)"):
         return ""
-        
+
     image = ""
     if searchphrase2:
         searchphrase = searchphrase + " " + searchphrase2
@@ -959,7 +959,7 @@ def searchYoutubeImage(searchphrase, searchphrase2=""):
     if WINDOW.getProperty("youtubescanrunning") == "running":
         xbmc.sleep(100)
         return "skip"
-    
+
     WINDOW.setProperty("youtubescanrunning","running")
     libPath = "plugin://plugin.video.youtube/kodion/search/query/?q=%s" %searchphrase
     media_array = getJSON('Files.GetDirectory','{ "properties": ["title","art"], "directory": "' + libPath + '", "media": "files" }')
@@ -974,19 +974,19 @@ def searchYoutubeImage(searchphrase, searchphrase2=""):
         logMsg("searchYoutubeImage - YOUTUBE match found for %s" %searchphrase)
     else:
         logMsg("searchYoutubeImage - YOUTUBE match NOT found for %s" %searchphrase)
-    
+
     WINDOW.clearProperty("youtubescanrunning")
     #store in cache and return results
     simplecache.set(cacheStr,image,expiration=timedelta(days=7))
     return image
- 
+
 def getMusicBrainzId(artist, album="", track=""):
-    
+
     #try cache first
     cacheStr = u"SkinHelper.getMusicBrainzId.%s-%s" %(artist,album)
     cache = simplecache.get(cacheStr)
     if cache: return cache
-    
+
     albumid = ""
     artistid = ""
     response = None
@@ -996,7 +996,7 @@ def getMusicBrainzId(artist, album="", track=""):
     matchartist = getCompareString(artist)
     if artist.startswith("The "): artist = artist.replace("The ","")
     logMsg("getMusicBrainzId -- artist:  -  %s  - album:  %s  - track:  %s" %(artist,album,track))
-    
+
     #use musicbrainz to get ID - prefer because it's the most accurate
     if (not artistid or not albumid):
         try:
@@ -1021,7 +1021,7 @@ def getMusicBrainzId(artist, album="", track=""):
             logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
             logMsg("MusicBrainz ERROR (servers busy?) - temporary disabling musicbrainz lookups (fallback to theaudiodb)", xbmc.LOGWARNING)
             WINDOW.setProperty("SkinHelper.TempDisableMusicBrainz","disable")
-    
+
     #use theaudiodb as fallback
     try:
         if (not artistid or not albumid) and album:
@@ -1053,7 +1053,7 @@ def getMusicBrainzId(artist, album="", track=""):
     except Exception as e:
         logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
         logMsg("getMusicArtwork AudioDb lookup failed --> %s" %e, xbmc.LOGWARNING)
-    
+
     #try lastfm by asrtist and album
     if (not artistid or not albumid) and artist and album:
         try:
@@ -1073,7 +1073,7 @@ def getMusicBrainzId(artist, album="", track=""):
         except Exception as e:
             logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
             logMsg("getMusicArtwork LastFM lookup failed --> %s" %e, xbmc.LOGWARNING)
-    
+
     #get lastFM by artist name as last resort
     if not artistid and artist:
         try:
@@ -1088,7 +1088,7 @@ def getMusicBrainzId(artist, album="", track=""):
         except Exception as e:
             logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
             logMsg("getMusicArtwork LastFM lookup failed --> %s" %e, xbmc.LOGWARNING)
-    
+
     logMsg("getMusicBrainzId results for artist %s  - %s" %result)
     result = (artistid, albumid)
     simplecache.set(cacheStr,result)
@@ -1102,16 +1102,16 @@ def getArtistArtwork(musicbrainzartistid, artwork=None, allowoverwrite=True):
         artwork = getfanartTVimages("artist",musicbrainzartistid,artwork, allowoverwrite)
     else:
         logMsg("SKIP online FANART.TV lookups for artist %s - local artwork found" %musicbrainzartistid)
-    
+
     extrafanarts = []
     if artwork.get("extrafanarts"): extrafanarts = eval(artwork.get("extrafanarts"))
-    
+
     if (skipOnlineMusicArtOnLocal and artwork.get("extrafanart") and artwork.get("clearlogo") and artwork.get("banner") and (artwork.get("artistthumb") or artwork.get("folder")) and artwork.get("info")):
         logMsg("SKIP online AUDIODB/LASTFM lookups for artist %s - local artwork found" %musicbrainzartistid)
         return artwork
     else:
         logMsg("performing audiodb/lastfm lookups for artist " + musicbrainzartistid)
-    
+
     #get audiodb info for artist  (and use as spare for artwork)
     try:
         response = None
@@ -1134,7 +1134,7 @@ def getArtistArtwork(musicbrainzartistid, artwork=None, allowoverwrite=True):
             if not artwork.get("info") and adbdetails.get("strBiography" + KODILANGUAGE.upper()): artwork["info"] = adbdetails.get("strBiography" + KODILANGUAGE.upper())
             if not artwork.get("info") and adbdetails.get("strBiographyEN"): artwork["info"] = adbdetails.get("strBiographyEN")
             if artwork.get("info"): artwork["info"] = artwork.get("info").replace('\n', ' ').replace('\r', '')
-    
+
     #get lastFM info for artist  (and use as spare for artwork)
     if not artwork.get("info") or not artwork.get("artistthumb"):
         try:
@@ -1151,9 +1151,9 @@ def getArtistArtwork(musicbrainzartistid, artwork=None, allowoverwrite=True):
                 if lfmdetails.get("image"):
                     for image in lfmdetails["image"]:
                         if not artwork.get("folder") and image["size"]=="extralarge" and image and xbmcvfs.exists(image["#text"]): artwork["folder"] = image["#text"]
-                
+
                 if not artwork.get("info") and lfmdetails.get("bio"): artwork["info"] = lfmdetails["bio"].get("content","").split(' <a href')[0]
-    
+
     #save extrafanarts as string
     if extrafanarts:
         artwork["extrafanarts"] = repr(extrafanarts)
@@ -1163,19 +1163,19 @@ def getArtistArtwork(musicbrainzartistid, artwork=None, allowoverwrite=True):
 def getAlbumArtwork(musicbrainzalbumid, artwork=None, allowoverwrite=True):
     if not artwork: artwork = {}
     skipOnlineMusicArtOnLocal = WINDOW.getProperty("SkinHelper.skipOnlineMusicArtOnLocal") == "true"
-    
+
     #get fanart.tv artwork for album
     if not (skipOnlineMusicArtOnLocal and artwork.get("folder") and artwork.get("discart")):
         artwork = getfanartTVimages("album",musicbrainzalbumid,artwork,allowoverwrite)
     else:
         logMsg("SKIP online FANART.TV lookup for album %s - local artwork found" %musicbrainzalbumid)
-    
+
     if (skipOnlineMusicArtOnLocal and artwork.get("folder") and artwork.get("discart") and artwork.get("info")):
         logMsg("SKIP online AUDIODB/LASTFM lookups for album %s - local artwork found" %musicbrainzalbumid)
         return artwork
     else:
         logMsg("performing audiodb/lastfm lookups for album " + musicbrainzalbumid)
-    
+
     #get album info on theaudiodb (and use as spare for artwork)
     try:
         response = None
@@ -1194,7 +1194,7 @@ def getAlbumArtwork(musicbrainzalbumid, artwork=None, allowoverwrite=True):
             if not artwork.get("info") and adbdetails.get("strDescription" + KODILANGUAGE.upper()): artwork["info"] = adbdetails.get("strDescription" + KODILANGUAGE.upper())
             if not artwork.get("info") and adbdetails.get("strDescriptionEN"): artwork["info"] = adbdetails.get("strDescriptionEN")
             if artwork.get("info"): artwork["info"] = normalize_string(artwork["info"]).replace('\n', ' ').replace('\r', '')
-    
+
     #get lastFM info for artist  (and use as spare for artwork)
     if (not artwork.get("info") or not artwork.get("folder")) and artwork.get("artistname") and artwork.get("albumname"):
         try:
@@ -1213,13 +1213,13 @@ def getAlbumArtwork(musicbrainzalbumid, artwork=None, allowoverwrite=True):
                         if image and not artwork.get("folder") and image["size"]=="extralarge" and xbmcvfs.exists(image["#text"]): artwork["folder"] = image["#text"]
 
                 if not artwork.get("info") and lfmdetails.get("wiki"): artwork["info"] = lfmdetails["wiki"].get("content","").split(' <a')[0]
-    
+
     #get album thumb from musicbrainz
-    if not artwork.get("thumb") and not artwork.get("folder") and not WINDOW.getProperty("SkinHelper.TempDisableMusicBrainz"): 
-        try: 
+    if not artwork.get("thumb") and not artwork.get("folder") and not WINDOW.getProperty("SkinHelper.TempDisableMusicBrainz"):
+        try:
             new_file = "special://profile/addon_data/script.skin.helper.service/musicartcache/%s.jpg" %musicbrainzalbumid
             thumbfile = m.get_release_group_image_front(musicbrainzalbumid)
-            if thumbfile: 
+            if thumbfile:
                 f = xbmcvfs.File(new_file, 'w')
                 f.write(thumbfile)
                 f.close()
@@ -1227,7 +1227,7 @@ def getAlbumArtwork(musicbrainzalbumid, artwork=None, allowoverwrite=True):
         except Exception: pass
 
     return artwork
-    
+
 def preCacheAllMusicArt(skipOnCache=False):
     #process all albums and precache the artwork
     progressDialog = xbmcgui.DialogProgressBG()
@@ -1255,7 +1255,7 @@ def getCustomFolderPath(path, foldername):
             dir = dir.decode("utf-8")
             curpath = os.path.join(path,dir) + delim
             match =  SM(None, foldername, dir).ratio()
-            if match >= strictness: 
+            if match >= strictness:
                 return curpath
             elif not pathfound:
                 pathfound = getCustomFolderPath(curpath,foldername)
@@ -1270,7 +1270,7 @@ def getSongDurationString(seconds):
     else:
         secstr = str(d.second)
     return "%d:%s" %(d.minute, secstr)
-    
+
 def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
     if not artistName:
         return {}
@@ -1278,7 +1278,7 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
     if artistName == trackName: trackName = ""
     if not albumName and trackName: albumName = trackName
     if "/" in artistName and artistName.lower() != "ac/dc": artistName = artistName.split("/")[0]
-    
+
     #GET FROM WINDOW CACHE FIRST
     cacheStr = try_encode(u"SkinHelper.Music.Cache-%s-%s-%s" %(artistName,albumName,trackName))
     cache = WINDOW.getProperty(cacheStr).decode("utf-8")
@@ -1287,7 +1287,7 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
         return eval(cache)
     else:
         logMsg("getMusicArtwork artist: %s  - track: %s  -  album: %s" %(artistName,trackName,albumName))
-    
+
     albumartwork = {}
     path = ""
     path2 = ""
@@ -1312,7 +1312,7 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
     if artistName and albumName:
         #get details from persistant cachefile to prevent online lookups
         albumartwork = getArtworkFromCacheFile("special://profile/addon_data/script.skin.helper.service/musicartcache/%s-%s.xml" %(normalize_string(artistName),normalize_string(albumName)))
-        if albumartwork and not ignoreCache: 
+        if albumartwork and not ignoreCache:
             albumCacheFound = True
             logMsg("getMusicArtwork - return data from from persistant cache for album: %s" %albumName)
         else:
@@ -1343,9 +1343,9 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
                             if song.get("track"): tracklistwithduration.append(u"[B]%s[/B] - %s - %s" %(song["track"], song["title"], getSongDurationString(song["duration"])))
                             else: tracklistwithduration.append(u"%s - %s" %(song["title"], getSongDurationString(song["duration"])))
                             songcount += 1
-                
+
             if not albumartwork.get("artistname"): albumartwork["artistname"] = artistName
-            
+
             #make sure that our results are strings
             albumartwork["tracklist"] = u"[CR]".join(tracklist)
             albumartwork["tracklist.formatted"] = ""
@@ -1356,12 +1356,12 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
             albumartwork["songcount"] = "%s"%songcount
             if isinstance(albumartwork.get("musicbrainzalbumid",""), list):
                 albumartwork["musicbrainzalbumid"] = albumartwork["musicbrainzalbumid"][0]
-   
+
     ############## ARTIST DETAILS #######################################
-    
+
     #get details from persistant cachefile to prevent online lookups
     artistartwork = getArtworkFromCacheFile("special://profile/addon_data/script.skin.helper.service/musicartcache/%s.xml" %normalize_string(artistName))
-    if artistartwork and not ignoreCache: 
+    if artistartwork and not ignoreCache:
         artistCacheFound = True
         logMsg("getMusicArtwork - return data from from persistant cache for artist: %s" %artistName)
     else:
@@ -1412,7 +1412,7 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
                             albumsartist.append(song["album"])
                         else:
                             albumscompilations.append(song["album"])
-            
+
             #make sure that our results are strings
             artistartwork["albums"] = u"[CR]".join(albums)
             artistartwork["albumsartist"] = u"[CR]".join(albumsartist)
@@ -1433,12 +1433,12 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
             if not albumartwork.get("albumname"): albumartwork["albumname"] = albumName
             if isinstance(artistartwork.get("musicbrainzartistid",""), list):
                 artistartwork["musicbrainzartistid"] = artistartwork["musicbrainzartistid"][0]
-            
+
     #LOOKUP ART IN CUSTOM FOLDER
     if custommusiclookuppath and (not artistCacheFound or (albumName and not albumCacheFound)):
         if "\\" in custommusiclookuppath: delim = "\\"
         else: delim = "/"
-        
+
         #try to locate the artist folder recursively...
         artist_path = getCustomFolderPath(custommusiclookuppath, artistName)
         if artist_path:
@@ -1472,12 +1472,12 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
                     logMsg("getMusicArtwork - lookup artwork in custom folder SKIPPED for album: %s - using path: %s -- path not found!" %(albumName,album_path))
         else:
             logMsg("getMusicArtwork - lookup artwork in custom folder SKIPPED for artist: %s -- path not found in custom music artwork folder!" %(artistName))
-            
+
     #LOOKUP LOCAL ARTWORK PATH PASED ON SONG FILE PATH
     if (path or path2) and enableLocalMusicArtLookup and (not artistCacheFound or (albumName and not albumCacheFound)):
         if "\\" in path: delim = "\\"
         else: delim = "/"
-        
+
         #determine ARTIST folder structure (there might be a disclevel too...)
         #just move up the directory tree (max 3 levels) untill we find artist artwork
         if localArtistMatch and path2:
@@ -1491,7 +1491,7 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
                         artistpath = trypath
                         break
                 if artistpath: break
-            
+
         #lookup local artist artwork
         if artistpath:
             logMsg("getMusicArtwork - lookup artwork on disk for artist: %s - using path: %s" %(artistName,artistpath))
@@ -1503,7 +1503,7 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
                     logMsg("getMusicArtwork - %s found on disk for %s" %(artType[0],artistName))
         else:
             logMsg("getMusicArtwork - lookup artist artwork on disk skipped for %s - not correct folder structure or no artwork found" %artistartwork.get("artistname",""))
-        
+
         #determine ALBUM folder structure (there might be a disclevel too...)
         #just move up the directory tree (max 2 levels) untill we find album artwork
         if albumName:
@@ -1517,7 +1517,7 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
                         albumpath = trypath
                         break
                 if albumpath: break
-            
+
             #lookup local album artwork
             if albumpath:
                 logMsg("getMusicArtwork - lookup artwork on disk for album: %s - found path: %s" %(albumName,albumpath))
@@ -1529,20 +1529,20 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
                         logMsg("getMusicArtwork - %s found on disk for %s" %(artType[0],albumName))
             else:
                 logMsg("getMusicArtwork - lookup album artwork on disk skipped for %s - not correct folder structure or no artwork found" %albumName)
-                  
+
     #online lookup for details
     if enableMusicArtScraper and (not artistCacheFound or (albumName and not albumCacheFound)):
-        
+
         if WINDOW.getProperty("SkinHelperShutdownRequested"):
             return {}
-        
+
         #lookup details in musicbrainz
         #retrieve album id and artist id with a combined query of album name, track name and artist name to get an accurate result
         if not albumartwork.get("musicbrainzalbumid") or not artistartwork.get("musicbrainzartistid") or ignoreCache:
             musicbrainzartistid, musicbrainzalbumid = getMusicBrainzId(artistName,albumName,trackName)
-            if not albumartwork.get("musicbrainzalbumid") or ignoreCache: 
+            if not albumartwork.get("musicbrainzalbumid") or ignoreCache:
                 albumartwork["musicbrainzalbumid"] = musicbrainzalbumid
-            if not artistartwork.get("musicbrainzartistid") or ignoreCache: 
+            if not artistartwork.get("musicbrainzartistid") or ignoreCache:
                 artistartwork["musicbrainzartistid"] = musicbrainzartistid
 
         ########################################################## ARTIST LEVEL #########################################################
@@ -1557,7 +1557,7 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
             if downloadMusicArt and artistpath:
                 for artType in KodiArtTypes:
                     if artistartwork.has_key(artType[0]): artistartwork[artType[0]] = downloadImage(artistartwork[artType[0]],artistpath,artType[1],allowoverwrite)
-            
+
             #extrafanart images
             if artistartwork.get("extrafanarts"):
                 if downloadMusicArt and artistpath:
@@ -1569,11 +1569,11 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
                         count += 1
                     artistartwork["extrafanart"] = efadir
                 elif not artistartwork.get("extrafanart"): artistartwork["extrafanart"] = "plugin://script.skin.helper.service/?action=EXTRAFANART&path=special://profile/addon_data/script.skin.helper.service/musicartcache/%s.xml" %normalize_string(artistName)
-            
-        ######################################################### ALBUM LEVEL #########################################################    
+
+        ######################################################### ALBUM LEVEL #########################################################
         if albumName and albumartwork.get("musicbrainzalbumid") and not albumCacheFound:
             albumartwork = getAlbumArtwork(albumartwork.get("musicbrainzalbumid"), albumartwork, allowoverwrite)
-            
+
             #download images if we want them local
             if not albumpath and custommusiclookuppath and artistpath:
                 albumpath = os.path.join(artistpath,normalize_string(albumName))
@@ -1581,7 +1581,7 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
             if downloadMusicArt and albumpath and (localAlbumMatch or custommusiclookuppath):
                 for artType in KodiArtTypes:
                     if albumartwork.has_key(artType[0]): albumartwork[artType[0]] = downloadImage(albumartwork[artType[0]],albumpath,artType[1],allowoverwrite)
-        
+
     #write to persistant cache
     if artistartwork and not artistCacheFound:
         if artistartwork.get("folder") and not artistartwork.get("thumb"): artistartwork["thumb"] = artistartwork.get("folder")
@@ -1594,8 +1594,8 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
         if not cacheStrAlbum: cacheStrAlbum = "SkinHelper.Music.Cache-%s-%s" %(artistName.lower(),albumName.lower())
         albumartwork["albumthumb"] = albumartwork.get("thumb","")
         createNFO("special://profile/addon_data/script.skin.helper.service/musicartcache/%s-%s.xml" %(normalize_string(artistName),normalize_string(albumName)),albumartwork)
-            
-    #return the results...    
+
+    #return the results...
     artwork = artistartwork
     #combine album info with artist info
     if artistartwork.get("info") and albumartwork.get("info") and not artistOnly:
@@ -1604,18 +1604,18 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
     if albumartwork and not artistOnly:
         for key, value in albumartwork.iteritems():
             if value and key != "info": artwork[key] = value
-            
+
     #save to cache
     WINDOW.setProperty(cacheStr,repr(artwork))
-    
+
     return artwork
-    
+
 def updateMusicArt(type,id):
     #called when music library changed
     while WINDOW.getProperty("updateMusicArt.busy"):
         #only allow 1 update at a time to prevent hitting the API's to fast or run into buffer overruns
         xbmc.sleep(150)
-        
+
     WINDOW.setProperty("updateMusicArt.busy","busy")
     if type == "song" and id:
         item = getJSON('AudioLibrary.GetSongDetails','{ "songid": %s, "properties": [ "title","album","artist" ] }' %id)
@@ -1633,20 +1633,20 @@ def updateMusicArt(type,id):
         for artist in item["artist"]:
             getMusicArtwork(artist,item["title"],"",True)
     WINDOW.clearProperty("updateMusicArt.busy")
-        
+
 def getExtraFanart(folderpath):
     #lookup extrafanart path for listitem's path
-    
+
     if ("plugin://" in folderpath or "addon://" in folderpath or "sources" in folderpath) and not "plugin.video.emby" in folderpath:
         #no extrafanart lookup for addons, except for emby
         return {}
-    
+
     #get the item from cache first
     cacheStr = "SkinHelper.ExtraFanArt.%s" %folderpath
     cache = simplecache.get(cacheStr)
     if cache:
         return cache
-        
+
     #lookup the extrafanart in the media location
     efaProps = {}
     efaPath = None
@@ -1657,7 +1657,7 @@ def getExtraFanart(folderpath):
         #normal library path, look for extrafanart folder
         if "/" in folderpath: splitchar = u"/"
         else: splitchar = u"\\"
-    
+
         if xbmcvfs.exists(folderpath + "extrafanart"+splitchar):
             efaPath = folderpath + u"extrafanart"+splitchar
         else:
@@ -1666,9 +1666,9 @@ def getExtraFanart(folderpath):
             sublevelPath = pPath + splitchar + "extrafanart"+splitchar
             if xbmcvfs.exists(sublevelPath):
                 efaPath = sublevelPath
-                
+
     efaProps["SkinHelper.ExtraFanArtPath"] = efaPath
-    
+
     #get extrafanarts
     if efaPath:
         dirs, files = xbmcvfs.listdir(efaPath)
@@ -1680,12 +1680,12 @@ def getExtraFanart(folderpath):
 
     simplecache.set(cacheStr,efaProps,expiration=timedelta(days=7))
     return efaProps
-    
+
 def getStreamDetails(dbid,contenttype,ignoreCache=False):
     streamdetails = {}
     if not contenttype.endswith("s"):
         contenttype = contenttype + "s"
-    if not dbid or not contenttype in ["movies","episodes","musicvideos"]: 
+    if not dbid or not contenttype in ["movies","episodes","musicvideos"]:
         return streamdetails
 
     #get the item from cache first
@@ -1693,7 +1693,7 @@ def getStreamDetails(dbid,contenttype,ignoreCache=False):
     cache = simplecache.get(cacheStr)
     if cache and not ignoreCache:
         return cache
-        
+
     # no cache - get data from json
     json_result = {}
     # get data from json

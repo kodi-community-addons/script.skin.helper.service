@@ -14,39 +14,38 @@ enableSpecialsInWidgets = SETTING("enableSpecialsInWidgets") == "true"
 
 def getPluginListing(action,limit,refresh=None,optionalParam=None,randomize=False):
     #general method to get a widget/plugin listing and check cache etc.
-    count = 0
     allItems = []
 
     #get params for each action
-    if "EPISODES" in action: 
-        type = "episodes"
+    if "EPISODES" in action:
+        contentType = "episodes"
         refresh = WINDOW.getProperty("widgetreload-episodes")
-    elif "MOVIE" in action: 
-        type = "movies"
+    elif "MOVIE" in action:
+        contentType = "movies"
         refresh = WINDOW.getProperty("widgetreload-movies")
-    elif "SHOW" in action: 
-        type = "tvshows"
+    elif "SHOW" in action:
+        contentType = "tvshows"
         refresh = WINDOW.getProperty("widgetreload-tvshows")
-    elif "MEDIA" in action: 
-        type = "movies"
+    elif "MEDIA" in action:
+        contentType = "movies"
         refresh = WINDOW.getProperty("widgetreload2")
     elif "PVR" in action:
-        type = "episodes"
+        contentType = "episodes"
         refresh = WINDOW.getProperty("widgetreload2")
-    elif "ALBUM" in action: 
-        type = "albums"
+    elif "ALBUM" in action:
+        contentType = "albums"
         refresh = WINDOW.getProperty("widgetreloadmusic")
-    elif "SONG" in action: 
-        type = "songs"
+    elif "SONG" in action:
+        contentType = "songs"
         refresh = WINDOW.getProperty("widgetreloadmusic")
-    elif "SONG" in action: 
-        type = "songs"
+    elif "SONG" in action:
+        contentType = "songs"
         refresh = WINDOW.getProperty("widgetreloadmusic")
-    elif "BROWSEGENRE" in action: 
-        type = "genres"
+    elif "BROWSEGENRE" in action:
+        contentType = "genres"
         refresh = WINDOW.getProperty("widgetreload2")
         xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_LABEL)
-    else: type = "files"
+    else: contentType = "files"
     if "AIRED" in action:
         refresh = WINDOW.getProperty("widgetreload2")+WINDOW.getProperty("widgetreload-tvshows")
     if "RECENT" in action and not "PLAYED" in action:
@@ -57,18 +56,18 @@ def getPluginListing(action,limit,refresh=None,optionalParam=None,randomize=Fals
         xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_RATING)
     else:
         xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_UNSORTED)
-    if "FAVOURITE" in action: 
+    if "FAVOURITE" in action:
         refresh = time.strftime("%Y%m%d%H%M%S", time.gmtime())
 
     #set widget content type
-    xbmcplugin.setContent(int(sys.argv[1]), type)
-    
+    xbmcplugin.setContent(int(sys.argv[1]), contentType)
+
     #try to get from cache first...
     cacheChecksum = "%s-%s-%s-%s" %(limit,optionalParam,refresh,randomize)
     cache = simplecache.get(action,cacheChecksum)
     if cache:
         allItems = cache
-            
+
     #Call the correct method to get the content from json when no cache
     if not allItems:
         logMsg("getPluginListing-%s-%s-%s-%s-%s -- no cache, quering json api to get items" %(action,limit,optionalParam,refresh,randomize))
@@ -76,20 +75,20 @@ def getPluginListing(action,limit,refresh=None,optionalParam=None,randomize=Fals
             allItems = eval(action)(limit,optionalParam)
         else:
             allItems = eval(action)(limit)
-        if randomize: 
+        if randomize:
             allItems = sorted(allItems, key=lambda k: random.random())
-        
+
         #prepare listitems and store in cache
         allItems = prepareListItems(allItems)
         simplecache.set(action,allItems,cacheChecksum)
-    
+
     #fill that listing...
     allItems = createListItems(allItems)
     xbmcplugin.addDirectoryItems(int(sys.argv[1]), allItems, len(allItems))
-    
+
     #end directory listing
     xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
-    
+
 def addDirectoryItem(label, path, folder=True):
     li = xbmcgui.ListItem(label, path=path)
     li.setThumbnailImage("special://home/addons/script.skin.helper.service/icon.png")
@@ -99,7 +98,7 @@ def addDirectoryItem(label, path, folder=True):
 
 def doMainListing(mode=""):
     xbmcplugin.setContent(int(sys.argv[1]), 'files')
-    
+
     #movie nodes
     if xbmc.getCondVisibility("Library.HasContent(movies)"):
         addDirectoryItem(ADDON.getLocalizedString(32168), "plugin://script.skin.helper.service/?action=inprogressmovies&limit=100")
@@ -109,7 +108,7 @@ def doMainListing(mode=""):
         addDirectoryItem(ADDON.getLocalizedString(32186), "plugin://script.skin.helper.service/?action=inprogressandrandommovies&limit=100")
         addDirectoryItem(ADDON.getLocalizedString(32006), "plugin://script.skin.helper.service/?action=similarmovies&limit=100")
         addDirectoryItem(ADDON.getLocalizedString(32185), "plugin://script.skin.helper.service/?action=randommovies&limit=100")
-    
+
     #tvshow nodes
     if xbmc.getCondVisibility("Library.HasContent(tvshows)"):
         addDirectoryItem(ADDON.getLocalizedString(32167), "plugin://script.skin.helper.service/?action=inprogressepisodes&limit=100")
@@ -119,15 +118,15 @@ def doMainListing(mode=""):
         addDirectoryItem(ADDON.getLocalizedString(32130), "plugin://script.skin.helper.service/?action=similarshows&limit=100")
         addDirectoryItem(ADDON.getLocalizedString(32162), "plugin://script.skin.helper.service/?action=similarmedia&limit=100")
         addDirectoryItem(ADDON.getLocalizedString(32195), "plugin://script.skin.helper.service/?action=randomtvshows&limit=100")
-    
+
     #next aired episodes
     addDirectoryItem(ADDON.getLocalizedString(32197), "plugin://script.skin.helper.service/?action=unairedepisodes&limit=100")
     addDirectoryItem(ADDON.getLocalizedString(32198), "plugin://script.skin.helper.service/?action=nextairedepisodes&limit=100")
-    
+
     #musicvideos nodes
     if xbmc.getCondVisibility("Library.HasContent(musicvideos)"):
         addDirectoryItem(ADDON.getLocalizedString(32194), "plugin://script.skin.helper.service/?action=recentmusicvideos&limit=100")
-    
+
     #media nodes
     if xbmc.getCondVisibility("Library.HasContent(video)") or WINDOW.getProperty("plexbmc.0.title"):
         addDirectoryItem(ADDON.getLocalizedString(32086), "plugin://script.skin.helper.service/?action=inprogressmedia&limit=100")
@@ -149,7 +148,7 @@ def doMainListing(mode=""):
     #favourite nodes
     addDirectoryItem(ADDON.getLocalizedString(32000), "plugin://script.skin.helper.service/?action=favourites&limit=100")
     addDirectoryItem(ADDON.getLocalizedString(32001), "plugin://script.skin.helper.service/?action=favouritemedia&limit=100")
-    
+
     #pvr nodes
     if xbmc.getCondVisibility("PVR.HasTVChannels"):
         addDirectoryItem(ADDON.getLocalizedString(32170), "plugin://script.skin.helper.service/?action=pvrchannels&limit=100")
@@ -157,61 +156,41 @@ def doMainListing(mode=""):
         addDirectoryItem(ADDON.getLocalizedString(32152), "plugin://script.skin.helper.service/?action=nextpvrrecordings&limit=100")
         addDirectoryItem(ADDON.getLocalizedString(32171), "plugin://script.skin.helper.service/?action=nextpvrrecordings&reversed=true&limit=100")
         addDirectoryItem(ADDON.getLocalizedString(32154), "plugin://script.skin.helper.service/?action=pvrtimers&limit=100")
-    
+
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
-    
+
 def FAVOURITES(limit):
     return FAVOURITEMEDIA(limit,True)
 
-def PVRRECORDINGS(limit):
-    allItems = []
-    if xbmc.getCondVisibility("PVR.HasTVChannels"):
-        # Get a list of all the unwatched tv recordings   
-        json_result = getJSON('PVR.GetRecordings', '{"properties": [ %s ]}' %fields_pvrrecordings)
-        pvr_backend = xbmc.getInfoLabel("Pvr.BackendName").decode("utf-8")
-        for item in json_result:
-            if WINDOW.getProperty("SkinHelperShutdownRequested"):
-                return []
-            #exclude live tv items from recordings list (mythtv hack)
-            if item["playcount"] == 0 and not ("mythtv" in pvr_backend.lower() and "/livetv/" in item.get("file","").lower()):
-                channelname = item["channel"]
-                item["channel"] = channelname
-                item["cast"] = None
-                item["type"] = "tvrecording"
-                item["file"] = sys.argv[0] + "?action=playrecording&path=" + str(item["recordingid"])
-                allItems.append(item)
-               
-        #sort the list so we return a recently added list or recordings
-        allItems = sorted(allItems,key=itemgetter("endtime"),reverse=True)
-        #return result including artwork...
-        allItems = getPVRArtForItems(allItems)
-    return allItems
-
 def NEXTPVRRECORDINGS(limit,reversed="false"):
+    return PVRRECORDINGS(limit,reversed,True)
+
+def PVRRECORDINGS(limit,reversed="false",nextOnly=False):
     #returns the first unwatched episode of all recordings, starting at the oldest
     allItems = []
     allTitles = []
     if xbmc.getCondVisibility("PVR.HasTVChannels"):
-        # Get a list of all the unwatched tv recordings   
+        # Get a list of all the unwatched tv recordings
         json_result = getJSON('PVR.GetRecordings', '{"properties": [ %s ]}' %fields_pvrrecordings)
         pvr_backend = xbmc.getInfoLabel("Pvr.BackendName").decode("utf-8")
         for item in json_result:
             if WINDOW.getProperty("SkinHelperShutdownRequested"):
                 return []
             #exclude live tv items from recordings list (mythtv hack)
-            if not (item.get("directory") and item["directory"] in allTitles) and item["playcount"] == 0 and not ("mythtv" in pvr_backend.lower() and "/livetv/" in item.get("file","").lower()):
+            if not nextOnly or (not (item.get("directory") and item["directory"] in allTitles) and item["playcount"] == 0 and not ("mythtv" in pvr_backend.lower() and "/livetv/" in item.get("file","").lower())):
                 channelname = item["channel"]
+                item["channel"] = channelname
                 item["cast"] = None
                 item["type"] = "tvrecording"
                 allItems.append(item)
                 if item.get("directory"): allTitles.append(item["directory"])
-                
+
         #sort the list so we return the list with the oldest unwatched first
         order = reversed == "true"
         allItems = sorted(allItems,key=itemgetter('endtime'),reverse=order)
         #return result including artwork...
         allItems = getPVRArtForItems(allItems)
-    return allItems    
+    return allItems
 
 def PVRTIMERS(limit):
     # Get a list of all the upcoming timers
@@ -226,12 +205,12 @@ def PVRTIMERS(limit):
             if not item.get("plot"): item["plot"] = item.get("summary","")
             item["type"] = "tvrecording"
             allItems.append(item)
-                
+
         #sort the list so we return the list with the oldest unwatched first
         allItems = sorted(allItems,key=itemgetter('starttime'),reverse=False)
         #return result including artwork...
         allItems = getPVRArtForItems(allItems)
-    
+
     #return result including artwork...
     return allItems
 
@@ -246,7 +225,7 @@ def getPVRArtForItem(item):
     item["label"] = item["channel"]
     item["label2"] = item["channel"]
     return item
-    
+
 def getPVRArtForItems(items):
     newitems = []
     if supportsPool:
@@ -259,7 +238,7 @@ def getPVRArtForItems(items):
         for item in items:
             newitems.append(getPVRArtForItem(item))
     return newitems
-    
+
 def PVRCHANNELS(limit):
     count = 0
     allItems = []
@@ -285,7 +264,7 @@ def PVRCHANNELS(limit):
             item["cast"] = None
             item["type"] = "tvchannel"
             allItems.append(item)
-        
+
     #return result including artwork...
     return getPVRArtForItems(allItems)
 
@@ -305,11 +284,11 @@ def PVRCHANNELGROUPS(limit):
             count += 1
             if count == limit:
                 break
-    xbmcplugin.endOfDirectory(handle=int(sys.argv[1])) 
-       
+    xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
+
 def getThumb(searchphrase):
     WINDOW.clearProperty("SkinHelper.ListItemThumb")
-    
+
     while xbmc.getCondVisibility("Container.Scrolling") or WINDOW.getProperty("getthumbbusy")=="busy":
         xbmc.sleep(150)
     image = artutils.searchThumb(searchphrase)
@@ -334,7 +313,7 @@ def getAlbumDetails(item):
     else:
         item['file'] = "plugin://script.skin.helper.service/?action=playalbum&path=%s" %item['albumid']
     return item
-    
+
 def RANDOMALBUMS(limit):
     allItems = []
     json_result = getJSON('AudioLibrary.GetAlbums', '{ "sort": { "order": "descending", "method": "random" }, "properties": [ %s ], "limits":{"end":%d} }' %(fields_albums,limit))
@@ -348,7 +327,7 @@ def RANDOMALBUMS(limit):
         for item in json_result:
             allItems.append(getAlbumDetails(item))
     return allItems
-   
+
 def RECENTALBUMS(limit):
     allItems = []
     json_result = getJSON('AudioLibrary.GetRecentlyAddedAlbums', '{ "properties": [ %s ], "limits":{"end":%d} }' %(fields_albums,limit))
@@ -389,7 +368,7 @@ def RECENTPLAYEDSONGS(limit):
     else:
         for item in json_result:
             allItems.append(getSongDetails(item))
-    return allItems    
+    return allItems
 
 def getSongDetails(item):
     if WINDOW.getProperty("SkinHelperShutdownRequested"): return item
@@ -399,7 +378,7 @@ def getSongDetails(item):
         item['album_description'] = item["art"].get("info","")
     item["type"] = "song"
     return item
-    
+
 def RECENTSONGS(limit):
     allItems = []
     json_result = getJSON('AudioLibrary.GetRecentlyAddedSongs', '{ "properties": [ %s ], "limits":{"end":%d} }' %(fields_songs,limit))
@@ -412,7 +391,7 @@ def RECENTSONGS(limit):
     else:
         for item in json_result:
             allItems.append(getSongDetails(item))
-    return allItems    
+    return allItems
 
 def RANDOMSONGS(limit):
     allItems = []
@@ -426,8 +405,8 @@ def RANDOMSONGS(limit):
     else:
         for item in json_result:
             allItems.append(getSongDetails(item))
-    return allItems    
- 
+    return allItems
+
 def getNextEpisodeForShow(showid):
     if WINDOW.getProperty("SkinHelperShutdownRequested"): return {}
     if enableSpecialsInWidgets:
@@ -437,7 +416,7 @@ def getNextEpisodeForShow(showid):
     for item in json_episodes:
         return item
     return {}
-    
+
 def NEXTEPISODES(limit):
     count = 0
     result = []
@@ -456,7 +435,7 @@ def NEXTEPISODES(limit):
     else:
         #normal processing
         for show in json_result:
-            result.append(getNextEpisodeForShow(show['tvshowid']))     
+            result.append(getNextEpisodeForShow(show['tvshowid']))
     return result
 
 def NEXTAIREDTVSHOWS(limit):
@@ -472,7 +451,7 @@ def UNAIREDEPISODES(limit):
         extraprops["airtime"] = episode["seriesinfo"]["airsTime"]
         episode["extraproperties"] = extraprops
     return episodes
-    
+
 def NEXTAIREDEPISODES(limit):
     import thetvdb
     thetvdb.DAYS_AHEAD = 45
@@ -484,17 +463,17 @@ def NEXTAIREDEPISODES(limit):
         extraprops["DBTYPE"] = "episode"
         episode["extraproperties"] = extraprops
     return episodes
-    
+
 def RECOMMENDEDMOVIES(limit):
     allItems = []
-    
+
     # Library movies with a score higher than 7
     if hideWatchedItemsInWidgets:
         json_result = getJSON('VideoLibrary.GetMovies','{ "sort": { "order": "descending", "method": "rating" }, "filter": {"and": [{"operator":"is", "field":"playcount", "value":"0"},{"operator":"greaterthan", "field":"rating", "value":"7"}]}, "properties": [ %s ], "limits":{"end":%d} }' %(fields_movies,limit))
     else:
         json_result = getJSON('VideoLibrary.GetMovies','{ "sort": { "order": "descending", "method": "rating" }, "filter": {{"operator":"greaterthan", "field":"rating", "value":"7"}, "properties": [ %s ], "limits":{"end":%d} }' %(fields_movies,limit))
     for item in json_result: allItems.append(item)
-        
+
     #Plex movies with a score higher than 7
     if WINDOW.getProperty("plexbmc.0.content"):
         for i in range(50):
@@ -506,13 +485,13 @@ def RECOMMENDEDMOVIES(limit):
             if not path: break
             if "movie" in type:
                 json_result = getJSON('Files.GetDirectory', '{ "sort": { "order": "descending", "method": "rating" }, "filter": {"and": [{"operator":"is", "field":"playcount", "value":"0"},{"operator":"greaterthan", "field":"rating", "value":"7"}]}, "directory": "%s", "media": "files", "properties": [ %s ], "limits":{"end":%d} }' %(path,fields_files,limit))
-                for item in json_result: allItems.append(item) 
-    
+                for item in json_result: allItems.append(item)
+
     return allItems
 
 def RECOMMENDEDTVSHOWS(limit):
     allItems = []
-    
+
     # Random tvshows with a score higher then 7
     json_result = getJSON('VideoLibrary.GetTVShows', '{ "sort": { "order": "descending", "method": "rating" }, "filter": {"and": [{"operator":"is", "field":"playcount", "value":"0"},{"operator":"greaterthan", "field":"rating", "value":"7"}]}, "properties": [ %s ],"limits":{"end":25} }' %fields_tvshows)
     for item in json_result:
@@ -523,7 +502,7 @@ def RECOMMENDEDTVSHOWS(limit):
             item["file"] = json_query2[0]["file"]
             item["tvshowtitle"] = item["title"]
             allItems.append(item)
-        
+
     #Plex tvshows with a score higher than 7
     if WINDOW.getProperty("plexbmc.0.content"):
         for i in range(50):
@@ -535,8 +514,8 @@ def RECOMMENDEDTVSHOWS(limit):
             if not path: break
             if "show" in type:
                 json_result = getJSON('Files.GetDirectory', '{ "sort": { "order": "descending", "method": "rating" },, "filter": {"and": [{"operator":"is", "field":"playcount", "value":"0"},{"operator":"greaterthan", "field":"rating", "value":"7"}]}, "directory": "%s", "media": "files", "properties": [ %s ], "limits":{"end":%d} }' %(path,fields_files,limit))
-                for item in json_result: allItems.append(item) 
-    
+                for item in json_result: allItems.append(item)
+
     return allItems
 
 def RECOMMENDEDALBUMS(limit,browse=False):
@@ -559,7 +538,7 @@ def RECOMMENDEDALBUMS(limit,browse=False):
                 if not item["title"] in allTitles and not item["title"] == similartitle:
                     allItemsTemp.append(item)
                     allTitles.append(item["title"])
-        
+
     if allItemsTemp:
         #sort the list by rating
         allItemsTemp = sorted(allItemsTemp,key=itemgetter("rating"),reverse=True)
@@ -599,7 +578,7 @@ def RECOMMENDEDSONGS(limit):
                     allItemsTemp.append(item)
                     allTitles.append(item["title"])
                     count += 1
-        
+
     if allItemsTemp:
         #sort the list by rating
         allItemsTemp = sorted(allItemsTemp,key=itemgetter("rating"),reverse=True)
@@ -648,7 +627,7 @@ def SIMILARMOVIES(limit,imdbid="",unSorted=False):
                     allItems.append(item)
                     allTitles.append(item["title"])
                     count +=1
-    
+
     #sort the list by rating
     if unSorted: return allItems
     else: return sorted(allItems,key=itemgetter("rating"),reverse=True)
@@ -677,16 +656,16 @@ def MOVIESFORGENRE(limit,genretitle=""):
 
     #sort the list by rating
     return sorted(allItems,key=itemgetter("rating"),reverse=True)
-   
+
 def BROWSEGENRES(limit, type="movie"):
     count = 0
     allItems = []
-    
-    sort = '"order": "ascending", "method": "sorttitle", "ignorearticle": true' 
+
+    sort = '"order": "ascending", "method": "sorttitle", "ignorearticle": true'
     if "random" in type:
         sort = '"order": "descending", "method": "random"'
         type = type.replace("random","")
-        
+
     #get all genres
     json_result = getJSON('VideoLibrary.GetGenres', '{"type": "%s", "sort": { "order": "ascending", "method": "title" }}' %type)
     for genre in json_result:
@@ -707,14 +686,14 @@ def BROWSEGENRES(limit, type="movie"):
         allItems.append(genre)
 
     return allItems
-    
+
 def SIMILARSHOWS(limit,imdbid="",unSorted=False):
     count = 0
     allItems = []
     allTitles = list()
     json_result = []
     #lookup show by imdbid or just pick a random in-progress show
-    if imdbid: 
+    if imdbid:
         json_result = getJSON('VideoLibrary.GetTVShows', '{ "properties": [ "title", "rating", "genre", "imdbnumber"]}')
         for item in json_result:
             if item.get("imdbnumber") == imdbid:
@@ -738,7 +717,7 @@ def SIMILARSHOWS(limit,imdbid="",unSorted=False):
                     item["isFolder"] = True
                     allItems.append(item)
                     allTitles.append(item["title"])
-        
+
     #sort the list by rating
     if unSorted: return allItems
     else: return sorted(allItems,key=itemgetter("rating"),reverse=True)
@@ -749,11 +728,11 @@ def SIMILARMEDIA(limit,imdb=""):
     allItems += SIMILARSHOWS(limit,imdb,True)
     #sort the list by rating
     return sorted(allItems,key=itemgetter("rating"),reverse=True)
-       
+
 def SHOWSFORGENRE(limit,genretitle=""):
     count = 0
     allItems = []
-    
+
     if not genretitle:
         #get a random genre
         json_result = getJSON('VideoLibrary.GetGenres', '{ "sort": { "order": "descending", "method": "random" }, "type": "tvshow","limits":{"end":1}}')
@@ -799,10 +778,10 @@ def getNetflixItems(key):
         for item in json_result:
             allItems.append(item)
     return allItems
-     
+
 def INPROGRESSMOVIES(limit):
     allItems = []
-    
+
     # Get a list of all the in-progress Movies in library
     if xbmc.getCondVisibility("Library.HasContent(movies)"):
         json_result = getJSON('VideoLibrary.GetMovies', '{ "sort": { "order": "descending", "method": "lastplayed" }, "filter": {"and": [{"operator":"true", "field":"inprogress", "value":""}]}, "properties": [ %s ], "limits": { "end": %s } }' %(fields_movies,limit))
@@ -811,9 +790,9 @@ def INPROGRESSMOVIES(limit):
     else:
         #plex in progress movies if no library content
         allItems = getPlexOndeckItems("movie")
- 
+
     return sorted(allItems,key=itemgetter("lastplayed"),reverse=True)
-    
+
 def INPROGRESSEPISODES(limit):
     allItems = []
     # Get a list of all the in-progress Movies in library
@@ -830,41 +809,41 @@ def INPROGRESSMUSICVIDEOS(limit):
         if item["resume"]["position"] != 0:
             allItems.append(item)
     return allItems
-    
+
 def INPROGRESSMEDIA(limit):
     allItems = []
-    
+
     #netflix in progress items
     allItems += getNetflixItems("generic.inprogress")
-    
+
     # In progress Movies
     allItems += INPROGRESSMOVIES(25)
 
     # Get a list of all the in-progress MusicVideos
     allItems += INPROGRESSMUSICVIDEOS(5)
-    
+
     # Get a list of all the in-progress music songs
     allItems += RECENTPLAYEDSONGS(5)
-    
-    # Get a list of all the in-progress tv recordings   
+
+    # Get a list of all the in-progress tv recordings
     for item in PVRRECORDINGS(5):
         item["lastplayed"] = item["endtime"]
         allItems.append(item)
 
     # Next episodes
     allItems += NEXTEPISODES(5)
-    
-    #sort the list with in progress items by lastplayed date   
+
+    #sort the list with in progress items by lastplayed date
     return sorted(allItems,key=itemgetter("lastplayed"),reverse=True)
-    
+
 def INPROGRESSANDRECOMMENDEDMEDIA(limit):
     allTitles = list()
-    
+
     # In progress media
     allItems = INPROGRESSMEDIA(limit)
     for item in allItems:
         allTitles.append(item["title"])
-    
+
     # Recommended media
     for item in RECOMMENDEDMEDIA(limit):
         if item["title"] not in allTitles:
@@ -873,12 +852,12 @@ def INPROGRESSANDRECOMMENDEDMEDIA(limit):
 
 def INPROGRESSANDRECOMMENDEDMOVIES(limit):
     allTitles = list()
-    
+
     # In progress media
     allItems = INPROGRESSMOVIES(limit)
     for item in allItems:
         allTitles.append(item["title"])
-    
+
     # Recommended media
     for item in RECOMMENDEDMOVIES(limit):
         if item["title"] not in allTitles:
@@ -898,15 +877,15 @@ def RANDOMTVSHOWS(limit):
         item["IsPlayable"] = "false"
         item["isFolder"] = True
     return shows
-            
+
 def INPROGRESSANDRANDOMMOVIES(limit):
     allTitles = list()
-    
+
     # In progress movies
     allItems = INPROGRESSMOVIES(limit)
     for item in allItems:
         allTitles.append(item["title"])
-    
+
     # Random movies
     for item in RANDOMMOVIES(limit):
         if item["title"] not in allTitles:
@@ -915,31 +894,31 @@ def INPROGRESSANDRANDOMMOVIES(limit):
 
 def INPROGRESSANDRECOMMENDEDTVSHOWS(limit):
     allTitles = list()
-    
+
     # In progress media
     allItems = INPROGRESSEPISODES(limit)
     for item in allItems:
         allTitles.append(item["tvshowtitle"])
-    
+
     # Recommended media
     for item in RECOMMENDEDTVSHOWS(limit):
         if item["title"] not in allTitles:
             allItems.append(item)
     return allItems
- 
+
 def RECOMMENDEDMEDIA(limit):
     allItems = []
-    
+
     # Recommended Movies
     allItems += RECOMMENDEDMOVIES(limit)
-    
+
     # Recommended Tv Shows
     allItems += RECOMMENDEDTVSHOWS(limit)
-    
+
     # Recommended albums
     allItems += RECOMMENDEDALBUMS(limit)
 
-    #sort the list with recommended items by rating 
+    #sort the list with recommended items by rating
     return sorted(allItems,key=itemgetter("rating"),reverse=True)
 
 def RECENTMOVIES(limit):
@@ -966,10 +945,10 @@ def RECENTEPISODES(limit):
             recent_episodes = getJSON('VideoLibrary.GetEpisodes','{ "sort": { "order": "descending", "method": "dateadded" }, "properties": [ %s ], "limits":{"start":%d,"end":%d} }' %(fields_episodes,count,limit+count))
         if len(recent_episodes) < limit:
             uniquecount = limit
-            
+
         #if multiple episodes for the same show with same addition date, we combine them into one
         #to do that we build a dict with recent episodes for each show
-        
+
         for episode in recent_episodes:
             count += 1
             uniquekey = "%s-%s-%s" %(episode["tvshowid"],episode["dateadded"].split(" ")[0],episode["season"])
@@ -977,9 +956,9 @@ def RECENTEPISODES(limit):
                 showepisodes[uniquekey] = []
                 uniquecount += 1
             showepisodes[uniquekey].append(episode)
-            
+
     for tvshow, episodes in showepisodes.iteritems():
-        
+
         firstepisode = episodes[0]
         if len(episodes) > 2:
             #add as season entry if there were multiple episodes for the same show - use first episode as reference to keep the correct sorting order
@@ -991,8 +970,8 @@ def RECENTEPISODES(limit):
             item["label"] = "%s %s" %(xbmc.getLocalizedString(20373), firstepisode["season"])
             item["art"] = firstepisode["art"]
             item["cast"] = firstepisode["cast"]
-                    
-            item["plot"] = u"[B]%s[/B] • %s %s[CR]%s: %s" %(item["label"],len(episodes),xbmc.getLocalizedString(20387),xbmc.getLocalizedString(570),firstepisode["dateadded"].split(" ")[0])      
+
+            item["plot"] = u"[B]%s[/B] • %s %s[CR]%s: %s" %(item["label"],len(episodes),xbmc.getLocalizedString(20387),xbmc.getLocalizedString(570),firstepisode["dateadded"].split(" ")[0])
             item["dateadded"] = firstepisode["dateadded"]
             item["extraproperties"] = {"UnWatchedEpisodes": "%s"%len(episodes)}
             item["file"] = "videodb://tvshows/titles/%s/%s/" %(firstepisode["tvshowid"],firstepisode["season"])
@@ -1003,7 +982,7 @@ def RECENTEPISODES(limit):
             allItems.append(firstepisode)
 
     return sorted(allItems,key=itemgetter("dateadded"),reverse=True)
-                           
+
 def RECENTMEDIA(limit):
     count = 0
     allItems = []
@@ -1014,35 +993,35 @@ def RECENTMEDIA(limit):
             item["sortkey"] = item["dateadded"]
             allItems.append(item)
             allTitles.append(item["title"])
-    
+
     # Get a list of all the recent MusicVideos (unwatched and not in progress)
     for item in RECENTMUSICVIDEOS(15):
         if not item["title"] in allTitles and item["resume"]["position"] == 0:
             item["sortkey"] = item["dateadded"]
             allItems.append(item)
             allTitles.append(item["title"])
-    
+
     # Get a list of all the recent music songs
     for item in RECENTSONGS(5):
         if not item["title"] in allTitles and item["thumbnail"]:
             item["sortkey"] = ""
             allItems.append(item)
             allTitles.append(item["title"])
-    
+
     # Get a list of all the recent episodes (unwatched and not in progress)
     for item in RECENTEPISODES(15):
         if not item["title"] in allTitles:
             item["sortkey"] = item["dateadded"]
             allItems.append(item)
             allTitles.append(item["title"])
-            
-    # Get a list of all the unwatched recent tv recordings   
+
+    # Get a list of all the unwatched recent tv recordings
     for item in PVRRECORDINGS(10):
         if not item["title"] in allTitles:
             item["sortkey"] = item["endtime"]
             allItems.append(item)
             allTitles.append(item["title"])
-    
+
     #recent plex items if no library content
     if xbmc.getCondVisibility("!Library.HasContent(movies)"):
         if WINDOW.getProperty("plexbmc.0.title"):
@@ -1060,8 +1039,8 @@ def RECENTMEDIA(limit):
                         item["sortkey"] = item.get("dateadded","")
                         allItems.append(item)
                         allTitles.append(item["title"])
-    
-    #sort the list with in recent items by lastplayed date   
+
+    #sort the list with in recent items by lastplayed date
     return sorted(allItems,key=itemgetter("sortkey"),reverse=True)
 
 def getKodiFavsFromFile():
@@ -1093,33 +1072,33 @@ def getKodiFavsFromFile():
                 action = action.replace("PlayMedia(","")[:-1]
             allfavourites.append( {"label":label, "path":action, "thumbnail": thumb, "window":window, "windowparameter":windowparameter, "type":type} )
     return allfavourites
-    
+
 def FAVOURITEMEDIA(limit,AllKodiFavsOnly=False):
     count = 0
     allItems = []
-    
+
     if not AllKodiFavsOnly:
         #netflix favorites
         allItems += getNetflixItems("generic.mylist")
-        
+
         #emby favorites
         if xbmc.getCondVisibility("System.HasAddon(plugin.video.emby) + Skin.HasSetting(SmartShortcuts.emby)"):
             json_result = getJSON('VideoLibrary.GetMovies', '{ "filter": {"operator":"contains", "field":"tag", "value":"Favorite movies"}, "properties": [ %s ] }' %fields_movies)
             for item in json_result:
                 allItems.append(item)
-            
+
             json_result = getJSON('VideoLibrary.GetTvShows', '{ "filter": {"operator":"contains", "field":"tag", "value":"Favorite tvshows"}, "properties": [ %s ] }' %fields_tvshows)
             for item in json_result:
                 tvshowpath = "ActivateWindow(Videos,videodb://tvshows/titles/%s/,return)" %str(item["tvshowid"])
                 tvshowpath="plugin://script.skin.helper.service?action=launch&path=" + tvshowpath
                 item["file"] == tvshowpath
                 allItems.append(item)
-    
+
     #Kodi favourites
     all_favs = getKodiFavsFromFile()
     if not all_favs:
         all_favs = getJSON('Favourites.GetFavourites', '{"type": null, "properties": ["path", "thumbnail", "window", "windowparameter"]}')
-        
+
     for fav in all_favs:
         matchFound = False
         if fav.get("windowparameter"):
@@ -1148,7 +1127,7 @@ def FAVOURITEMEDIA(limit,AllKodiFavsOnly=False):
                 if item['file'] == path:
                     matchFound = True
                     allItems.append(item)
-            
+
             if matchFound == False:
                 #is this an episode ?
                 json_result = getJSON('VideoLibrary.GetEpisodes', '{ "filter": {"operator":"contains", "field":"filename", "value":"%s"}, "properties": [ %s ] }' %(pathpart,fields_episodes))
@@ -1163,7 +1142,7 @@ def FAVOURITEMEDIA(limit,AllKodiFavsOnly=False):
                     if item['file'] == path:
                         matchFound = True
                         allItems.append(item)
-                            
+
             if matchFound == False:
                 #is this a musicvideo?
                 json_result = getJSON('VideoLibrary.GetMusicVideos', '{ "filter": {"operator":"contains", "field":"filename", "value":"%s"}, "properties": [ %s ] }' %(pathpart, fields_musicvideos))
@@ -1186,9 +1165,9 @@ def FAVOURITEMEDIA(limit,AllKodiFavsOnly=False):
             if fav.get("thumbnail").endswith("icon.png") and fav.get("thumbnail").endswith("icon.png") and  xbmcvfs.exists(fav.get("thumbnail").replace("icon.png","fanart.jpg")):
                 item["art"] = {"landscape": fav.get("thumbnail"), "poster": fav.get("thumbnail"), "fanart": fav.get("thumbnail").replace("icon.png","fanart.jpg")}
             item["extraproperties"] = {"IsPlayable": "false"}
-            allItems.append(item)      
+            allItems.append(item)
     return allItems
-    
+
 def getExtraFanArt(path):
     extrafanarts = []
     cachedataStr = "getExtraFanArt.%s"%path
@@ -1213,7 +1192,7 @@ def getExtraFanArt(path):
             if artwork.get("extrafanarts"):
                 extrafanarts = eval( artwork.get("extrafanarts") )
             simplecache.set(cachedataStr,extrafanarts,timedelta(days=7))
-            
+
     #process extrafanarts
     for item in extrafanarts:
         li = xbmcgui.ListItem(item, path=item)
@@ -1236,7 +1215,7 @@ def GETCASTMEDIA(limit,name=""):
             allItems.append(item)
 
     return allItems
-    
+
 def getCast(movie=None,tvshow=None,movieset=None,episode=None,downloadThumbs=False,listOnly=False):
     itemId = None
     item = {}
@@ -1259,13 +1238,13 @@ def getCast(movie=None,tvshow=None,movieset=None,episode=None,downloadThumbs=Fal
         elif not (movie or tvshow or episode or movieset) and xbmc.getCondVisibility("Window.IsActive(DialogVideoInfo.xml)"):
             cachedataStr = xbmc.getInfoLabel("ListItem.Title") + xbmc.getInfoLabel("ListItem.FileNameAndPath") + str(downloadThumbs)
     except Exception: pass
-    
+
     cachedata = simplecache.get(cachedataStr)
     if cachedata:
         #get data from cache
         allCast = cachedata
     else:
-        
+
         #retrieve data from json api...
         if movie and itemId:
             json_result = getJSON('VideoLibrary.GetMovieDetails', '{ "movieid": %d, "properties": [ "title", "cast" ] }' %itemId)
@@ -1298,7 +1277,7 @@ def getCast(movie=None,tvshow=None,movieset=None,episode=None,downloadThumbs=Fal
                 if json_result.has_key("movies"):
                     for movie in json_result['movies']:
                         allCast += movie['cast']
-        
+
         #no item provided, try to grab the cast list from container 50 (dialogvideoinfo)
         elif not (movie or tvshow or episode or movieset) and xbmc.getCondVisibility("Window.IsActive(DialogVideoInfo.xml)"):
             for i in range(250):
@@ -1310,7 +1289,7 @@ def getCast(movie=None,tvshow=None,movieset=None,episode=None,downloadThumbs=Fal
         else:
             #no id or title provided, skip...
             allCast = []
-                
+
         #lookup tmdb if item is requested that is not in local db
         tmdbdetails = {}
         if movie and not allCast and not itemId:
@@ -1319,18 +1298,18 @@ def getCast(movie=None,tvshow=None,movieset=None,episode=None,downloadThumbs=Fal
             tmdbdetails = artutils.getTmdbDetails(tvshow,None,"tv","",True)
         if tmdbdetails.get("cast"):
             allCast = eval(tmdbdetails.get("cast"))
-        
+
         #optional: download missing actor thumbs
         if allCast and downloadThumbs:
             for cast in allCast:
                 if cast.get("thumbnail"): cast["thumbnail"] = getCleanImage(cast.get("thumbnail"))
-                if not cast.get("thumbnail"): 
+                if not cast.get("thumbnail"):
                     artwork = artutils.getTmdbDetails(cast["name"],None,"person")
                     cast["thumbnail"] = artwork.get("thumb","")
 
         #save to cache
         simplecache.set(cachedataStr,allCast)
-    
+
     #process listing with the results...
     if listOnly: return allCast
     for cast in allCast:
@@ -1342,7 +1321,7 @@ def getCast(movie=None,tvshow=None,movieset=None,episode=None,downloadThumbs=Fal
             castNames.append(cast.get("name"))
             liz.setThumbnailImage(cast.get("thumbnail"))
             xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=path, listitem=liz, isFolder=False)
-    
+
     WINDOW.setProperty('SkinHelper.ListItemCast', "[CR]".join(castNames))
-    
-    xbmcplugin.endOfDirectory(int(sys.argv[1]))    
+
+    xbmcplugin.endOfDirectory(int(sys.argv[1]))
