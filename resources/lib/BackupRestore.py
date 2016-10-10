@@ -1,6 +1,4 @@
 from Utils import *
-import random
-
 
 def getSkinSettings(filter=None):
     newlist = []

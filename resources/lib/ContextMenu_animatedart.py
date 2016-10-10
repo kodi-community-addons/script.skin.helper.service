@@ -2,9 +2,9 @@
 from Utils import *
 import ArtworkUtils as artworkutils
 
-#Kodi contextmenu item to configure the artwork 
+#Kodi contextmenu item to configure the artwork
 if __name__ == '__main__':
-    
+
     #### Animated artwork #######
     logMsg("Context menu artwork settings for Animated artwork")
     WINDOW.setProperty("artworkcontextmenu", "busy")
@@ -17,7 +17,7 @@ if __name__ == '__main__':
         if ret == 0 or ret == 1:
             if ret == 0: type = "poster"
             if ret == 1: type = "fanart"
-        
+
         liImdb = xbmc.getInfoLabel("ListItem.IMDBNumber")
         if not liImdb: liImdb = xbmc.getInfoLabel("ListItem.Title").decode("utf-8")
         liDbId = xbmc.getInfoLabel("ListItem.DBID")

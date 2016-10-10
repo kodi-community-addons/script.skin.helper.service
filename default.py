@@ -10,7 +10,8 @@ except Exception:
     xbmcgui.Dialog().ok(heading="Skin Helper Service", line1="Installation is missing files. Please reinstall the skin helper service addon to fix this issue.")
 
 class Main:
-    
+
+    @classmethod
     def getParams(self):
         #extract the params from the called script path
         params = {}
@@ -23,11 +24,11 @@ class Main:
                 paramvalue = arg.replace(paramname+"=","")
                 params[paramname] = paramvalue
                 params[paramname.upper()] = paramvalue
-        
+
         utils.logMsg("Parameter string: " + str(params))
         return params
-        
-        
+
+
     def deprecatedMethod(self,params,newaddon):
         '''
             used when one of the deprecated methods is called
@@ -46,29 +47,29 @@ class Main:
                 xbmc.executebuiltin("InstallAddon(%s)" %newaddon)
             else:
                 xbmc.executebuiltin("RunPlugin(plugin://%s)" %newaddon)
-    
+
     def __init__(self):
-        
+
         utils.logMsg('started loading script entry')
         params = self.getParams()
-        
+
         if params:
             action = params.get("ACTION","").upper()
 
             if action =="ADDSHORTCUT":
                 mainmodule.addShortcutWorkAround()
-            
+
             elif action == "MUSICSEARCH":
                 mainmodule.musicSearch()
-            
+
             elif action == "SETVIEW":
                 mainmodule.setView()
-            
+
             elif action == "SEARCHYOUTUBE":
                 title = params.get("TITLE",None)
                 windowHeader = params.get("HEADER","")
                 mainmodule.searchYouTube(title,windowHeader)
-            
+
             elif action == "SETFOCUS":
                 control = params.get("CONTROL",None)
                 fallback = params.get("FALLBACK",None)
@@ -81,7 +82,7 @@ class Main:
                         xbmc.executebuiltin("Control.SetFocus(%s)"%control)
                         xbmc.sleep(50)
                         count += 1
-                        
+
             elif action == "SETWIDGETCONTAINER":
                 controls = params.get("CONTROLS","").split("-")
                 xbmc.sleep(150)
@@ -92,7 +93,7 @@ class Main:
                             return
                     xbmc.sleep(50)
                 utils.WINDOW.clearProperty("SkinHelper.WidgetContainer")
-                
+
             elif action == "SETFORCEDVIEW":
                 contenttype = params.get("CONTENTTYPE",None)
                 mainmodule.setForcedView(contenttype)
@@ -102,42 +103,42 @@ class Main:
                 windowHeader = params.get("HEADER","")
                 multi = params.get("MULTI","") == "true"
                 mainmodule.saveSkinImage(skinstring,multi,windowHeader)
-            
+
             elif action == "SETSKINSETTING":
                 setting = params.get("SETTING","")
                 windowHeader = params.get("HEADER","")
                 originalId = params.get("ID","")
                 mainmodule.setSkinSetting(setting=setting,windowHeader=windowHeader,originalId=originalId)
-                
+
             elif action == "SETSKINCONSTANT":
                 setting = params.get("SETTING","")
                 windowHeader = params.get("HEADER","")
                 value = params.get("VALUE","")
                 mainmodule.setSkinConstant(setting,windowHeader,value)
-                
+
             elif action == "SETSKINCONSTANTS":
                 settings = params.get("SETTINGS","").split("|")
                 values = params.get("VALUES","").split("|")
                 mainmodule.setSkinConstant(settings,values)
-                
+
             elif action == "SETSKINSHORTCUTSPROPERTY":
                 setting = params.get("SETTING","")
                 windowHeader = params.get("HEADER","")
                 property = params.get("PROPERTY","")
                 mainmodule.setSkinShortCutsProperty(setting,windowHeader,property)
-            
+
             elif action == "TOGGLEKODISETTING":
                 kodisetting = params.get("SETTING")
                 mainmodule.toggleKodiSetting(kodisetting)
-                
+
             elif action == "SETKODISETTING":
                 kodisetting = params.get("SETTING")
                 value = params.get("VALUE")
                 mainmodule.setKodiSetting(kodisetting,value)
-            
+
             elif action == "ENABLEVIEWS":
                 mainmodule.enableViews()
-                
+
             elif action == "SPLASHSCREEN":
                 file = params.get("FILE","")
                 duration = params.get("DURATION","")
@@ -145,7 +146,7 @@ class Main:
                     mainmodule.show_splash(file,int(duration))
                 else:
                     mainmodule.show_splash(file)
-            
+
             elif action == "VIDEOSEARCH":
                 from resources.lib.SearchDialog import SearchDialog
                 searchDialog = SearchDialog("script-skin_helper_service-CustomSearch.xml", utils.ADDON_PATH, "Default", "1080i")
@@ -159,7 +160,7 @@ class Main:
                         xbmc.executebuiltin(resultAction)
             elif action == "SHOWINFO":
                 xbmc.executebuiltin( "ActivateWindow(busydialog)" )
-                
+
                 #try to figure out the params automatically if no ID provided...
                 if not ( params.get("MOVIEID") or params.get("EPISODEID") or params.get("TVSHOWID") ):
                     widgetContainer = utils.WINDOW.getProperty("SkinHelper.WidgetContainer").decode('utf-8')
@@ -180,7 +181,7 @@ class Main:
                         elif "song" in db_type.lower() or xbmc.getLocalizedString(36920).lower() in db_type.lower(): dbtype = "song"
                     if dbid and dbtype: params["%sID" %dbtype.upper()] = dbid
                     params["lastwidgetcontainer"] = widgetContainer
-                
+
                 #open info dialog...
                 from resources.lib.InfoDialog import GUI
                 info_dialog = GUI( "script-skin_helper_service-CustomInfo.xml" , utils.ADDON_PATH, "Default", "1080i", params=params )
@@ -196,37 +197,37 @@ class Main:
                             xbmc.executeJSONRPC(resultAction)
                         else:
                             xbmc.executebuiltin(resultAction)
-                
+
             elif action == "COLORPICKER":
                 self.deprecatedMethod(params,"script.skin.helper.colorpicker")
-            
+
             elif action == "COLORTHEMES":
                 from resources.lib.ColorThemes import ColorThemes
                 colorThemes = ColorThemes("DialogSelect.xml", utils.ADDON_PATH)
                 colorThemes.daynight = params.get("DAYNIGHT",None)
                 colorThemes.doModal()
                 del colorThemes
-            
+
             elif action == "CONDITIONALBACKGROUNDS":
                 from resources.lib.ConditionalBackgrounds import ConditionalBackgrounds
                 conditionalBackgrounds = ConditionalBackgrounds("DialogSelect.xml", utils.ADDON_PATH)
                 conditionalBackgrounds.doModal()
                 del conditionalBackgrounds
-            
+
             elif action == "CREATECOLORTHEME":
                 import resources.lib.ColorThemes as colorThemes
                 colorThemes.createColorTheme()
-            
+
             elif action == "RESTORECOLORTHEME":
                 import resources.lib.ColorThemes as colorThemes
                 colorThemes.restoreColorTheme()
-            
-            elif action == "OVERLAYTEXTURE":    
+
+            elif action == "OVERLAYTEXTURE":
                 mainmodule.selectOverlayTexture()
-            
-            elif action == "BUSYTEXTURE":    
+
+            elif action == "BUSYTEXTURE":
                 mainmodule.selectBusyTexture()
-                
+
             elif action == "CACHEALLMUSICART":
                 import resources.lib.ArtworkUtils as artworkutils
                 artworkutils.preCacheAllMusicArt()
@@ -241,7 +242,7 @@ class Main:
                     path = "special://profile/addon_data/script.skin.helper.service/wallbackgrounds/"
                     utils.WINDOW.setProperty("resetWallArtCache","reset")
                 else: path = None
-                
+
                 if path:
                     success = True
                     ret = xbmcgui.Dialog().yesno(heading=utils.ADDON.getLocalizedString(32089), line1=utils.ADDON.getLocalizedString(32090)+path)
@@ -253,19 +254,19 @@ class Main:
                             xbmcgui.Dialog().ok(heading=utils.ADDON.getLocalizedString(32089), line1=utils.ADDON.getLocalizedString(32091))
                         else:
                             xbmcgui.Dialog().ok(heading=utils.ADDON.getLocalizedString(32089), line1=utils.ADDON.getLocalizedString(32092))
-                    
+
             elif action == "BACKUP":
                 import resources.lib.BackupRestore as backup
                 filter = params.get("FILTER","")
                 silent = params.get("SILENT",None)
                 promptfilename = params.get("PROMPTFILENAME","false")
                 backup.backup(filter,silent,promptfilename.lower())
-            
+
             elif action == "RESTORE":
                 import resources.lib.BackupRestore as backup
                 silent = params.get("SILENT",None)
                 backup.restore(silent)
-            
+
             elif action == "RESET":
                 import resources.lib.BackupRestore as backup
                 filter = params.get("FILTER","")
@@ -273,14 +274,14 @@ class Main:
                 backup.reset(filter,silent)
                 xbmc.Monitor().waitForAbort(2)
                 mainmodule.correctSkinSettings()
-            
+
             elif action == "DIALOGOK":
                 headerMsg = params.get("HEADER")
                 bodyMsg = params.get("MESSAGE")
                 if bodyMsg.startswith(" "): bodyMsg = bodyMsg[1:]
                 if headerMsg.startswith(" "): headerMsg = headerMsg[1:]
                 xbmcgui.Dialog().ok(heading=headerMsg, line1=bodyMsg)
-                
+
             elif action == "DIALOGYESNO":
                 headerMsg = params.get("HEADER")
                 bodyMsg = params.get("MESSAGE")
@@ -294,7 +295,7 @@ class Main:
                 else:
                     for action in noactions:
                         xbmc.executebuiltin(action.encode("utf-8"))
-                
+
             elif action == "TEXTVIEWER":
                 headerMsg = params.get("HEADER","")
                 bodyMsg = params.get("MESSAGE","")
@@ -316,7 +317,7 @@ class Main:
                         utils.WINDOW.clearProperty(windowprop)
                     if skinstring:
                         xbmc.executebuiltin("Skin.Reset(%s)" %skinstring)
-            
+
             elif action == "STRIPSTRING":
                 splitchar = params.get("SPLITCHAR")
                 if splitchar == "[SPACE]": splitchar = " "
@@ -325,7 +326,7 @@ class Main:
                 index = params.get("INDEX",0)
                 string = string.split(splitchar)[int(index)]
                 utils.WINDOW.setProperty(output, string)
-                
+
             elif action == "GETPLAYERFILENAME":
                 output = params.get("OUTPUT")
                 filename = xbmc.getInfoLabel("Player.FileNameAndPath")
@@ -334,7 +335,7 @@ class Main:
                     url_params = dict(urlparse.parse_qsl(filename))
                     filename = url_params.get("filename")
                 utils.WINDOW.setProperty(output, filename)
-                
+
             elif action == "GETFILENAME":
                 output = params.get("OUTPUT")
                 filename = xbmc.getInfoLabel("ListItem.FileNameAndPath")
@@ -345,23 +346,23 @@ class Main:
                     url_params = dict(urlparse.parse_qsl(filename))
                     filename = url_params.get("filename")
                 utils.WINDOW.setProperty(output, filename)
-                
+
             elif action == "CHECKRESOURCEADDONS":
                 ADDONSLIST = params.get("ADDONSLIST")
                 mainmodule.checkResourceAddons(ADDONSLIST)
-                
+
             elif action == "GETPERCENTAGE":
                 total = int(params.get("TOTAL"))
                 count = int(params.get("COUNT"))
                 roundsteps = params.get("ROUNDSTEPS")
                 skinstring = params.get("SKINSTRING")
-                
+
                 percentage = int(round((1.0 * count / total) * 100))
                 if roundsteps:
                     roundsteps = int(roundsteps)
                     percentage = percentage + (roundsteps - percentage) % roundsteps
-                
-                xbmc.executebuiltin("Skin.SetString(%s,%s)" %(skinstring,percentage))    
+
+                xbmc.executebuiltin("Skin.SetString(%s,%s)" %(skinstring,percentage))
 
             elif action == "PLAYTRAILER":
                 #auto play windowed trailer inside video listing
@@ -370,12 +371,12 @@ class Main:
                     widgetContainer = params.get("WIDGETCONTAINER","")
                     trailerMode = params.get("MODE","").replace("auto_","")
                     allowYoutube = params.get("YOUTUBE","") == "true"
-                    if not trailerMode: 
+                    if not trailerMode:
                         trailerMode = "windowed"
-                    if widgetContainer: 
+                    if widgetContainer:
                         widgetContainerPrefix = "Container(%s)."%widgetContainer
                     else: widgetContainerPrefix = ""
-                    
+
                     liTitle = xbmc.getInfoLabel("%sListItem.Title" %widgetContainerPrefix).decode('utf-8')
                     liTrailer = xbmc.getInfoLabel("%sListItem.Trailer" %widgetContainerPrefix).decode('utf-8')
                     if not liTrailer and allowYoutube:
@@ -393,5 +394,5 @@ if (__name__ == "__main__"):
     xbmc.executebuiltin( "Dialog.Close(busydialog)" )
     if not utils.WINDOW.getProperty("SkinHelperShutdownRequested"):
         Main()
-    
+
 utils.logMsg('finished loading script entry')

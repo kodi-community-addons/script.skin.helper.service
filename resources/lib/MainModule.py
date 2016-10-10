@@ -9,7 +9,7 @@ def musicSearch():
 def addShortcutWorkAround():
     xbmc.executebuiltin( "Dialog.Close(busydialog)" )
     xbmc.executebuiltin('SendClick(301)')
-    
+
     count = 0
     #wait for the empy item is focused
     while (count != 60 and xbmc.getCondVisibility("Window.IsActive(script-skinshortcuts.xml)")):
@@ -18,10 +18,10 @@ def addShortcutWorkAround():
             count += 1
         else:
             break
-        
+
     if xbmc.getCondVisibility("StringCompare(Container(211).ListItem.Property(path), noop) + Window.IsActive(script-skinshortcuts.xml)"):
         xbmc.executebuiltin('SendClick(401)')
-                    
+
 def selectOverlayTexture():
     overlaysList = []
     overlaysList.append("Custom Overlay Image")
@@ -30,9 +30,9 @@ def selectOverlayTexture():
         if file.endswith(".png"):
             label = file.replace(".png","")
             overlaysList.append(label)
-    
+
     overlaysList.append("None")
-    
+
     dialog = xbmcgui.Dialog()
     ret = dialog.select(ADDON.getLocalizedString(32015), overlaysList)
     if ret == 0:
@@ -47,30 +47,30 @@ def selectOverlayTexture():
 
 def selectBusyTexture():
     spinnersList = []
-    
+
     currentSpinnerTexture = xbmc.getInfoLabel("Skin.String(SkinHelper.SpinnerTexture)")
-    
+
     listitem = xbmcgui.ListItem(label="None")
     listitem.setProperty("icon","None")
     spinnersList.append(listitem)
-    
+
     listitem = xbmcgui.ListItem(label=ADDON.getLocalizedString(32052))
     listitem.setProperty("icon","")
     spinnersList.append(listitem)
-    
+
     listitem = xbmcgui.ListItem(label=ADDON.getLocalizedString(32053))
     listitem.setProperty("icon","")
     spinnersList.append(listitem)
-    
+
     path = "special://skin/extras/busy_spinners/"
     if xbmcvfs.exists(path):
         dirs, files = xbmcvfs.listdir(path)
-        
+
         for dir in dirs:
             listitem = xbmcgui.ListItem(label=dir)
             listitem.setProperty("icon",path + dir)
             spinnersList.append(listitem)
-        
+
         for file in files:
             if file.endswith(".gif"):
                 label = file.replace(".gif","")
@@ -79,20 +79,20 @@ def selectBusyTexture():
                 spinnersList.append(listitem)
 
     w = dialogs.DialogSelectBig( "DialogSelect.xml", ADDON_PATH, listing=spinnersList, windowtitle=ADDON.getLocalizedString(32051),multiselect=False )
-    
+
     count = 0
     for li in spinnersList:
         if li.getLabel() == currentSpinnerTexture:
             w.autoFocusId = count
         count += 1
-         
+
     w.doModal()
     selectedItem = w.result
     del w
-    
+
     if selectedItem == -1:
         return
-    
+
     if selectedItem == 1:
         dialog = xbmcgui.Dialog()
         custom_texture = dialog.browse( 2 , ADDON.getLocalizedString(32052), 'files', mask='.gif')
@@ -108,14 +108,14 @@ def selectBusyTexture():
     else:
         xbmc.executebuiltin("Skin.SetString(SkinHelper.SpinnerTexture,%s)" %spinnersList[selectedItem].getLabel())
         xbmc.executebuiltin("Skin.SetString(SkinHelper.SpinnerTexturePath,%s)" % spinnersList[selectedItem].getProperty("icon"))
-                
+
 def enableViews():
-    allViews = []   
+    allViews = []
     views_file = xbmc.translatePath( 'special://skin/extras/views.xml' ).decode("utf-8")
     if xbmcvfs.exists( views_file ):
         doc = parse( views_file )
         listing = doc.documentElement.getElementsByTagName( 'view' )
-        for count, view in enumerate(listing):
+        for view in listing:
             id = view.attributes[ 'value' ].nodeValue
             label = xbmc.getLocalizedString(int(view.attributes[ 'languageid' ].nodeValue))
             desc = label + " (" + str(id) + ")"
@@ -125,10 +125,10 @@ def enableViews():
             if not xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.View.Disabled.%s)" %id):
                 listitem.select(selected=True)
             allViews.append(listitem)
-    
+
     w = dialogs.DialogSelectSmall( "DialogSelect.xml", ADDON_PATH, listing=allViews, windowtitle=ADDON.getLocalizedString(32017),multiselect=True )
     w.doModal()
-    
+
     selectedItems = w.result
     if selectedItems != -1:
         itemcount = len(allViews) -1
@@ -140,30 +140,30 @@ def enableViews():
             else:
                 #view is disabled
                 xbmc.executebuiltin("Skin.SetBool(SkinHelper.View.Disabled.%s)" %viewid)
-            itemcount -= 1    
-    del w        
+            itemcount -= 1
+    del w
 
 def setForcedView(contenttype):
     currentView = xbmc.getInfoLabel("Skin.String(SkinHelper.ForcedViews.%s)" %contenttype)
     if not currentView:
         currentView = "0"
     viewid, viewlabel = selectView(contenttype, currentView, True)
-    
+
     if viewid != None:
         xbmc.executebuiltin("Skin.SetString(SkinHelper.ForcedViews.%s,%s)" %(contenttype, viewid))
         xbmc.executebuiltin("Skin.SetString(SkinHelper.ForcedViews.%s.label,%s)" %(contenttype, viewlabel))
-    
+
 def setView():
     #sets the selected viewmode for the container
     contenttype = getCurrentContentType()
     if not contenttype: contenttype = "files"
-        
+
     currentView = xbmc.getInfoLabel("Container.Viewmode").decode("utf-8")
     viewid, viewlabel = selectView(contenttype, currentView)
     currentForcedView = xbmc.getInfoLabel("Skin.String(SkinHelper.ForcedViews.%s)" %contenttype)
-    
+
     if viewid != None:
-        #also store forced view    
+        #also store forced view
         if contenttype and currentForcedView and currentForcedView != "None" and xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.ForcedViews.Enabled)"):
             xbmc.executebuiltin("Skin.SetString(SkinHelper.ForcedViews.%s,%s)" %(contenttype, viewid))
             xbmc.executebuiltin("Skin.SetString(SkinHelper.ForcedViews.%s.label,%s)" %(contenttype, viewlabel))
@@ -174,10 +174,10 @@ def setView():
                 xbmc.executebuiltin("SetFocus(%s)" %viewid)
         else:
             WINDOW.clearProperty("SkinHelper.ForcedView")
-        
+
         #set view
         xbmc.executebuiltin("Container.SetViewMode(%s)" %viewid)
-    
+
 def searchYouTube(title,windowHeader="",autoSelect=False):
     xbmc.executebuiltin( "ActivateWindow(busydialog)" )
     libPath = u"plugin://plugin.video.youtube/kodion/search/query/?q=%s" %title
@@ -199,7 +199,7 @@ def searchYouTube(title,windowHeader="",autoSelect=False):
             listitem.setProperty("icon",image)
             allResults.append(listitem)
             if autoSelect: break
-            
+
     xbmc.executebuiltin( "Dialog.Close(busydialog)" )
     if not autoSelect:
         w = dialogs.DialogSelectBig( "DialogSelect.xml", ADDON_PATH, listing=allResults, windowtitle=windowHeader,multiselect=False )
@@ -209,7 +209,7 @@ def searchYouTube(title,windowHeader="",autoSelect=False):
         if selectedItem != -1:
             path = allResults[selectedItem].getProperty("path")
         else: path = ""
-    
+
     #play video or return result only
     if autoSelect:
         return path
@@ -219,7 +219,7 @@ def searchYouTube(title,windowHeader="",autoSelect=False):
             xbmc.executebuiltin("Dialog.Close(script-skin_helper_service-CustomInfo.xml)")
             xbmc.sleep(1000)
         xbmc.executebuiltin('PlayMedia("%s")' %path)
-            
+
 def selectView(contenttype="other", currentView=None, displayNone=False):
     currentViewSelectId = None
     id = None
@@ -229,7 +229,7 @@ def selectView(contenttype="other", currentView=None, displayNone=False):
         listitem = xbmcgui.ListItem(label="None")
         listitem.setProperty("id","None")
         allViews.append(listitem)
-        
+
     views_file = xbmc.translatePath( 'special://skin/extras/views.xml' ).decode("utf-8")
     if xbmcvfs.exists( views_file ):
         doc = parse( views_file )
@@ -268,7 +268,7 @@ def waitForSkinShortcutsWindow():
         if not (xbmc.getCondVisibility("Window.IsActive(DialogSelect.xml) | Window.IsActive(script-skin_helper_service-ColorPicker.xml) | Window.IsActive(DialogKeyboard.xml)")):
             break
         else: xbmc.sleep(100)
-        
+
 def setSkinShortCutsProperty(setting="",windowHeader="",propertyName=""):
     curValue = xbmc.getInfoLabel("$INFO[Container(211).ListItem.Property(%s)]" %propertyName).decode("utf-8")
     if not curValue: curValue = "None"
@@ -304,7 +304,7 @@ def multiSelect(item,windowHeader=""):
     #show select dialog
     w = dialogs.DialogSelectSmall( "DialogSelect.xml", ADDON_PATH, listing=allOptions, windowtitle=windowHeader,multiselect=True )
     w.doModal()
-    
+
     selectedItems = w.result
     if selectedItems != -1:
         itemcount = len(allOptions) -1
@@ -318,8 +318,8 @@ def multiSelect(item,windowHeader=""):
                 xbmc.executebuiltin("Skin.Reset(%s)" %skinsetting)
             #always set additional prop to define the defaults
             xbmc.executebuiltin("Skin.SetString(defaultset_%s,defaultset)" %skinsetting)
-            itemcount -= 1    
-    del w                        
+            itemcount -= 1
+    del w
 
 def writeSkinConstants(listing):
     #writes the list of all skin constants
@@ -347,7 +347,7 @@ def writeSkinConstants(listing):
                 f.write(xmlstring)
                 f.close()
     xbmc.executebuiltin("ReloadSkin()")
-    
+
 def getSkinConstants():
     #gets a list of all skin constants
     allConstants = {}
@@ -363,7 +363,7 @@ def getSkinConstants():
                 if xbmcvfs.exists( includes_file ):
                     doc = parse( includes_file )
                     listing = doc.documentElement.getElementsByTagName( 'constant' )
-                    for count, item in enumerate(listing):
+                    for item in listing:
                         name = try_decode(item.attributes[ 'name' ].nodeValue)
                         value = try_decode(item.firstChild.nodeValue)
                         allConstants[name] = value
@@ -389,13 +389,13 @@ def setSkinConstant(setting="", windowHeader="", value=""):
         value, label = setSkinSetting(setting, windowHeader, "", allCurrentValues.get(setting,"emptyconstant"))
     result = { setting:value }
     updateSkinConstants(result)
-    
+
 def setSkinConstants(settings, values):
     result = {}
     for count, setting in enumerate(settings):
         result[setting] = values[count]
     updateSkinConstants(result)
-        
+
 def setSkinSetting(setting="", windowHeader="", sublevel="", curValue="", skipSkinString=False, originalId=""):
     if not curValue:
         curValue = xbmc.getInfoLabel("Skin.String(%s)" %setting).decode("utf-8")
@@ -403,8 +403,8 @@ def setSkinSetting(setting="", windowHeader="", sublevel="", curValue="", skipSk
     useRichLayout = False
     selectId = 0
     itemcount = 0
-    
-    allValues = []        
+
+    allValues = []
     settings_file = xbmc.translatePath( 'special://skin/extras/skinsettings.xml' ).decode("utf-8")
     if xbmcvfs.exists( settings_file ):
         doc = parse( settings_file )
@@ -491,7 +491,7 @@ def setSkinSetting(setting="", windowHeader="", sublevel="", curValue="", skipSk
                             validInput = True
                         except Exception:
                             value = xbmcgui.Dialog().notification( "Invalid input", "Please enter a number...")
-                            
+
                 #write skin strings
                 if not skipSkinString and value != "||SKIPSTRING||":
                     xbmc.executebuiltin("Skin.SetString(%s,%s)" %(setting.encode("utf-8"),value.encode("utf-8")))
@@ -508,7 +508,7 @@ def saveSkinImage(skinstring="",allowMulti=False,header="",forceMulti=False):
     curValue = xbmc.getInfoLabel("Skin.String(%s)" %skinstring).decode("utf-8")
     curValueOrgLocation = xbmc.getInfoLabel("Skin.String(%s.org)" %skinstring).decode("utf-8")
     if not header: header = xbmc.getLocalizedString(1030)
-    
+
     if not forceMulti and (not allowMulti or xbmcgui.Dialog().yesno( header, ADDON.getLocalizedString(32064), yeslabel=ADDON.getLocalizedString(32065), nolabel=ADDON.getLocalizedString(32066) )):
         #single image (allow copy to addon_data)
         value = xbmcgui.Dialog().browse( 2 , header, 'files', '', True, True, curValueOrgLocation).decode("utf-8")
@@ -528,10 +528,10 @@ def saveSkinImage(skinstring="",allowMulti=False,header="",forceMulti=False):
             curdir = curValueOrgLocation.rsplit(delim, 1)[0] + delim
         else: curdir = ""
         value = xbmcgui.Dialog().browse( 0 , ADDON.getLocalizedString(32067), 'files', '', True, True, curdir).decode("utf-8")
-    
+
     xbmc.executebuiltin("Skin.SetString(%s,%s)" %(skinstring.encode("utf-8"),value.encode("utf-8")))
     return value
-    
+
 def correctSkinSettings():
     #correct any special skin settings
     skinconstants = {}
@@ -550,14 +550,14 @@ def correctSkinSettings():
             except Exception: default = ""
             try: constantdefault = item.attributes[ 'constantdefault' ].nodeValue
             except Exception: constantdefault = ""
-            
+
             #skip submenu level itself, this happens when a setting id also exists as a submenu value for an item
             skip = False
             for count3, item3 in enumerate(listing):
                 if item3.attributes[ 'value' ].nodeValue == "||SUBLEVEL||" + id:
                     skip = True
             if skip: continue
-            
+
             #enumerate sublevel if needed
             if value.startswith("||SUBLEVEL||"):
                 sublevel = value.replace("||SUBLEVEL||","")
@@ -589,7 +589,7 @@ def correctSkinSettings():
                         xbmc.executebuiltin("Skin.SetBool(%s)" %skinsetting)
                     #always set additional prop to define the defaults
                     xbmc.executebuiltin("Skin.SetString(defaultset_%s,defaultset)" %skinsetting)
-                        
+
             #only correct the label
             if value and value.lower() == curvalue.lower():
                 xbmc.executebuiltin("Skin.SetString(%s.label,%s)" %(id.encode("utf-8"),label.encode("utf-8")))
@@ -616,7 +616,7 @@ def correctSkinSettings():
                     xbmc.executebuiltin(command)
     if skinconstants:
         updateSkinConstants(skinconstants)
-                            
+
 def toggleKodiSetting(settingname):
     #toggle kodi setting
     curValue = xbmc.getCondVisibility("system.getbool(%s)"%settingname)
@@ -625,11 +625,11 @@ def toggleKodiSetting(settingname):
     else:
         newValue = "true"
     xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"Settings.SetSettingValue","params":{"setting":"%s","value":%s}}' %(settingname,newValue))
-    
+
 def setKodiSetting(settingname, value):
     #set kodi setting
-    isInt = False    
-    try: 
+    isInt = False
+    try:
         valueint = int(value)
         isInt = True
     except Exception: pass
@@ -640,7 +640,7 @@ def setKodiSetting(settingname, value):
     elif isInt==False:
         value = '"%s"' %value
     xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"Settings.SetSettingValue","params":{"setting":"%s","value":%s}}' %(settingname,value))
-     
+
 def show_splash(file,duration=5):
     logMsg("show_splash --> " + file)
     if file.lower().endswith("jpg") or file.lower().endswith("gif") or file.lower().endswith("png") or file.lower().endswith("tiff"):
@@ -660,14 +660,13 @@ def show_splash(file,duration=5):
     #replace startup window with home
     startupwindow = xbmc.getInfoLabel("$INFO[System.StartupWindow]")
     xbmc.executebuiltin("ReplaceWindow(%s)" %startupwindow)
-    
+
     #startup playlist (if any)
     AutoStartPlayList = xbmc.getInfoLabel("$ESCINFO[Skin.String(AutoStartPlayList)]")
     if AutoStartPlayList: xbmc.executebuiltin("PlayMedia(%s)" %AutoStartPlayList)
 
 def checkResourceAddon(setting, addontype):
     #check for existing resource addons of this type and set first one found...
-    addonFound = False
     json_query = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "Addons.GetAddons", "params": {"type": "kodi.resource.images", "properties": ["name", "thumbnail", "path"]}, "id": 1}')
     json_query = unicode(json_query, 'utf-8', errors='ignore')
     json_response = json.loads(json_query)
@@ -681,7 +680,7 @@ def checkResourceAddon(setting, addontype):
                     xbmc.executebuiltin("Skin.SetBool(%s.multi)" %(setting))
                 return True
     return False
-    
+
 def checkResourceAddons(addonslist):
     addonslist = addonslist.split("|")
     for item in addonslist:
@@ -692,10 +691,10 @@ def checkResourceAddons(addonslist):
         if not skinsetting or ( skinsetting and xbmc.getCondVisibility("!System.HasAddon(%s)" %skinsetting.replace("resource://","").replace("/","")) ):
             #skin setting is empty or filled with non existing addon...
             if not checkResourceAddon(setting, addontype):
-                ret = xbmcgui.Dialog().yesno(heading="%s missing!"%addontypelabel, 
+                ret = xbmcgui.Dialog().yesno(heading="%s missing!"%addontypelabel,
                 line1="To get the most out of this skin, it is suggested to install a resource addon for %s. \n Please install the resource addon(s) to your preference in the next dialog. You can always change your preference later in the skin settings." %addontypelabel)
                 xbmc.executebuiltin("Skin.Reset(%s.path)" %setting)
-                if ret:                   
+                if ret:
                     xbmc.executebuiltin("ActivateWindow(AddonBrowser, addons://repository.xbmc.org/kodi.resource.images/)")
                     #wait untill the addon is installed...
                     count = 0

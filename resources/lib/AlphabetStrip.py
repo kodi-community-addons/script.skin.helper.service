@@ -6,13 +6,13 @@ def ShowAlphabetListing():
     if xbmc.getInfoLabel("Container.NumItems"):
         for i in range(int(xbmc.getInfoLabel("Container.NumItems"))):
             allLetters.append(xbmc.getInfoLabel("Listitem(%s).SortLetter"%i).upper())
-        
+
         startNumber = ""
         for number in ["2","3","4","5","6","7","8","9"]:
             if number in allLetters:
                 startNumber = number
                 break
-        
+
         for letter in [startNumber,"A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"]:
             if letter == startNumber:
                 label = "#"
@@ -25,7 +25,7 @@ def ShowAlphabetListing():
                 path = "plugin://script.skin.helper.service/?action=alphabetletter&letter=%s" %letter
             xbmcplugin.addDirectoryItem(int(sys.argv[1]), path, li)
     xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
-    
+
 def JumpLetterInList(letter):
     if letter in ["A", "B", "C", "2"]:
         jumpcmd = "2"

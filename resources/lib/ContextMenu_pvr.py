@@ -2,9 +2,9 @@
 from Utils import *
 import ArtworkUtils as artworkutils
 
-#Kodi contextmenu item to configure the artwork 
+#Kodi contextmenu item to configure the artwork
 if __name__ == '__main__':
-    
+
     ##### PVR Artwork ########
     artwork = {}
     logMsg("Context menu artwork settings for PVR artwork")
@@ -58,15 +58,15 @@ if __name__ == '__main__':
                     listitem = xbmcgui.ListItem(label=xbmc.getLocalizedString(13512))
                     listitem.setProperty("icon",image)
                     artoptions.append(listitem)
-                    
+
                     listitem = xbmcgui.ListItem(label=xbmc.getLocalizedString(231))
                     listitem.setProperty("icon","DefaultAddonNone.png")
                     artoptions.append(listitem)
-                
+
                 listitem = xbmcgui.ListItem(label=xbmc.getLocalizedString(1024))
                 listitem.setProperty("icon","DefaultFolder.png")
                 artoptions.append(listitem)
-                
+
                 w2 = dialogs.DialogSelectBig( "DialogSelect.xml", ADDON_PATH, listing=artoptions, windowtitle=heading,multiselect=False )
                 w2.doModal()
                 selectedItem = w2.result
@@ -79,7 +79,7 @@ if __name__ == '__main__':
                         artwork[label] = image
         #save modifications
         artwork = artworkutils.getPVRThumbs(title,channel,pvrtype,path,genre,year,ignoreCache=False, manualLookup=False,override=artwork)
-        
+
     elif ret == 3:
         #Add channel to ignore list
         ignorechannels = WINDOW.getProperty("SkinHelper.ignorechannels").decode("utf-8")
@@ -99,17 +99,17 @@ if __name__ == '__main__':
     elif ret == 5:
         #Open addon settings
         xbmc.executebuiltin("Addon.OpenSettings(script.skin.helper.service)")
-        
+
     #flush properties and set new ones (if any)
     if artwork or ret==3 or ret==4:
         xbmc.sleep(150)
-        WINDOW.clearProperty("SkinHelper.PVR.Thumb") 
-        WINDOW.clearProperty("SkinHelper.PVR.FanArt") 
+        WINDOW.clearProperty("SkinHelper.PVR.Thumb")
+        WINDOW.clearProperty("SkinHelper.PVR.FanArt")
         WINDOW.clearProperty("SkinHelper.PVR.ChannelLogo")
         WINDOW.clearProperty("SkinHelper.PVR.Poster")
         WINDOW.clearProperty("SkinHelper.PVR.Landscape")
         WINDOW.clearProperty("SkinHelper.PVR.ClearArt")
-        WINDOW.clearProperty("SkinHelper.PVR.CharacterArt") 
+        WINDOW.clearProperty("SkinHelper.PVR.CharacterArt")
         WINDOW.clearProperty("SkinHelper.PVR.ClearLogo")
         WINDOW.clearProperty("SkinHelper.PVR.Banner")
         WINDOW.clearProperty("SkinHelper.PVR.DiscArt")

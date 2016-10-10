@@ -957,7 +957,7 @@ def RECENTEPISODES(limit):
                 uniquecount += 1
             showepisodes[uniquekey].append(episode)
 
-    for tvshow, episodes in showepisodes.iteritems():
+    for episodes in showepisodes.itervalues():
 
         firstepisode = episodes[0]
         if len(episodes) > 2:
@@ -1090,8 +1090,7 @@ def FAVOURITEMEDIA(limit,AllKodiFavsOnly=False):
             json_result = getJSON('VideoLibrary.GetTvShows', '{ "filter": {"operator":"contains", "field":"tag", "value":"Favorite tvshows"}, "properties": [ %s ] }' %fields_tvshows)
             for item in json_result:
                 tvshowpath = "ActivateWindow(Videos,videodb://tvshows/titles/%s/,return)" %str(item["tvshowid"])
-                tvshowpath="plugin://script.skin.helper.service?action=launch&path=" + tvshowpath
-                item["file"] == tvshowpath
+                item["file"] == "plugin://script.skin.helper.service?action=launch&path=" + tvshowpath
                 allItems.append(item)
 
     #Kodi favourites
@@ -1111,8 +1110,7 @@ def FAVOURITEMEDIA(limit,AllKodiFavsOnly=False):
                 if json_result:
                     matchFound = True
                     tvshowpath = "ActivateWindow(Videos,%s,return)" %fav["windowparameter"]
-                    tvshowpath="plugin://script.skin.helper.service?action=launch&path=" + tvshowpath
-                    json_result["file"] == tvshowpath
+                    json_result["file"] == "plugin://script.skin.helper.service?action=launch&path=" + tvshowpath
                     allItems.append(json_result)
         if fav["type"] == "media":
             path = fav["path"]

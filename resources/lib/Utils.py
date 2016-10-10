@@ -54,12 +54,12 @@ def logMsg(msg, loglevel = xbmc.LOGDEBUG):
         if isinstance(msg, unicode):
             msg = msg.encode('utf-8')
         xbmc.log("Skin Helper Service --> %s" %msg, level=loglevel)
-                   
+
 def getContentPath(libPath):
     if "$INFO" in libPath and not "reload=" in libPath:
         libPath = libPath.replace("$INFO[Window(Home).Property(", "")
         libPath = libPath.replace(")]", "")
-        libPath = WINDOW.getProperty(libPath)    
+        libPath = WINDOW.getProperty(libPath)
     if "activate" in libPath.lower():
         if "activatewindow(musiclibrary," in libPath.lower():
             libPath = libPath.lower().replace("activatewindow(musiclibrary," ,"musicdb://")
@@ -76,7 +76,7 @@ def getContentPath(libPath):
                 libPath = libPath.split(", ",1)[1]
             elif "," in libPath:
                 libPath = libPath.split(",",1)[1]
-            
+
         libPath = libPath.replace(")","")
         libPath = libPath.replace("\"","")
         libPath = libPath.replace("musicdb://special://","special://")
@@ -89,7 +89,7 @@ def setJSON(method,params):
     json_response = xbmc.executeJSONRPC('{ "jsonrpc": "2.0", "method" : "%s", "params": %s, "id":1 }' %(method, try_encode(params)))
     jsonobject = json.loads(json_response.decode('utf-8','replace'))
     return jsonobject
-    
+
 def getJSON(method,params):
     json_response = xbmc.executeJSONRPC('{ "jsonrpc": "2.0", "method" : "%s", "params": %s, "id":1 }' %(method, try_encode(params)))
     jsonobject = json.loads(json_response.decode('utf-8','replace'))
@@ -162,7 +162,7 @@ def getJSON(method,params):
         else:
             return {}
     else:
-        logMsg("getJson - invalid result for Method %s - params: %s - response: %s" %(method,params, str(jsonobject))) 
+        logMsg("getJson - invalid result for Method %s - params: %s - response: %s" %(method,params, str(jsonobject)))
         return {}
 
 def checkFolders():
@@ -173,7 +173,7 @@ def checkFolders():
     #Remove legacy musicart cache
     if xbmcvfs.exists("special://profile/addon_data/script.skin.helper.service/musicart/"):
         recursiveDelete("special://profile/addon_data/script.skin.helper.service/musicart/")
-        
+
 def setAddonsettings():
     checkFolders()
     #get the addonsettings and store them in memory
@@ -191,7 +191,7 @@ def setAddonsettings():
     WINDOW.setProperty("SkinHelper.ignoretitles",SETTING("ignoretitles"))
     WINDOW.setProperty("SkinHelper.stripwords",SETTING("stripwords"))
     WINDOW.setProperty("SkinHelper.directory_structure",SETTING("directory_structure"))
-    WINDOW.setProperty("SkinHelper.lastUpdate","%s" %datetime.now())    
+    WINDOW.setProperty("SkinHelper.lastUpdate","%s" %datetime.now())
     WINDOW.setProperty("SkinHelper.enablewallbackgrounds",SETTING("enablewallbackgrounds"))
     WINDOW.setProperty("SkinHelper.enableMusicArtScraper",SETTING("enableMusicArtScraper"))
     WINDOW.setProperty("SkinHelper.downloadMusicArt",SETTING("downloadMusicArt"))
@@ -216,7 +216,7 @@ def setAddonsettings():
     else: WINDOW.clearProperty("SkinHelper.enablecontextmenu_animatedart")
     if SETTING("enablecontextmenu_series") == "true": WINDOW.setProperty("SkinHelper.enablecontextmenu_series","enable")
     else: WINDOW.clearProperty("SkinHelper.enablecontextmenu_series")
-           
+
 def indentXML( elem, level=0 ):
     i = "\n" + level*"\t"
     if len(elem):
@@ -236,32 +236,32 @@ def try_encode(text, encoding="utf-8"):
     try:
         return text.encode(encoding,"ignore")
     except Exception:
-        return text       
+        return text
 
 def try_decode(text, encoding="utf-8"):
     try:
         return text.decode(encoding,"ignore")
     except Exception:
-        return text       
- 
+        return text
+
 def createListItem(item,asTuple=True):
 
     try:
         liz = xbmcgui.ListItem(label=item.get("label",""),label2=item.get("label2",""))
         liz.setProperty('IsPlayable', item.get('IsPlayable','true'))
         liz.setPath(item.get('file'))
-        
+
         nodetype = "Video"
         if item.get("type","") in ["song","album","artist"]:
             nodetype = "Music"
-        
+
         #extra properties
         for key, value in item.get("extraproperties",{}).iteritems():
             liz.setProperty(key, value)
-            
+
         #video infolabels
         if nodetype == "Video":
-            infolabels = { 
+            infolabels = {
                 "title": item.get("title"),
                 "size": item.get("size"),
                 "genre": item.get("genre"),
@@ -307,11 +307,11 @@ def createListItem(item,asTuple=True):
             if item.get("streamdetails"):
                 liz.addStreamInfo("video", item["streamdetails"].get("video",{}))
                 liz.addStreamInfo("audio", item["streamdetails"].get("audio",{}))
-                liz.addStreamInfo("subtitle", item["streamdetails"].get("subtitle",{}))       
-            
+                liz.addStreamInfo("subtitle", item["streamdetails"].get("subtitle",{}))
+
         #music infolabels
         if nodetype == "Music":
-            infolabels = { 
+            infolabels = {
                 "title": item.get("title"),
                 "size": item.get("size"),
                 "genre": item.get("genre"),
@@ -327,7 +327,7 @@ def createListItem(item,asTuple=True):
             if item.get("duration"): infolabels["duration"] = item.get("duration")
             if item.get("lastplayed"): infolabels["lastplayed"] = item.get("lastplayed")
             liz.setInfo( type="Music", infoLabels=infolabels)
-        
+
         #artwork
         if item.get("art"):
             liz.setArt( item.get("art"))
@@ -335,7 +335,7 @@ def createListItem(item,asTuple=True):
             liz.setIconImage(item.get('icon'))
         if item.get("thumbnail"):
             liz.setThumbnailImage(item.get('thumbnail'))
-            
+
         if asTuple:
             return (item["file"], liz, item.get("isFolder",False))
         else:
@@ -344,7 +344,7 @@ def createListItem(item,asTuple=True):
         logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
         logMsg("ERROR Preparing ListItem --> %s" %e, xbmc.LOGERROR)
         return None
-        
+
 
 def createListItems(items):
     listitems = []
@@ -357,7 +357,7 @@ def createListItems(items):
         for item in items:
             listitems.append(createListItem(item,True))
     return listitems
-    
+
 def prepareListItems(items):
     listitems = []
     if supportsPool:
@@ -369,12 +369,12 @@ def prepareListItems(items):
         for item in items:
             listitems.append(prepareListItem(item))
     return listitems
-    
+
 def prepareListItem(item):
     try:
         #fix values returned from json to be used as listitem values
         properties = item.get("extraproperties",{})
-        
+
         #set type
         for idvar in [ ('episode','DefaultTVShows.png'),('tvshow','DefaultTVShows.png'),('movie','DefaultMovies.png'),('song','DefaultAudio.png'),('musicvideo','DefaultMusicVideos.png'),('recording','DefaultTVShows.png'),('album','DefaultAudio.png') ]:
             if item.get(idvar[0] + "id"):
@@ -382,7 +382,7 @@ def prepareListItem(item):
                 if not item.get("type"): item["type"] = idvar[0]
                 if not item.get("icon"): item["icon"] = idvar[1]
                 break
-        
+
         #general properties
         if item.get('genre') and isinstance(item.get('genre'), list): item["genre"] = " / ".join(item.get('genre'))
         if item.get('studio') and isinstance(item.get('studio'), list): item["studio"] = " / ".join(item.get('studio'))
@@ -414,14 +414,14 @@ def prepareListItem(item):
 
         item["cast"] = listCast
         item["castandrole"] = listCastAndRole
-        
+
         if item.get("season") and item.get("episode"):
             properties["episodeno"] = "s%se%s" %(item.get("season"),item.get("episode"))
         if item.get("resume"):
             properties["resumetime"] = str(item['resume']['position'])
             properties["totaltime"] = str(item['resume']['total'])
             properties['StartOffset'] = str(item['resume']['position'])
-        
+
         #streamdetails
         if item.get("streamdetails"):
             streamdetails = item["streamdetails"]
@@ -441,12 +441,12 @@ def prepareListItem(item):
                     elif width <= 1920 and height <= 1080: resolution = "1080"
                     elif width * height >= 6000000: resolution = "4K"
                     properties["VideoResolution"] = resolution
-                if stream.get("codec",""):   
+                if stream.get("codec",""):
                     properties["VideoCodec"] = str(stream["codec"])
                 if stream.get("aspect",""):
                     properties["VideoAspect"] = str(round(stream["aspect"], 2))
                 item["streamdetails"]["video"] = stream
-            
+
             #grab details of first audio stream
             if len(audiostreams) > 0:
                 stream = audiostreams[0]
@@ -454,7 +454,7 @@ def prepareListItem(item):
                 properties["AudioChannels"] = str(stream.get('channels',''))
                 properties["AudioLanguage"] = stream.get('language','')
                 item["streamdetails"]["audio"] = stream
-            
+
             #grab details of first subtitle
             if len(subtitles) > 0:
                 properties["SubtitleLanguage"] = subtitles[0].get('language','')
@@ -462,11 +462,11 @@ def prepareListItem(item):
         else:
             item["streamdetails"] = {}
             item["streamdetails"]["video"] =  {'duration': item.get('duration',0)}
-        
+
         #additional music properties
         if item.get('album_description'):
             properties["Album_Description"] = item.get('album_description')
-        
+
         #pvr properties
         if item.get("starttime"):
             starttime = getLocalDateTimeFromUtc(item['starttime'])
@@ -480,14 +480,14 @@ def prepareListItem(item):
             properties["StartDateTime"] = starttime[0] + " " + starttime[1]
             item["date"] = starttime[0]
             item["premiered"] = starttime[0]
-        if item.get("channellogo"): 
+        if item.get("channellogo"):
             properties["channellogo"] = item["channellogo"]
             properties["channelicon"] = item["channellogo"]
         if item.get("episodename"): properties["episodename"] = item.get("episodename","")
         if item.get("channel"): properties["channel"] = item.get("channel","")
         if item.get("channel"): properties["channelname"] = item.get("channel","")
         if item.get("channel"): item["label2"] = item.get("channel","")
-        
+
         #artwork
         art = item.get("art",{})
         if item.get("type") == "episode":
@@ -510,19 +510,19 @@ def prepareListItem(item):
         if not art.get("thumb") and art.get('poster'): art["thumb"] = getCleanImage(item.get('poster'))
         if not art.get("thumb") and item.get('icon'): art["thumb"] = getCleanImage(item.get('icon'))
         if not item.get("thumbnail") and art.get('thumb'): item["thumbnail"] = art["thumb"]
-        
+
         item["extraproperties"] = properties
         #return the result
         return item
-        
+
     except Exception as e:
         logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
         logMsg("ERROR Preparing ListItem --> %s" %e, xbmc.LOGERROR)
         return None
-    
+
 def detectPluginContent(plugin):
     #based on the properties in the listitem we try to detect the content
-    
+
     #load from cache first
     cacheStr = try_encode("skinhelper-widgetcontenttype-%s" %plugin)
     contentType = WINDOW.getProperty(cacheStr).decode("utf-8")
@@ -530,14 +530,14 @@ def detectPluginContent(plugin):
     #no cache, we need to detect the contenttype
     if not contentType:
         #detect content based on the path
-        if ("movie" in plugin.lower() or 
-            "box" in plugin.lower() or 
-            "dvd" in plugin.lower() or 
-            "rentals" in plugin.lower() or 
-            "incinemas" in plugin.lower() or 
-            "comingsoon" in plugin.lower() or 
-            "upcoming" in plugin.lower() or 
-            "opening" in plugin.lower() or 
+        if ("movie" in plugin.lower() or
+            "box" in plugin.lower() or
+            "dvd" in plugin.lower() or
+            "rentals" in plugin.lower() or
+            "incinemas" in plugin.lower() or
+            "comingsoon" in plugin.lower() or
+            "upcoming" in plugin.lower() or
+            "opening" in plugin.lower() or
             "intheaters" in plugin.lower()):
                 contentType = "movies"
         elif "album" in plugin.lower():
@@ -588,7 +588,7 @@ def detectPluginContent(plugin):
                     elif (item["type"] == "song" and not "play_album" in item["file"]) or (item["artist"] and item["album"]):
                         contentType = "songs"
                         break
-                else:    
+                else:
                     ##### VIDEO ITEMS ####
                     if (item["showtitle"] and not item["artist"]):
                         #this is a tvshow, episode or season...
@@ -608,10 +608,10 @@ def detectPluginContent(plugin):
                     elif item["type"] == "movie" or item["imdbnumber"] or item["mpaa"] or item["trailer"] or item["studio"]:
                         contentType = "movies"
                         break
-        
+
         #save to cache
         WINDOW.setProperty(cacheStr,contentType)
-    
+
     #return the value
     return contentType
 
@@ -629,7 +629,7 @@ def getLocalDateTimeFromUtc(timestring):
     except Exception as e:
         logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
         logMsg("ERROR in Utils.getLocalDateTimeFromUtc ! --> %s" %e, xbmc.LOGERROR)
-        
+
         return (timestring,timestring)
 
 def double_urlencode(text):
@@ -664,12 +664,12 @@ def getCurrentContentType(containerprefix=""):
         if xbmc.getCondVisibility("Container.Content(episodes)"):
             contenttype = "episodes"
         elif xbmc.getCondVisibility("Container.Content(movies) + !substring(Container.FolderPath,setid=)"):
-            contenttype = "movies"  
+            contenttype = "movies"
         elif xbmc.getCondVisibility("[Container.Content(sets) | StringCompare(Container.Folderpath,videodb://movies/sets/)] + !substring(Container.FolderPath,setid=)"):
             contenttype = "sets"
         elif xbmc.getCondVisibility("substring(Container.FolderPath,setid=)"):
             contenttype = "setmovies"
-        elif xbmc.getCondVisibility("!IsEmpty(Container.Content)"):     
+        elif xbmc.getCondVisibility("!IsEmpty(Container.Content)"):
             contenttype = xbmc.getInfoLabel("Container.Content")
         elif xbmc.getCondVisibility("Container.Content(tvshows)"):
             contenttype = "tvshows"
@@ -706,7 +706,7 @@ def getCurrentContentType(containerprefix=""):
         elif xbmc.getCondVisibility("SubString(%sListItem.FileNameAndPath,launchpvr)" %(containerprefix)):
             contenttype = "tvchannels"
         elif xbmc.getCondVisibility("SubString(%sListItem.FolderPath,pvr://channels)" %containerprefix):
-            contenttype = "tvchannels"    
+            contenttype = "tvchannels"
         elif xbmc.getCondVisibility("SubString(%sListItem.FolderPath,flix2kodi) + SubString(%sListItem.Genre,Series)" %(containerprefix,containerprefix)):
             contenttype = "tvshows"
         elif xbmc.getCondVisibility("SubString(%sListItem.FolderPath,flix2kodi)" %(containerprefix)):
@@ -733,9 +733,9 @@ def getCurrentContentType(containerprefix=""):
             contenttype = "episodes"
         elif xbmc.getCondVisibility("!IsEmpty(%sListItem.Property(ChannelLogo))" %(containerprefix)):
             contenttype = "tvchannels"
-    
+
     return contenttype
-         
+
 def getCleanImage(image):
     if image and "image://" in image:
         image = image.replace("image://","").replace("music@","")
@@ -760,7 +760,7 @@ def normalize_string(text):
     text = text.rstrip('.')
     text = unicodedata.normalize('NFKD', try_decode(text))
     return text
-    
+
 def recursiveDelete(path):
     success = True
     path = try_encode(path)
@@ -770,7 +770,7 @@ def recursiveDelete(path):
     for dir in dirs:
         success = recursiveDelete(os.path.join(path,dir))
     success = xbmcvfs.rmdir(path)
-    return success 
+    return success
 
 def addToZip(src, zf, abs_src):
     dirs, files = xbmcvfs.listdir(src)
@@ -789,7 +789,7 @@ def addToZip(src, zf, abs_src):
     for dir in dirs:
         addToZip(os.path.join(src,dir),zf,abs_src)
     return zf
-        
+
 def zip(src, dst):
     import zipfile
     src = try_decode(src)
@@ -798,7 +798,7 @@ def zip(src, dst):
     abs_src = os.path.abspath(xbmc.translatePath(src).decode("utf-8"))
     zf = addToZip(src,zf,abs_src)
     zf.close()
-    
+
 def unzip(zip_file,path):
     import shutil
     import zipfile
@@ -825,7 +825,7 @@ def unzip(zip_file,path):
         outputfile.close()
     f.close()
     logMsg("UNZIP DONE of file %s  to path %s " %(zipfile,path))
-    
+
 def getDataFromCacheFile(file):
     data = {}
     try:
@@ -833,17 +833,17 @@ def getDataFromCacheFile(file):
             f = xbmcvfs.File(file, 'r')
             text =  f.read().decode("utf-8")
             f.close()
-            if text: data = eval(text)   
+            if text: data = eval(text)
     except Exception as e:
         logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
         logMsg("ERROR in Utils.getDataFromCacheFile ! --> %s" %e, xbmc.LOGERROR)
     return data
-      
+
 def saveDataToCacheFile(file,data):
     #safety check: does the config directory exist?
     if not xbmcvfs.exists(ADDON_DATA_PATH + os.sep):
         xbmcvfs.mkdirs(ADDON_DATA_PATH)
-    try:            
+    try:
         str_data = repr(data).encode("utf-8")
         f = xbmcvfs.File(file, 'w')
         f.write(str_data)
@@ -860,7 +860,7 @@ def getCompareString(string,optionalreplacestring=""):
     string = try_decode(string)
     string = normalize_string(string)
     return string
-    
+
 def intWithCommas(x):
     try:
         x = int(x)
@@ -872,4 +872,4 @@ def intWithCommas(x):
             result = ",%03d%s" % (r, result)
         return "%d%s" % (x, result)
     except Exception: return ""
-    
+

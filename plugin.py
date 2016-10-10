@@ -9,17 +9,17 @@ import xbmc,xbmcgui,xbmcplugin
 enableProfiling = False
 
 class Main:
-    
+
     def __init__(self):
-        
+
         utils.logMsg('started loading pluginentry')
-        
+
         #get params
         action = None
         params = urlparse.parse_qs(sys.argv[2][1:].decode("utf-8"))
         utils.logMsg("Parameter string: %s" % sys.argv[2])
-        
-        if params:        
+
+        if params:
             path=params.get("path",None)
             if path: path = path[0]
             limit=params.get("limit",None)
@@ -27,7 +27,7 @@ class Main:
             else: limit = 25
             action=params.get("action",None)
             if action: action = action[0].upper()
-        
+
         if action:
             if action == "LAUNCHPVR":
                 xbmcplugin.setResolvedUrl(handle=int(sys.argv[1]), succeeded=False, listitem=xbmcgui.ListItem())

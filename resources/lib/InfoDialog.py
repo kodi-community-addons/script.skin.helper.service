@@ -9,7 +9,7 @@ CANCEL_DIALOG  = ( 9, 10, 92, 216, 247, 257, 275, 61467, 61448, )
 ACTION_SHOW_INFO = ( 11, )
 
 class GUI( xbmcgui.WindowXMLDialog ):
-    
+
     def __init__( self, *args, **kwargs ):
         xbmcgui.WindowXMLDialog.__init__( self )
         params = kwargs[ "params" ]
@@ -47,15 +47,15 @@ class GUI( xbmcgui.WindowXMLDialog ):
         else:
             item = None
             self.listitem = None
-        
-        if item:        
+
+        if item:
             liz = prepareListItem(item)
             liz = createListItem(item,False)
             self.listitem = liz
             self.lastwidgetcontainer = params.get("lastwidgetcontainer","")
             WINDOW.setProperty("SkinHelper.WidgetContainer","999")
 
-    def onInit( self ):       
+    def onInit( self ):
         self._hide_controls()
         self._show_info()
         self.bginfoThread = BackgroundInfoThread()
@@ -67,15 +67,15 @@ class GUI( xbmcgui.WindowXMLDialog ):
         pass
 
     def _show_info( self ):
-            
+
         self.listitem.setProperty("contenttype",self.content)
         self.listitem.setProperty("type",self.content[:-1])
-            
+
         list = self.getControl( 999 )
         list.addItem(self.listitem)
-        
+
         self.setFocus( self.getControl( 5 ) )
-        
+
         xbmc.executebuiltin( "Dialog.Close(busydialog)" )
 
     def _close_dialog( self, action=None ):
@@ -100,17 +100,17 @@ class GUI( xbmcgui.WindowXMLDialog ):
         if controlId == 998:
             path = self.getControl( 998 ).getSelectedItem().getProperty('path')
             xbmc.executebuiltin(path)
-            
-            
-    
+
+
+
     def onFocus( self, controlId ):
         pass
 
     def onAction( self, action ):
         if ( action.getId() in CANCEL_DIALOG ) or ( action.getId() in ACTION_SHOW_INFO ):
             self._close_dialog()
-            
-            
+
+
 class BackgroundInfoThread(threading.Thread):
     #fill cast and similar lists in the background
     active = True
@@ -118,17 +118,17 @@ class BackgroundInfoThread(threading.Thread):
 
     def __init__(self, *args):
         threading.Thread.__init__(self, *args)
-        
+
     def stopRunning(self):
         self.active = False
-        
+
     def setDialog(self, infoDialog):
         self.infoDialog = infoDialog
-        
-    def run(self): 
-    
+
+    def run(self):
+
         list = self.infoDialog.getControl( 999 )
-        
+
         try: #optional: recommended list
             similarlist = self.infoDialog.getControl( 997 )
             similarcontent = []
@@ -142,7 +142,7 @@ class BackgroundInfoThread(threading.Thread):
                 liz = plugincontent.createListItem(item,False)
                 liz.setThumbnailImage(item["art"].get("poster"))
                 similarlist.addItem(liz)
-        except Exception as e:
+        except Exception:
             plugincontent.logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
 
         try: #optional: cast list
@@ -162,6 +162,6 @@ class BackgroundInfoThread(threading.Thread):
                 liz.setProperty("path",url)
                 liz.setThumbnailImage(cast.get("thumbnail"))
                 castlist.addItem(liz)
-                    
+
         except Exception as e:
             plugincontent.logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)

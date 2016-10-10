@@ -9,19 +9,19 @@ class ConditionalBackgrounds(xbmcgui.WindowXMLDialog):
 
     backgroundsList = None
     allBackgrounds = []
-    
+
     def __init__(self, *args, **kwargs):
         xbmcgui.WindowXMLDialog.__init__(self, *args, **kwargs)
         #read all backgrounds that are setup
         if xbmcvfs.exists(cachePath):
-            with open(cachePath) as data_file:    
+            with open(cachePath) as data_file:
                 self.allBackgrounds = getConditionalBackgrounds()
-    
+
     def refreshListing(self):
-        
+
         #clear list first
         self.backgroundsList.reset()
-        
+
         #Add CREATE entry at top of list
         listitem = xbmcgui.ListItem(label=ADDON.getLocalizedString(32073),iconImage="-")
         desc = ADDON.getLocalizedString(32074)
@@ -30,7 +30,7 @@ class ConditionalBackgrounds(xbmcgui.WindowXMLDialog):
         listitem.setLabel2(desc)
         listitem.setProperty("id","add")
         self.backgroundsList.addItem(listitem)
-        
+
         count = 0
         for bg in self.allBackgrounds:
             label = bg["name"]
@@ -44,34 +44,30 @@ class ConditionalBackgrounds(xbmcgui.WindowXMLDialog):
             listitem.setProperty("id",str(count))
             self.backgroundsList.addItem(listitem)
             count += 1
-        
+
         #set conditional backgrounds window prop
         WINDOW.setProperty("SkinHelper.ConditionalBackgrounds",repr(self.allBackgrounds))
-        
+
         xbmc.executebuiltin("Control.SetFocus(6)")
-    
+
     def onInit(self):
         self.action_exitkeys_id = [10, 13]
-        
+
         self.backgroundsList = self.getControl(6)
-        
+
         self.getControl(1).setLabel(ADDON.getLocalizedString(32056))
         self.getControl(5).setVisible(True)
         self.getControl(3).setVisible(False)
-        
+
         self.refreshListing()
 
     def onFocus(self, controlId):
         pass
-        
+
     def onAction(self, action):
 
         ACTION_CANCEL_DIALOG = ( 9, 10, 92, 216, 247, 257, 275, 61467, 61448, )
-        ACTION_SHOW_INFO = ( 11, )
-        ACTION_SELECT_ITEM = 7
-        ACTION_PARENT_DIR = 9
-        ACTION_CONTEXT_MENU = 117
-        
+
         if action.getId() in ACTION_CANCEL_DIALOG:
             self.closeDialog()
 
@@ -82,12 +78,12 @@ class ConditionalBackgrounds(xbmcgui.WindowXMLDialog):
         #cache file for all backgrounds
         json.dump(self.allBackgrounds, open(cachePath,'w'))
         self.close()
-        
+
     def onClick(self, controlID):
         error = False
-        
+
         if(controlID == 6):
-            # edit 
+            # edit
             item = self.backgroundsList.getSelectedItem()
             id = item.getProperty("id")
             if id == "add":
@@ -106,7 +102,7 @@ class ConditionalBackgrounds(xbmcgui.WindowXMLDialog):
                     dt = datetime(*(time.strptime(startdate, dateFormat)[0:6]))
                 except Exception:
                     error = True
-                
+
                 if not name or not background or error:
                     xbmcgui.Dialog().ok(xbmc.getLocalizedString(329), ADDON.getLocalizedString(32060))
                 else:
@@ -134,34 +130,34 @@ class ConditionalBackgrounds(xbmcgui.WindowXMLDialog):
                         dt = datetime(*(time.strptime(startdate, dateFormat)[0:6]))
                     except Exception:
                         error = True
-                    
+
                     if not name or not background or error:
                         xbmcgui.Dialog().ok(xbmc.getLocalizedString(329), ADDON.getLocalizedString(32060))
                     else:
                         self.allBackgrounds[id] ={"name": name, "background": background, "startdate":startdate, "enddate":enddate}
                         self.refreshListing()
-        
+
         if controlID == 5:
             #close
             self.closeDialog()
-            
 
-                
+
+
 def getConditionalBackgrounds():
     allBackgrounds = []
     #read all backgrounds that are setup
     if xbmcvfs.exists(cachePath):
-        with open(cachePath) as data_file:    
+        with open(cachePath) as data_file:
             allBackgrounds = json.load(data_file)
     WINDOW.setProperty("SkinHelper.ConditionalBackgrounds",repr(allBackgrounds))
-    return allBackgrounds                
+    return allBackgrounds
 
 def time_in_range(start, end, x):
     if start <= end:
         return start <= x <= end
     else:
         return start <= x or x <= end
-    
+
 def getActiveConditionalBackground(backgroundsList=None):
     backgroundsList = WINDOW.getProperty("SkinHelper.ConditionalBackgrounds")
     if backgroundsList:
@@ -176,4 +172,3 @@ def getActiveConditionalBackground(backgroundsList=None):
                 background = bg["background"]
                 break
     return background
-        

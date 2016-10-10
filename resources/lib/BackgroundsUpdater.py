@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import threading, thread
+import threading
 import random
 import io
 import base64

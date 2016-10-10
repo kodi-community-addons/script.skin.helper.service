@@ -11,7 +11,7 @@
         <import addon="script.module.musicbrainz" version="0.0.1" />
         <import addon="script.module.simplecache" version="1.0.0"/>
 	</requires>
-	
+
     <extension point="kodi.context.item">
         <menu id="kodi.core.main">
             <item library="resources\lib\ContextMenu_animatedart.py">
@@ -35,7 +35,7 @@
             </item>
         </menu>
 	</extension>
-    
+
     <extension point="xbmc.python.library" library="default.py" />
 	<extension point="xbmc.python.pluginsource" library="plugin.py" />
 	<extension library="service.py" point="xbmc.service" start="login" />

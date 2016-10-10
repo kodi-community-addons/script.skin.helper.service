@@ -1707,7 +1707,6 @@ def getStreamDetails(dbid,contenttype,ignoreCache=False):
         audio = json_result["streamdetails"]['audio']
         subtitles = json_result["streamdetails"]['subtitle']
         video = json_result["streamdetails"]['video']
-        allAudio = []
         allAudioStr = []
         allSubs = []
         allLang = []
