@@ -116,13 +116,12 @@ def enableViews():
         doc = parse( views_file )
         listing = doc.documentElement.getElementsByTagName( 'view' )
         for view in listing:
-            id = view.attributes[ 'value' ].nodeValue
+            viewid = view.attributes[ 'value' ].nodeValue
             label = xbmc.getLocalizedString(int(view.attributes[ 'languageid' ].nodeValue))
-            desc = label + " (" + str(id) + ")"
-            type = view.attributes[ 'type' ].nodeValue
+            desc = label + " (" + str(viewid) + ")"
             listitem = xbmcgui.ListItem(label=label,label2=desc)
-            listitem.setProperty("id",id)
-            if not xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.View.Disabled.%s)" %id):
+            listitem.setProperty("id",viewid)
+            if not xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.View.Disabled.%s)" %viewid):
                 listitem.select(selected=True)
             allViews.append(listitem)
 
@@ -235,7 +234,7 @@ def selectView(contenttype="other", currentView=None, displayNone=False):
         doc = parse( views_file )
         listing = doc.documentElement.getElementsByTagName( 'view' )
         itemcount = 0
-        for count, view in enumerate(listing):
+        for view in listing:
             label = xbmc.getLocalizedString(int(view.attributes[ 'languageid' ].nodeValue))
             id = view.attributes[ 'value' ].nodeValue
             type = view.attributes[ 'type' ].nodeValue.lower().split(",")
@@ -414,11 +413,11 @@ def setSkinSetting(setting="", windowHeader="", sublevel="", curValue="", skipSk
             listitem.setProperty("icon","DefaultFolderBack.png")
             listitem.setProperty("value","||BACK||")
             allValues.append(listitem)
-        for count, item in enumerate(listing):
-            id = item.attributes[ 'id' ].nodeValue
-            if id.startswith("$"): id = xbmc.getInfoLabel(id).decode("utf-8")
+        for item in listing:
+            settingId = item.attributes[ 'id' ].nodeValue
+            if settingId.startswith("$"): settingId = xbmc.getInfoLabel(settingId).decode("utf-8")
             label = xbmc.getInfoLabel(item.attributes[ 'label' ].nodeValue).decode("utf-8")
-            if (not sublevel and id.lower() == setting.lower()) or (sublevel and sublevel.lower() == id.lower()) or (originalId and originalId.lower() == id.lower()):
+            if (not sublevel and settingId.lower() == setting.lower()) or (sublevel and sublevel.lower() == settingId.lower()) or (originalId and originalId.lower() == settingId.lower()):
                 value = item.attributes[ 'value' ].nodeValue
                 if value == "||MULTISELECT||": return multiSelect(item,windowHeader)
                 condition = item.attributes[ 'condition' ].nodeValue

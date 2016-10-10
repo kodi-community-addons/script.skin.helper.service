@@ -162,10 +162,10 @@ def doMainListing(mode=""):
 def FAVOURITES(limit):
     return FAVOURITEMEDIA(limit,True)
 
-def NEXTPVRRECORDINGS(limit,reversed="false"):
-    return PVRRECORDINGS(limit,reversed,True)
+def NEXTPVRRECORDINGS(limit,reversedSort="false"):
+    return PVRRECORDINGS(limit,reversedSort,True)
 
-def PVRRECORDINGS(limit,reversed="false",nextOnly=False):
+def PVRRECORDINGS(limit,reversedSort="false",nextOnly=False):
     #returns the first unwatched episode of all recordings, starting at the oldest
     allItems = []
     allTitles = []
@@ -186,7 +186,7 @@ def PVRRECORDINGS(limit,reversed="false",nextOnly=False):
                 if item.get("directory"): allTitles.append(item["directory"])
 
         #sort the list so we return the list with the oldest unwatched first
-        order = reversed == "true"
+        order = reversedSort == "true"
         allItems = sorted(allItems,key=itemgetter('endtime'),reverse=order)
         #return result including artwork...
         allItems = getPVRArtForItems(allItems)
@@ -657,21 +657,21 @@ def MOVIESFORGENRE(limit,genretitle=""):
     #sort the list by rating
     return sorted(allItems,key=itemgetter("rating"),reverse=True)
 
-def BROWSEGENRES(limit, type="movie"):
+def BROWSEGENRES(limit, mediaType="movie"):
     count = 0
     allItems = []
 
     sort = '"order": "ascending", "method": "sorttitle", "ignorearticle": true'
-    if "random" in type:
+    if "random" in mediaType:
         sort = '"order": "descending", "method": "random"'
-        type = type.replace("random","")
+        mediaType = mediaType.replace("random","")
 
     #get all genres
-    json_result = getJSON('VideoLibrary.GetGenres', '{"type": "%s", "sort": { "order": "ascending", "method": "title" }}' %type)
+    json_result = getJSON('VideoLibrary.GetGenres', '{"type": "%s", "sort": { "order": "ascending", "method": "title" }}' %mediaType)
     for genre in json_result:
         #for each genre we get 5 random items from the library
         genre["art"] = {}
-        if type== "tvshow":
+        if mediaType== "tvshow":
             genre["file"] = "videodb://tvshows/genres/%s/"%genre["genreid"]
             json_result = getJSON('VideoLibrary.GetTvshows', '{ "sort": { %s }, "filter": {"operator":"is", "field":"genre", "value":"%s"}, "properties": [ %s ],"limits":{"end":%d} }' %(sort,genre["label"],fields_tvshows,5))
         else:
@@ -754,7 +754,7 @@ def SHOWSFORGENRE(limit,genretitle=""):
     #sort the list by rating
     return sorted(allItems,key=itemgetter("rating"),reverse=True)
 
-def getPlexOndeckItems(type):
+def getPlexOndeckItems(mediaType):
     allItems = []
     if WINDOW.getProperty("plexbmc.0.title"):
         for i in range(50):
@@ -763,7 +763,7 @@ def getPlexOndeckItems(type):
             path = WINDOW.getProperty(key + ".content")
             label = WINDOW.getProperty(key + ".title")
             if not path: break
-            if type in WINDOW.getProperty(key + ".type"):
+            if mediaType in WINDOW.getProperty(key + ".type"):
                 json_result = getJSON('Files.GetDirectory', '{ "directory": "%s", "media": "files", "properties": [ %s ] }' %(path,fields_files))
                 for item in json_result:
                     allItems.append(item)
@@ -805,7 +805,6 @@ def INPROGRESSMUSICVIDEOS(limit):
     allItems = []
     json_result = getJSON('VideoLibrary.GetMusicVideos', '{ "sort": { "order": "descending", "method": "lastplayed" }, "limits": { "end": %s }, "properties": [ %s ] }' %(limit,fields_musicvideos))
     for item in json_result:
-        lastplayed = item["lastplayed"]
         if item["resume"]["position"] != 0:
             allItems.append(item)
     return allItems
@@ -1058,19 +1057,19 @@ def getKodiFavsFromFile():
             except Exception: thumb = ""
             window = ""
             windowparameter = ""
-            type = "unknown"
+            actionType = "unknown"
             if action.startswith("StartAndroidActivity"):
-                type = "androidapp"
+                actionType = "androidapp"
             elif action.startswith("ActivateWindow"):
-                type = "window"
+                actionType = "window"
                 actionparts = action.replace("ActivateWindow(","").replace(",return)","").split(",")
                 window = actionparts[0]
                 if len(actionparts) > 1:
                     windowparameter = actionparts[1]
             elif action.startswith("PlayMedia"):
-                type = "media"
+                actionType = "media"
                 action = action.replace("PlayMedia(","")[:-1]
-            allfavourites.append( {"label":label, "path":action, "thumbnail": thumb, "window":window, "windowparameter":windowparameter, "type":type} )
+            allfavourites.append( {"label":label, "path":action, "thumbnail": thumb, "window":window, "windowparameter":windowparameter, "type":actionType} )
     return allfavourites
 
 def FAVOURITEMEDIA(limit,AllKodiFavsOnly=False):

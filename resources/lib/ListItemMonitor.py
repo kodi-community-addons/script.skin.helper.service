@@ -2,9 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import threading, thread
-import requests, re
+import requests
 import random
-import xml.etree.ElementTree as etree
 from Utils import *
 import ArtworkUtils as artutils
 import StudioLogos as studiologos
@@ -398,7 +397,8 @@ class ListItemMonitor(threading.Thread):
         for prop in self.allWindowProps:
             WINDOW.clearProperty(try_encode(prop))
         self.allWindowProps = []
-
+    
+    @classmethod
     def resetGlobalWidgetWindowProps(self):
         WINDOW.setProperty("widgetreload2", time.strftime("%Y%m%d%H%M%S", time.gmtime()))
 
@@ -438,7 +438,6 @@ class ListItemMonitor(threading.Thread):
                     unwatchedcount = 0
                     watchedcount = 0
                     runtime = 0
-                    runtime_mins = 0
                     writer = []
                     director = []
                     genre = []

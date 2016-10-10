@@ -50,12 +50,12 @@ def backup(filterString="",silent=None,promptfilename="false"):
     try:
         if filterString:
             if "|" in filterString:
-                filter = filterString.split("|")
+                _filter = filterString.split("|")
             else:
-                filter = []
-                filter.append(filterString)
+                _filter = []
+                _filter.append(filterString)
         else:
-            filter = None
+            _filter = None
 
         #get backup destination
         backup_path = silent
@@ -74,7 +74,7 @@ def backup(filterString="",silent=None,promptfilename="false"):
         if backup_path and backup_path != "protocol://":
 
             #get the skinsettings
-            newlist = getSkinSettings(filter)
+            newlist = getSkinSettings(_filter)
 
             if not xbmcvfs.exists(backup_path) and not silent:
                 xbmcvfs.mkdir(backup_path)
@@ -188,7 +188,7 @@ def backup(filterString="",silent=None,promptfilename="false"):
 
             #zip the backup
             zip_temp = xbmc.translatePath('special://temp/' + backup_name).decode("utf-8")
-            zip(temp_path,zip_temp)
+            zipToFile(temp_path,zip_temp)
 
             if silent:
                 zip_final = silent
@@ -300,7 +300,7 @@ def restoreFull(silent=None):
 
             zip_temp = xbmc.translatePath('special://temp/' + zip_path.split(delim)[-1]).decode("utf-8")
             xbmcvfs.copy(zip_path,zip_temp)
-            unzip(zip_temp,temp_path)
+            unzipFromFile(zip_temp,temp_path)
             xbmcvfs.delete(zip_temp)
 
             #copy skinshortcuts preferences

@@ -7,7 +7,6 @@ from requests.packages.urllib3.util.retry import Retry
 from requests.adapters import HTTPAdapter
 import musicbrainzngs as m
 import BeautifulSoup
-import re
 from difflib import SequenceMatcher as SM
 import simplecache
 
@@ -1610,25 +1609,25 @@ def getMusicArtwork(artistName, albumName="", trackName="", ignoreCache=False):
 
     return artwork
 
-def updateMusicArt(type,id):
+def updateMusicArt(type,mediaid):
     #called when music library changed
     while WINDOW.getProperty("updateMusicArt.busy"):
         #only allow 1 update at a time to prevent hitting the API's to fast or run into buffer overruns
         xbmc.sleep(150)
 
     WINDOW.setProperty("updateMusicArt.busy","busy")
-    if type == "song" and id:
-        item = getJSON('AudioLibrary.GetSongDetails','{ "songid": %s, "properties": [ "title","album","artist" ] }' %id)
+    if type == "song" and mediaid:
+        item = getJSON('AudioLibrary.GetSongDetails','{ "songid": %s, "properties": [ "title","album","artist" ] }' %mediaid)
         if item and item.get("title"):
             logMsg("updateMusicArt - update detected for song " + item["title"])
             for artist in item["artist"]:
                 getMusicArtwork(artist,item["album"],item["title"],True)
-    elif type == "artist" and id:
-        item = getJSON('AudioLibrary.GetArtistDetails','{ "artistid": %s }' %id)
+    elif type == "artist" and mediaid:
+        item = getJSON('AudioLibrary.GetArtistDetails','{ "artistid": %s }' %mediaid)
         logMsg("updateMusicArt - update detected for artist " + item["label"])
         getMusicArtwork(item["label"],"","",True)
-    elif type == "album" and id:
-        item = getJSON('AudioLibrary.GetAlbumDetails','{ "albumid": %s, "properties": [ "title","artist" ] }' %id)
+    elif type == "album" and mediaid:
+        item = getJSON('AudioLibrary.GetAlbumDetails','{ "albumid": %s, "properties": [ "title","artist" ] }' %mediaid)
         logMsg("updateMusicArt - update detected for album " + item["title"])
         for artist in item["artist"]:
             getMusicArtwork(artist,item["title"],"",True)

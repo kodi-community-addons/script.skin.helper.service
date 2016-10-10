@@ -3,7 +3,6 @@
 
 import SimpleHTTPServer, BaseHTTPServer, httplib
 import threading
-import thread
 from Utils import *
 import ArtworkUtils as artutils
 
@@ -28,7 +27,7 @@ class WebService(threading.Thread):
             conn.getresponse()
             self.exit = True
             self.event.set()
-        except Exception as e:
+        except Exception:
             logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
 
     def run(self):

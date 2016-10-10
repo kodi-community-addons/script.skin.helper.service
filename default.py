@@ -99,42 +99,26 @@ class Main:
                 mainmodule.setForcedView(contenttype)
 
             elif action == "SAVESKINIMAGE":
-                skinstring = params.get("SKINSTRING","")
-                windowHeader = params.get("HEADER","")
                 multi = params.get("MULTI","") == "true"
-                mainmodule.saveSkinImage(skinstring,multi,windowHeader)
+                mainmodule.saveSkinImage(params.get("SKINSTRING",""),multi,params.get("HEADER",""))
 
             elif action == "SETSKINSETTING":
-                setting = params.get("SETTING","")
-                windowHeader = params.get("HEADER","")
-                originalId = params.get("ID","")
-                mainmodule.setSkinSetting(setting=setting,windowHeader=windowHeader,originalId=originalId)
+                mainmodule.setSkinSetting(setting=params.get("SETTING",""),windowHeader=params.get("HEADER",""),originalId=params.get("ID",""))
 
             elif action == "SETSKINCONSTANT":
-                setting = params.get("SETTING","")
-                windowHeader = params.get("HEADER","")
-                value = params.get("VALUE","")
-                mainmodule.setSkinConstant(setting,windowHeader,value)
-
+                mainmodule.setSkinConstant(params.get("SETTING",""), params.get("HEADER",""), params.get("VALUE",""))
+                
             elif action == "SETSKINCONSTANTS":
-                settings = params.get("SETTINGS","").split("|")
-                values = params.get("VALUES","").split("|")
-                mainmodule.setSkinConstant(settings,values)
+                mainmodule.setSkinConstant(params.get("SETTINGS","").split("|"), params.get("VALUES","").split("|"))
 
             elif action == "SETSKINSHORTCUTSPROPERTY":
-                setting = params.get("SETTING","")
-                windowHeader = params.get("HEADER","")
-                property = params.get("PROPERTY","")
-                mainmodule.setSkinShortCutsProperty(setting,windowHeader,property)
+                mainmodule.setSkinShortCutsProperty(params.get("SETTING",""), params.get("HEADER",""), params.get("PROPERTY",""))
 
             elif action == "TOGGLEKODISETTING":
-                kodisetting = params.get("SETTING")
-                mainmodule.toggleKodiSetting(kodisetting)
+                mainmodule.toggleKodiSetting(params.get("SETTING"))
 
             elif action == "SETKODISETTING":
-                kodisetting = params.get("SETTING")
-                value = params.get("VALUE")
-                mainmodule.setKodiSetting(kodisetting,value)
+                mainmodule.setKodiSetting(params.get("SETTING"), params.get("VALUE"))
 
             elif action == "ENABLEVIEWS":
                 mainmodule.enableViews()

@@ -1,4 +1,4 @@
-import sys, re
+import sys
 import xbmc, xbmcgui, xbmcvfs
 import ArtworkUtils as artutils
 import PluginContent as plugincontent
@@ -87,14 +87,13 @@ class GUI( xbmcgui.WindowXMLDialog ):
     def onClick( self, controlId ):
         if controlId == 5:
             type = self.getControl( 999 ).getSelectedItem().getProperty('dbtype')
-            id = self.getControl( 999 ).getSelectedItem().getProperty('dbid')
-            if type and id and self.content != "tvshows":
-                self._close_dialog('{ "jsonrpc": "2.0", "method": "Player.Open", "params": { "item": { "%sid": %s } }, "id": 1 }' % (type,id))
+            dbid = self.getControl( 999 ).getSelectedItem().getProperty('dbid')
+            if type and dbid and self.content != "tvshows":
+                self._close_dialog('{ "jsonrpc": "2.0", "method": "Player.Open", "params": { "item": { "%sid": %s } }, "id": 1 }' % (type,dbid))
             elif self.content == 'tvshows':
                 path = self.getControl( 999 ).getSelectedItem().getProperty('path')
                 self._close_dialog('ActivateWindow(Videos,%s,return)' %path)
         if controlId == 997:
-            selectedItem = self.getControl( 997 ).getSelectedItem()
             path = self.getControl( 997 ).getSelectedItem().getfilename()
             self._close_dialog('{ "jsonrpc": "2.0", "method": "Player.Open", "params": { "item": { "file": "%s" } }, "id": 1 }' % path)
         if controlId == 998:
@@ -127,15 +126,15 @@ class BackgroundInfoThread(threading.Thread):
 
     def run(self):
 
-        list = self.infoDialog.getControl( 999 )
+        lst_control = self.infoDialog.getControl( 999 )
 
         try: #optional: recommended list
             similarlist = self.infoDialog.getControl( 997 )
             similarcontent = []
             if self.infoDialog.content == 'movies':
-                similarcontent = plugincontent.SIMILARMOVIES(25,list.getSelectedItem().getProperty("imdbnumber"))
+                similarcontent = plugincontent.SIMILARMOVIES(25,lst_control.getSelectedItem().getProperty("imdbnumber"))
             elif self.infoDialog.content == 'tvshows':
-                similarcontent = plugincontent.SIMILARSHOWS(25,list.getSelectedItem().getProperty("imdbnumber"))
+                similarcontent = plugincontent.SIMILARSHOWS(25,lst_control.getSelectedItem().getProperty("imdbnumber"))
             for item in similarcontent:
                 if not self.active: break
                 item = plugincontent.prepareListItem(item)
@@ -150,11 +149,11 @@ class BackgroundInfoThread(threading.Thread):
             castitems = []
             downloadThumbs = xbmc.getInfoLabel("Skin.String(actorthumbslookup)").lower() == "true"
             if self.infoDialog.content == 'movies':
-                castitems = plugincontent.getCast(movie=list.getSelectedItem().getLabel().decode("utf-8"),downloadThumbs=downloadThumbs,listOnly=True)
+                castitems = plugincontent.getCast(movie=lst_control.getSelectedItem().getLabel().decode("utf-8"),downloadThumbs=downloadThumbs,listOnly=True)
             elif self.infoDialog.content == 'tvshows':
-                castitems = plugincontent.getCast(tvshow=list.getSelectedItem().getLabel().decode("utf-8"),downloadThumbs=downloadThumbs,listOnly=True)
+                castitems = plugincontent.getCast(tvshow=lst_control.getSelectedItem().getLabel().decode("utf-8"),downloadThumbs=downloadThumbs,listOnly=True)
             elif self.infoDialog.content == 'episodes':
-                castitems = plugincontent.getCast(episode=list.getSelectedItem().getLabel().decode("utf-8"),downloadThumbs=downloadThumbs,listOnly=True)
+                castitems = plugincontent.getCast(episode=lst_control.getSelectedItem().getLabel().decode("utf-8"),downloadThumbs=downloadThumbs,listOnly=True)
             for cast in castitems:
                 liz = xbmcgui.ListItem(label=cast.get("name"),label2=cast.get("role"),iconImage=cast.get("thumbnail"))
                 liz.setProperty('IsPlayable', 'false')
@@ -163,5 +162,5 @@ class BackgroundInfoThread(threading.Thread):
                 liz.setThumbnailImage(cast.get("thumbnail"))
                 castlist.addItem(liz)
 
-        except Exception as e:
+        except Exception:
             plugincontent.logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)

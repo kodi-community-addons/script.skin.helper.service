@@ -721,8 +721,8 @@ class BackgroundsUpdater(threading.Thread):
             content = "plugin://plugin.video.flix2kodi/?mode=main&widget=true&url&widget=true"
             path = "ActivateWindow(Videos,%s,return)" %content
             imagespath = "plugin://plugin.video.flix2kodi/?mode=list_videos&thumb&type=both&url=list%3f%26mylist&widget=true"
-            type = "media"
-            nodes.append( (key, label, content, type, path, imagespath ) )
+            mediatype = "media"
+            nodes.append( (key, label, content, mediatype, path, imagespath ) )
             createSmartShortcutSubmenu("netflix.generic","special://home/addons/plugin.video.flix2kodi/icon.png")
 
             #generic netflix mylist
@@ -730,8 +730,8 @@ class BackgroundsUpdater(threading.Thread):
             label = netflixAddon.getLocalizedString(30104)
             content = "plugin://plugin.video.flix2kodi/?mode=list_videos&thumb&type=both&url=list%3f%26mylist&widget=true"
             path = "ActivateWindow(Videos,%s,return)" %content
-            type = "movies"
-            nodes.append( (key, label, content, type, path ) )
+            mediatype = "movies"
+            nodes.append( (key, label, content, mediatype, path ) )
 
             if self.exit: return
 
@@ -821,8 +821,8 @@ class BackgroundsUpdater(threading.Thread):
                         key = "netflix.generic.suggestions.%s" %itemscount
                         content = item["file"] + "&widget=true"
                         path = "ActivateWindow(Videos,%s,return)" %content
-                        type = "movies"
-                        nodes.append( (key, item["label"], content, type, path ) )
+                        mediatype = "movies"
+                        nodes.append( (key, item["label"], content, mediatype, path ) )
                         itemscount += 1
 
                     #get recommended node...
@@ -839,8 +839,8 @@ class BackgroundsUpdater(threading.Thread):
             content = "plugin://plugin.video.flix2kodi/?mode=main&thumb&type=movie&url&widget=true"
             path = "ActivateWindow(Videos,%s,return)" %content
             imagespath = "plugin://plugin.video.flix2kodi/?mode=list_videos&thumb&type=movie&url=list%3f%26mylist&widget=true"
-            type = "movies"
-            nodes.append( (key, label, content, type, path, imagespath ) )
+            mediatype = "movies"
+            nodes.append( (key, label, content, mediatype, path, imagespath ) )
             createSmartShortcutSubmenu("netflix.movies","special://home/addons/plugin.video.flix2kodi/icon.png")
 
             #netflix movies mylist
@@ -848,16 +848,16 @@ class BackgroundsUpdater(threading.Thread):
             label = netflixAddon.getLocalizedString(30100) + " - " + netflixAddon.getLocalizedString(30104)
             content = "plugin://plugin.video.flix2kodi/?mode=list_videos&thumb&type=movie&url=list%3f%26mylist&widget=true"
             path = "ActivateWindow(Videos,%s,return)" %content
-            type = "movies"
-            nodes.append( (key, label, content, type, path ) )
+            mediatype = "movies"
+            nodes.append( (key, label, content, mediatype, path ) )
 
             #netflix movies genres
             key = "netflix.movies.genres"
             label = netflixAddon.getLocalizedString(30100) + " - " + netflixAddon.getLocalizedString(30108)
             content = "plugin://plugin.video.flix2kodi/?mode=list_genres&thumb&type=movie&url&widget=true"
             path = "ActivateWindow(Videos,%s,return)" %content
-            type = "genres"
-            nodes.append( (key, label, content, type, path ) )
+            mediatype = "genres"
+            nodes.append( (key, label, content, mediatype, path ) )
 
             #netflix tvshows
             key = "netflix.tvshows"
@@ -865,8 +865,8 @@ class BackgroundsUpdater(threading.Thread):
             content = "plugin://plugin.video.flix2kodi/?mode=main&thumb&type=show&url&widget=true"
             path = "ActivateWindow(Videos,%s,return)" %content
             imagespath = "plugin://plugin.video.flix2kodi/?mode=list_videos&thumb&type=show&url=list%3f%26mylist&widget=true"
-            type = "tvshows"
-            nodes.append( (key, label, content, type, path, imagespath ) )
+            mediatype = "tvshows"
+            nodes.append( (key, label, content, mediatype, path, imagespath ) )
             createSmartShortcutSubmenu("netflix.tvshows","special://home/addons/plugin.video.flix2kodi/icon.png")
 
             #netflix tvshows mylist
@@ -874,16 +874,16 @@ class BackgroundsUpdater(threading.Thread):
             label = netflixAddon.getLocalizedString(30101) + " - " + netflixAddon.getLocalizedString(30104)
             content = "plugin://plugin.video.flix2kodi/?mode=list_videos&thumb&type=show&url=list%3f%26mylist&widget=true"
             path = "ActivateWindow(Videos,%s,return)" %content
-            type = "tvshows"
-            nodes.append( (key, label, content, type, path ) )
+            mediatype = "tvshows"
+            nodes.append( (key, label, content, mediatype, path ) )
 
             #netflix tvshows genres
             key = "netflix.tvshows.genres"
             label = netflixAddon.getLocalizedString(30101) + " - " + netflixAddon.getLocalizedString(30108)
             content = "plugin://plugin.video.flix2kodi/?mode=list_genres&thumb&type=show&url&widget=true"
             path = "ActivateWindow(Videos,%s,return)" %content
-            type = "genres"
-            nodes.append( (key, label, content, type, path ) )
+            mediatype = "genres"
+            nodes.append( (key, label, content, mediatype, path ) )
 
             if not "netflix.generic" in self.smartShortcuts["allSmartShortcuts"]: self.smartShortcuts["allSmartShortcuts"].append("netflix.generic")
             if not "netflix.generic.movies" in self.smartShortcuts["allSmartShortcuts"]: self.smartShortcuts["allSmartShortcuts"].append("netflix.movies")
@@ -916,8 +916,8 @@ class BackgroundsUpdater(threading.Thread):
                 for contentString in contentStrings:
                     key = "plexbmc.%s%s"%(i,contentString)
                     label = WINDOW.getProperty("plexbmc.%s.title"%i).decode("utf-8")
-                    type = WINDOW.getProperty("plexbmc.%s.type"%i).decode("utf-8")
-                    if type == "movie": type = "movies"
+                    mediatype = WINDOW.getProperty("plexbmc.%s.type"%i).decode("utf-8")
+                    if mediatype == "movie": mediatype = "movies"
                     if hasSecondaryMenus: path = WINDOW.getProperty("plexbmc.%s.all"%i).decode("utf-8")
                     else: path = WINDOW.getProperty("plexbmc.%s.path"%i).decode("utf-8")
                     path = path.replace("VideoLibrary","Videos") #fix for krypton ?
@@ -926,30 +926,30 @@ class BackgroundsUpdater(threading.Thread):
                     alllink = alllink.replace("mode=2", "mode=0")
                     if contentString == ".recent":
                         label += " - Recently Added"
-                        if type == "show": type = "episodes"
+                        if mediatype == "show": mediatype = "episodes"
                         if hasSecondaryMenus: path = WINDOW.getProperty(key).decode("utf-8")
                         else: path = alllink.replace("/all", "/recentlyAdded")
                     elif contentString == ".ondeck":
                         label += " - On deck"
-                        if type == "show": type = "episodes"
+                        if mediatype == "show": mediatype = "episodes"
                         if hasSecondaryMenus: path = WINDOW.getProperty(key).decode("utf-8")
                         else: path = alllink.replace("/all", "/onDeck")
                     elif contentString == ".unwatched":
-                        if type == "show": type = "episodes"
+                        if mediatype == "show": mediatype = "episodes"
                         label += " - Unwatched"
                         path = alllink.replace("/all", "/unwatched")
                     elif contentString == "":
-                        if type == "show": type = "tvshows"
+                        if mediatype == "show": mediatype = "tvshows"
                         if not key in self.smartShortcuts["allSmartShortcuts"]: self.smartShortcuts["allSmartShortcuts"].append(key)
                         createSmartShortcutSubmenu("plexbmc.%s"%i,"special://home/addons/plugin.video.plexbmc/icon.png")
 
-                    #append type to path
+                    #append mediatype to path
                     if "&" in path:
-                        path = path + "&type=" + type
+                        path = path + "&type=" + mediatype
                     else:
-                        path = path + "?type=" + type
+                        path = path + "?type=" + mediatype
                     content = getContentPath(path)
-                    nodes.append( (key, label, path, content, type ) )
+                    nodes.append( (key, label, path, content, mediatype ) )
 
             #add plex channels as entry
             #extract path from one of the nodes as a workaround because main plex addon channels listing is in error
@@ -967,7 +967,7 @@ class BackgroundsUpdater(threading.Thread):
 
         return nodes
 
-    def createImageWall(self,images,windowProp,type="fanart"):
+    def createImageWall(self,images,windowProp,arttype="fanart"):
 
         if SETTING("maxNumWallImages"):
             numWallImages = int(SETTING("maxNumWallImages"))
@@ -988,13 +988,13 @@ class BackgroundsUpdater(threading.Thread):
             logMsg("Building WALL background skipped - no PIL module present on this system!", xbmc.LOGWARNING)
             return []
 
-        if type=="thumbnail":
+        if arttype=="thumbnail":
             #square images
             img_columns = 11
             img_rows = 7
             img_width = 260
             img_height = 260
-        elif type=="poster":
+        elif arttype=="poster":
             #poster images
             img_columns = 15
             img_rows = 5
@@ -1030,7 +1030,7 @@ class BackgroundsUpdater(threading.Thread):
             logMsg("Building Wall background for %s - this might take a while..." %windowProp, xbmc.LOGNOTICE)
             images_required = img_columns*img_rows
             for image in images:
-                image = image.get(type,"")
+                image = image.get(arttype,"")
                 if self.exit: return []
                 if image and not image.startswith("music@") and not ".mp3" in image:
                     file = xbmcvfs.File(image)

@@ -121,7 +121,6 @@ def getSmartShortcuts(sublevel=None):
                     #create main folder entry
                     addSmartShortcutDirectoryItem(node,True)
                 else:
-                    label = "$INFO[Window(Home).Property(%s.title)]" %node
                     #create final listitem entry (playlist, favorites)
                     addSmartShortcutDirectoryItem(node,False, node)
 
@@ -139,8 +138,8 @@ def getSmartShortCutsWidgetNodes():
                 foundWidgets.append([label, path, "folder", True])
             else:
                 content = xbmc.getInfoLabel("$INFO[Window(Home).Property(%s.content)]" %node)
-                type = xbmc.getInfoLabel("$INFO[Window(Home).Property(%s.type)]" %node)
-                foundWidgets.append([label, content, type])
+                mediaType = xbmc.getInfoLabel("$INFO[Window(Home).Property(%s.type)]" %node)
+                foundWidgets.append([label, content, mediaType])
     return foundWidgets
 
 def getWidgets(itemstoInclude = None):
@@ -160,41 +159,41 @@ def getWidgets(itemstoInclude = None):
         elif widgetType in ["pvr","smartishwidgets","static"]: widgets = getOtherWidgetsListing(widgetType)
         else: widgets = getAddonWidgetListing(widgetType)
         for widget in widgets:
-            type = widget[2]
-            if type == "folder":
+            mediaType = widget[2]
+            if mediaType == "folder":
                 isFolder = True
             elif len(widget) > 3:
                 isFolder = widget[3]
             else: isFolder = False
-            if type == "movies":
+            if mediaType == "movies":
                 image = "DefaultMovies.png"
                 mediaLibrary = "Videos"
                 target = "video"
-            elif type == "pvr":
+            elif mediaType == "pvr":
                 mediaLibrary = "TvChannels"
                 image = "DefaultTVShows.png"
                 target = "pvr"
-            elif type == "tvshows":
+            elif mediaType == "tvshows":
                 image = "DefaultTVShows.png"
                 mediaLibrary = "Videos"
                 target = "video"
-            elif type == "episodes":
+            elif mediaType == "episodes":
                 image = "DefaultTVShows.png"
                 mediaLibrary = "Videos"
                 target = "video"
-            elif type == "albums":
+            elif mediaType == "albums":
                 image = "DefaultMusicAlbums.png"
                 mediaLibrary = "Music"
                 target = "music"
-            elif type == "songs":
+            elif mediaType == "songs":
                 image = "DefaultMusicSongs.png"
                 mediaLibrary = "Music"
                 target = "music"
-            elif type == "artists":
+            elif mediaType == "artists":
                 image = "DefaultMusicArtists.png"
                 mediaLibrary = "Music"
                 target = "music"
-            elif type == "musicvideos":
+            elif mediaType == "musicvideos":
                 image = "DefaultMusicVideos.png"
             else:
                 image = "DefaultAddon.png"
@@ -307,19 +306,19 @@ def getPlayListsWidgetListing():
                     contents_data = contents.read().decode('utf-8')
                     contents.close()
                     xmldata = xmltree.fromstring(contents_data.encode('utf-8'))
-                    type = ""
+                    mediaType = ""
                     label = item["label"]
                     for line in xmldata.getiterator():
                         if line.tag == "smartplaylist":
-                            type = line.attrib['type']
+                            mediaType = line.attrib['type']
                         if line.tag == "name":
                             label = line.text
                     try:
                         languageid = int(label)
                         label = xbmc.getLocalizedString(languageid)
                     except Exception: pass
-                    if not type: type = detectPluginContent(playlist)
-                    foundWidgets.append([label, playlist, type])
+                    if not mediaType: mediaType = detectPluginContent(playlist)
+                    foundWidgets.append([label, playlist, mediaType])
     return foundWidgets
 
 def buildAddonWidgetItem(pluginpath,sublevel=""):
@@ -337,10 +336,10 @@ def buildAddonWidgetItem(pluginpath,sublevel=""):
         #extendedinfo has some login-required widgets, skip those
         if ("script.extendedinfo" in pluginpath and hasTMDBCredentials==False and ("info=starred" in content or "info=rated" in content or "info=account" in content)):
             continue
-        type = detectPluginContent(item["file"])
-        if type == "empty":
+        mediaType = detectPluginContent(item["file"])
+        if mediaType == "empty":
             continue
-        elif type == "folder":
+        elif mediaType == "folder":
             foundWidgets += buildAddonWidgetItem(item["file"],label)
         else:
             #add reload param for skinhelper and libraryprovider widgets
@@ -353,7 +352,7 @@ def buildAddonWidgetItem(pluginpath,sublevel=""):
                     reloadstr = "&reload=$INFO[Window(Home).Property(widgetreload)]"
                 content = content + reloadstr
             content = content.replace("&limit=100","&limit=25")
-            foundWidgets.append([label, content, type])
+            foundWidgets.append([label, content, mediaType])
     return foundWidgets
 
 def getAddonWidgetListing(addonShortName):

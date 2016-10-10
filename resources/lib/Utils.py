@@ -8,7 +8,6 @@ from traceback import format_exc
 from datetime import datetime, timedelta
 import _strptime
 import time
-import datetime as dt
 import unicodedata
 import urlparse
 import xml.etree.ElementTree as xmltree
@@ -790,7 +789,7 @@ def addToZip(src, zf, abs_src):
         addToZip(os.path.join(src,dir),zf,abs_src)
     return zf
 
-def zip(src, dst):
+def zipToFile(src, dst):
     import zipfile
     src = try_decode(src)
     dst = try_decode(dst)
@@ -799,7 +798,7 @@ def zip(src, dst):
     zf = addToZip(src,zf,abs_src)
     zf.close()
 
-def unzip(zip_file,path):
+def unzipFromFile(zip_file,path):
     import shutil
     import zipfile
     zip_file = try_decode(zip_file)

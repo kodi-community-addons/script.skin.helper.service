@@ -136,7 +136,7 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
                 f = open(self.skinThemesPath+file,"r")
                 importstring = json.load(f)
                 f.close()
-                for count, skinsetting in enumerate(importstring):
+                for skinsetting in importstring:
                     if skinsetting[0] == ("DESCRIPTION"):
                         desc = skinsetting[1]
                     if skinsetting[0] == ("THEMENAME"):
