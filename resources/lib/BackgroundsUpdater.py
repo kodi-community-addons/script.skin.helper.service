@@ -437,7 +437,7 @@ class BackgroundsUpdater(threading.Thread):
                 if key == "fanart": WINDOW.setProperty(windowProp, value)
                 else: WINDOW.setProperty(windowProp + "." + key, value)
 
-    def setGlobalBackground(self, windowProp, keys=[]):
+    def setGlobalBackground(self, windowProp, keys):
         #gets a random background from multiple other collections
         images = []
         if self.allBackgrounds.get(windowProp):

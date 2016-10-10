@@ -13,7 +13,7 @@ def getStudioLogo(studio):
     logosPath = xbmc.getInfoLabel("Skin.String(SkinHelper.StudioLogos.Path)").decode('utf-8')
     cache = simplecache.get(cacheStr,checksum=logosPath)
     if cache: return cache
-    
+
     studios = []
     result = {}
     if isinstance(studio,list):
@@ -21,7 +21,7 @@ def getStudioLogo(studio):
     elif "/" in studio:
         studios = studio.split(" / ")
         result["SkinHelper.ListItemStudio"] = studios[0]
-        result['SkinHelper.ListItemStudios'] = "[CR]".join(studios) 
+        result['SkinHelper.ListItemStudios'] = "[CR]".join(studios)
     else:
         studios.append(studio)
         result["SkinHelper.ListItemStudio"] = studio
@@ -29,29 +29,29 @@ def getStudioLogo(studio):
 
     result['SkinHelper.ListItemStudioLogo'] = matchStudioLogo(studio, getStudioLogos())
     simplecache.set(cacheStr,result,checksum=logosPath)
-    return result    
- 
+    return result
+
 def getStudioLogos():
     studioImagesPath = xbmc.getInfoLabel("Skin.String(SkinHelper.StudioLogos.Path)").decode('utf-8')
     if not studioImagesPath: return {}
-    
+
     cacheStr = u"SkinHelper.StudioLogos.%s"%studioImagesPath
     cache = simplecache.get( cacheStr )
     if cache: return cache
-    
+
     #no cache - start lookup
     allLogos = {}
     if studioImagesPath.startswith("resource://"):
         allLogos = getResourceAddonFiles(studioImagesPath)
     else:
         if not (studioImagesPath.endswith("/") or studioImagesPath.endswith("\\")):
-            studioImagesPath = studioImagesPath + os.sep()
+            studioImagesPath = studioImagesPath + os.sep
             allLogos = listFilesInPath(studioImagesPath)
-    
+
     #save in cache and return
     simplecache.set(cacheStr,allLogos,expiration=timedelta(days=7))
     return allLogos
-        
+
 def matchStudioLogo(studiostr,studiologos):
     #try to find a matching studio logo
     studiologo = ""
@@ -60,20 +60,20 @@ def matchStudioLogo(studiostr,studiologos):
         studios = studiostr.split(" / ")
     else:
         studios.append(studiostr)
-    
+
     for studio in studios:
         studio = studio.lower()
         #find logo normal
         if studiologos.has_key(studio):
             studiologo = studiologos[studio]
-        
+
         if not studiologo:
             #find logo by substituting characters
             if " (" in studio:
                 studio = studio.split(" (")[0]
                 if studiologos.has_key(studio):
                     studiologo = studiologos[studio]
-        
+
         if not studiologo:
             #find logo by substituting characters for pvr channels
             if " HD" in studio:
@@ -82,7 +82,7 @@ def matchStudioLogo(studiostr,studiologos):
                 studio = studio.replace(" ","")
             if studiologos.has_key(studio):
                 studiologo = studiologos[studio]
-                
+
     return studiologo
 
 def getResourceAddonFiles(resourcePath):
@@ -95,7 +95,7 @@ def getResourceAddonFiles(resourcePath):
     # safe data to our permanent cache file, high timedelta because reading the resource addon list causes strange behaviour.
     simplecache.set(resourcePath,data,expiration=timedelta(days=90))
     return data
-     
+
 def listFilesInPath( path):
     #used for easy matching of studio logos
     allFilesList = {}
@@ -117,5 +117,5 @@ def listFilesInPath( path):
             allFilesList[name] = path + dir + sep + file
     #return the list
     return allFilesList
-   
+
 

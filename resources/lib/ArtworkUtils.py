@@ -1089,9 +1089,9 @@ def getMusicBrainzId(artist, album="", track=""):
             logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
             logMsg("getMusicArtwork LastFM lookup failed --> %s" %e, xbmc.LOGWARNING)
 
-    logMsg("getMusicBrainzId results for artist %s  - %s" %result)
     result = (artistid, albumid)
     simplecache.set(cacheStr,result)
+    logMsg("getMusicBrainzId results for artist %s  - %s" %result)
     return result
 
 def getArtistArtwork(musicbrainzartistid, artwork=None, allowoverwrite=True):

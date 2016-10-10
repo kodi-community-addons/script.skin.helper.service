@@ -6,14 +6,14 @@ import xbmc
 import time
 
 class Kodi_Monitor(xbmc.Monitor):
-    
+
     def __init__(self, *args, **kwargs):
         xbmc.Monitor.__init__(self)
-    
+
     def onSettingsChanged(self):
         utils.setAddonsettings()
         utils.logMsg("onNotification - Addon settings changed!")
-    
+
     def onDatabaseUpdated(self,database):
         utils.logMsg("Kodi_Monitor: onDatabaseUpdated: " + database)
         if database == "video":
@@ -21,21 +21,21 @@ class Kodi_Monitor(xbmc.Monitor):
             artutils.preCacheAllAnimatedArt()
         if database == "music" :
             self.resetMusicWidgetProps({},True)
-    
+
     def onNotification(self,sender,method,data):
-        
+
         utils.logMsg("Kodi_Monitor: sender %s - method: %s  - data: %s"%(sender,method,data))
-        
+
         if method == "System.OnQuit":
             utils.WINDOW.setProperty("SkinHelperShutdownRequested","shutdown")
-               
+
         if method == "VideoLibrary.OnUpdate":
             if not xbmc.getCondVisibility("Library.IsScanningVideo"):
                 self.resetVideoWidgetProps(data)
 
         if method == "AudioLibrary.OnUpdate":
             self.resetMusicWidgetProps(data)
-        
+
         if method == "Player.OnStop":
             utils.WINDOW.clearProperty("Skinhelper.PlayerPlaying")
             utils.WINDOW.clearProperty("TrailerPlaying")
@@ -48,7 +48,7 @@ class Kodi_Monitor(xbmc.Monitor):
             if utils.WINDOW.getProperty("Skinhelper.PlayerPlaying") == "playing": return
             try: secondsToDisplay = int(xbmc.getInfoLabel("Skin.String(SkinHelper.ShowInfoAtPlaybackStart)"))
             except Exception: return
-            
+
             utils.logMsg("onNotification - ShowInfoAtPlaybackStart - number of seconds: " + str(secondsToDisplay))
             utils.WINDOW.setProperty("Skinhelper.PlayerPlaying","playing")
             #Show the OSD info panel on playback start
@@ -60,18 +60,20 @@ class Kodi_Monitor(xbmc.Monitor):
                         if xbmc.getCondVisibility("!Player.ShowInfo + Window.IsActive(fullscreenvideo)"):
                             xbmc.executebuiltin('Action(info)')
                         tryCount += 1
-                    
+
                     # close info again
                     self.waitForAbort(secondsToDisplay)
                     if xbmc.getCondVisibility("Player.ShowInfo"):
                         xbmc.executebuiltin('Action(info)')
-                        
-    def resetMusicWidgetProps(self,data={},resetAll=False):
+
+    def resetMusicWidgetProps(self,data,resetAll=False):
         #clear the cache for the music widgets
         type = "unknown"
         if data:
             data = eval(data.replace("true","True").replace("false","False"))
             type = data.get("type","")
+        else:
+            data = {}
 
         if (type in ["song","artist","album"] or resetAll and not utils.WINDOW.getProperty("SkinHelperShutdownRequested")):
             artutils.updateMusicArt(type,data.get("id"))
@@ -79,7 +81,7 @@ class Kodi_Monitor(xbmc.Monitor):
                 utils.logMsg("Music database changed - type: %s - resetAll: %s, refreshing widgets...." %(type,resetAll))
                 timestr = time.strftime("%Y%m%d%H%M%S", time.gmtime())
                 utils.WINDOW.setProperty("widgetreloadmusic", timestr)
-            
+
     def resetVideoWidgetProps(self,data="",resetAll=False):
         #clear the cache for the video widgets
         type = "unknown"
@@ -106,19 +108,19 @@ class Kodi_Monitor(xbmc.Monitor):
             if id:
                 #refresh cache for specific item
                 artutils.getStreamDetails(id,type,ignoreCache=True)
-            
+
     def resetPlayerWindowProps(self):
         #reset all window props provided by the script...
-        utils.WINDOW.setProperty("SkinHelper.Player.Music.Banner","") 
-        utils.WINDOW.setProperty("SkinHelper.Player.Music.ClearLogo","") 
-        utils.WINDOW.setProperty("SkinHelper.Player.Music.DiscArt","") 
-        utils.WINDOW.setProperty("SkinHelper.Player.Music.FanArt","") 
+        utils.WINDOW.setProperty("SkinHelper.Player.Music.Banner","")
+        utils.WINDOW.setProperty("SkinHelper.Player.Music.ClearLogo","")
+        utils.WINDOW.setProperty("SkinHelper.Player.Music.DiscArt","")
+        utils.WINDOW.setProperty("SkinHelper.Player.Music.FanArt","")
         utils.WINDOW.setProperty("SkinHelper.Player.Music.Thumb","")
         utils.WINDOW.setProperty("SkinHelper.Player.Music.ArtistThumb","")
         utils.WINDOW.setProperty("SkinHelper.Player.Music.AlbumThumb","")
-        utils.WINDOW.setProperty("SkinHelper.Player.Music.Info","") 
-        utils.WINDOW.setProperty("SkinHelper.Player.Music.TrackList","") 
-        utils.WINDOW.setProperty("SkinHelper.Player.Music.SongCount","") 
-        utils.WINDOW.setProperty("SkinHelper.Player.Music.albumCount","") 
+        utils.WINDOW.setProperty("SkinHelper.Player.Music.Info","")
+        utils.WINDOW.setProperty("SkinHelper.Player.Music.TrackList","")
+        utils.WINDOW.setProperty("SkinHelper.Player.Music.SongCount","")
+        utils.WINDOW.setProperty("SkinHelper.Player.Music.albumCount","")
         utils.WINDOW.setProperty("SkinHelper.Player.Music.AlbumList","")
         utils.WINDOW.setProperty("SkinHelper.Player.Music.ExtraFanArt","")
