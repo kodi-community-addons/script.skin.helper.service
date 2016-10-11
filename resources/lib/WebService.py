@@ -5,6 +5,7 @@ import SimpleHTTPServer, BaseHTTPServer, httplib
 import threading
 from Utils import *
 import ArtworkUtils as artutils
+import urlparse
 
 #port is hardcoded as there is no way in Kodi to pass a INFO-label inside a panel,
 #otherwise the portnumber could be passed to the skin through a skin setting or window prop
@@ -97,8 +98,9 @@ class StoppableHttpRequestHandler (SimpleHTTPServer.SimpleHTTPRequestHandler):
         return retval
 
     def do_HEAD(self):
-        image, multi = self.send_headers()
-        if image: image.close()
+        image = self.send_headers()[0]
+        if image:
+            image.close()
         return
 
     def send_headers(self):

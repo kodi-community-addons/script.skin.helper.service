@@ -29,6 +29,7 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
             try:
                 #check if the time is valid
                 dt = datetime(*(time.strptime(timevalue, "%H:%M")[0:6]))
+                del dt
                 xbmc.executebuiltin(try_encode("Skin.SetString(SkinHelper.ColorTheme.%s.theme,%s)" % (self.daynight,selectedTheme)))
                 xbmc.executebuiltin(try_encode("Skin.SetString(SkinHelper.ColorTheme.%s.time,%s)" % (self.daynight,timevalue)))
                 xbmc.executebuiltin(try_encode("Skin.SetString(SkinHelper.ColorTheme.%s,%s  (%s %s))" % (self.daynight,selectedTheme,ADDON.getLocalizedString(32071),timevalue)))
@@ -201,13 +202,7 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
 
     def onAction(self, action):
 
-        ACTION_CANCEL_DIALOG = ( 9, 10, 92, 216, 247, 257, 275, 61467, 61448, )
-        ACTION_SHOW_INFO = ( 11, )
-        ACTION_SELECT_ITEM = 7
-        ACTION_PARENT_DIR = 9
-        ACTION_CONTEXT_MENU = 117
-
-        if action.getId() in ACTION_CANCEL_DIALOG:
+        if action.getId() in ( 9, 10, 92, 216, 247, 257, 275, 61467, 61448, ):
             self.closeDialog()
 
     def closeDialog(self):
@@ -279,7 +274,7 @@ def loadColorTheme(file):
             currentSkinColors = jsonobject["result"]["value"]
 
     settingslist = set()
-    for count, skinsetting in enumerate(importstring):
+    for skinsetting in importstring:
         if skinsetting[0] == "SKINTHEME":
             skintheme = skinsetting[1].decode('utf-8')
         elif skinsetting[0] == "SKINCOLORS":

@@ -1,5 +1,4 @@
 import threading
-import InfoDialog
 from Utils import *
 
 class SearchDialog(xbmcgui.WindowXMLDialog):
@@ -214,7 +213,6 @@ class SearchDialog(xbmcgui.WindowXMLDialog):
 
 
     def showInfo( self ):
-        items = []
         controlId = self.getFocusId()
         listitem = self.getControl( controlId ).getSelectedItem()
         if controlId == 3110:

@@ -61,6 +61,7 @@ class BackgroundsUpdater(threading.Thread):
             self.UpdateSmartShortCuts(True)
             self.saveCacheToFile()
         except Exception as e:
+            logMsg("Error in BackgroundsUpdater: %s" %e)
             logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
 
         while (self.exit != True):

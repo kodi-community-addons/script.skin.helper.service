@@ -560,7 +560,7 @@ def correctSkinSettings():
             #enumerate sublevel if needed
             if value.startswith("||SUBLEVEL||"):
                 sublevel = value.replace("||SUBLEVEL||","")
-                for count2, item2 in enumerate(listing):
+                for item2 in listing:
                     if item2.attributes[ 'id' ].nodeValue == sublevel:
                         try: subdefault = item2.attributes[ 'default' ].nodeValue
                         except Exception: subdefault = ""

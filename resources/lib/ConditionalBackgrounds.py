@@ -1,5 +1,4 @@
 from xml.dom.minidom import parse
-from operator import itemgetter
 from Utils import *
 
 cachePath = os.path.join(ADDON_DATA_PATH,"conditionalbackgrounds.json")
@@ -13,9 +12,7 @@ class ConditionalBackgrounds(xbmcgui.WindowXMLDialog):
     def __init__(self, *args, **kwargs):
         xbmcgui.WindowXMLDialog.__init__(self, *args, **kwargs)
         #read all backgrounds that are setup
-        if xbmcvfs.exists(cachePath):
-            with open(cachePath) as data_file:
-                self.allBackgrounds = getConditionalBackgrounds()
+        self.allBackgrounds = getConditionalBackgrounds()
 
     def refreshListing(self):
 
@@ -99,7 +96,8 @@ class ConditionalBackgrounds(xbmcgui.WindowXMLDialog):
                 try:
                     #check if the dates are valid
                     dt = datetime(*(time.strptime(startdate, dateFormat)[0:6]))
-                    dt = datetime(*(time.strptime(startdate, dateFormat)[0:6]))
+                    dt = datetime(*(time.strptime(enddate, dateFormat)[0:6]))
+                    dt = None
                 except Exception:
                     error = True
 

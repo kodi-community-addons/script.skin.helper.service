@@ -9,10 +9,9 @@ from datetime import datetime, timedelta
 import _strptime
 import time
 import unicodedata
-import urlparse
 import xml.etree.ElementTree as xmltree
 from xml.dom.minidom import parse
-from operator import itemgetter
+
 try:
     from multiprocessing.pool import ThreadPool as Pool
     supportsPool = True

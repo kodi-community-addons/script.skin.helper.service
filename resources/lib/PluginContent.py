@@ -240,7 +240,6 @@ def getPVRArtForItems(items):
     return newitems
 
 def PVRCHANNELS(limit):
-    count = 0
     allItems = []
     if xbmc.getCondVisibility("PVR.HasTVChannels"):
         # Perform a JSON query to get all channels
@@ -1024,13 +1023,11 @@ def RECENTMEDIA(limit):
     #recent plex items if no library content
     if xbmc.getCondVisibility("!Library.HasContent(movies)"):
         if WINDOW.getProperty("plexbmc.0.title"):
-            nodes = []
             for i in range(50):
                 if WINDOW.getProperty("SkinHelperShutdownRequested"): return []
                 key = "plexbmc.%s.recent"%(str(i))
                 path = WINDOW.getProperty(key + ".content")
                 label = WINDOW.getProperty(key + ".title")
-                type = WINDOW.getProperty("plexbmc.%s.type"%(str(i)))
                 if not label: break
                 json_result = getJSON('Files.GetDirectory', '{ "directory": "%s", "media": "files", "properties": [ %s ] }' %(path,fields_files))
                 for item in json_result:
@@ -1049,7 +1046,7 @@ def getKodiFavsFromFile():
     if xbmcvfs.exists(favourites_path):
         doc = parse(favourites_path)
         result = doc.documentElement.getElementsByTagName('favourite')
-        for count, fav in enumerate(result):
+        for fav in result:
             action = fav.childNodes[0].nodeValue
             action = action.replace('"','')
             label = fav.attributes['name'].nodeValue

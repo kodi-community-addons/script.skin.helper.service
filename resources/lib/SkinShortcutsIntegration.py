@@ -385,14 +385,12 @@ def getFavouritesWidgetsListing():
     json_result = getJSON('Favourites.GetFavourites', '{"type": null, "properties": ["path", "thumbnail", "window", "windowparameter"]}')
     foundWidgets = []
     for fav in json_result:
-        matchFound = False
         if "windowparameter" in fav:
             content = fav["windowparameter"]
             #check if this is a valid path with content
             if not "script://" in content.lower() and not "mode=9" in content.lower() and not "search" in content.lower() and not "play" in content.lower():
-                window = fav["window"]
                 label = fav["title"]
-                logMsg("buildWidgetsListing processing favourite: " + label)
+                logMsg("buildWidgetsListing processing favourite: %s" %label)
                 type = detectPluginContent(content)
                 if type and type != "empty":
                     foundWidgets.append([label, content, type])
