@@ -48,10 +48,9 @@ fields_pvrrecordings = '"art", "channel", "directory", "endtime", "file", "genre
 KodiArtTypes = [ ("thumb","thumb.jpg"),("poster","poster.jpg"),("fanart","fanart.jpg"),("banner","banner.jpg"),("landscape","landscape.jpg"),("clearlogo","logo.png"),("clearart","clearart.png"),("channellogo","channellogo.png"),("discart","disc.png"),("discart","cdart.png"),("extrafanart","extrafanart/"),("characterart","characterart.png"),("folder","folder.jpg") ]
 
 def logMsg(msg, loglevel = xbmc.LOGDEBUG):
-    if WINDOW.getProperty("SkinHelper.enableDebugLog") == "true" or loglevel != xbmc.LOGDEBUG:
-        if isinstance(msg, unicode):
-            msg = msg.encode('utf-8')
-        xbmc.log("Skin Helper Service --> %s" %msg, level=loglevel)
+    if isinstance(msg, unicode):
+        msg = msg.encode('utf-8')
+    xbmc.log("Skin Helper Service --> %s" %msg, level=loglevel)
 
 def getContentPath(libPath):
     if "$INFO" in libPath and not "reload=" in libPath:
@@ -194,7 +193,6 @@ def setAddonsettings():
     WINDOW.setProperty("SkinHelper.enableMusicArtScraper",SETTING("enableMusicArtScraper"))
     WINDOW.setProperty("SkinHelper.downloadMusicArt",SETTING("downloadMusicArt"))
     WINDOW.setProperty("SkinHelper.enableLocalMusicArtLookup",SETTING("enableLocalMusicArtLookup"))
-    WINDOW.setProperty("SkinHelper.enableDebugLog",SETTING("enableDebugLog"))
     WINDOW.setProperty("SkinHelper.maxNumFanArts",SETTING("maxNumFanArts"))
     WINDOW.setProperty("SkinHelper.splittitlechar",SETTING("splittitlechar"))
     WINDOW.setProperty("SkinHelper.enablePVRThumbsRecordingsOnly",SETTING("enablePVRThumbsRecordingsOnly"))

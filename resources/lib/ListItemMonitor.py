@@ -793,7 +793,7 @@ class ListItemMonitor(threading.Thread):
 
         #set properties
         for key, value in artwork.iteritems():
-            setPlayerWindowProp(u"SkinHelper.Player.Music.%s" %key, value)
+            self.setPlayerWindowProp(u"SkinHelper.Player.Music.%s" %key, value)
 
     def setMusicDetails(self,multiThreaded=False):
         artwork = {}

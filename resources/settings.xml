@@ -51,7 +51,6 @@
         <setting id="enablecontextmenu_series" type="bool" label="32183" default="true"/>
     </category>
     <category label="32134">
-        <setting id="enableDebugLog" type="bool" label="32135" default="false"/>
         <setting id="maxNumFanArts" type="number" label="32136" default="10"/>
     </category>
 </settings>

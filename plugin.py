@@ -87,23 +87,23 @@ class Main:
                 #get a widget listing
                 refresh=params.get("reload",None)
                 if refresh: refresh = refresh[0].upper()
-                optionalParam = None
+                optional_param = None
                 imdbid=params.get("imdbid","")
-                if imdbid: optionalParam = imdbid[0]
+                if imdbid: optional_param = imdbid[0]
                 genre=params.get("genre","")
-                if genre: optionalParam = genre[0]
+                if genre: optional_param = genre[0]
                 browse=params.get("browse","")
-                if browse: optionalParam = browse[0]
+                if browse: optional_param = browse[0]
                 _reversed=params.get("reversed","")
-                if reversed: optionalParam = _reversed[0]
+                if _reversed: optional_param = _reversed[0]
                 type=params.get("type","")
-                if type: optionalParam = type[0]
+                if type: optional_param = type[0]
                 name=params.get("name","")
-                if name: optionalParam = name[0]
+                if name: optional_param = name[0]
                 randomize=params.get("randomize","")
                 if randomize: randomize = randomize[0]
                 randomize = randomize == "true"
-                plugincontent.getPluginListing(action,limit,refresh,optionalParam,randomize)
+                plugincontent.getPluginListing(action,limit,refresh,optional_param,randomize)
 
         else:
             #do plugin main listing...

@@ -56,7 +56,6 @@ class Request(object):
         else:
             self.body = None
 
-
 class StoppableHttpRequestHandler (SimpleHTTPServer.SimpleHTTPRequestHandler):
     #http request handler with QUIT stopping the server
     raw_requestline = ""
