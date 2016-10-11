@@ -252,7 +252,7 @@ def createListItem(item,asTuple=True):
             nodetype = "Music"
 
         #extra properties
-        for key, value in item.get("extraproperties",{}).iteritems():
+        for key, value in item["extraproperties"].iteritems():
             liz.setProperty(key, value)
 
         #video infolabels
@@ -289,7 +289,9 @@ def createListItem(item,asTuple=True):
                 "artist": item.get("artist"),
                 "votes": item.get("votes"),
                 "trailer": item.get("trailer"),
-                "progress": item.get('progresspercentage')
+                "progress": item.get('progresspercentage'),
+                "mediatype": item["type"],
+                "dbid": item["extraproperties"]["DBID"]
             }
             if item.get("date"): infolabels["date"] = item.get("date")
             if item.get("lastplayed"): infolabels["lastplayed"] = item.get("lastplayed")
@@ -299,6 +301,7 @@ def createListItem(item,asTuple=True):
                 infolabels["episode"] = item.get("episode")
 
             liz.setInfo( type="Video", infoLabels=infolabels)
+            liz.setProperty("original_listitem_url",item.get("file"))
             #streamdetails
             if item.get("streamdetails"):
                 liz.addStreamInfo("video", item["streamdetails"].get("video",{}))

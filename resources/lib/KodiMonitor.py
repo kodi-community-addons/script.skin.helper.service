@@ -10,7 +10,6 @@ class Kodi_Monitor(xbmc.Monitor):
     def __init__(self, *args, **kwargs):
         xbmc.Monitor.__init__(self)
     
-    @classmethod
     def onSettingsChanged(self):
         utils.setAddonsettings()
         utils.logMsg("onNotification - Addon settings changed!")
@@ -83,7 +82,6 @@ class Kodi_Monitor(xbmc.Monitor):
                 timestr = time.strftime("%Y%m%d%H%M%S", time.gmtime())
                 utils.WINDOW.setProperty("widgetreloadmusic", timestr)
     
-    @classmethod
     def resetVideoWidgetProps(self,data="",resetAll=False):
         #clear the cache for the video widgets
         type = "unknown"
