@@ -822,3 +822,15 @@ msgstr "Utiliser le miroir MusicBrainz personnalisé"
 msgctxt "#32200"
 msgid "Random videos background (movie/show)"
 msgstr "Arrière-plan de vidéos aléatoires (films/séries TV)"
+
+msgctxt "#32201"
+msgid "TMDB Results"
+msgstr "Résultats TMDB"
+
+msgctxt "#32202"
+msgid "Google Images Results"
+msgstr "Résultats Google Images"
+
+msgctxt "#32203"
+msgid "IMDB Top250 Movies in library"
+msgstr "Top 250 IMDB des films de la bibliothèque"
