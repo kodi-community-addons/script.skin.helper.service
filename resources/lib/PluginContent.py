@@ -167,7 +167,7 @@ def FAVOURITES(limit):
 def NEXTPVRRECORDINGS(limit,reversedSort="false"):
     return PVRRECORDINGS(limit,reversedSort,True)
 
-def PVRRECORDINGS(limit,reversedSort="false",nextOnly=False):
+def PVRRECORDINGS(limit,reversedSort="true",nextOnly=False):
     #returns the first unwatched episode of all recordings, starting at the oldest
     allItems = []
     allTitles = []
@@ -188,6 +188,7 @@ def PVRRECORDINGS(limit,reversedSort="false",nextOnly=False):
                 if item.get("directory"): allTitles.append(item["directory"])
 
         #sort the list so we return the list with the oldest unwatched first
+        #if reversed we return the newest first
         order = reversedSort == "true"
         allItems = sorted(allItems,key=itemgetter('endtime'),reverse=order)
         #return result including artwork...
