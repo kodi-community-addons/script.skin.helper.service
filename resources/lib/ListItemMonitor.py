@@ -949,12 +949,12 @@ class ListItemMonitor(threading.Thread):
         title = self.liTitle
         year = xbmc.getInfoLabel("%sListItem.Year"%self.widgetContainerPrefix).decode('utf-8')
 
-        if not self.contentType in ["movies", "tvshows", "seasons", "episodes", "setmovies"] or not title or not year or not xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnableAddonsLookups)"):
-            return
-
         if xbmc.getCondVisibility("!IsEmpty(%sListItem.TvShowTitle)" %self.widgetContainerPrefix):
             preftype = "tvshows"
             title = xbmc.getInfoLabel("%sListItem.TvShowTitle"%self.widgetContainerPrefix).decode("utf8")
+            
+        if not self.contentType in ["movies", "tvshows", "seasons", "episodes", "setmovies"] or not title or not year or not xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnableAddonsLookups)"):
+            return
 
         artwork = artutils.getAddonArtwork(title,year,preftype)
 

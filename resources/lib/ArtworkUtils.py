@@ -231,7 +231,7 @@ def getAddonArtwork(title,year="",preftype=""):
     artwork = {}
     if not WINDOW.getProperty("SkinHelper.DisableInternetLookups"):
         logMsg("getAddonArtwork - no data in cache for %s - year: %s - Starting lookup..." %(title,year))
-        searchtitle = title
+        searchtitle = title.split(" (")[0]
         includeCast = True
         #grab artwork from tmdb/fanart.tv
         if "movie" in preftype:
@@ -240,10 +240,10 @@ def getAddonArtwork(title,year="",preftype=""):
             artwork = getTmdbDetails(searchtitle,artwork,"tv",year,includeCast)
         else:
             artwork = getTmdbDetails(searchtitle,artwork,"",year,includeCast)
-
+        
         #extrafanart images
         if artwork.get("extrafanarts"):
-            artwork["extrafanart"] = "plugin://script.skin.helper.service/?action=EXTRAFANART&path=%s" %(single_urlencode(try_encode(simplecache.getCacheFile(cacheStr))))
+            artwork["extrafanart"] = "plugin://script.skin.helper.service/?action=EXTRAFANART&path=EFA_FROMCACHE_%s" %cacheStr
 
         #store in cache for quick access later
         artwork["title"] = title
@@ -367,6 +367,7 @@ def getfanartTVimages(type,ID,artwork=None,allowoverwrite=True):
                                         extrafanarts.append(item.get("url"))
                                         fanartcount += 1
     #save extrafanarts as string
+    #FIXME all data should be returned as objects not strings
     if extrafanarts:
         artwork["extrafanarts"] = repr(extrafanarts)
     return artwork

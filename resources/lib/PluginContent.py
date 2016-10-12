@@ -80,6 +80,7 @@ def getPluginListing(action,limit,refresh=None,optionalParam=None,randomize=Fals
 
         #prepare listitems and store in cache
         allItems = processPooledList(prepareListItem,allItems)
+        allItems = filter(None, allItems)
         simplecache.set(action,allItems,cacheChecksum)
 
     #fill that listing...
@@ -1088,7 +1089,7 @@ def FAVOURITEMEDIA(limit,AllKodiFavsOnly=False):
                 path='plugin://script.skin.helper.service/?action=launch&path=%s' %fav.get("path")
             if not fav.get("label"): fav["label"] = fav.get("title")
             if not fav.get("title"): fav["label"] = fav.get("label")
-            item = {"label": fav.get("label"), "title": fav.get("title"), "thumbnail":fav.get("thumbnail"), "file":path}
+            item = {"label": fav.get("label"), "title": fav.get("title"), "thumbnail":fav.get("thumbnail"), "file":path, "type": "favourite"}
             if fav.get("thumbnail").endswith("icon.png") and fav.get("thumbnail").endswith("icon.png") and  xbmcvfs.exists(fav.get("thumbnail").replace("icon.png","fanart.jpg")):
                 item["art"] = {"landscape": fav.get("thumbnail"), "poster": fav.get("thumbnail"), "fanart": fav.get("thumbnail").replace("icon.png","fanart.jpg")}
             item["extraproperties"] = {"IsPlayable": "false"}
@@ -1102,23 +1103,27 @@ def getExtraFanArt(path):
     if cachedata:
         extrafanarts = cachedata
     else:
-        #get extrafanarts from window property
         if path.startswith("EFA_FROMWINDOWPROP_"):
+            #get extrafanarts from window property
             extrafanarts = eval(WINDOW.getProperty(try_encode(path)).decode("utf-8"))
-        #get extrafanarts by passing an artwork cache xml file
+        elif path.startswith("EFA_FROMCACHE_"):
+            #get extrafanarts from cache system by getting the cache for given cachestr
+            path = path.split("_")[-1]
+            cache = simplecache.get(path)
+            if cache and "extrafanarts" in cache:
+                extrafanarts = cache["extrafanarts"]
+                if not isinstance(extrafanarts, list):
+                    extrafanarts = eval(extrafanarts)
         else:
+            #LEGACY: get extrafanarts by passing an artwork cache xml file
             if not xbmcvfs.exists(path.encode("utf-8")):
                 filepart = path.split("/")[-1]
                 path = path.replace(filepart,"") + normalize_string(filepart)
-                if not xbmcvfs.exists(path):
-                    logMsg("getExtraFanArt FAILED for path: %s" %path,xbmc.LOGWARNING)
-            if path.endswith(".xml"):
                 artwork = artutils.getArtworkFromCacheFile(path)
-            else:
-                artwork = simplecache.read_cachefile(path).get("data",{})
-            if artwork.get("extrafanarts"):
-                extrafanarts = eval( artwork.get("extrafanarts") )
-            simplecache.set(cachedataStr,extrafanarts,timedelta(days=7))
+                if artwork.get("extrafanarts"):
+                    extrafanarts = eval( artwork.get("extrafanarts") )
+        #store in cache
+        simplecache.set(cachedataStr,extrafanarts,timedelta(days=2))
 
     #process extrafanarts
     for item in extrafanarts:

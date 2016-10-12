@@ -291,7 +291,7 @@ def createListItem(item,asTuple=True):
                 "trailer": item.get("trailer"),
                 "progress": item.get('progresspercentage')
             }
-            if "DBID" in item["extraproperties"]:
+            if "DBID" in item["extraproperties"] and item["type"] not in ["tvrecording","tvchannel","favourite"]:
                 infolabels["mediatype"] = item["type"]
                 infolabels["dbid"] = item["extraproperties"]["DBID"]
             if "date" in item: infolabels["date"] = item["date"]
@@ -329,12 +329,11 @@ def createListItem(item,asTuple=True):
             liz.setInfo( type="Music", infoLabels=infolabels)
 
         #artwork
-        if item.get("art"):
-            liz.setArt( item.get("art"))
-        if item.get("icon"):
-            liz.setIconImage(item.get('icon'))
-        if item.get("thumbnail"):
-            liz.setThumbnailImage(item.get('thumbnail'))
+        liz.setArt( item.get("art", {}))
+        if "icon" in item:
+            liz.setIconImage(item['icon'])
+        if "thumbnail" in item:
+            liz.setThumbnailImage(item['thumbnail'])
 
         if asTuple:
             return (item["file"], liz, item.get("isFolder",False))
@@ -861,7 +860,7 @@ def processPooledList(methodToRun,items):
         try:
             allItems = pool.map(methodToRun, items)
         except Exception:
-            #catch exception to prevent thread running forever
+            #catch exception to prevent threadpool running forever
             logMsg("Error in %s" %methodToRun)
         pool.close()
         pool.join()
