@@ -543,18 +543,15 @@ def getTmdbDetails(title,artwork=None,mediatype=None,year="",includeCast=False, 
 def getActorImage(actorname):
     thumb = ""
     #get the item from cache first
-    cache = WINDOW.getProperty("SkinHelper.ActorImages").decode('utf-8')
+    cacheStr = "SkinHelper.ActorImage.%s" %actorname
+    cache = simplecache.get(cacheStr)
     if cache:
-        cache = eval(cache)
-        if cache.has_key(actorname):
-            return cache[actorname]
-    else: cache = {}
+        return cache
 
     #lookup image online
     thumb = getTmdbDetails(actorname,None,"person")
-    #save in cache
-    cache[actorname] = thumb
-    WINDOW.setProperty("SkinHelper.ActorImages",repr(cache))
+    #save in cache and return result
+    simplecache.set(cacheStr,thumb)
     return thumb
 
 def searchThumb(searchphrase, searchphrase2=""):
@@ -565,7 +562,7 @@ def searchThumb(searchphrase, searchphrase2=""):
     if not thumb: thumb = getTmdbDetails(searchphrase).get("poster","")
     if not thumb: thumb = searchGoogleImage(searchphrase,searchphrase2)
     if not thumb: thumb = searchYoutubeImage(searchphrase,searchphrase2)
-    simplecache.set(cacheStr)
+    simplecache.set(cacheStr,thumb)
     return thumb
 
 def downloadImage(imageUrl,thumbsPath, filename, allowoverwrite=False):
