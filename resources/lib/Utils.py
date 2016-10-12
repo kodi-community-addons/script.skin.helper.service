@@ -248,7 +248,7 @@ def createListItem(item,asTuple=True):
         liz.setPath(item.get('file'))
 
         nodetype = "Video"
-        if item.get("type","") in ["song","album","artist"]:
+        if item["type"] in ["song","album","artist"]:
             nodetype = "Music"
 
         #extra properties
@@ -289,19 +289,20 @@ def createListItem(item,asTuple=True):
                 "artist": item.get("artist"),
                 "votes": item.get("votes"),
                 "trailer": item.get("trailer"),
-                "progress": item.get('progresspercentage'),
-                "mediatype": item["type"],
-                "dbid": item["extraproperties"]["DBID"]
+                "progress": item.get('progresspercentage')
             }
-            if item.get("date"): infolabels["date"] = item.get("date")
-            if item.get("lastplayed"): infolabels["lastplayed"] = item.get("lastplayed")
-            if item.get("dateadded"): infolabels["dateadded"] = item.get("dateadded")
-            if item.get("type") == "episode":
-                infolabels["season"] = item.get("season")
-                infolabels["episode"] = item.get("episode")
+            if "DBID" in item["extraproperties"]:
+                infolabels["mediatype"] = item["type"]
+                infolabels["dbid"] = item["extraproperties"]["DBID"]
+            if "date" in item: infolabels["date"] = item["date"]
+            if "lastplayed" in item: infolabels["lastplayed"] = item["lastplayed"]
+            if "dateadded" in item: infolabels["dateadded"] = item["dateadded"]
+            if item["type"] == "episode":
+                infolabels["season"] = item["season"]
+                infolabels["episode"] = item["episode"]
 
             liz.setInfo( type="Video", infoLabels=infolabels)
-            liz.setProperty("original_listitem_url",item.get("file"))
+
             #streamdetails
             if item.get("streamdetails"):
                 liz.addStreamInfo("video", item["streamdetails"].get("video",{}))
@@ -322,9 +323,9 @@ def createListItem(item,asTuple=True):
                 "lyrics": item.get("lyrics"),
                 "playcount": item.get("playcount")
             }
-            if item.get("date"): infolabels["date"] = item.get("date")
-            if item.get("duration"): infolabels["duration"] = item.get("duration")
-            if item.get("lastplayed"): infolabels["lastplayed"] = item.get("lastplayed")
+            if "date" in item: infolabels["date"] = item["date"]
+            if "duration" in item: infolabels["duration"] = item["duration"]
+            if "lastplayed" in item: infolabels["lastplayed"] = item["lastplayed"]
             liz.setInfo( type="Music", infoLabels=infolabels)
 
         #artwork
@@ -343,31 +344,6 @@ def createListItem(item,asTuple=True):
         logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
         logMsg("ERROR Preparing ListItem --> %s" %e, xbmc.LOGERROR)
         return None
-
-
-def createListItems(items):
-    listitems = []
-    if supportsPool:
-        pool = Pool()
-        listitems = pool.map(createListItem, items)
-        pool.close()
-        pool.join()
-    else:
-        for item in items:
-            listitems.append(createListItem(item,True))
-    return listitems
-
-def prepareListItems(items):
-    listitems = []
-    if supportsPool:
-        pool = Pool()
-        listitems = pool.map(prepareListItem, items)
-        pool.close()
-        pool.join()
-    else:
-        for item in items:
-            listitems.append(prepareListItem(item))
-    return listitems
 
 def prepareListItem(item):
     try:
@@ -511,6 +487,11 @@ def prepareListItem(item):
         if not item.get("thumbnail") and art.get('thumb'): item["thumbnail"] = art["thumb"]
 
         item["extraproperties"] = properties
+        
+        if not "file" in item:
+            logMsg("Item is missing file path ! --> %s" %item["label"], xbmc.LOGWARNING)
+            item["file"] = ""
+        
         #return the result
         return item
 
@@ -871,4 +852,19 @@ def intWithCommas(x):
             result = ",%03d%s" % (r, result)
         return "%d%s" % (x, result)
     except Exception: return ""
-
+    
+def processPooledList(methodToRun,items):
+    '''helper method that processes a method on each listitem with pooling if the system supports it'''
+    allItems = []
+    if supportsPool:
+        pool = Pool()
+        try:
+            allItems = pool.map(methodToRun, items)
+        except Exception:
+            #catch exception to prevent thread running forever
+            logMsg("Error in %s" %methodToRun)
+        pool.close()
+        pool.join()
+    else:
+        allItems = [methodToRun(item) for item in items]
+    return allItems

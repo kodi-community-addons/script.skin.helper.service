@@ -1760,3 +1760,76 @@ def getStreamDetails(dbid,contenttype,ignoreCache=False):
         streamdetails["SkinHelper.ListItemTags"] = " / ".join(json_result["tag"])
     simplecache.set(cacheStr,streamdetails)
     return streamdetails
+    
+def getOmdbInfo(imdb_id="",title="",year="",media_type=""):
+    
+    if not imdb_id and not (title and year):
+        return {}
+    
+    #get the item from cache first
+    cacheStr = u"SkinHelper.OMDBInfo.%s.%s.%s.%s" %(imdb_id,title,year,media_type)
+    cache = simplecache.get(cacheStr)
+    if cache:
+        return cache
+    
+    #get info from OMDB
+    result = {}
+    if not WINDOW.getProperty("SkinHelper.DisableInternetLookups"):
+        if not imdb_id or not imdb_id.startswith("tt"):
+            #get info by title and year
+            if "tvshow" in media_type:
+                media_type = "series"
+            else: 
+                media_type = "movie"
+            url = 'http://www.omdbapi.com/?t=%s&y=%s&type=%s&plot=short&tomatoes=true&r=json' %(title,year,media_type)
+        else:
+            url = 'http://www.omdbapi.com/?i=%s&plot=short&tomatoes=true&r=json' %imdb_id
+        res = requests.get(url)
+        omdbresult = json.loads(res.content.decode('utf-8','replace'))
+        if omdbresult.get("Response","") == "True":
+            #convert values from omdb to our window props
+            for key, value in omdbresult.iteritems():
+                if value and value != "N/A":
+                    if key == "tomatoRating": 
+                        result["RottenTomatoesRating"] = value
+                    elif key == "tomatoMeter": 
+                        result["RottenTomatoesMeter"] = value
+                    elif key == "tomatoFresh": 
+                        result["RottenTomatoesFresh"] = value
+                    elif key == "tomatoReviews": 
+                        result["RottenTomatoesReviews"] = intWithCommas(value)
+                    elif key == "tomatoRotten": 
+                        result["RottenTomatoesRotten"] = value
+                    elif key == "tomatoImage": 
+                        result["RottenTomatoesImage"] = value
+                    elif key == "tomatoConsensus": 
+                        result["RottenTomatoesConsensus"] = value
+                    elif key == "Awards": 
+                        result["RottenTomatoesAwards"] = value
+                    elif key == "BoxOffice": 
+                        result["RottenTomatoesBoxOffice"] = value
+                    elif key == "DVD": 
+                        result["RottenTomatoesDVDRelease"] = value
+                    elif key == "tomatoUserMeter": 
+                        result["RottenTomatoesAudienceMeter"] = value
+                    elif key == "tomatoUserRating": 
+                        result["RottenTomatoesAudienceRating"] = value
+                    elif key == "tomatoUserReviews": 
+                        result["RottenTomatoesAudienceReviews"] = intWithCommas(value)
+                    elif key == "Metascore": 
+                        result["MetaCritic.Rating"] = value
+                    elif key == "imdbRating":
+                        result["IMDB.Rating"] = value
+                        result["IMDB.Rating.Percent"] = "%s" %(int(float(value) * 10))
+                    elif key == "imdbVotes": 
+                        result["IMDB.Votes"] = value
+                    elif key == "imdbID": 
+                        result["IMDBID"] = value
+                    elif key == "Rated": 
+                        result["IMDB.MPAA"] = value
+                    elif key == "Runtime": 
+                        result["IMDB.Runtime"] = value
+
+            #store to cache
+            simplecache.set(cacheStr,result,expiration=timedelta(days=7))
+    return result

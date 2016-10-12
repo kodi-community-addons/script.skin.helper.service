@@ -79,11 +79,11 @@ def getPluginListing(action,limit,refresh=None,optionalParam=None,randomize=Fals
             allItems = sorted(allItems, key=lambda k: random.random())
 
         #prepare listitems and store in cache
-        allItems = prepareListItems(allItems)
+        allItems = processPooledList(prepareListItem,allItems)
         simplecache.set(action,allItems,cacheChecksum)
 
     #fill that listing...
-    allItems = createListItems(allItems)
+    allItems = processPooledList(createListItem,allItems)
     xbmcplugin.addDirectoryItems(int(sys.argv[1]), allItems, len(allItems))
 
     #end directory listing
@@ -101,61 +101,62 @@ def doMainListing(mode=""):
 
     #movie nodes
     if xbmc.getCondVisibility("Library.HasContent(movies)"):
-        addDirectoryItem(ADDON.getLocalizedString(32168), "plugin://script.skin.helper.service/?action=inprogressmovies&limit=100")
-        addDirectoryItem(ADDON.getLocalizedString(32192), "plugin://script.skin.helper.service/?action=recentmovies&limit=100")
-        addDirectoryItem(ADDON.getLocalizedString(32003), "plugin://script.skin.helper.service/?action=recommendedmovies&limit=100")
-        addDirectoryItem(ADDON.getLocalizedString(32169), "plugin://script.skin.helper.service/?action=inprogressandrecommendedmovies&limit=100")
-        addDirectoryItem(ADDON.getLocalizedString(32186), "plugin://script.skin.helper.service/?action=inprogressandrandommovies&limit=100")
-        addDirectoryItem(ADDON.getLocalizedString(32006), "plugin://script.skin.helper.service/?action=similarmovies&limit=100")
-        addDirectoryItem(ADDON.getLocalizedString(32185), "plugin://script.skin.helper.service/?action=randommovies&limit=100")
+        addDirectoryItem(ADDON.getLocalizedString(32168), "plugin://script.skin.helper.service/?action=inprogressmovies")
+        addDirectoryItem(ADDON.getLocalizedString(32192), "plugin://script.skin.helper.service/?action=recentmovies")
+        addDirectoryItem(ADDON.getLocalizedString(32003), "plugin://script.skin.helper.service/?action=recommendedmovies")
+        addDirectoryItem(ADDON.getLocalizedString(32169), "plugin://script.skin.helper.service/?action=inprogressandrecommendedmovies")
+        addDirectoryItem(ADDON.getLocalizedString(32186), "plugin://script.skin.helper.service/?action=inprogressandrandommovies")
+        addDirectoryItem(ADDON.getLocalizedString(32006), "plugin://script.skin.helper.service/?action=similarmovies")
+        addDirectoryItem(ADDON.getLocalizedString(32185), "plugin://script.skin.helper.service/?action=randommovies")
+        addDirectoryItem(ADDON.getLocalizedString(32203), "plugin://script.skin.helper.service/?action=top250movies")
 
     #tvshow nodes
     if xbmc.getCondVisibility("Library.HasContent(tvshows)"):
-        addDirectoryItem(ADDON.getLocalizedString(32167), "plugin://script.skin.helper.service/?action=inprogressepisodes&limit=100")
-        addDirectoryItem(ADDON.getLocalizedString(32002), "plugin://script.skin.helper.service/?action=nextepisodes&limit=100")
-        addDirectoryItem(ADDON.getLocalizedString(32193), "plugin://script.skin.helper.service/?action=recentepisodes&limit=100")
-        addDirectoryItem(ADDON.getLocalizedString(32191), "plugin://script.skin.helper.service/?action=recommendedtvshows&limit=100")
-        addDirectoryItem(ADDON.getLocalizedString(32130), "plugin://script.skin.helper.service/?action=similarshows&limit=100")
-        addDirectoryItem(ADDON.getLocalizedString(32162), "plugin://script.skin.helper.service/?action=similarmedia&limit=100")
-        addDirectoryItem(ADDON.getLocalizedString(32195), "plugin://script.skin.helper.service/?action=randomtvshows&limit=100")
+        addDirectoryItem(ADDON.getLocalizedString(32167), "plugin://script.skin.helper.service/?action=inprogressepisodes")
+        addDirectoryItem(ADDON.getLocalizedString(32002), "plugin://script.skin.helper.service/?action=nextepisodes")
+        addDirectoryItem(ADDON.getLocalizedString(32193), "plugin://script.skin.helper.service/?action=recentepisodes")
+        addDirectoryItem(ADDON.getLocalizedString(32191), "plugin://script.skin.helper.service/?action=recommendedtvshows")
+        addDirectoryItem(ADDON.getLocalizedString(32130), "plugin://script.skin.helper.service/?action=similarshows")
+        addDirectoryItem(ADDON.getLocalizedString(32162), "plugin://script.skin.helper.service/?action=similarmedia")
+        addDirectoryItem(ADDON.getLocalizedString(32195), "plugin://script.skin.helper.service/?action=randomtvshows")
 
     #next aired episodes
-    addDirectoryItem(ADDON.getLocalizedString(32197), "plugin://script.skin.helper.service/?action=unairedepisodes&limit=100")
-    addDirectoryItem(ADDON.getLocalizedString(32198), "plugin://script.skin.helper.service/?action=nextairedepisodes&limit=100")
+    addDirectoryItem(ADDON.getLocalizedString(32197), "plugin://script.skin.helper.service/?action=unairedepisodes")
+    addDirectoryItem(ADDON.getLocalizedString(32198), "plugin://script.skin.helper.service/?action=nextairedepisodes")
 
     #musicvideos nodes
     if xbmc.getCondVisibility("Library.HasContent(musicvideos)"):
-        addDirectoryItem(ADDON.getLocalizedString(32194), "plugin://script.skin.helper.service/?action=recentmusicvideos&limit=100")
+        addDirectoryItem(ADDON.getLocalizedString(32194), "plugin://script.skin.helper.service/?action=recentmusicvideos")
 
     #media nodes
     if xbmc.getCondVisibility("Library.HasContent(video)") or WINDOW.getProperty("plexbmc.0.title"):
-        addDirectoryItem(ADDON.getLocalizedString(32086), "plugin://script.skin.helper.service/?action=inprogressmedia&limit=100")
-        addDirectoryItem(ADDON.getLocalizedString(32004), "plugin://script.skin.helper.service/?action=RecommendedMedia&limit=100")
-        addDirectoryItem(ADDON.getLocalizedString(32007), "plugin://script.skin.helper.service/?action=inprogressandrecommendedmedia&limit=100")
-        addDirectoryItem(ADDON.getLocalizedString(32005), "plugin://script.skin.helper.service/?action=recentmedia&limit=100")
+        addDirectoryItem(ADDON.getLocalizedString(32086), "plugin://script.skin.helper.service/?action=inprogressmedia")
+        addDirectoryItem(ADDON.getLocalizedString(32004), "plugin://script.skin.helper.service/?action=RecommendedMedia")
+        addDirectoryItem(ADDON.getLocalizedString(32007), "plugin://script.skin.helper.service/?action=inprogressandrecommendedmedia")
+        addDirectoryItem(ADDON.getLocalizedString(32005), "plugin://script.skin.helper.service/?action=recentmedia")
 
     #music nodes
     if xbmc.getCondVisibility("Library.HasContent(music)"):
-        addDirectoryItem(xbmc.getLocalizedString(359), "plugin://script.skin.helper.service/?action=recentalbums&limit=100")
-        addDirectoryItem(ADDON.getLocalizedString(32187), "plugin://script.skin.helper.service/?action=randomalbums&limit=100")
-        addDirectoryItem(ADDON.getLocalizedString(32087), "plugin://script.skin.helper.service/?action=recentsongs&limit=100")
-        addDirectoryItem(ADDON.getLocalizedString(32188), "plugin://script.skin.helper.service/?action=randomsongs&limit=100")
-        addDirectoryItem(xbmc.getLocalizedString(517), "plugin://script.skin.helper.service/?action=recentplayedalbums&limit=100")
-        addDirectoryItem(ADDON.getLocalizedString(32088), "plugin://script.skin.helper.service/?action=recentplayedsongs&limit=100")
-        addDirectoryItem(ADDON.getLocalizedString(32131), "plugin://script.skin.helper.service/?action=recommendedalbums&limit=100")
-        addDirectoryItem(ADDON.getLocalizedString(32132), "plugin://script.skin.helper.service/?action=recommendedsongs&limit=100")
+        addDirectoryItem(xbmc.getLocalizedString(359), "plugin://script.skin.helper.service/?action=recentalbums")
+        addDirectoryItem(ADDON.getLocalizedString(32187), "plugin://script.skin.helper.service/?action=randomalbums")
+        addDirectoryItem(ADDON.getLocalizedString(32087), "plugin://script.skin.helper.service/?action=recentsongs")
+        addDirectoryItem(ADDON.getLocalizedString(32188), "plugin://script.skin.helper.service/?action=randomsongs")
+        addDirectoryItem(xbmc.getLocalizedString(517), "plugin://script.skin.helper.service/?action=recentplayedalbums")
+        addDirectoryItem(ADDON.getLocalizedString(32088), "plugin://script.skin.helper.service/?action=recentplayedsongs")
+        addDirectoryItem(ADDON.getLocalizedString(32131), "plugin://script.skin.helper.service/?action=recommendedalbums")
+        addDirectoryItem(ADDON.getLocalizedString(32132), "plugin://script.skin.helper.service/?action=recommendedsongs")
 
     #favourite nodes
-    addDirectoryItem(ADDON.getLocalizedString(32000), "plugin://script.skin.helper.service/?action=favourites&limit=100")
-    addDirectoryItem(ADDON.getLocalizedString(32001), "plugin://script.skin.helper.service/?action=favouritemedia&limit=100")
+    addDirectoryItem(ADDON.getLocalizedString(32000), "plugin://script.skin.helper.service/?action=favourites")
+    addDirectoryItem(ADDON.getLocalizedString(32001), "plugin://script.skin.helper.service/?action=favouritemedia")
 
     #pvr nodes
     if xbmc.getCondVisibility("PVR.HasTVChannels"):
-        addDirectoryItem(ADDON.getLocalizedString(32170), "plugin://script.skin.helper.service/?action=pvrchannels&limit=100")
-        addDirectoryItem(ADDON.getLocalizedString(32151), "plugin://script.skin.helper.service/?action=pvrrecordings&limit=100")
-        addDirectoryItem(ADDON.getLocalizedString(32152), "plugin://script.skin.helper.service/?action=nextpvrrecordings&limit=100")
-        addDirectoryItem(ADDON.getLocalizedString(32171), "plugin://script.skin.helper.service/?action=nextpvrrecordings&reversed=true&limit=100")
-        addDirectoryItem(ADDON.getLocalizedString(32154), "plugin://script.skin.helper.service/?action=pvrtimers&limit=100")
+        addDirectoryItem(ADDON.getLocalizedString(32170), "plugin://script.skin.helper.service/?action=pvrchannels")
+        addDirectoryItem(ADDON.getLocalizedString(32151), "plugin://script.skin.helper.service/?action=pvrrecordings")
+        addDirectoryItem(ADDON.getLocalizedString(32152), "plugin://script.skin.helper.service/?action=nextpvrrecordings")
+        addDirectoryItem(ADDON.getLocalizedString(32171), "plugin://script.skin.helper.service/?action=nextpvrrecordings&reversed=true")
+        addDirectoryItem(ADDON.getLocalizedString(32154), "plugin://script.skin.helper.service/?action=pvrtimers")
 
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
@@ -189,7 +190,7 @@ def PVRRECORDINGS(limit,reversedSort="false",nextOnly=False):
         order = reversedSort == "true"
         allItems = sorted(allItems,key=itemgetter('endtime'),reverse=order)
         #return result including artwork...
-        allItems = getPVRArtForItems(allItems)
+        return processPooledList(getPVRArtForItem,allItems)
     return allItems
 
 def PVRTIMERS(limit):
@@ -209,7 +210,7 @@ def PVRTIMERS(limit):
         #sort the list so we return the list with the oldest unwatched first
         allItems = sorted(allItems,key=itemgetter('starttime'),reverse=False)
         #return result including artwork...
-        allItems = getPVRArtForItems(allItems)
+        return processPooledList(getPVRArtForItem,allItems)
 
     #return result including artwork...
     return allItems
@@ -225,19 +226,6 @@ def getPVRArtForItem(item):
     item["label"] = item["channel"]
     item["label2"] = item["channel"]
     return item
-
-def getPVRArtForItems(items):
-    newitems = []
-    if supportsPool:
-        #pooled processing
-        pool = Pool()
-        newitems = pool.map(getPVRArtForItem, items)
-        pool.close()
-        pool.join()
-    else:
-        for item in items:
-            newitems.append(getPVRArtForItem(item))
-    return newitems
 
 def PVRCHANNELS(limit):
     allItems = []
@@ -265,7 +253,7 @@ def PVRCHANNELS(limit):
             allItems.append(item)
 
     #return result including artwork...
-    return getPVRArtForItems(allItems)
+    return processPooledList(getPVRArtForItem,allItems)
 
 def PVRCHANNELGROUPS(limit):
     count = 0
@@ -298,7 +286,7 @@ def getThumb(searchphrase):
     li = xbmcgui.ListItem(searchphrase, path=image)
     xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=image, listitem=li)
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
-
+   
 def getAlbumDetails(item):
     if WINDOW.getProperty("SkinHelper.enableWidgetsArtworkLookups") == "true":
         item["art"] = artutils.getMusicArtwork(item["displayartist"], item["title"])
@@ -315,59 +303,27 @@ def getAlbumDetails(item):
 
 def RANDOMALBUMS(limit):
     allItems = []
-    json_result = getJSON('AudioLibrary.GetAlbums', '{ "sort": { "order": "descending", "method": "random" }, "properties": [ %s ], "limits":{"end":%d} }' %(fields_albums,limit))
-    if supportsPool:
-        #pooled processing
-        pool = Pool()
-        allItems = pool.map(getAlbumDetails, json_result)
-        pool.close()
-        pool.join()
-    else:
-        for item in json_result:
-            allItems.append(getAlbumDetails(item))
-    return allItems
+    json_result = getJSON('AudioLibrary.GetAlbums', '{ "sort": { "order": "descending", "method": "random" }, \
+        "properties": [ %s ], "limits":{"end":%d} }' %(fields_albums,limit))
+    return processPooledList(getAlbumDetails,json_result)
 
 def RECENTALBUMS(limit):
     allItems = []
-    json_result = getJSON('AudioLibrary.GetRecentlyAddedAlbums', '{ "properties": [ %s ], "limits":{"end":%d} }' %(fields_albums,limit))
-    if supportsPool:
-        #pooled processing
-        pool = Pool()
-        allItems = pool.map(getAlbumDetails, json_result)
-        pool.close()
-        pool.join()
-    else:
-        for item in json_result:
-            allItems.append(getAlbumDetails(item))
-    return allItems
+    json_result = getJSON('AudioLibrary.GetRecentlyAddedAlbums', '{ "properties": [ %s ], \
+        "limits":{"end":%d} }' %(fields_albums,limit))
+    return processPooledList(getAlbumDetails,json_result)
 
 def RECENTPLAYEDALBUMS(limit,browse=""):
     allItems = []
-    json_result = getJSON('AudioLibrary.GetRecentlyPlayedAlbums', '{ "sort": { "order": "descending", "method": "lastplayed" }, "properties": [ %s ], "limits":{"end":%d} }' %(fields_albums,limit))
-    if supportsPool:
-        #pooled processing
-        pool = Pool()
-        allItems = pool.map(getAlbumDetails, json_result)
-        pool.close()
-        pool.join()
-    else:
-        for item in json_result:
-            allItems.append(getAlbumDetails(item))
-    return allItems
+    json_result = getJSON('AudioLibrary.GetRecentlyPlayedAlbums', '{ "sort": { "order": "descending", \
+        "method": "lastplayed" }, "properties": [ %s ], "limits":{"end":%d} }' %(fields_albums,limit))
+    return processPooledList(getAlbumDetails,json_result)
 
 def RECENTPLAYEDSONGS(limit):
     allItems = []
-    json_result = getJSON('AudioLibrary.GetRecentlyPlayedSongs', '{ "properties": [ %s ], "limits":{"end":%d} }' %(fields_songs,limit))
-    if supportsPool:
-        #pooled processing
-        pool = Pool()
-        allItems = pool.map(getSongDetails, json_result)
-        pool.close()
-        pool.join()
-    else:
-        for item in json_result:
-            allItems.append(getSongDetails(item))
-    return allItems
+    json_result = getJSON('AudioLibrary.GetRecentlyPlayedSongs', '{ "properties": [ %s ], "limits":{"end":%d} }'
+        %(fields_songs,limit))
+    return processPooledList(getSongDetails,json_result)
 
 def getSongDetails(item):
     if WINDOW.getProperty("SkinHelperShutdownRequested"): return item
@@ -380,38 +336,27 @@ def getSongDetails(item):
 
 def RECENTSONGS(limit):
     allItems = []
-    json_result = getJSON('AudioLibrary.GetRecentlyAddedSongs', '{ "properties": [ %s ], "limits":{"end":%d} }' %(fields_songs,limit))
-    if supportsPool:
-        #pooled processing
-        pool = Pool()
-        allItems = pool.map(getSongDetails, json_result)
-        pool.close()
-        pool.join()
-    else:
-        for item in json_result:
-            allItems.append(getSongDetails(item))
-    return allItems
+    json_result = getJSON('AudioLibrary.GetRecentlyAddedSongs', '{ "properties": [ %s ], "limits":{"end":%d} }' 
+        %(fields_songs,limit))
+    return processPooledList(getSongDetails,json_result)
 
 def RANDOMSONGS(limit):
     allItems = []
-    json_result = getJSON('AudioLibrary.GetSongs', '{ "sort": { "order": "descending", "method": "random" }, "properties": [ %s ], "limits":{"end":%d} }' %(fields_songs,limit))
-    if supportsPool:
-        #pooled processing
-        pool = Pool()
-        allItems = pool.map(getSongDetails, json_result)
-        pool.close()
-        pool.join()
-    else:
-        for item in json_result:
-            allItems.append(getSongDetails(item))
-    return allItems
+    json_result = getJSON('AudioLibrary.GetSongs', '{ "sort": { "order": "descending", "method": "random" }, \
+        "properties": [ %s ], "limits":{"end":%d} }' %(fields_songs,limit))
+    return processPooledList(getSongDetails,json_result)
 
 def getNextEpisodeForShow(showid):
     if WINDOW.getProperty("SkinHelperShutdownRequested"): return {}
     if enableSpecialsInWidgets:
-        json_episodes = getJSON('VideoLibrary.GetEpisodes', '{ "tvshowid": %d, "sort": {"method":"episode"}, "filter": {"field": "playcount", "operator": "lessthan", "value":"1"}, "properties": [ %s ], "limits":{"end":1}}' %(showid,fields_episodes))
+        json_episodes = getJSON('VideoLibrary.GetEpisodes', '{ "tvshowid": %d, "sort": {"method":"episode"}, \
+            "filter": {"field": "playcount", "operator": "lessthan", "value":"1"}, \
+            "properties": [ %s ], "limits":{"end":1}}' %(showid,fields_episodes))
     else:
-        json_episodes = getJSON('VideoLibrary.GetEpisodes', '{ "tvshowid": %d, "sort": {"method":"episode"}, "filter": {"and": [ {"field": "playcount", "operator": "lessthan", "value":"1"}, {"field": "season", "operator": "greaterthan", "value": "0"} ]}, "properties": [ %s ], "limits":{"end":1}}' %(showid,fields_episodes))
+        json_episodes = getJSON('VideoLibrary.GetEpisodes', '{ "tvshowid": %d, "sort": {"method":"episode"}, \
+            "filter": {"and": [ {"field": "playcount", "operator": "lessthan", "value":"1"}, \
+            {"field": "season", "operator": "greaterthan", "value": "0"} ]}, "properties": [ %s ], "limits":{"end":1}}'
+            %(showid,fields_episodes))
     for item in json_episodes:
         return item
     return {}
@@ -421,21 +366,15 @@ def NEXTEPISODES(limit):
     result = []
     # First we get a list of all the unwatched TV shows ordered by lastplayed
     if nextupInprogressShowsOnly:
-        json_result = getJSON('VideoLibrary.GetTVShows', '{ "sort": { "order": "descending", "method": "lastplayed" },"filter": {"operator":"true", "field":"inprogress", "value":""}, "properties": [ "title", "lastplayed", "playcount" ], "limits":{"end":%s} }' %limit)
+        json_result = getJSON('VideoLibrary.GetTVShows', '{ "sort": { "order": "descending", "method": "lastplayed" },\
+        "filter": {"operator":"true", "field":"inprogress", "value":""}, \
+        "properties": [ "title", "lastplayed", "playcount" ], "limits":{"end":%s} }' %limit)
     else:
-        json_result = getJSON('VideoLibrary.GetTVShows', '{ "sort": { "order": "descending", "method": "lastplayed" },"filter": {"operator":"is", "field":"playcount", "value":"0"}, "properties": [ "title", "lastplayed", "playcount" ], "limits":{"end":%s} }' %limit)
-    if supportsPool:
-        #pooled processing
-        pool = Pool()
-        allshowids = [d['tvshowid'] for d in json_result]
-        result = pool.map(getNextEpisodeForShow, allshowids)
-        pool.close()
-        pool.join()
-    else:
-        #normal processing
-        for show in json_result:
-            result.append(getNextEpisodeForShow(show['tvshowid']))
-    return result
+        json_result = getJSON('VideoLibrary.GetTVShows', '{ "sort": { "order": "descending", "method": "lastplayed" },\
+        "filter": {"operator":"is", "field":"playcount", "value":"0"}, \
+        "properties": [ "title", "lastplayed", "playcount" ], "limits":{"end":%s} }' %limit)
+    allshowids = [d['tvshowid'] for d in json_result]
+    return processPooledList(getNextEpisodeForShow,allshowids)
 
 def NEXTAIREDTVSHOWS(limit):
     return NEXTAIREDEPISODES(limit)
@@ -541,16 +480,7 @@ def RECOMMENDEDALBUMS(limit,browse=False):
     if allItemsTemp:
         #sort the list by rating
         allItemsTemp = sorted(allItemsTemp,key=itemgetter("rating"),reverse=True)
-        #process the results
-        if supportsPool:
-            #pooled processing
-            pool = Pool()
-            allItems = pool.map(getAlbumDetails, allItemsTemp)
-            pool.close()
-            pool.join()
-        else:
-            for item in allItemsTemp:
-                allItems.append(getAlbumDetails(item))
+        allItems = processPooledList(getAlbumDetails,allItemsTemp)
     return allItems
 
 def RECOMMENDEDSONGS(limit):
@@ -581,16 +511,7 @@ def RECOMMENDEDSONGS(limit):
     if allItemsTemp:
         #sort the list by rating
         allItemsTemp = sorted(allItemsTemp,key=itemgetter("rating"),reverse=True)
-        #process the results
-        if supportsPool:
-            #pooled processing
-            pool = Pool()
-            allItems = pool.map(getSongDetails, allItemsTemp)
-            pool.close()
-            pool.join()
-        else:
-            for item in allItemsTemp:
-                allItems.append(getSongDetails(item))
+        allItems = processPooledList(getSongDetails,allItemsTemp)
     return allItems
 
 def SIMILARMOVIES(limit,imdbid="",unSorted=False):
@@ -862,6 +783,18 @@ def INPROGRESSANDRECOMMENDEDMOVIES(limit):
             allItems.append(item)
     return allItems
 
+def TOP250MOVIES(limit):
+    allItems = []
+    allMovies = getJSON('VideoLibrary.GetMovies','{ "properties": [ "imdbnumber" ] }')
+    top250 = artutils.getImdbTop250()
+    for movie in allMovies:
+        if movie["imdbnumber"] in top250:
+            movie = getJSON('VideoLibrary.GetMovieDetails','{ "movieid": %d, "properties": [ %s ] }' %(movie["movieid"],fields_movies))
+            movie["top250_rank"] = int(top250[movie["imdbnumber"]])
+            allItems.append(movie)
+    return sorted(allItems,key=itemgetter("top250_rank"))
+
+    
 def RANDOMMOVIES(limit):
     if hideWatchedItemsInWidgets:
         return getJSON('VideoLibrary.GetMovies','{ "sort": { "order": "descending", "method": "random" }, "filter": {"operator":"is", "field":"playcount", "value":"0"}, "properties": [ %s ], "limits":{"end":%d} }' %(fields_movies,limit))

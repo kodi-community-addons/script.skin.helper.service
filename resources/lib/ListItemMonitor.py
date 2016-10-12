@@ -221,6 +221,7 @@ class ListItemMonitor(threading.Thread):
                                     thread.start_new_thread(self.setAnimatedPoster, (True,))
                                     self.setStreamDetails()
                                     self.setMovieSetDetails()
+                                    self.setTop250()
                                     self.checkExtraFanArt()
                                 #nextaired workaround for info dialog
                                 if widgetContainer == "999" and xbmc.getCondVisibility("!IsEmpty(%sListItem.TvShowTitle) + System.HasAddon(script.tv.show.next.aired)" %self.widgetContainerPrefix):
@@ -284,7 +285,8 @@ class ListItemMonitor(threading.Thread):
             if self.exit: return
             logMsg("Started Background worker...")
             self.genericWindowProps()
-            if not self.imdb_top250: self.imdb_top250 = artutils.getImdbTop250()
+            if not self.imdb_top250: 
+                self.imdb_top250 = artutils.getImdbTop250()
             self.checkNotifications()
             self.saveCacheToFile()
             logMsg("Ended Background worker...")
@@ -866,65 +868,25 @@ class ListItemMonitor(threading.Thread):
         if not liImdb:
             liImdb = self.liImdb
         if not liImdb:
-            liImdb = self.liTitle
-        if not self.contentType in ["movies","setmovies","tvshows"]:
+            year = xbmc.getInfoLabel("%sListItem.Year"%self.widgetContainerPrefix).decode('utf-8')
+            result = artutils.getOmdbInfo(title=self.liTitle, year=year, media_type=self.contentType)
+        else:
+            result = artutils.getOmdbInfo(liImdb)
+        
+        #return if another listitem was focused in the meanwhile
+        if multiThreaded and not (liImdb == xbmc.getInfoLabel("%sListItem.IMDBNumber"%self.widgetContainerPrefix).decode('utf-8') or liImdb == xbmc.getInfoLabel("%sListItem.Property(IMDBNumber)"%self.widgetContainerPrefix).decode('utf-8')):
             return
-        if self.omdbinfocache.get(liImdb):
-            #get data from cache
-            result = self.omdbinfocache[liImdb]
-        elif not WINDOW.getProperty("SkinHelper.DisableInternetLookups"):
-            #get info from OMDB
-            if not liImdb.startswith("tt"):
-                #get info by title and year
-                year = xbmc.getInfoLabel("%sListItem.Year"%self.widgetContainerPrefix).decode('utf-8')
-                title = self.liTitle
-                if self.contentType == "tvshows":
-                    type = "series"
-                else: type = "movie"
-                url = 'http://www.omdbapi.com/?t=%s&y=%s&type=%s&plot=short&tomatoes=true&r=json' %(title,year,type)
-            else:
-                url = 'http://www.omdbapi.com/?i=%s&plot=short&tomatoes=true&r=json' %liImdb
-            res = requests.get(url)
-            omdbresult = json.loads(res.content.decode('utf-8','replace'))
-            if omdbresult.get("Response","") == "True":
-                #convert values from omdb to our window props
-                for key, value in omdbresult.iteritems():
-                    if value and value != "N/A":
-                        if key == "tomatoRating": result["SkinHelper.RottenTomatoesRating"] = value
-                        elif key == "tomatoMeter": result["SkinHelper.RottenTomatoesMeter"] = value
-                        elif key == "tomatoFresh": result["SkinHelper.RottenTomatoesFresh"] = value
-                        elif key == "tomatoReviews": result["SkinHelper.RottenTomatoesReviews"] = intWithCommas(value)
-                        elif key == "tomatoRotten": result["SkinHelper.RottenTomatoesRotten"] = value
-                        elif key == "tomatoImage": result["SkinHelper.RottenTomatoesImage"] = value
-                        elif key == "tomatoConsensus": result["SkinHelper.RottenTomatoesConsensus"] = value
-                        elif key == "Awards": result["SkinHelper.RottenTomatoesAwards"] = value
-                        elif key == "BoxOffice": result["SkinHelper.RottenTomatoesBoxOffice"] = value
-                        elif key == "DVD": result["SkinHelper.RottenTomatoesDVDRelease"] = value
-                        elif key == "tomatoUserMeter": result["SkinHelper.RottenTomatoesAudienceMeter"] = value
-                        elif key == "tomatoUserRating": result["SkinHelper.RottenTomatoesAudienceRating"] = value
-                        elif key == "tomatoUserReviews": result["SkinHelper.RottenTomatoesAudienceReviews"] = intWithCommas(value)
-                        elif key == "Metascore": result["SkinHelper.MetaCritic.Rating"] = value
-                        elif key == "imdbRating":
-                            result["SkinHelper.IMDB.Rating"] = value
-                            result["SkinHelper.IMDB.Rating.Percent"] = "%s" %(int(float(value) * 10))
-                        elif key == "imdbVotes": result["SkinHelper.IMDB.Votes"] = value
-                        elif key == "Rated": result["SkinHelper.IMDB.MPAA"] = value
-                        elif key == "Runtime": result["SkinHelper.IMDB.Runtime"] = value
-
-                #imdb top250
-                result["SkinHelper.IMDB.Top250"] = self.imdb_top250.get(omdbresult["imdbID"],"")
-
-            #store to cache
-            self.omdbinfocache[liImdb] = result
-
-            #return if another listitem was focused in the meanwhile
-            if multiThreaded and not (liImdb == xbmc.getInfoLabel("%sListItem.IMDBNumber"%self.widgetContainerPrefix).decode('utf-8') or liImdb == xbmc.getInfoLabel("%sListItem.Property(IMDBNumber)"%self.widgetContainerPrefix).decode('utf-8')):
-                return
 
         #set properties
         for key, value in result.iteritems():
-            self.setWindowProp(key,value)
-
+            self.setWindowProp("SkinHelper.%s" %key, value)
+    
+    def setTop250(self,liImdb=""):
+        if not liImdb:
+            liImdb = self.liImdb
+        if liImdb in self.imdb_top250:
+            self.setWindowProp("SkinHelper.IMDB.Top250", self.imdb_top250[liImdb])
+    
     def setTmdbInfo(self,multiThreaded=False,liImdb=""):
         result = {}
         if not liImdb: liImdb = self.liImdb
@@ -1008,4 +970,5 @@ class ListItemMonitor(threading.Thread):
         if (self.contentType == "movies" or self.contentType == "setmovies") and artwork.get("imdb_id"):
             self.setTmdbInfo(False,artwork.get("imdb_id"))
             self.setAnimatedPoster(False,artwork.get("imdb_id"))
+        self.setTop250(artwork.get("imdb_id"))
         self.setOmdbInfo(artwork.get("imdb_id"))
