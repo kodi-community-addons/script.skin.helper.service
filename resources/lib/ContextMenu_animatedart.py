@@ -1,32 +1,36 @@
 # -*- coding: utf-8 -*-
-from Utils import *
-import ArtworkUtils as artworkutils
+import xbmc
+from artutils import AnimatedArt
+from utils import WINDOW
+
+def get_imdb_id():
+    content_type = WINDOW.getProperty("contenttype")
+    imdb_id = xbmc.getInfoLabel("ListItem.IMDBNumber").decode('utf-8')
+    if not imdb_id: 
+        imdb_id = xbmc.getInfoLabel("ListItem.Property(IMDBNumber)").decode('utf-8')
+    if imdb_id and not imdb_id.startswith("tt"):
+        imdb_id = ""
+    if not imdb_id:
+        year = xbmc.getInfoLabel("ListItem.Year").decode('utf-8')
+        title = xbmc.getInfoLabel("ListItem.Title").decode('utf-8')
+        if content_type in ["episodes","seasons"]:
+            title = xbmc.getInfoLabel("ListItem.TvShowTitle").decode('utf-8')
+        if year and title:
+            from artutils import Omdb
+            imdb_id = Omdb().get_details_by_title(title,year,content_type).get("imdbnumber","")
+        if not imdb_id:
+            return title
+    return imdb_id
 
 #Kodi contextmenu item to configure the artwork
 if __name__ == '__main__':
 
-    #### Animated artwork #######
-    logMsg("Context menu artwork settings for Animated artwork")
-    WINDOW.setProperty("artworkcontextmenu", "busy")
-    options=[]
-    options.append(ADDON.getLocalizedString(32173)) #animated poster
-    options.append(ADDON.getLocalizedString(32174)) #animated fanart
-    header = ADDON.getLocalizedString(32143)
-    ret = xbmcgui.Dialog().select(header, options)
-    if ret != -1:
-        if ret == 0 or ret == 1:
-            if ret == 0: type = "poster"
-            if ret == 1: type = "fanart"
-
-        liImdb = xbmc.getInfoLabel("ListItem.IMDBNumber")
-        if not liImdb: liImdb = xbmc.getInfoLabel("ListItem.Title").decode("utf-8")
-        liDbId = xbmc.getInfoLabel("ListItem.DBID")
-        if liImdb and WINDOW.getProperty("contenttype") in ["movies","setmovies"]:
-            WINDOW.clearProperty("SkinHelper.Animated%s"%type)
-            image = artworkutils.getAnimatedArtwork(liImdb,type,liDbId,options[ret])
-            WINDOW.clearProperty("SkinHelper.Animated%s"%type)
-            if image != "None":
-                xbmc.sleep(150)
-                WINDOW.setProperty("SkinHelper.Animated%s"%type,image)
-        xbmc.executebuiltin("Container.Refresh")
-    WINDOW.clearProperty("artworkcontextmenu")
+    animated_art = AnimatedArt()
+    imdb_id = get_imdb_id()
+    if imdb_id:
+        WINDOW.clearProperty("SkinHelper.AnimatedPoster")
+        WINDOW.clearProperty("SkinHelper.AnimatedFanart")
+        WINDOW.clearProperty("SkinHelper.ListItem.AnimatedPoster")
+        WINDOW.clearProperty("SkinHelper.ListItem.AnimatedFanart")
+        artwork = animated_art.get_animated_artwork(imdb_id,True)
+    xbmc.executebuiltin("Container.Refresh")

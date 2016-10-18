@@ -1,13 +1,16 @@
 # -*- coding: utf-8 -*-
-from Utils import *
-import ArtworkUtils as artworkutils
+from utils import *
+import artutils import PvrArtwork
 
 #Kodi contextmenu item to configure the artwork
 if __name__ == '__main__':
 
     ##### PVR Artwork ########
     artwork = {}
-    logMsg("Context menu artwork settings for PVR artwork")
+    
+    pvrart = PvrArtwork()
+    
+    log_msg("Context menu artwork settings for PVR artwork")
     WINDOW.setProperty("artworkcontextmenu", "busy")
     options=[]
     options.append(ADDON.getLocalizedString(32144)) #Refresh item (auto lookup)
@@ -24,16 +27,15 @@ if __name__ == '__main__':
     genre = xbmc.getInfoLabel("ListItem.Genre").decode('utf-8')
     year = xbmc.getInfoLabel("ListItem.Year").decode('utf-8')
     ret = xbmcgui.Dialog().select(header, options)
-    pvrtype=WINDOW.getProperty("contenttype")
     if ret == 0:
         #Refresh item (auto lookup)
-        artwork = artworkutils.getPVRThumbs(title,channel,pvrtype,path,genre,year,ignoreCache=True, manualLookup=False)
+        artwork = pvrart.get_pvr_artwork(title,channel,year,genre,ignore_cache=True, manual_lookup=False)
     elif ret == 1:
         #Refresh item (manual lookup)
-        artwork = artworkutils.getPVRThumbs(title,channel,pvrtype,path,genre,year,ignoreCache=True, manualLookup=True)
+        artwork = pvrart.get_pvr_artwork(title,channel,year,genre,ignore_cache=True, manual_lookup=True)
     elif ret == 2:
         #Choose art
-        artwork = artworkutils.getPVRThumbs(title,channel,pvrtype,path,genre,year)
+        artwork = pvrart.get_pvr_artwork(title,channel,year,genre)
 
         import Dialogs as dialogs
         abort = False
@@ -78,7 +80,7 @@ if __name__ == '__main__':
                     if image:
                         artwork[label] = image
         #save modifications
-        artwork = artworkutils.getPVRThumbs(title,channel,pvrtype,path,genre,year,ignoreCache=False, manualLookup=False,override=artwork)
+        artwork = artworkutils.getPVRThumbs(title,channel,pvrtype,path,genre,year,ignore_cache=False, manual_lookup=False,override=artwork)
 
     elif ret == 3:
         #Add channel to ignore list
@@ -87,7 +89,7 @@ if __name__ == '__main__':
         ignorechannels += channel
         ADDON.setSetting("ignorechannels",ignorechannels)
         WINDOW.setProperty("SkinHelper.ignorechannels",ignorechannels)
-        artwork = artworkutils.getPVRThumbs(title,channel,type,path,genre,year,ignoreCache=True, manualLookup=False)
+        artwork = pvrart.get_pvr_artwork(title,channel,year,genre,ignore_cache=True, manual_lookup=False)
     elif ret == 4:
         #Add title to ignore list
         ignoretitles = WINDOW.getProperty("SkinHelper.ignoretitles").decode("utf-8")
@@ -95,7 +97,7 @@ if __name__ == '__main__':
         ignoretitles += title
         ADDON.setSetting("ignoretitles",ignoretitles)
         WINDOW.setProperty("SkinHelper.ignoretitles",ignoretitles)
-        artwork = artworkutils.getPVRThumbs(title,channel,type,path,genre,year,ignoreCache=True, manualLookup=False)
+        artwork = pvrart.get_pvr_artwork(title,channel,year,genre,ignore_cache=True, manual_lookup=False)
     elif ret == 5:
         #Open addon settings
         xbmc.executebuiltin("Addon.OpenSettings(script.skin.helper.service)")

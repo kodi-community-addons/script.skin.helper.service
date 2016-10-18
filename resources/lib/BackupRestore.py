@@ -1,4 +1,4 @@
-from Utils import *
+from utils import *
 
 def getSkinSettings(filter=None):
     newlist = []
@@ -10,7 +10,7 @@ def getSkinSettings(filter=None):
         xbmc.Monitor().waitForAbort(1.5)
         guisettings_path = xbmc.translatePath('special://profile/addon_data/%s/settings.xml' %xbmc.getSkinDir()).decode("utf-8")
     if xbmcvfs.exists(guisettings_path):
-        logMsg("guisettings.xml found")
+        log_msg("guisettings.xml found")
         doc = parse(guisettings_path)
         skinsettings = doc.documentElement.getElementsByTagName('setting')
 
@@ -41,7 +41,7 @@ def getSkinSettings(filter=None):
                             newlist.append((skinsetting.attributes['type'].nodeValue, settingname, settingvalue))
     else:
         xbmcgui.Dialog().ok(ADDON.getLocalizedString(32028), ADDON.getLocalizedString(32030))
-        logMsg("skin settings file not found")
+        log_msg("skin settings file not found")
 
     return newlist
 
@@ -88,7 +88,7 @@ def backup(filterString="",silent=None,promptfilename="false"):
             #get skinshortcuts preferences
             skinshortcuts_path = temp_path + "skinshortcuts/"
             skinshortcuts_path_source = xbmc.translatePath('special://profile/addon_data/script.skinshortcuts/').decode("utf-8")
-            logMsg(skinshortcuts_path_source)
+            log_msg(skinshortcuts_path_source)
             if xbmcvfs.exists(skinshortcuts_path_source) and (not filterString or filterString.lower() == "skinshortcutsonly"):
                 if not xbmcvfs.exists(skinshortcuts_path):
                     xbmcvfs.mkdir(skinshortcuts_path)
@@ -99,8 +99,8 @@ def backup(filterString="",silent=None,promptfilename="false"):
                     if xbmc.getCondVisibility("SubString(Skin.String(skinshortcuts-sharedmenu),false)"):
                         # User is not sharing menu, so strip the skin name out of the destination file
                         destfile = destfile.replace("%s." %(xbmc.getSkinDir()), "")
-                    logMsg("source --> " + sourcefile)
-                    logMsg("destination --> " + destfile)
+                    log_msg("source --> " + sourcefile)
+                    log_msg("destination --> " + destfile)
 
                     if file.endswith(".DATA.xml") and (not xbmc.getCondVisibility("SubString(Skin.String(skinshortcuts-sharedmenu),false)") or file.startswith(xbmc.getSkinDir())):
                         xbmcvfs.copy(sourcefile,destfile)
@@ -207,11 +207,11 @@ def backup(filterString="",silent=None,promptfilename="false"):
             xbmcvfs.delete(zip_temp + ".zip")
 
     except Exception as e:
-        logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
+        log_msg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
         error = True
 
     if error:
-        logMsg("ERROR while creating backup ! --> %e" %e, xbmc.LOGERROR)
+        log_msg("ERROR while creating backup ! --> %e" %e, xbmc.LOGERROR)
         if not silent: xbmcgui.Dialog().ok(ADDON.getLocalizedString(32028), ADDON.getLocalizedString(32030), str(e))
     elif not silent:
         xbmcgui.Dialog().ok(ADDON.getLocalizedString(32028), ADDON.getLocalizedString(32029))
@@ -254,7 +254,7 @@ def restoreSkinSettings(filename, progressDialog=None):
 def restore(silent=None):
     #return if silent file doesn't exist
     if silent and not xbmcvfs.exists(silent):
-        logMsg("ERROR while restoring backup ! --> Path invalid. Make sure you provide the FULL path, for example special://skin/extras/mybackup.zip", xbmc.LOGERROR)
+        log_msg("ERROR while restoring backup ! --> Path invalid. Make sure you provide the FULL path, for example special://skin/extras/mybackup.zip", xbmc.LOGERROR)
         return
     #if silent file submitted is not zipfile, treat as skinsettings only
     if silent and not silent.lower().endswith("zip"):
@@ -263,7 +263,7 @@ def restore(silent=None):
             restoreSkinSettings(silent)
         except Exception:
             exc_trace = format_exc(sys.exc_info())
-            logMsg("ERROR while restoring backup ! --> %s" %exc_trace,xbmc.LOGERROR)
+            log_msg("ERROR while restoring backup ! --> %s" %exc_trace,xbmc.LOGERROR)
         xbmc.executebuiltin( "Dialog.Close(busydialog)" )
     else:
         #perform full restore
@@ -277,7 +277,7 @@ def restoreFull(silent=None):
             zip_path = get_browse_dialog(dlg_type=1,heading=ADDON.getLocalizedString(32031),mask=".zip")
 
         if zip_path and zip_path != "protocol://":
-            logMsg("zip_path " + zip_path)
+            log_msg("zip_path " + zip_path)
 
             if not silent:
                 progressDialog = xbmcgui.DialogProgress(ADDON.getLocalizedString(32032))
@@ -318,8 +318,8 @@ def restoreFull(silent=None):
                         destfile = skinshortcuts_path_dest + file.replace("SKINPROPERTIES",xbmc.getSkinDir())
                     elif xbmc.getCondVisibility("SubString(Skin.String(skinshortcuts-sharedmenu),false)"):
                         destfile = "%s-" %(xbmc.getSkinDir())
-                    logMsg("source --> " + sourcefile)
-                    logMsg("destination --> " + destfile)
+                    log_msg("source --> " + sourcefile)
+                    log_msg("destination --> " + destfile)
                     if xbmcvfs.exists(destfile):
                         xbmcvfs.delete(destfile)
                     xbmcvfs.copy(sourcefile,destfile)
@@ -349,7 +349,7 @@ def restoreFull(silent=None):
     except Exception as e:
         if not silent:
             xbmcgui.Dialog().ok(ADDON.getLocalizedString(32032), ADDON.getLocalizedString(32035), str(e))
-        logMsg("ERROR while restoring backup ! --> " + str(e), 0)
+        log_msg("ERROR while restoring backup ! --> " + str(e), 0)
 
 def reset(filterString="",proceed=False):
     if not proceed:
@@ -381,7 +381,7 @@ def save_to_file(content, filename, path=""):
         if not xbmcvfs.exists(path):
             xbmcvfs.mkdir(path)
         text_file_path = os.path.join(path, filename + ".txt")
-    logMsg("save to textfile: " + text_file_path)
+    log_msg("save to textfile: " + text_file_path)
     text_file = xbmcvfs.File(text_file_path, "w")
     json.dump(content, text_file)
     text_file.close()
@@ -393,7 +393,7 @@ def read_from_file(path=""):
     if xbmcvfs.exists(path):
         f = open(path)
         fc = json.load(f)
-        logMsg("loaded textfile " + path)
+        log_msg("loaded textfile " + path)
         return fc
     else:
         return False

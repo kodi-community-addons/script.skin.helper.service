@@ -5,7 +5,7 @@ import urlparse
 import xbmc,xbmcgui,xbmcplugin,xbmcvfs
 try:
     import resources.lib.MainModule as mainmodule
-    import resources.lib.Utils as utils
+    import resources.lib.utils as utils
 except Exception:
     xbmcgui.Dialog().ok(heading="Skin Helper Service", line1="Installation is missing files. Please reinstall the skin helper service addon to fix this issue.")
 
@@ -25,7 +25,7 @@ class Main:
                 params[paramname] = paramvalue
                 params[paramname.upper()] = paramvalue
 
-        utils.logMsg("Parameter string: " + str(params))
+        utils.log_msg("Parameter string: " + str(params))
         return params
 
 
@@ -35,7 +35,7 @@ class Main:
             print warning in log and call the external script with the same parameters
         '''
         action = params.get("ACTION","").upper()
-        utils.logMsg("Deprecated method: %s. Please call %s directly" %(action,newaddon), xbmc.LOGWARNING )
+        utils.log_msg("Deprecated method: %s. Please call %s directly" %(action,newaddon), xbmc.LOGWARNING )
         paramstring = ""
         for key, value in params.iteritems():
             paramstring += ",%s=%s" %(key,value)
@@ -50,7 +50,7 @@ class Main:
 
     def __init__(self):
 
-        utils.logMsg('started loading script entry')
+        utils.log_msg('started loading script entry')
         params = self.getParams()
 
         if params:
@@ -154,7 +154,7 @@ class Main:
                     if not dbid or dbid == "-1": dbid = xbmc.getInfoLabel("%sListItem.Property(DBID)"%widgetContainerPrefix).decode('utf-8')
                     if dbid == "-1": dbid = ""
                     dbtype = xbmc.getInfoLabel("%sListItem.DBTYPE"%widgetContainerPrefix).decode('utf-8')
-                    utils.logMsg("dbtype: %s - dbid: %s" %(dbtype,dbid))
+                    utils.log_msg("dbtype: %s - dbid: %s" %(dbtype,dbid))
                     if not dbtype: dbtype = xbmc.getInfoLabel("%sListItem.Property(DBTYPE)"%widgetContainerPrefix).decode('utf-8')
                     if not dbtype:
                         db_type = xbmc.getInfoLabel("%sListItem.Property(type)"%widgetContainerPrefix).decode('utf-8')
@@ -213,7 +213,7 @@ class Main:
                 mainmodule.selectBusyTexture()
 
             elif action == "CACHEALLMUSICART":
-                import resources.lib.ArtworkUtils as artworkutils
+                import resources.lib.Artworkutils as artworkutils
                 artworkutils.preCacheAllMusicArt()
 
             elif action == "RESETCACHE":
@@ -379,4 +379,4 @@ if (__name__ == "__main__"):
     if not utils.WINDOW.getProperty("SkinHelperShutdownRequested"):
         Main()
 
-utils.logMsg('finished loading script entry')
+utils.log_msg('finished loading script entry')

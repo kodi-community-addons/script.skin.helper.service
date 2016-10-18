@@ -47,10 +47,14 @@ fields_albums = '"title", "fanart", "thumbnail", "genre", "displayartist", "arti
 fields_pvrrecordings = '"art", "channel", "directory", "endtime", "file", "genre", "icon", "playcount", "plot", "plotoutline", "resume", "runtime", "starttime", "streamurl", "title"'
 KodiArtTypes = [ ("thumb","thumb.jpg"),("poster","poster.jpg"),("fanart","fanart.jpg"),("banner","banner.jpg"),("landscape","landscape.jpg"),("clearlogo","logo.png"),("clearart","clearart.png"),("channellogo","channellogo.png"),("discart","disc.png"),("discart","cdart.png"),("extrafanart","extrafanart/"),("characterart","characterart.png"),("folder","folder.jpg") ]
 
-def logMsg(msg, loglevel = xbmc.LOGDEBUG):
+def log_msg(msg, loglevel = xbmc.LOGDEBUG):
     if isinstance(msg, unicode):
         msg = msg.encode('utf-8')
     xbmc.log("Skin Helper Service --> %s" %msg, level=loglevel)
+    
+def log_exception(modulename, exceptiondetails):
+    log_msg(format_exc(sys.exc_info()),xbmc.LOGWARNING)
+    log_msg("ERROR in %s ! --> %s" %(modulename,exceptiondetails), xbmc.LOGERROR)
 
 def getContentPath(libPath):
     if "$INFO" in libPath and not "reload=" in libPath:
@@ -82,12 +86,12 @@ def getContentPath(libPath):
         libPath = libPath.split("&reload=")[0]
     return libPath
 
-def setJSON(method,params):
+def set_kodi_json(method,params):
     json_response = xbmc.executeJSONRPC('{ "jsonrpc": "2.0", "method" : "%s", "params": %s, "id":1 }' %(method, try_encode(params)))
     jsonobject = json.loads(json_response.decode('utf-8','replace'))
     return jsonobject
 
-def getJSON(method,params):
+def get_kodi_json(method,params):
     json_response = xbmc.executeJSONRPC('{ "jsonrpc": "2.0", "method" : "%s", "params": %s, "id":1 }' %(method, try_encode(params)))
     jsonobject = json.loads(json_response.decode('utf-8','replace'))
     if(jsonobject.has_key('result')):
@@ -159,7 +163,7 @@ def getJSON(method,params):
         else:
             return {}
     else:
-        logMsg("getJson - invalid result for Method %s - params: %s - response: %s" %(method,params, str(jsonobject)))
+        log_msg("getJson - invalid result for Method %s - params: %s - response: %s" %(method,params, str(jsonobject)))
         return {}
 
 def checkFolders():
@@ -340,8 +344,8 @@ def createListItem(item,asTuple=True):
         else:
             return liz
     except Exception as e:
-        logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
-        logMsg("ERROR Preparing ListItem --> %s" %e, xbmc.LOGERROR)
+        log_msg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
+        log_msg("ERROR Preparing ListItem --> %s" %e, xbmc.LOGERROR)
         return None
 
 def prepareListItem(item):
@@ -488,15 +492,15 @@ def prepareListItem(item):
         item["extraproperties"] = properties
         
         if not "file" in item:
-            logMsg("Item is missing file path ! --> %s" %item["label"], xbmc.LOGWARNING)
+            log_msg("Item is missing file path ! --> %s" %item["label"], xbmc.LOGWARNING)
             item["file"] = ""
         
         #return the result
         return item
 
     except Exception as e:
-        logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
-        logMsg("ERROR Preparing ListItem --> %s" %e, xbmc.LOGERROR)
+        log_msg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
+        log_msg("ERROR Preparing ListItem --> %s" %e, xbmc.LOGERROR)
         return None
 
 def detectPluginContent(plugin):
@@ -542,8 +546,8 @@ def detectPluginContent(plugin):
 
         #if we didn't get the content based on the path, we need to probe the addon...
         if not contentType and not xbmc.getCondVisibility("Window.IsMedia"): #safety check: check if no library windows are active to prevent any addons setting the view
-            logMsg("detectPluginContent probing contenttype for: " + plugin)
-            media_array = getJSON('Files.GetDirectory','{ "directory": "%s", "media": "files", "properties": ["title", "file", "thumbnail", "episode", "showtitle", "season", "album", "artist", "imdbnumber", "firstaired", "mpaa", "trailer", "studio", "art"], "limits": {"end":1} }' %plugin)
+            log_msg("detectPluginContent probing contenttype for: " + plugin)
+            media_array = get_kodi_json('Files.GetDirectory','{ "directory": "%s", "media": "files", "properties": ["title", "file", "thumbnail", "episode", "showtitle", "season", "album", "artist", "imdbnumber", "firstaired", "mpaa", "trailer", "studio", "art"], "limits": {"end":1} }' %plugin)
             for item in media_array:
                 if item.get("filetype","") == "directory":
                     contentType = "folder"
@@ -606,8 +610,8 @@ def getLocalDateTimeFromUtc(timestring):
         else:
             return (correcttime.strftime("%d-%m-%Y"),correcttime.strftime("%H:%M"))
     except Exception as e:
-        logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
-        logMsg("ERROR in Utils.getLocalDateTimeFromUtc ! --> %s" %e, xbmc.LOGERROR)
+        log_msg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
+        log_msg("ERROR in utils.getLocalDateTimeFromUtc ! --> %s" %e, xbmc.LOGERROR)
 
         return (timestring,timestring)
 
@@ -634,10 +638,10 @@ def createSmartShortcutSubmenu(windowProp,iconimage):
                 with open(shortcutFile, 'w') as f:
                     f.write(data)
     except Exception as e:
-        logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
-        logMsg("ERROR in Utils.createSmartShortcutSubmenu ! --> %s" %e, xbmc.LOGERROR)
+        log_msg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
+        log_msg("ERROR in utils.createSmartShortcutSubmenu ! --> %s" %e, xbmc.LOGERROR)
 
-def getCurrentContentType(containerprefix=""):
+def get_current_content_type(containerprefix=""):
     contenttype = ""
     if not containerprefix:
         if xbmc.getCondVisibility("Container.Content(episodes)"):
@@ -755,7 +759,7 @@ def addToZip(src, zf, abs_src):
     dirs, files = xbmcvfs.listdir(src)
     for file in files:
         file = file.decode("utf-8")
-        logMsg("zipping " + file)
+        log_msg("zipping " + file)
         file = xbmc.translatePath( os.path.join(src, file) ).decode("utf-8")
         absname = os.path.abspath(file)
         arcname = absname[len(abs_src) + 1:]
@@ -783,16 +787,16 @@ def unzipFromFile(zip_file,path):
     import zipfile
     zip_file = try_decode(zip_file)
     path = try_decode(path)
-    logMsg("START UNZIP of file %s  to path %s " %(zipfile,path))
+    log_msg("START UNZIP of file %s  to path %s " %(zipfile,path))
     f = zipfile.ZipFile(zip_file, 'r')
     for fileinfo in f.infolist():
         filename = fileinfo.filename
         filename = try_decode(filename)
-        logMsg("unzipping " + filename)
+        log_msg("unzipping " + filename)
         if "\\" in filename: xbmcvfs.mkdirs(os.path.join(path,filename.rsplit("\\", 1)[0]))
         elif "/" in filename: xbmcvfs.mkdirs(os.path.join(path,filename.rsplit("/", 1)[0]))
         filename = os.path.join(path,filename)
-        logMsg("unzipping " + filename, xbmc.LOGDEBUG)
+        log_msg("unzipping " + filename, xbmc.LOGDEBUG)
         try:
             #newer python uses unicode
             outputfile = open(filename, "wb")
@@ -803,7 +807,7 @@ def unzipFromFile(zip_file,path):
         shutil.copyfileobj(f.open(fileinfo.filename), outputfile)
         outputfile.close()
     f.close()
-    logMsg("UNZIP DONE of file %s  to path %s " %(zipfile,path))
+    log_msg("UNZIP DONE of file %s  to path %s " %(zipfile,path))
 
 def getDataFromCacheFile(file):
     data = {}
@@ -814,8 +818,8 @@ def getDataFromCacheFile(file):
             f.close()
             if text: data = eval(text)
     except Exception as e:
-        logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
-        logMsg("ERROR in Utils.getDataFromCacheFile ! --> %s" %e, xbmc.LOGERROR)
+        log_msg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
+        log_msg("ERROR in utils.getDataFromCacheFile ! --> %s" %e, xbmc.LOGERROR)
     return data
 
 def saveDataToCacheFile(file,data):
@@ -828,42 +832,26 @@ def saveDataToCacheFile(file,data):
         f.write(str_data)
         f.close()
     except Exception as e:
-        logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
-        logMsg("ERROR in Utils.saveDataToCacheFile ! --> %s" %e, xbmc.LOGERROR)
+        log_msg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
+        log_msg("ERROR in utils.saveDataToCacheFile ! --> %s" %e, xbmc.LOGERROR)
 
-def getCompareString(string,optionalreplacestring=""):
-    #strip all kinds of chars from a string to be used in compare actions
-    string = try_encode(string)
-    string = string.lower().replace(".","").replace(" ","").replace("-","").replace("_","").replace("'","").replace("`","").replace("’","").replace("_new","").replace("new_","")
-    if optionalreplacestring: string = string.replace(optionalreplacestring.lower(),"")
-    string = try_decode(string)
-    string = normalize_string(string)
-    return string
 
-def intWithCommas(x):
-    try:
-        x = int(x)
-        if x < 0:
-            return '-' + intWithCommas(-x)
-        result = ''
-        while x >= 1000:
-            x, r = divmod(x, 1000)
-            result = ",%03d%s" % (r, result)
-        return "%d%s" % (x, result)
-    except Exception: return ""
     
-def processPooledList(methodToRun,items):
+   
+def process_method_on_list(method_to_run,items):
     '''helper method that processes a method on each listitem with pooling if the system supports it'''
-    allItems = []
+    all_items = []
     if supportsPool:
         pool = Pool()
         try:
-            allItems = pool.map(methodToRun, items)
+            all_items = pool.map(method_to_run, items)
         except Exception:
             #catch exception to prevent threadpool running forever
-            logMsg("Error in %s" %methodToRun)
+            log_msg(format_exc(sys.exc_info()))
+            log_msg("Error in %s" %method_to_run)
         pool.close()
         pool.join()
     else:
-        allItems = [methodToRun(item) for item in items]
-    return allItems
+        all_items = [method_to_run(item) for item in items]
+    all_items = filter(None, all_items)
+    return all_items

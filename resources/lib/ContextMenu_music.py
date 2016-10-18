@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
-from Utils import *
-import ArtworkUtils as artworkutils
+from utils import *
+import Artworkutils as artworkutils
 
 #Kodi contextmenu item to configure the artwork
 if __name__ == '__main__':
 
     ##### Music Artwork ########
 
-    logMsg("Context menu artwork settings for Music artwork")
+    log_msg("Context menu artwork settings for Music artwork")
     WINDOW.setProperty("artworkcontextmenu", "busy")
     options=[]
     options.append(ADDON.getLocalizedString(32144)) #Refresh item (auto lookup)

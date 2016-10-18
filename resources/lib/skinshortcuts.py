@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-from Utils import *
+from utils import *
 
 #This file contains methods to connect skinhelper to skinshortcuts for smartshortcuts, widgets and backgrounds
 
@@ -297,8 +297,8 @@ def getPlayListsWidgetListing():
     paths = ["special://skin/playlists/","special://skin/extras/widgetplaylists/","special://skin/extras/playlists/"]
     for path in paths:
         if xbmcvfs.exists(path):
-            logMsg("buildWidgetsListing processing: " + path)
-            media_array = getJSON('Files.GetDirectory','{ "directory": "%s", "media": "files" }' %path)
+            log_msg("buildWidgetsListing processing: " + path)
+            media_array = get_kodi_json('Files.GetDirectory','{ "directory": "%s", "media": "files" }' %path)
             for item in media_array:
                 if item["file"].endswith(".xsp"):
                     playlist = item["file"]
@@ -324,11 +324,11 @@ def getPlayListsWidgetListing():
 def buildAddonWidgetItem(pluginpath,sublevel=""):
     foundWidgets = []
     if sublevel:
-        media_array = getJSON('Files.GetDirectory','{ "directory": "%s", "media": "files" }' %pluginpath)
+        media_array = get_kodi_json('Files.GetDirectory','{ "directory": "%s", "media": "files" }' %pluginpath)
     else:
-        media_array = getJSON('Files.GetDirectory','{ "directory": "plugin://%s", "media": "files" }' %pluginpath)
+        media_array = get_kodi_json('Files.GetDirectory','{ "directory": "plugin://%s", "media": "files" }' %pluginpath)
     for item in media_array:
-        logMsg("buildWidgetsListing processing: %s - %s" %(pluginpath,item["label"]))
+        log_msg("buildWidgetsListing processing: %s - %s" %(pluginpath,item["label"]))
         content = item["file"]
         label = item["label"]
         if sublevel:
@@ -362,10 +362,10 @@ def getAddonWidgetListing(addonShortName):
     addonList.append(["script.skin.helper.service", "scriptwidgets"])
     addonList.append(["service.library.data.provider", "librarydataprovider"])
     addonList.append(["script.extendedinfo", "extendedinfo"])
-    logMsg("getAddonWidgetListing " + addonShortName)
+    log_msg("getAddonWidgetListing " + addonShortName)
     for addon in addonList:
         if addon[1] == addonShortName:
-            logMsg("buildWidgetsListing processing: " + addon[0])
+            log_msg("buildWidgetsListing processing: " + addon[0])
             if xbmc.getCondVisibility("System.HasAddon(%s)" %addon[0]):
 
                 foundWidgets += buildAddonWidgetItem(addon[0])
@@ -382,7 +382,7 @@ def getAddonWidgetListing(addonShortName):
 
 def getFavouritesWidgetsListing():
     #widgets from favourites
-    json_result = getJSON('Favourites.GetFavourites', '{"type": null, "properties": ["path", "thumbnail", "window", "windowparameter"]}')
+    json_result = get_kodi_json('Favourites.GetFavourites', '{"type": null, "properties": ["path", "thumbnail", "window", "windowparameter"]}')
     foundWidgets = []
     for fav in json_result:
         if "windowparameter" in fav:
@@ -390,7 +390,7 @@ def getFavouritesWidgetsListing():
             #check if this is a valid path with content
             if not "script://" in content.lower() and not "mode=9" in content.lower() and not "search" in content.lower() and not "play" in content.lower():
                 label = fav["title"]
-                logMsg("buildWidgetsListing processing favourite: %s" %label)
+                log_msg("buildWidgetsListing processing favourite: %s" %label)
                 type = detectPluginContent(content)
                 if type and type != "empty":
                     foundWidgets.append([label, content, type])

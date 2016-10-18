@@ -1,4 +1,4 @@
-from Utils import *
+from utils import *
 import Dialogs as dialogs
 
 
@@ -154,7 +154,7 @@ def setForcedView(contenttype):
 
 def setView():
     #sets the selected viewmode for the container
-    contenttype = getCurrentContentType()
+    contenttype = get_current_content_type()
     if not contenttype: contenttype = "files"
 
     currentView = xbmc.getInfoLabel("Container.Viewmode").decode("utf-8")
@@ -183,7 +183,7 @@ def searchYouTube(title,windowHeader="",autoSelect=False):
     media_array = None
     allResults = []
     path = ""
-    media_array = getJSON('Files.GetDirectory','{ "properties": ["title","art","plot"], "directory": "%s", "media": "files", "limits": {"end":25} }' %try_encode(libPath))
+    media_array = get_kodi_json('Files.GetDirectory','{ "properties": ["title","art","plot"], "directory": "%s", "media": "files", "limits": {"end":25} }' %try_encode(libPath))
     for media in media_array:
         if not media["filetype"] == "directory":
             label = media["label"]
@@ -641,7 +641,7 @@ def setKodiSetting(settingname, value):
     xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"Settings.SetSettingValue","params":{"setting":"%s","value":%s}}' %(settingname,value))
 
 def show_splash(file,duration=5):
-    logMsg("show_splash --> " + file)
+    log_msg("show_splash --> " + file)
     if file.lower().endswith("jpg") or file.lower().endswith("gif") or file.lower().endswith("png") or file.lower().endswith("tiff"):
         #this is an image file
         WINDOW.setProperty("SkinHelper.SplashScreen",file)

@@ -1,4 +1,4 @@
-from Utils import *
+from utils import *
 
 skin = xbmcaddon.Addon(id=xbmc.getSkinDir())
 userThemesDir = xbmc.translatePath(skin.getAddonInfo('profile')).decode("utf-8")
@@ -36,7 +36,7 @@ class ColorThemes(xbmcgui.WindowXMLDialog):
                 xbmc.executebuiltin(try_encode("Skin.SetString(SkinHelper.ColorTheme.%s.file,%s)" % (self.daynight,item.getProperty("filename"))))
             except Exception:
                 exc_trace = format_exc(sys.exc_info())
-                logMsg(exc_trace,xbmc.LOGDEBUG)
+                log_msg(exc_trace,xbmc.LOGDEBUG)
                 xbmcgui.Dialog().ok(xbmc.getLocalizedString(329), ADDON.getLocalizedString(32070))
 
         self.closeDialog()

@@ -1,5 +1,5 @@
 from xml.dom.minidom import parse
-from Utils import *
+from utils import *
 
 cachePath = os.path.join(ADDON_DATA_PATH,"conditionalbackgrounds.json")
 dateFormat = "%Y-%m-%d"

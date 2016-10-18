@@ -1,8 +1,8 @@
 import sys
 import xbmc, xbmcgui, xbmcvfs
-import ArtworkUtils as artutils
+import Artworkutils as artutils
 import PluginContent as plugincontent
-from Utils import *
+from utils import *
 import threading
 
 CANCEL_DIALOG  = ( 9, 10, 92, 216, 247, 257, 275, 61467, 61448, )
@@ -14,25 +14,25 @@ class GUI( xbmcgui.WindowXMLDialog ):
         xbmcgui.WindowXMLDialog.__init__( self )
         params = kwargs[ "params" ]
         if params.get("MOVIEID"):
-            item = getJSON('VideoLibrary.GetMovieDetails', '{ "movieid": %s, "properties": [ %s ] }' %(params["MOVIEID"],fields_movies))
+            item = get_kodi_json('VideoLibrary.GetMovieDetails', '{ "movieid": %s, "properties": [ %s ] }' %(params["MOVIEID"],fields_movies))
             self.content = "movies"
         elif params.get("MUSICVIDEOID"):
-            item = getJSON('VideoLibrary.GetMusicVideoDetails', '{ "musicvideoid": %s, "properties": [ %s ] }' %(params["MUSICVIDEOID"],fields_musicvideos))
+            item = get_kodi_json('VideoLibrary.GetMusicVideoDetails', '{ "musicvideoid": %s, "properties": [ %s ] }' %(params["MUSICVIDEOID"],fields_musicvideos))
             self.content = "musicvideos"
         elif params.get("EPISODEID"):
-            item = getJSON('VideoLibrary.GetEpisodeDetails', '{ "episodeid": %s, "properties": [ %s ] }' %(params["EPISODEID"],fields_episodes))
+            item = get_kodi_json('VideoLibrary.GetEpisodeDetails', '{ "episodeid": %s, "properties": [ %s ] }' %(params["EPISODEID"],fields_episodes))
             self.content = "episodes"
         elif params.get("TVSHOWID"):
-            item = getJSON('VideoLibrary.GetTVShowDetails', '{ "tvshowid": %s, "properties": [ %s ] }' %(params["TVSHOWID"],fields_tvshows))
+            item = get_kodi_json('VideoLibrary.GetTVShowDetails', '{ "tvshowid": %s, "properties": [ %s ] }' %(params["TVSHOWID"],fields_tvshows))
             self.content = "tvshows"
         elif params.get("ALBUMID"):
-            item = getJSON('AudioLibrary.GetAlbumDetails', '{ "albumid": %s, "properties": [ %s ] }' %(params["ALBUMID"],fields_albums))
+            item = get_kodi_json('AudioLibrary.GetAlbumDetails', '{ "albumid": %s, "properties": [ %s ] }' %(params["ALBUMID"],fields_albums))
             self.content = "albums"
         elif params.get("SONGID"):
-            item = getJSON('AudioLibrary.GetSongDetails', '{ "songid": %s, "properties": [ %s ] }' %(params["SONGID"],fields_songs))
+            item = get_kodi_json('AudioLibrary.GetSongDetails', '{ "songid": %s, "properties": [ %s ] }' %(params["SONGID"],fields_songs))
             self.content = "songs"
         elif params.get("RECORDINGID"):
-            item = getJSON('PVR.GetRecordingDetails', '{ "recordingid": %s, "properties": [ %s ]}' %( params["RECORDINGID"], fields_pvrrecordings))
+            item = get_kodi_json('PVR.GetRecordingDetails', '{ "recordingid": %s, "properties": [ %s ]}' %( params["RECORDINGID"], fields_pvrrecordings))
             artwork = artutils.getPVRThumbs(item["title"],item["channel"],"recordings",item["file"])
             item["art"] = artwork
             for key, value in artwork.iteritems():
@@ -142,7 +142,7 @@ class BackgroundInfoThread(threading.Thread):
                 liz.setThumbnailImage(item["art"].get("poster"))
                 similarlist.addItem(liz)
         except Exception:
-            plugincontent.logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
+            plugincontent.log_msg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
 
         try: #optional: cast list
             castlist = self.infoDialog.getControl( 998 )
@@ -163,4 +163,4 @@ class BackgroundInfoThread(threading.Thread):
                 castlist.addItem(liz)
 
         except Exception:
-            plugincontent.logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
+            plugincontent.log_msg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)

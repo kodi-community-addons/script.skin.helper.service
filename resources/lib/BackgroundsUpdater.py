@@ -6,8 +6,8 @@ import random
 import io
 import base64
 import ConditionalBackgrounds as conditionalBackgrounds
-import ArtworkUtils as artutils
-from Utils import *
+#import Artworkutils as artutils
+from utils import *
 
 class BackgroundsUpdater(threading.Thread):
 
@@ -35,12 +35,12 @@ class BackgroundsUpdater(threading.Thread):
         self.SmartShortcutsCachePath = os.path.join(ADDON_DATA_PATH,"smartshotcutscache.json")
         self.monitor = xbmc.Monitor()
 
-        logMsg("BackgroundsUpdater - started")
+        log_msg("BackgroundsUpdater - started")
         self.event =  threading.Event()
         threading.Thread.__init__(self, *args)
 
     def stop(self):
-        logMsg("BackgroundsUpdater - stop called")
+        log_msg("BackgroundsUpdater - stop called")
         self.saveCacheToFile()
         self.exit = True
         self.event.set()
@@ -61,8 +61,8 @@ class BackgroundsUpdater(threading.Thread):
             self.UpdateSmartShortCuts(True)
             self.saveCacheToFile()
         except Exception as e:
-            logMsg("Error in BackgroundsUpdater: %s" %e)
-            logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
+            log_msg("Error in BackgroundsUpdater: %s" %e)
+            log_msg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
 
         while (self.exit != True):
 
@@ -72,7 +72,7 @@ class BackgroundsUpdater(threading.Thread):
                 try:
                     self.setDayNightColorTheme()
                 except Exception as e:
-                    logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
+                    log_msg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
 
             #Process backgrounds
             if xbmc.getCondVisibility("![Window.IsActive(fullscreenvideo) | Window.IsActive(script.pseudotv.TVOverlay.xml) | Window.IsActive(script.pseudotv.live.TVOverlay.xml)] | Window.IsActive(script.pseudotv.live.EPG.xml)") and self.backgroundDelay != 0:
@@ -80,7 +80,7 @@ class BackgroundsUpdater(threading.Thread):
                 # force refresh smart shortcuts on request
                 if WINDOW.getProperty("refreshsmartshortcuts") and self.smartShortcutsFirstRunDone:
                     try: self.UpdateSmartShortCuts(True)
-                    except Exception as e: logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
+                    except Exception as e: log_msg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
                     WINDOW.clearProperty("refreshsmartshortcuts")
 
                 # Update home backgrounds every interval (if enabled by skinner)
@@ -95,7 +95,7 @@ class BackgroundsUpdater(threading.Thread):
                             self.getSkinConfig()
                             self.UpdateWallBackgrounds()
                         except Exception as e:
-                            logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
+                            log_msg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
 
                 # Update manual wall images - if enabled by the skinner
                 if self.wallImagesDelay != 0:
@@ -104,7 +104,7 @@ class BackgroundsUpdater(threading.Thread):
                         try:
                             self.updateWallImages()
                         except Exception as e:
-                            logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
+                            log_msg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
 
             self.monitor.waitForAbort(1)
             self.backgroundsTaskInterval += 1
@@ -130,7 +130,7 @@ class BackgroundsUpdater(threading.Thread):
                             if limitrange:
                                 self.manualWalls[key] = int(limitrange)
         except Exception as e:
-            logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
+            log_msg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
             self.wallImagesDelay = 0
 
     def saveCacheToFile(self):
@@ -167,7 +167,7 @@ class BackgroundsUpdater(threading.Thread):
                         import resources.lib.ColorThemes as colorThemes
                         colorThemes.loadColorTheme(themefile)
             except Exception as e:
-                logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
+                log_msg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
                 xbmc.executebuiltin( "Dialog.Close(busydialog)" )
 
     def setWallImageFromPath(self, windowProp, libPath, type="fanart"):
@@ -179,7 +179,7 @@ class BackgroundsUpdater(threading.Thread):
             image = random.choice(self.allBackgrounds[windowProp])
             if image.get("wall"):
                 if not xbmcvfs.exists(image.get("wall")):
-                    logMsg("Wall images cleared - starting rebuild...",xbmc.LOGWARNING)
+                    log_msg("Wall images cleared - starting rebuild...",xbmc.LOGWARNING)
                     del self.allBackgrounds[windowProp]
                 else:
                     WINDOW.setProperty(windowProp, image.get("wall"))
@@ -192,8 +192,8 @@ class BackgroundsUpdater(threading.Thread):
             try:
                 images = self.createImageWall(self.allBackgrounds[libPath],windowProp,type)
             except Exception as e:
-                logMsg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
-                logMsg("ERROR in createImageWall ! --> %s" %e, xbmc.LOGERROR)
+                log_msg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
+                log_msg("ERROR in createImageWall ! --> %s" %e, xbmc.LOGERROR)
             self.allBackgrounds[windowProp] = images
             if images:
                 image = random.choice(images)
@@ -250,8 +250,8 @@ class BackgroundsUpdater(threading.Thread):
                 libPath = libPath + "&filter=random"
 
             #get the images from json
-            if customJson: media_array = getJSON(customJson[0],customJson[1])
-            else: media_array = getJSON('Files.GetDirectory','{ "properties": ["title","art","thumbnail","fanart","album","artist"], "directory": "%s", "media": "files", "limits": {"end":250}, "sort": { "order": "ascending", "method": "random", "ignorearticle": true } }' %libPath)
+            if customJson: media_array = get_kodi_json(customJson[0],customJson[1])
+            else: media_array = get_kodi_json('Files.GetDirectory','{ "properties": ["title","art","thumbnail","fanart","album","artist"], "directory": "%s", "media": "files", "limits": {"end":250}, "sort": { "order": "ascending", "method": "random", "ignorearticle": true } }' %libPath)
 
             for media in media_array:
                 image = {}
@@ -328,7 +328,7 @@ class BackgroundsUpdater(threading.Thread):
                         images.append({"fanart": image, "title": file.decode("utf-8")})
             else:
                 #load pictures from all sources
-                media_array = getJSON('Files.GetSources','{"media": "pictures"}')
+                media_array = get_kodi_json('Files.GetSources','{"media": "pictures"}')
                 for source in media_array:
                     if source.has_key('file'):
                         if not "plugin://" in source["file"]:
@@ -407,7 +407,7 @@ class BackgroundsUpdater(threading.Thread):
 
             #only get pvr images from recordings
             if SETTING("pvrBackgroundRecordingsOnly") == "true":
-                json_query = getJSON('PVR.GetRecordings', '{ "properties": [ %s ]}' %( fields_pvrrecordings))
+                json_query = get_kodi_json('PVR.GetRecordings', '{ "properties": [ %s ]}' %( fields_pvrrecordings))
                 for item in json_query:
                     genre = " / ".join(item["genre"])
                     artwork = artutils.getPVRThumbs(item["title"],item["channel"],"recordings",item["file"],genre)
@@ -547,7 +547,7 @@ class BackgroundsUpdater(threading.Thread):
                                 if not "emby.nodes.%s"%i in self.smartShortcuts["allSmartShortcuts"]: self.smartShortcuts["allSmartShortcuts"].append("emby.nodes.%s"%i )
                                 createSmartShortcutSubmenu("emby.nodes.%s"%i,"special://home/addons/plugin.video.emby/icon.png")
                 self.smartShortcuts["emby"] = nodes
-                logMsg("Generated smart shortcuts for emby nodes: %s" %nodes)
+                log_msg("Generated smart shortcuts for emby nodes: %s" %nodes)
 
         #stop if shutdown requested in the meanwhile
         if self.exit: return
@@ -564,7 +564,7 @@ class BackgroundsUpdater(threading.Thread):
                 paths = [['special://videoplaylists/','VideoLibrary'], ['special://musicplaylists/','MusicLibrary']]
                 for playlistpath in paths:
                     if not xbmcvfs.exists(playlistpath[0]): continue
-                    media_array = getJSON('Files.GetDirectory','{ "directory": "%s", "media": "files" }' % playlistpath[0] )
+                    media_array = get_kodi_json('Files.GetDirectory','{ "directory": "%s", "media": "files" }' % playlistpath[0] )
                     for item in media_array:
                         try:
                             label = ""
@@ -587,9 +587,9 @@ class BackgroundsUpdater(threading.Thread):
                                     playlists.append( (playlistCount, label, path, playlist, type ))
                                     playlistCount += 1
                         except Exception:
-                            logMsg("Error while processing smart shortcuts for playlist %s  --> This file seems to be corrupted, please remove it from your system to prevent any further errors."%item["file"], xbmc.LOGWARNING)
+                            log_msg("Error while processing smart shortcuts for playlist %s  --> This file seems to be corrupted, please remove it from your system to prevent any further errors."%item["file"], xbmc.LOGWARNING)
                 self.smartShortcuts["playlists"] = playlists
-                logMsg("Generated smart shortcuts for playlists: %s" %playlists)
+                log_msg("Generated smart shortcuts for playlists: %s" %playlists)
 
             for playlist in playlists:
                 self.setImageFromPath("playlist." + str(playlist[0]) + ".image",playlist[3])
@@ -613,7 +613,7 @@ class BackgroundsUpdater(threading.Thread):
             else:
                 #build node listing
                 try:
-                    json_result = getJSON('Favourites.GetFavourites', '{"type": null, "properties": ["path", "thumbnail", "window", "windowparameter"]}')
+                    json_result = get_kodi_json('Favourites.GetFavourites', '{"type": null, "properties": ["path", "thumbnail", "window", "windowparameter"]}')
                     for count, fav in enumerate(json_result):
                         if "windowparameter" in fav:
                             content = fav["windowparameter"]
@@ -630,10 +630,10 @@ class BackgroundsUpdater(threading.Thread):
                 except Exception as e:
                     #something wrong so disable the smartshortcuts for this section for now
                     xbmc.executebuiltin("Skin.Reset(SmartShortcuts.favorites)")
-                    logMsg("Error while processing smart shortcuts for favourites - set disabled.... ",xbmc.LOGWARNING)
-                    logMsg(str(e),0)
+                    log_msg("Error while processing smart shortcuts for favourites - set disabled.... ",xbmc.LOGWARNING)
+                    log_msg(str(e),0)
                 self.smartShortcuts["favourites"] = favourites
-                logMsg("Generated smart shortcuts for favourites: %s" %favourites)
+                log_msg("Generated smart shortcuts for favourites: %s" %favourites)
 
             for favourite in favourites:
                 self.setImageFromPath("favorite." + str(favourite[0]) + ".image",favourite[2])
@@ -658,7 +658,7 @@ class BackgroundsUpdater(threading.Thread):
                 #build the plex listing...
                 nodes = self.getPlexNodes()
                 self.smartShortcuts["plex"] = nodes
-                logMsg("Generated smart shortcuts for plex: %s" %nodes)
+                log_msg("Generated smart shortcuts for plex: %s" %nodes)
             for node in nodes:
                 #randomize background image from cache
                 self.setImageFromPath(node[0] + ".image",node[3])
@@ -715,7 +715,7 @@ class BackgroundsUpdater(threading.Thread):
         profilename = netflixAddon.getSetting('profile_name').decode("utf-8")
 
         if profilename and netflixAddon.getSetting("username") and netflixAddon.getSetting("authorization_url"):
-            logMsg("Generating netflix entries for profile %s .... "%profilename)
+            log_msg("Generating netflix entries for profile %s .... "%profilename)
             #generic netflix shortcut
             key = "netflix.generic"
             label = netflixAddon.getAddonInfo('name')
@@ -738,12 +738,12 @@ class BackgroundsUpdater(threading.Thread):
 
             #get mylist items...
             mylist = []
-            media_array = getJSON('Files.GetDirectory','{ "properties": ["title"], "directory": "plugin://plugin.video.flix2kodi/?mode=list_videos&thumb&type=both&url=list%3f%26mylist&widget=true", "media": "files", "limits": {"end":50} }')
+            media_array = get_kodi_json('Files.GetDirectory','{ "properties": ["title"], "directory": "plugin://plugin.video.flix2kodi/?mode=list_videos&thumb&type=both&url=list%3f%26mylist&widget=true", "media": "files", "limits": {"end":50} }')
             for item in media_array:
                 mylist.append(item["label"])
 
             #get dynamic entries...
-            media_array = getJSON('Files.GetDirectory','{ "properties": ["title"], "directory": "plugin://plugin.video.flix2kodi/?mode=main&type=dynamic&widget=true", "media": "files", "limits": {"end":50} }')
+            media_array = get_kodi_json('Files.GetDirectory','{ "properties": ["title"], "directory": "plugin://plugin.video.flix2kodi/?mode=main&type=dynamic&widget=true", "media": "files", "limits": {"end":50} }')
             if not media_array:
                 #if no result the plugin is in error, exit processing
                 return []
@@ -890,10 +890,10 @@ class BackgroundsUpdater(threading.Thread):
             if not "netflix.generic.movies" in self.smartShortcuts["allSmartShortcuts"]: self.smartShortcuts["allSmartShortcuts"].append("netflix.movies")
             if not "netflix.generic.tvshows" in self.smartShortcuts["allSmartShortcuts"]: self.smartShortcuts["allSmartShortcuts"].append("netflix.tvshows")
 
-            logMsg("DONE Generating netflix entries --> %s"%repr(nodes))
+            log_msg("DONE Generating netflix entries --> %s"%repr(nodes))
 
         else:
-            logMsg("SKIP Generating netflix entries - addon is not ready!")
+            log_msg("SKIP Generating netflix entries - addon is not ready!")
 
         return nodes
 
@@ -973,7 +973,7 @@ class BackgroundsUpdater(threading.Thread):
         if SETTING("maxNumWallImages"):
             numWallImages = int(SETTING("maxNumWallImages"))
         else:
-            logMsg("Building WALL background disabled",0)
+            log_msg("Building WALL background disabled",0)
             return []
 
         #PIL fails on Android devices ?
@@ -986,7 +986,7 @@ class BackgroundsUpdater(threading.Thread):
             hasPilModule = False
 
         if not hasPilModule:
-            logMsg("Building WALL background skipped - no PIL module present on this system!", xbmc.LOGWARNING)
+            log_msg("Building WALL background skipped - no PIL module present on this system!", xbmc.LOGWARNING)
             return []
 
         if arttype=="thumbnail":
@@ -1028,7 +1028,7 @@ class BackgroundsUpdater(threading.Thread):
         #build wall images if we do not already have (enough) images
         if len(return_images) < numWallImages:
             #build the wall images
-            logMsg("Building Wall background for %s - this might take a while..." %windowProp, xbmc.LOGNOTICE)
+            log_msg("Building Wall background for %s - this might take a while..." %windowProp, xbmc.LOGNOTICE)
             images_required = img_columns*img_rows
             for image in images:
                 image = image.get(arttype,"")
@@ -1075,5 +1075,5 @@ class BackgroundsUpdater(threading.Thread):
                     #add our images to the dict
                     return_images.append({"wall": out_file, "wallbw": out_file_bw })
 
-            logMsg("Building Wall background %s DONE" %windowProp)
+            log_msg("Building Wall background %s DONE" %windowProp)
         return return_images
