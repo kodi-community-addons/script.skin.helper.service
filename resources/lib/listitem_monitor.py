@@ -5,7 +5,7 @@ import threading, thread
 from utils import WINDOW, log_msg, log_exception, get_current_content_type, get_kodi_json, try_encode, process_method_on_list
 from simplecache import SimpleCache
 from artutils import ArtUtils
-import xbmc, xbmcgui
+import xbmc, xbmcgui, xbmcaddon
 import time
 from datetime import timedelta
 
@@ -13,13 +13,13 @@ class ListItemMonitor(threading.Thread):
 
     event = None
     exit = False
-    delayedTaskInterval = 1795
+    delayed_task_interval = 1795
     lastWeatherNotificationCheck = None
-    lastNextAiredNotificationCheck = None
     widgetcontainer_prefix = ""
     content_type = ""
     all_window_props = []
     allPlayerWindowProps = []
+    cur_listitem = ""
     li_dbid = ""
     li_file = ""
     li_imdb = ""
@@ -34,7 +34,7 @@ class ListItemMonitor(threading.Thread):
         self.monitor = xbmc.Monitor()
         self.artutils = ArtUtils()
         self.cache = SimpleCache()
-        self.enable_legacy_props = True
+        self.enable_legacy_props = False #TODO: make dependant of skin bool
         self.artutils.studiologos_path = xbmc.getInfoLabel("Skin.String(SkinHelper.StudioLogos.Path)").decode("utf-8")
         threading.Thread.__init__(self, *args)
 
@@ -49,11 +49,10 @@ class ListItemMonitor(threading.Thread):
         player_file = ""
         last_playeritem = ""
         player_item = ""
-        li_pathLast = ""
+        li_path_last = ""
         cur_folder = ""
         cur_folder_last = ""
         last_listitem = ""
-        nextairedActive = False
         screensaver_setting = None
         screensaver_disabled = False
 
@@ -111,14 +110,14 @@ class ListItemMonitor(threading.Thread):
                             xbmc.sleep(500)
 
             #do some background stuff every 30 minutes
-            if self.delayedTaskInterval >= 1800 and not self.exit:
+            if self.delayed_task_interval >= 1800 and not self.exit:
                 thread.start_new_thread(self.do_background_work, ())
-                self.delayedTaskInterval = 0
+                self.delayed_task_interval = 0
 
-            if xbmc.getCondVisibility("System.HasModalDialog | Window.IsActive(progressdialog) | Window.IsActive(busydialog) | !IsEmpty(Window(Home).Property(TrailerPlaying))"):
+            if xbmc.getCondVisibility("System.HasModalDialog | Window.IsActive(progressdialog) | Window.IsActive(busydialog) | !IsEmpty(Window(Home).Property(TrailerPlaying)) | !IsEmpty(Window(Home).Property(artworkcontextmenu))"):
                 #skip when modal dialogs are opened (e.g. textviewer in musicinfo dialog)
                 self.monitor.waitForAbort(1)
-                self.delayedTaskInterval += 1
+                self.delayed_task_interval += 1
             elif xbmc.getCondVisibility("[Window.IsMedia | !IsEmpty(Window(Home).Property(SkinHelper.WidgetContainer))]") and not self.exit:
                 try:
                     widgetContainer = WINDOW.getProperty("SkinHelper.WidgetContainer").decode('utf-8')
@@ -149,30 +148,37 @@ class ListItemMonitor(threading.Thread):
                         #always wait for the content_type because plugins can be slow
                         for i in range(20):
                             self.content_type = get_current_content_type(self.widgetcontainer_prefix)
-                            if self.content_type: break
-                            else: xbmc.sleep(250)
+                            if self.content_type: 
+                                break
+                            else: 
+                                xbmc.sleep(250)
                         if not self.widgetcontainer_prefix and self.content_type:
-                            self.setForcedView()
+                            self.set_forcedview()
                             self.set_content_header()
                         WINDOW.setProperty("content_type",self.content_type)
-
-                curListItem ="%s--%s--%s--%s" %(cur_folder, self.li_label, self.li_title, self.content_type)
+                
+                self.cur_listitem ="%s--%s--%s--%s" %(cur_folder, self.li_label, self.li_title, self.content_type)
 
                 #only perform actions when the listitem has actually changed
-                if curListItem and curListItem != last_listitem and self.content_type:
+                if self.cur_listitem and self.cur_listitem != last_listitem and self.content_type:
                     #clear all window props first
                     self.reset_win_props()
-                    self.set_win_prop(("curListItem",curListItem))
+                    self.set_win_prop(("cur_listitem",self.cur_listitem))
 
                     #widget properties
                     if self.widgetcontainer_prefix:
                         self.set_widgetdetails()
 
                     #generic props
-                    self.li_path = xbmc.getInfoLabel("%sListItem.Path" %self.widgetcontainer_prefix).decode('utf-8')
+                    self.li_path = xbmc.getInfoLabel("%sListItem.Path"
+                        %self.widgetcontainer_prefix).decode('utf-8')
                     if not self.li_path: 
-                        self.li_path = xbmc.getInfoLabel("%sListItem.FolderPath" %self.widgetcontainer_prefix).decode('utf-8')
-                    self.li_file = xbmc.getInfoLabel("%sListItem.FileNameAndPath" %self.widgetcontainer_prefix).decode('utf-8')
+                        self.li_path = xbmc.getInfoLabel("%sListItem.FolderPath"
+                            %self.widgetcontainer_prefix).decode('utf-8')
+                    self.li_file = xbmc.getInfoLabel("%sListItem.FileNameAndPath"
+                        %self.widgetcontainer_prefix).decode('utf-8')
+                    self.year = xbmc.getInfoLabel("%sListItem.Year"
+                        %self.widgetcontainer_prefix)
                     self.li_dbid = ""
                     self.li_imdb = ""
                     self.li_tvdb = ""
@@ -181,41 +187,38 @@ class ListItemMonitor(threading.Thread):
                         # monitor listitem props for music content
                         if self.content_type in ["albums","artists","songs"]:
                             try:
-                                thread.start_new_thread(self.set_musicdetails, (True,))
+                                thread.start_new_thread(self.set_musicdetails, ())
                                 self.set_genre()
                             except Exception as exc:
                                 log_exception(__name__,exc)
 
                         # monitor listitem props for video content
-                        elif self.content_type in ["movies","setmovies","tvshows","seasons","episodes","sets","musicvideos"]:
+                        elif self.content_type in ["movies","setmovies","tvshows","seasons","episodes",
+                            "sets","musicvideos"]:
                             try:
-                                self.li_dbid = xbmc.getInfoLabel("%sListItem.DBID"%self.widgetcontainer_prefix).decode('utf-8')
+                                self.li_dbid = xbmc.getInfoLabel("%sListItem.DBID"
+                                    %self.widgetcontainer_prefix).decode('utf-8')
                                 if not self.li_dbid or self.li_dbid == "-1": 
-                                    self.li_dbid = xbmc.getInfoLabel("%sListItem.Property(DBID)"%self.widgetcontainer_prefix).decode('utf-8')
-                                self.year = xbmc.getInfoLabel("%sListItem.Year"%self.widgetcontainer_prefix)
+                                    self.li_dbid = xbmc.getInfoLabel("%sListItem.Property(DBID)"
+                                        %self.widgetcontainer_prefix).decode('utf-8')
                                 self.set_imdb_id()
+                                #run some stuff in seperate threads for a smoother experience
+                                thread.start_new_thread(self.set_tmdb_info, ())
+                                thread.start_new_thread(self.set_tvdb_info, ())
+                                thread.start_new_thread(self.set_omdb_info, ())
+                                thread.start_new_thread(self.set_animatedart, ())
+                                thread.start_new_thread(self.set_extended_artwork, ())
+                                thread.start_new_thread(self.set_streamdetails, ())
+                                thread.start_new_thread(self.set_movieset_details, ())
+                                thread.start_new_thread(self.set_top250, ())
+                                thread.start_new_thread(self.set_studiologo, ())
+                                #simple actions that can be processed in parallel
                                 self.set_duration()
-                                thread.start_new_thread(self.set_tmdb_info, (True,))
-                                thread.start_new_thread(self.set_omdb_info, (True,))
-                                thread.start_new_thread(self.set_animatedart, (True,))
-                                thread.start_new_thread(self.set_extended_artwork, (True,))
-                                thread.start_new_thread(self.set_extended_artwork, (True,))
-                                self.set_studiologo()
                                 self.set_genre()
                                 self.set_director()
-                                self.set_top250()
-                                self.set_streamdetails()
-                                self.set_movieset_details()
                                 self.set_extrafanart()
                                 if self.li_path.startswith("plugin://"):
                                     self.set_addonname()
-                                #nextaired workaround for info dialog
-                                if widgetContainer == "999" and xbmc.getCondVisibility("!IsEmpty(%sListItem.TvShowTitle) + System.HasAddon(script.tv.show.next.aired)" %self.widgetcontainer_prefix):
-                                    xbmc.executebuiltin("RunScript(script.tv.show.next.aired,tvshowtitle=%s)" %xbmc.getInfoLabel("%sListItem.TvShowTitle"%self.widgetcontainer_prefix).replace("&",""))
-                                    nextairedActive = True
-                                elif nextairedActive:
-                                    nextairedActive = False
-                                    xbmc.executebuiltin("RunScript(script.tv.show.next.aired,tvshowtitle=165628787629692696)")
                             except Exception as exc:
                                 log_exception(__name__,exc)
 
@@ -223,69 +226,47 @@ class ListItemMonitor(threading.Thread):
                         elif self.content_type in ["tvchannels","tvrecordings"]:
                             try:
                                 self.set_duration()
-                                thread.start_new_thread(self.set_pvr_artwork, (True,))
-                                thread.start_new_thread(self.set_pvr_channellogo, (True,))
+                                thread.start_new_thread(self.set_pvr_artwork, ())
+                                thread.start_new_thread(self.set_pvr_channellogo, ())
                                 self.set_genre()
                             except Exception as exc:
                                 log_exception(__name__,exc)
 
                     #set some globals
-                    li_pathLast = self.li_path
-                    last_listitem = curListItem
+                    li_path_last = self.li_path
+                    last_listitem = self.cur_listitem
 
                 self.monitor.waitForAbort(0.1)
-                self.delayedTaskInterval += 0.1
+                self.delayed_task_interval += 0.1
             elif last_listitem and not self.exit:
                 #flush any remaining window properties
                 self.reset_win_props()
                 WINDOW.clearProperty("SkinHelper.ContentHeader")
                 WINDOW.clearProperty("content_type")
                 self.content_type = ""
-                if nextairedActive:
-                    nextairedActive = False
-                    xbmc.executebuiltin("RunScript(script.tv.show.next.aired,tvshowtitle=165628787629692696)")
                 last_listitem = ""
-                curListItem = ""
+                self.cur_listitem = ""
                 cur_folder = ""
                 cur_folder_last = ""
                 self.widgetcontainer_prefix = ""
                 self.monitor.waitForAbort(0.5)
-                self.delayedTaskInterval += 0.5
+                self.delayed_task_interval += 0.5
             elif xbmc.getCondVisibility("Window.IsActive(fullscreenvideo)"):
                 #fullscreen video active
                 self.monitor.waitForAbort(2)
-                self.delayedTaskInterval += 2
+                self.delayed_task_interval += 2
             else:
                 #other window visible
                 self.monitor.waitForAbort(0.5)
-                self.delayedTaskInterval += 0.5
+                self.delayed_task_interval += 0.5
 
     def do_background_work(self):
         try:
             if self.exit: return
             log_msg("Started Background worker...")
             self.set_generic_props()
-            self.check_notifications()
+            self.artutils.studiologos_path = xbmc.getInfoLabel("Skin.String(SkinHelper.StudioLogos.Path)").decode("utf-8")
             log_msg("Ended Background worker...")
-        except Exception as exc:
-            log_exception(__name__,exc)
-
-    def check_notifications(self):
-        try:
-            currentHour = time.strftime("%H")
-            #weather notifications
-            winw = xbmcgui.Window(12600)
-            if xbmc.getCondVisibility("Skin.HasSetting(EnableWeatherNotifications) + !IsEmpty(Window(Weather).Property(Alerts.RSS)) + !IsEmpty(Window(Weather).Property(Current.Condition))") and currentHour != self.lastWeatherNotificationCheck:
-                dialog = xbmcgui.Dialog()
-                dialog.notification(xbmc.getLocalizedString(31294), winw.getProperty("Alerts"), xbmcgui.NOTIFICATION_WARNING, 8000)
-                self.lastWeatherNotificationCheck = currentHour
-
-            #nextaired notifications
-            if (xbmc.getCondVisibility("Skin.HasSetting(EnableNextAiredNotifications) + System.HasAddon(script.tv.show.next.aired)") and currentHour != self.lastNextAiredNotificationCheck):
-                if (WINDOW.getProperty("NextAired.TodayShow")):
-                    dialog = xbmcgui.Dialog()
-                    dialog.notification(xbmc.getLocalizedString(31295), WINDOW.getProperty("NextAired.TodayShow"), xbmcgui.NOTIFICATION_WARNING, 8000)
-                    self.lastNextAiredNotificationCheck = currentHour
         except Exception as exc:
             log_exception(__name__,exc)
 
@@ -365,29 +346,59 @@ class ListItemMonitor(threading.Thread):
                 self.li_tvdb = li_imdb
             li_imdb = ""
         if not li_imdb:
-            title = self.li_title
-            if self.content_type in ["episodes","seasons"]:
-                title = xbmc.getInfoLabel("%sListItem.TvShowTitle"%self.widgetcontainer_prefix).decode('utf-8')
-            if self.year and title:
-                li_imdb = self.artutils.omdb.get_details_by_title(title,self.year,self.content_type).get("imdbnumber","")
+            if self.year and self.li_title:
+                li_imdb = self.artutils.get_omdb_info("",self.li_title,self.year,self.content_type).get("imdbnumber","")
         self.li_imdb = li_imdb
     
     def set_win_prop(self,prop_tuple):
-        if prop_tuple[1]:
+        if prop_tuple[1] and not prop_tuple[0] in self.all_window_props:
             self.all_window_props.append(prop_tuple[0])
             WINDOW.setProperty(prop_tuple[0],prop_tuple[1])
-            #log_msg("Setting Window Property --> %s  value --> %s" %(prop_tuple[0],prop_tuple[1]), xbmc.LOGNOTICE)
     
     def set_win_props(self,items):
         process_method_on_list(self.set_win_prop,items)
             
+    def win_props_from_dict(self, details, legacyprefix="", sublevelprefix=""):
+        '''helper to pretty string-format a dict with details so it can be used as window props'''
+        items = []
+        if details:
+            for key, value in details.iteritems():
+                if value:
+                    if legacyprefix and self.enable_legacy_props:
+                        key = "%s%s"%(legacyprefix,key)
+                    elif sublevelprefix:
+                        key = "%s.%s"%(sublevelprefix,key)
+                    else:
+                        key = "SkinHelper.ListItem.%s"%key
+                    if isinstance(value,(str,unicode)):
+                        items.append( (key, value) )
+                    elif isinstance(value,(int,float)):
+                        items.append( (key, "%s"%value) )
+                    elif isinstance(value,dict):
+                        for key2, value2 in value.iteritems():
+                            if isinstance(value2,(str,unicode)):
+                                items.append( ("%s.%s" %(key,key2), value2) )
+                    elif isinstance(value,list):
+                        list_strings = []
+                        for listvalue in value:
+                            if isinstance(listvalue,(str,unicode)):
+                                list_strings.append(listvalue)
+                        if list_strings:
+                            items.append( (key, " / ".join(list_strings) ) )
+                        elif len(value) == 1 and isinstance(value[0], (str,unicode)):
+                            items.append( (key, value ) )
+        process_method_on_list(self.set_win_prop, items)
+    
     def set_player_prop(self,key,value):
         self.allPlayerWindowProps.append(key)
         WINDOW.setProperty(try_encode(key),try_encode(value))
 
     def set_movieset_details(self):
-        if self.li_path.startswith("videodb://movies/sets/"):
-            self.set_win_props( self.artutils.get_moviesetdetails(self.li_dbid, tuple_list_prefix="SkinHelper.MovieSet.") )
+        if self.li_path.startswith("videodb://movies/sets/") and self.li_dbid:
+            cur_listitem = self.cur_listitem
+            result = self.artutils.get_moviesetdetails(self.li_dbid)
+            if cur_listitem == self.cur_listitem:
+                self.win_props_from_dict(result, "SkinHelper.MovieSet.")
         
     def set_content_header(self):
         WINDOW.clearProperty("SkinHelper.ContentHeader")
@@ -497,54 +508,42 @@ class ListItemMonitor(threading.Thread):
             if not self.content_type in ["systeminfos","weathers"]:
                 self.cache.set(cacheStr,widget_details,expiration=timedelta(hours=2))
         #set the window props
-        self.set_win_props(widget_details)
+        process_method_on_list(self.set_win_prop, widget_details)
 
-    def set_pvr_artwork(self, multi_threaded=False):
+    def set_pvr_artwork(self):
+        cur_listitem = self.cur_listitem
         title = self.li_title
         channel = xbmc.getInfoLabel("%sListItem.ChannelName"%self.widgetcontainer_prefix).decode('utf-8')
         if xbmc.getCondVisibility("%sListItem.IsFolder"%self.widgetcontainer_prefix) and not channel and not title:
             title = self.li_label
-        if not xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnablePVRThumbs)") or not title:
-            return
-        genre = xbmc.getInfoLabel("%sListItem.Genre"%self.widgetcontainer_prefix).decode('utf-8')
-        details = self.artutils.get_pvr_artwork(title, channel, self.year, genre, tuple_list_prefix="SkinHelper.ListItem.")
-        if self.enable_legacy_props:
-            details += self.artutils.get_pvr_artwork(title, channel, self.year, genre, tuple_list_prefix="SkinHelper.PVR.")#legacy!
+        if title and xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnablePVRThumbs)"):
+            genre = xbmc.getInfoLabel("%sListItem.Genre"%self.widgetcontainer_prefix).decode('utf-8')
+            result = self.artutils.get_pvr_artwork(title, channel, genre)
+            if cur_listitem == self.cur_listitem:
+                self.win_props_from_dict(result,"SkinHelper.PVR.")
 
-        #return if another listitem was focused in the meanwhile
-        if multi_threaded and not (title == xbmc.getInfoLabel("ListItem.Title").decode('utf-8') or title == xbmc.getInfoLabel("%sListItem.Title"%self.widgetcontainer_prefix).decode('utf-8') or title == xbmc.getInfoLabel("%sListItem.Label"%self.widgetcontainer_prefix).decode('utf-8')):
-            return
-        self.set_win_props(details)
-
-    def set_pvr_channellogo(self, multi_threaded=False):
+    def set_pvr_channellogo(self):
+        cur_listitem = self.cur_listitem
         channel = xbmc.getInfoLabel("%sListItem.ChannelName"%self.widgetcontainer_prefix).decode('utf-8')
-        if not channel:
-            return
-        details = self.artutils.get_channellogo(channel,tuple_list_prefix="SkinHelper.ListItem.")
-        if self.enable_legacy_props:
-            details += self.artutils.get_channellogo(channel,tuple_list_prefix="SkinHelper.PVR.")#legacy!
-        
-        #return if another listitem was focused in the meanwhile
-        if multi_threaded and not (channel == xbmc.getInfoLabel("%sListItem.ChannelName"%self.widgetcontainer_prefix).decode('utf-8')):
-            return
-        self.set_win_props(details)
+        if channel:
+            result = self.artutils.get_channellogo(channel)
+            if cur_listitem == self.cur_listitem:
+                self.win_props_from_dict(result, "SkinHelper.PVR")
 
     def set_studiologo(self):
+        cur_listitem = self.cur_listitem
         studio = xbmc.getInfoLabel('%sListItem.Studio'%self.widgetcontainer_prefix).decode('utf-8')
-        if studio and logos_path:
-            details = self.artutils.get_studio_logo(studio,tuple_list_prefix="SkinHelper.ListItem.")
-            if self.enable_legacy_props:
-                details += self.artutils.get_studio_logo(studio,tuple_list_prefix="SkinHelper.ListItem")#legacy!
-            self.set_win_props( details )
+        if studio and self.artutils.studiologos_path:
+            result = self.artutils.get_studio_logo(studio)
+            if cur_listitem == self.cur_listitem:
+                self.win_props_from_dict(result, "SkinHelper.ListItem")
 
     def set_duration(self):
         if not xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.DisableHoursDuration)"):
             duration = xbmc.getInfoLabel("%sListItem.Duration"%self.widgetcontainer_prefix)
             if duration:
-                result = self.artutils.get_duration(duration, tuple_list_prefix='SkinHelper.ListItem.')
-                if self.enable_legacy_props:
-                    result += self.artutils.get_duration(duration, tuple_list_prefix='SkinHelper.ListItem')#legacy
-                self.set_win_props( result )
+                result = self.artutils.get_duration(duration)
+                self.win_props_from_dict(result, "SkinHelper.ListItem")
 
     def setMusicPlayerDetails(self):
         artwork = {}
@@ -585,32 +584,30 @@ class ListItemMonitor(threading.Thread):
         for key, value in artwork.iteritems():
             self.set_player_prop(u"SkinHelper.Player.Music.%s" %key, value)
 
-    def set_musicdetails(self,multi_threaded=False):
+    def set_musicdetails(self):
+        cur_listitem = self.cur_listitem
         artist = xbmc.getInfoLabel("%sListItem.Artist"%self.widgetcontainer_prefix).decode('utf-8')
         album = xbmc.getInfoLabel("%sListItem.Album"%self.widgetcontainer_prefix).decode('utf-8')
         title = self.li_title
         label = self.li_label
-        details = self.artutils.get_musicartwork(artist,album,title,tuple_list_prefix="SkinHelper.ListItem.")
-        if self.enable_legacy_props:
-            details += self.artutils.get_musicartwork(artist,album,title,tuple_list_prefix="SkinHelper.Music.")#legacy!
-        #return if another listitem was focused in the meanwhile
-        if multi_threaded and label != xbmc.getInfoLabel("%sListItem.Label"%self.widgetcontainer_prefix).decode('utf-8'):
-            return
-        self.set_win_props(details)
+        result = self.artutils.get_musicartwork(artist,album,title)
+        if cur_listitem == self.cur_listitem:
+            self.win_props_from_dict(result, "SkinHelper.Music.")
 
     def set_streamdetails(self):
-        if self.li_dbid and self.content_type in ["movies","episodes","musicvideos"]:
-            details = self.artutils.get_streamdetails(self.li_dbid,self.content_type,tuple_list_prefix='SkinHelper.ListItem')
-            if self.enable_legacy_props:
-                details += self.artutils.get_streamdetails(self.li_dbid,self.content_type,tuple_list_prefix='SkinHelper.ListItem')#legacy!
-            self.set_win_props( details )
+        cur_listitem = self.cur_listitem
+        if self.li_dbid and self.content_type in ["movies","episodes","musicvideos"] and not self.li_path.startswith("videodb://movies/sets/"):
+            result = self.artutils.get_streamdetails(self.li_dbid,self.content_type)
+            if cur_listitem == self.cur_listitem:
+                self.win_props_from_dict(result, "SkinHelper.ListItem")
 
-    def setForcedView(self):
+    def set_forcedview(self):
         currentForcedView = xbmc.getInfoLabel("Skin.String(SkinHelper.ForcedViews.%s)" %self.content_type)
         if xbmc.getCondVisibility("Control.IsVisible(%s) | IsEmpty(Container.Viewmode)" %currentForcedView):
             #skip if the view is already visible or if we're not in an actual media window
             return
-        if self.content_type and currentForcedView and currentForcedView != "None" and xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.ForcedViews.Enabled)") and not "pvr://guide" in self.li_path:
+        if (self.content_type and currentForcedView and currentForcedView != "None" and 
+            xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.ForcedViews.Enabled)") and not "pvr://guide" in self.li_path):
             WINDOW.setProperty("SkinHelper.ForcedView",currentForcedView)
             xbmc.executebuiltin("Container.SetViewMode(%s)" %currentForcedView)
             if not xbmc.getCondVisibility("Control.HasFocus(%s)" %currentForcedView):
@@ -623,58 +620,54 @@ class ListItemMonitor(threading.Thread):
     def set_extrafanart(self):
         if xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnableExtraFanart)"):
             if self.content_type in ["movies","seasons","episodes","tvshows","setmovies","moviesets"]:
-                details = self.artutils.get_extrafanart(self.li_dbid,self.content_type, tuple_list_prefix='SkinHelper.ListItem.')
-                if self.enable_legacy_props:
-                    details += self.artutils.get_extrafanart(self.li_dbid,self.content_type, tuple_list_prefix='SkinHelper.')#legacy!
-                self.set_win_props( details )
+                cur_listitem = self.cur_listitem
+                result = self.artutils.get_extrafanart(self.li_dbid,self.content_type)
+                if cur_listitem == self.cur_listitem:
+                    self.win_props_from_dict(result, "SkinHelper.")
 
-    def set_animatedart(self,multi_threaded=False):
+    def set_animatedart(self):
         #check animated posters
         title = self.li_title
         if self.li_imdb and xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnableAnimatedPosters)"):
-            result = self.artutils.get_animated_artwork(self.li_imdb, tuple_list_prefix="SkinHelper.ListItem.")
-            if self.enable_legacy_props:
-                result += self.artutils.get_animated_artwork(self.li_imdb, tuple_list_prefix="SkinHelper.")#legacy!
-            if multi_threaded and not title == xbmc.getInfoLabel("%sListItem.Title"%self.widgetcontainer_prefix).decode('utf-8'):
-                return
-            self.set_win_props( result )
+            cur_listitem = self.cur_listitem
+            result = self.artutils.get_animated_artwork(self.li_imdb)
+            if cur_listitem == self.cur_listitem:
+                self.win_props_from_dict(result, "SkinHelper.")
 
-    def set_omdb_info(self,multi_threaded=False):
+    def set_omdb_info(self):
         if self.li_imdb:
-            title = self.li_title
-            result = self.artutils.get_omdb_info(self.li_imdb, tuple_list_prefix="SkinHelper.ListItem.")
-            if self.enable_legacy_props:
-                result += self.artutils.get_omdb_info(self.li_imdb, tuple_list_prefix="SkinHelper.")#legacy!
-            #return if another listitem was focused in the meanwhile
-            if multi_threaded and not title == xbmc.getInfoLabel("%sListItem.Title"%self.widgetcontainer_prefix).decode('utf-8'):
-                return
-            #set properties
-            self.set_win_props(result)
+            cur_listitem = self.cur_listitem
+            result = self.artutils.get_omdb_info(self.li_imdb)
+            if cur_listitem == self.cur_listitem:
+                self.win_props_from_dict(result, "SkinHelper.")
     
     def set_top250(self):
         if self.li_imdb:
-            result = self.artutils.get_top250_rating(self.li_imdb,tuple_list_prefix="SkinHelper.ListItem.")
-            if self.enable_legacy_props:
-                result += self.artutils.get_top250_rating(self.li_imdb,tuple_list_prefix="SkinHelper.")
-            self.set_win_props(result)
+            cur_listitem = self.cur_listitem
+            result = self.artutils.get_top250_rating(self.li_imdb)
+            if cur_listitem == self.cur_listitem:
+                self.win_props_from_dict(result, "SkinHelper.")
     
-    def set_tmdb_info(self,multi_threaded=False):
-        title = self.li_title
-        result = self.artutils.get_tmdb_details(self.li_imdb, self.li_tvdb, self.li_title, self.year, self.content_type, tuple_list_prefix="SkinHelper.ListItem.TMDB.")
-        if self.enable_legacy_props:
-            result += self.artutils.get_tmdb_details(self.li_imdb, self.li_tvdb, self.li_title, self.year, self.content_type, tuple_list_prefix="SkinHelper.TMDB.")
-        #return if another listitem was focused in the meanwhile
-        if multi_threaded and not title == xbmc.getInfoLabel("%sListItem.Title"%self.widgetcontainer_prefix).decode('utf-8'):
-            return
-        self.set_win_props(result)
+    def set_tmdb_info(self):
+        if self.content_type in ["movies", "setmovies"]:
+            cur_listitem = self.cur_listitem
+            if self.li_imdb:
+                result = self.artutils.get_tmdb_details(self.li_imdb)
+                if cur_listitem == self.cur_listitem:
+                    self.win_props_from_dict(result, "SkinHelper.TMDB.")
+                
+    def set_tvdb_info(self):
+        if self.content_type in ["tvshows", "seasons", "episodes"]:
+            cur_listitem = self.cur_listitem
+            if self.li_imdb:
+                result = self.artutils.get_tvdb_details(self.li_imdb, self.li_tvdb)
+                if cur_listitem == self.cur_listitem:
+                    self.win_props_from_dict(result)
 
-    def set_extended_artwork(self, multi_threaded=False):
+    def set_extended_artwork(self):
         #try to lookup additional artwork
-        title = self.li_title
-        result = self.artutils.get_extended_artwork(self.li_imdb, self.li_tvdb, self.li_title, self.year, self.content_type, tuple_list_prefix="SkinHelper.ListItem.")
-        if self.enable_legacy_props:
-            result += self.artutils.get_extended_artwork(self.li_imdb, self.li_tvdb, self.li_title, self.year, self.content_type, tuple_list_prefix="SkinHelper.PVR.")
-        #return if another listitem was focused in the meanwhile
-        if multi_threaded and not title == xbmc.getInfoLabel("%sListItem.Title"%self.widgetcontainer_prefix).decode('utf-8'):
-            return
-        self.set_win_props(result)
+        cur_listitem = self.cur_listitem
+        result = self.artutils.get_extended_artwork(self.li_imdb)
+        if cur_listitem == self.cur_listitem:
+            self.win_props_from_dict(result, "SkinHelper.PVR")
+        

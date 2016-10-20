@@ -11,19 +11,19 @@
 
     <extension point="kodi.context.item">
         <menu id="kodi.core.main">
-            <item library="resources\lib\ContextMenu_animatedart.py">
+            <item library="resources\lib\context_animatedart.py">
               <label>32175</label>
-              <visible>!IsEmpty(Window(Home).Property(SkinHelper.enablecontextmenu_animatedart)) + [Container.Content(movies) + Skin.HasSetting(SkinHelper.EnableAnimatedPosters)]</visible>
+              <visible>[Container.Content(movies) + Skin.HasSetting(SkinHelper.EnableAnimatedPosters)]</visible>
             </item>
-            <item library="resources\lib\ContextMenu_pvr.py">
+            <item library="resources\lib\context_pvr.py">
                 <label>32120</label>
                 <description>PVR artwork Configuration</description>
-                <visible>!IsEmpty(Window(Home).Property(SkinHelper.enablecontextmenu_pvr)) + [Window.IsActive(MyPVRChannels.xml) | Window.IsActive(MyPVRGuide.xml) | Window.IsActive(MyPVRRecordings.xml) | Window.IsActive(MyPVRTimers.xml) | Window.IsActive(MyPVRSearch.xml)] + Skin.HasSetting(SkinHelper.EnablePVRThumbs)</visible>
+                <visible>Skin.HasSetting(SkinHelper.EnablePVRThumbs) + [Window.IsActive(MyPVRChannels.xml) | Window.IsActive(MyPVRGuide.xml) | Window.IsActive(MyPVRRecordings.xml) | Window.IsActive(MyPVRTimers.xml) | Window.IsActive(MyPVRSearch.xml)]</visible>
             </item>
-            <item library="resources\lib\ContextMenu_music.py">
+            <item library="resources\lib\context_music.py">
                 <label>32122</label>
                 <description>Music artwork Configuration</description>
-                <visible>!IsEmpty(Window(Home).Property(SkinHelper.enablecontextmenu_music)) + [Container.Content(albums) | Container.Content(artists) | Container.Content(songs)]</visible>
+                <visible>Skin.HasSetting(SkinHelper.EnableMusicArt) + [Container.Content(albums) | Container.Content(artists) | Container.Content(songs)]</visible>
             </item>
         </menu>
 	</extension>
