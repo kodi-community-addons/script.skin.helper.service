@@ -407,7 +407,7 @@ def createColorTheme():
                 setting_value = skinsetting[2]
                 if setting_type == "string" and setting_value:
                     if setting_value and(".jpg" in setting_value.lower() or ".png" in setting_value.lower() or ".gif" in setting_value.lower()) and not setting_value.startswith("$") and not setting_value.startswith("androidapp"):
-                        image = getCleanImage(setting_value)
+                        image = get_clean_image(setting_value)
                         extension = image.split(".")[-1]
                         newimage = "%s_%s.%s" %(themeName,normalize_string(setting_name),extension)
                         newimage_path = os.path.join(userThemesPath,newimage)

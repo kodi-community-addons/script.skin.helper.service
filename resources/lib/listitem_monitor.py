@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import threading, thread
-from utils import WINDOW, log_msg, log_exception, get_current_content_type, get_kodi_json, try_encode, process_method_on_list
+from utils import log_msg, log_exception, get_current_content_type, get_kodi_json, try_encode, process_method_on_list
 from simplecache import SimpleCache
 from artutils import ArtUtils
 import xbmc, xbmcgui, xbmcaddon
@@ -14,11 +14,9 @@ class ListItemMonitor(threading.Thread):
     event = None
     exit = False
     delayed_task_interval = 1795
-    lastWeatherNotificationCheck = None
     widgetcontainer_prefix = ""
     content_type = ""
     all_window_props = []
-    allPlayerWindowProps = []
     cur_listitem = ""
     li_dbid = ""
     li_file = ""
@@ -30,10 +28,11 @@ class ListItemMonitor(threading.Thread):
 
     def __init__(self, *args):
         log_msg("ListItemMonitor - started")
+        self.win = xbmcgui.Window(10000)
         self.event =  threading.Event()
         self.monitor = xbmc.Monitor()
-        self.artutils = ArtUtils()
-        self.cache = SimpleCache()
+        self.cache = SimpleCache(autocleanup=True)
+        self.artutils = ArtUtils(self.cache)
         self.enable_legacy_props = False #TODO: make dependant of skin bool
         self.artutils.studiologos_path = xbmc.getInfoLabel("Skin.String(SkinHelper.StudioLogos.Path)").decode("utf-8")
         threading.Thread.__init__(self, *args)
@@ -42,6 +41,12 @@ class ListItemMonitor(threading.Thread):
         log_msg("ListItemMonitor - stop called")
         self.exit = True
         self.event.set()
+        
+    def __del__(self):
+        '''Cleanup Kodi Cpython instances'''
+        del self.addon
+        del self.win
+        log_msg("Exited")
 
     def run(self):
 
@@ -120,13 +125,13 @@ class ListItemMonitor(threading.Thread):
                 self.delayed_task_interval += 1
             elif xbmc.getCondVisibility("[Window.IsMedia | !IsEmpty(Window(Home).Property(SkinHelper.WidgetContainer))]") and not self.exit:
                 try:
-                    widgetContainer = WINDOW.getProperty("SkinHelper.WidgetContainer").decode('utf-8')
+                    widgetContainer = self.win.getProperty("SkinHelper.WidgetContainer").decode('utf-8')
                     if xbmc.getCondVisibility("Window.IsActive(movieinformation)"):
                         self.widgetcontainer_prefix = ""
                         cur_folder = xbmc.getInfoLabel("movieinfo-$INFO[Container.FolderPath]$INFO[Container.NumItems]$INFO[Container.Content]").decode('utf-8')
                     elif widgetContainer:
                         self.widgetcontainer_prefix = "Container(%s)."%widgetContainer
-                        cur_folder = xbmc.getInfoLabel("widget-%s-$INFO[Container(%s).NumItems]" %(widgetContainer,widgetContainer)).decode('utf-8')
+                        cur_folder = xbmc.getInfoLabel("widget-%s-$INFO[Container(%s).NumItems]-$INFO[Container(%s).ListItemAbsolute(1).Label]" %(widgetContainer,widgetContainer,widgetContainer)).decode('utf-8')
                     else:
                         self.widgetcontainer_prefix = ""
                         cur_folder = xbmc.getInfoLabel("$INFO[Container.FolderPath]$INFO[Container.NumItems]$INFO[Container.Content]").decode('utf-8')
@@ -155,7 +160,7 @@ class ListItemMonitor(threading.Thread):
                         if not self.widgetcontainer_prefix and self.content_type:
                             self.set_forcedview()
                             self.set_content_header()
-                        WINDOW.setProperty("content_type",self.content_type)
+                        self.win.setProperty("contenttype",self.content_type)
                 
                 self.cur_listitem ="%s--%s--%s--%s" %(cur_folder, self.li_label, self.li_title, self.content_type)
 
@@ -163,7 +168,7 @@ class ListItemMonitor(threading.Thread):
                 if self.cur_listitem and self.cur_listitem != last_listitem and self.content_type:
                     #clear all window props first
                     self.reset_win_props()
-                    self.set_win_prop(("cur_listitem",self.cur_listitem))
+                    self.set_win_prop(("curlistitem",self.cur_listitem))
 
                     #widget properties
                     if self.widgetcontainer_prefix:
@@ -241,8 +246,8 @@ class ListItemMonitor(threading.Thread):
             elif last_listitem and not self.exit:
                 #flush any remaining window properties
                 self.reset_win_props()
-                WINDOW.clearProperty("SkinHelper.ContentHeader")
-                WINDOW.clearProperty("content_type")
+                self.win.clearProperty("SkinHelper.ContentHeader")
+                self.win.clearProperty("content_type")
                 self.content_type = ""
                 last_listitem = ""
                 self.cur_listitem = ""
@@ -277,7 +282,7 @@ class ListItemMonitor(threading.Thread):
         media_array = get_kodi_json('Addons.GetAddons','{ }')
         for item in media_array:
             allAddonsCount += 1
-        WINDOW.setProperty("SkinHelper.TotalAddons",str(allAddonsCount))
+        self.win.setProperty("SkinHelper.TotalAddons",str(allAddonsCount))
 
         addontypes = []
         addontypes.append( ["executable", "SkinHelper.TotalProgramAddons", 0] )
@@ -289,14 +294,14 @@ class ListItemMonitor(threading.Thread):
             media_array = get_kodi_json('Addons.GetAddons','{ "content": "%s" }' %type[0])
             for item in media_array:
                 type[2] += 1
-            WINDOW.setProperty(type[1],str(type[2]))
+            self.win.setProperty(type[1],str(type[2]))
 
         #GET FAVOURITES COUNT
         allFavouritesCount = 0
         media_array = get_kodi_json('Favourites.GetFavourites','{ }')
         for item in media_array:
             allFavouritesCount += 1
-        WINDOW.setProperty("SkinHelper.TotalFavourites",str(allFavouritesCount))
+        self.win.setProperty("SkinHelper.TotalFavourites",str(allFavouritesCount))
 
         #GET TV CHANNELS COUNT
         allTvChannelsCount = 0
@@ -304,7 +309,7 @@ class ListItemMonitor(threading.Thread):
             media_array = get_kodi_json('PVR.GetChannels','{"channelgroupid": "alltv" }' )
             for item in media_array:
                 allTvChannelsCount += 1
-        WINDOW.setProperty("SkinHelper.TotalTVChannels",str(allTvChannelsCount))
+        self.win.setProperty("SkinHelper.TotalTVChannels",str(allTvChannelsCount))
 
         #GET MOVIE SETS COUNT
         allMovieSetsCount = 0
@@ -315,8 +320,8 @@ class ListItemMonitor(threading.Thread):
             media_array2 = get_kodi_json('VideoLibrary.GetMovieSetDetails','{"setid": %s}' %item["setid"])
             for item in media_array2:
                 allMoviesInSetCount +=1
-        WINDOW.setProperty("SkinHelper.TotalMovieSets",str(allMovieSetsCount))
-        WINDOW.setProperty("SkinHelper.TotalMoviesInSets",str(allMoviesInSetCount))
+        self.win.setProperty("SkinHelper.TotalMovieSets",str(allMovieSetsCount))
+        self.win.setProperty("SkinHelper.TotalMoviesInSets",str(allMoviesInSetCount))
 
         #GET RADIO CHANNELS COUNT
         allRadioChannelsCount = 0
@@ -324,18 +329,18 @@ class ListItemMonitor(threading.Thread):
             media_array = get_kodi_json('PVR.GetChannels','{"channelgroupid": "allradio" }' )
             for item in media_array:
                 allRadioChannelsCount += 1
-        WINDOW.setProperty("SkinHelper.TotalRadioChannels",str(allRadioChannelsCount))
+        self.win.setProperty("SkinHelper.TotalRadioChannels",str(allRadioChannelsCount))
 
     def reset_win_props(self):
         #reset all window props set by the script...
-        process_method_on_list(WINDOW.clearProperty,self.all_window_props)
+        process_method_on_list(self.win.clearProperty,self.all_window_props)
         self.all_window_props = []
     
     def reset_player_props(self):
         #reset all window props provided by the script...
-        for prop in self.allPlayerWindowProps:
-            WINDOW.clearProperty(try_encode(prop))
-        self.allPlayerWindowProps = []
+        for prop in self.all_player_win_props:
+            self.win.clearProperty(try_encode(prop))
+        self.all_player_win_props = []
     
     def set_imdb_id(self):
         li_imdb = xbmc.getInfoLabel("%sListItem.IMDBNumber"%self.widgetcontainer_prefix).decode('utf-8')
@@ -353,7 +358,7 @@ class ListItemMonitor(threading.Thread):
     def set_win_prop(self,prop_tuple):
         if prop_tuple[1] and not prop_tuple[0] in self.all_window_props:
             self.all_window_props.append(prop_tuple[0])
-            WINDOW.setProperty(prop_tuple[0],prop_tuple[1])
+            self.win.setProperty(prop_tuple[0],prop_tuple[1])
     
     def set_win_props(self,items):
         process_method_on_list(self.set_win_prop,items)
@@ -390,8 +395,8 @@ class ListItemMonitor(threading.Thread):
         process_method_on_list(self.set_win_prop, items)
     
     def set_player_prop(self,key,value):
-        self.allPlayerWindowProps.append(key)
-        WINDOW.setProperty(try_encode(key),try_encode(value))
+        self.all_player_win_props.append(key)
+        self.win.setProperty(try_encode(key),try_encode(value))
 
     def set_movieset_details(self):
         if self.li_path.startswith("videodb://movies/sets/") and self.li_dbid:
@@ -401,7 +406,7 @@ class ListItemMonitor(threading.Thread):
                 self.win_props_from_dict(result, "SkinHelper.MovieSet.")
         
     def set_content_header(self):
-        WINDOW.clearProperty("SkinHelper.ContentHeader")
+        self.win.clearProperty("SkinHelper.ContentHeader")
         itemscount = xbmc.getInfoLabel("Container.NumItems")
         if itemscount:
             if xbmc.getInfoLabel("Container.ListItemNoWrap(0).Label").startswith("*") or xbmc.getInfoLabel("Container.ListItemNoWrap(1).Label").startswith("*"):
@@ -426,15 +431,17 @@ class ListItemMonitor(threading.Thread):
                 headerprefix = xbmc.getLocalizedString(36917)
 
             if headerprefix:
-                WINDOW.setProperty("SkinHelper.ContentHeader","%s %s" %(itemscount,headerprefix) )
+                self.win.setProperty("SkinHelper.ContentHeader","%s %s" %(itemscount,headerprefix) )
 
     def set_addonname(self):
         # set addon name as property
         if not xbmc.Player().isPlayingAudio():
             if (xbmc.getCondVisibility("Container.Content(plugins) | !IsEmpty(Container.PluginName)")):
-                AddonName = xbmc.getInfoLabel('Container.PluginName').decode('utf-8')
-                AddonName = xbmcaddon.Addon(AddonName).getAddonInfo('name')
-                self.set_win_prop(("SkinHelper.Player.AddonName", AddonName))
+                addon_name = xbmc.getInfoLabel('Container.PluginName').decode('utf-8')
+                addon = xbmcaddon.Addon(addon_name)
+                addon_name = addon.getAddonInfo('name')
+                del addon
+                self.set_win_prop(("SkinHelper.Player.addon_name", addon_name))
 
     def set_genre(self):
         genre = xbmc.getInfoLabel('%sListItem.Genre' %self.widgetcontainer_prefix).decode('utf-8')
@@ -506,7 +513,7 @@ class ListItemMonitor(threading.Thread):
             if self.li_title != xbmc.getInfoLabel('%sListItem.Title'%(self.widgetcontainer_prefix)).decode('utf-8'):
                 return #abort if other listitem focused
             if not self.content_type in ["systeminfos","weathers"]:
-                self.cache.set(cacheStr,widget_details,expiration=timedelta(hours=2))
+                self.cache.set(cacheStr,widget_details,expiration=timedelta(hours=1))
         #set the window props
         process_method_on_list(self.set_win_prop, widget_details)
 
@@ -608,14 +615,14 @@ class ListItemMonitor(threading.Thread):
             return
         if (self.content_type and currentForcedView and currentForcedView != "None" and 
             xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.ForcedViews.Enabled)") and not "pvr://guide" in self.li_path):
-            WINDOW.setProperty("SkinHelper.ForcedView",currentForcedView)
+            self.win.setProperty("SkinHelper.ForcedView",currentForcedView)
             xbmc.executebuiltin("Container.SetViewMode(%s)" %currentForcedView)
             if not xbmc.getCondVisibility("Control.HasFocus(%s)" %currentForcedView):
                 xbmc.sleep(100)
                 xbmc.executebuiltin("Container.SetViewMode(%s)" %currentForcedView)
                 xbmc.executebuiltin("SetFocus(%s)" %currentForcedView)
         else:
-            WINDOW.clearProperty("SkinHelper.ForcedView")
+            self.win.clearProperty("SkinHelper.ForcedView")
 
     def set_extrafanart(self):
         if xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnableExtraFanart)"):

@@ -269,13 +269,13 @@ class BackgroundsUpdater(threading.Thread):
 
                 if media.get('art'):
                     if media['art'].get('fanart'):
-                        image["fanart"] = getCleanImage(media['art']['fanart'])
+                        image["fanart"] = get_clean_image(media['art']['fanart'])
                     elif media['art'].get('tvshow.fanart'):
-                        image["fanart"] = getCleanImage(media['art']['tvshow.fanart'])
+                        image["fanart"] = get_clean_image(media['art']['tvshow.fanart'])
                     if media['art'].get('thumb'):
-                        image["thumbnail"] = getCleanImage(media['art']['thumb'])
+                        image["thumbnail"] = get_clean_image(media['art']['thumb'])
                     if media['art'].get('thumbnail'):
-                        image["thumbnail"] = getCleanImage(media['art']['thumbnail'])
+                        image["thumbnail"] = get_clean_image(media['art']['thumbnail'])
 
                 if not image.get('fanart'):
                     image["fanart"] = media.get('fanart','')
@@ -411,7 +411,7 @@ class BackgroundsUpdater(threading.Thread):
                 for item in json_query:
                     genre = " / ".join(item["genre"])
                     artwork = artutils.getPVRThumbs(item["title"],item["channel"],"recordings",item["file"],genre)
-                    fanart = getCleanImage(artwork.get("fanart",""))
+                    fanart = get_clean_image(artwork.get("fanart",""))
                     if fanart and xbmcvfs.exists(fanart):
                         images.append({"fanart": fanart, "title": artwork.get("title",""), "landscape": artwork.get("landscape",""), "poster": artwork.get("poster",""), "clearlogo": artwork.get("clearlogo","")})
 
@@ -422,7 +422,7 @@ class BackgroundsUpdater(threading.Thread):
                 count = 0
                 for cachefile in cachefiles:
                     artwork = artutils.getArtworkFromCacheFile(cachefile)
-                    fanart = getCleanImage(artwork.get("fanart",""))
+                    fanart = get_clean_image(artwork.get("fanart",""))
                     if fanart and xbmcvfs.exists(fanart):
                         count += 1
                         images.append({"fanart": fanart, "title": artwork.get("title",""), "landscape": artwork.get("landscape",""), "poster": artwork.get("poster",""), "clearlogo": artwork.get("clearlogo","")})

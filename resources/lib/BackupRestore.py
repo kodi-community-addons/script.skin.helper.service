@@ -121,7 +121,7 @@ def backup(filterString="",silent=None,promptfilename="false"):
                                     if thumb:
                                         thumb = thumb.data
                                         if thumb and(".jpg" in thumb.lower() or ".png" in thumb.lower() or ".gif" in thumb.lower()) and not xbmc.getSkinDir() in thumb and not thumb.startswith("$") and not thumb.startswith("androidapp"):
-                                            thumb = getCleanImage(thumb)
+                                            thumb = get_clean_image(thumb)
                                             extension = thumb.split(".")[-1]
                                             newthumb = os.path.join(skinshortcuts_path,"%s-thumb-%s.%s" %(xbmc.getSkinDir(),normalize_string(defaultID),extension))
                                             newthumb_vfs = "special://profile/addon_data/script.skinshortcuts/%s-thumb-%s.%s"%(xbmc.getSkinDir(),normalize_string(defaultID),extension)
@@ -145,7 +145,7 @@ def backup(filterString="",silent=None,promptfilename="false"):
                                     background = prop[3]
                                     defaultID = prop[1]
                                     if background and (".jpg" in background.lower() or ".png" in background.lower()) and not xbmc.getSkinDir() in background and not background.startswith("$") and not background.startswith("androidapp"):
-                                        background = getCleanImage(background)
+                                        background = get_clean_image(background)
                                         extension = background.split(".")[-1]
                                         newthumb = os.path.join(skinshortcuts_path,"%s-background-%s.%s" %(xbmc.getSkinDir(),normalize_string(defaultID),extension))
                                         newthumb_vfs = "special://profile/addon_data/script.skinshortcuts/%s-background-%s.%s"%(xbmc.getSkinDir(),normalize_string(defaultID),extension)

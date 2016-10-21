@@ -11,7 +11,7 @@ class SearchDialog(xbmcgui.WindowXMLDialog):
     def __init__(self, *args, **kwargs):
         xbmcgui.WindowXMLDialog.__init__(self, *args, **kwargs)
         self.settings = xbmcaddon.Addon(id='script.skin.helper.service')
-        self.cwd = ADDON_PATH
+        self.cwd = self.addon.getAddonInfo('path').decode("utf-8")
 
     def onInit(self):
         self.action_exitkeys_id = [10, 13]

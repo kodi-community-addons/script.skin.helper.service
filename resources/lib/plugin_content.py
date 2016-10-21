@@ -1,66 +1,84 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import xbmc, xbmcplugin, xbmcgui
+import xbmc, xbmcplugin, xbmcgui, xbmcaddon
 from simplecache import SimpleCache
-from utils import log_msg, try_encode, normalize_string, timedelta, getCleanImage, KODI_VERSION, process_method_on_list,WINDOW,log_exception
+from utils import log_msg, try_encode, normalize_string, get_clean_image, KODI_VERSION, process_method_on_list, log_exception
 from artutils import KodiDb, Tmdb
+from datetime import timedelta
 import urlparse, urllib
-import sys
+import sys, os
 
 class PluginContent:
-    
+
     params = {}
-    
+
     def __init__(self):
-    
+
         self.cache = SimpleCache()
         self.kodi_db = KodiDb()
-        
+        self.win = xbmcgui.Window(10000)
         try:
             self.params = dict(urlparse.parse_qsl(sys.argv[2].replace('?','').lower().decode("utf-8")))
             log_msg("plugin called with parameters: %s" %self.params)
-            action = self.params.get("action","")
-            actions = ["launchpvr","playrecording","launch","playalbum","smartshortcuts","backgrounds","widgets","getthumb","extrafanart","getcast","getcastmedia","alphabet","alphabetletter"]
-            
-            if WINDOW.getProperty("SkinHelperShutdownRequested"):
-                #do not proceed if kodi wants to exit
-                log_msg("%s --> Not forfilling request: Kodi is exiting" %__name__ ,xbmc.LOGWARNING)
-                xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
-            if action in actions:
-                #launch module for action
-                getattr(self, action)()
-            elif action:
-                #legacy action called, start redirect...
-                newaddon = "script.skin.helper.widgets"
-                log_msg("Deprecated method: %s. Please call %s directly - This automatic redirect will be removed in the future" %(action,newaddon), xbmc.LOGWARNING )
-                paramstring = ""
-                for key, value in self.params.iteritems():
-                    paramstring += ",%s=%s" %(key,value)
-                if xbmc.getCondVisibility("System.HasAddon(%s)" %newaddon):
-                    #TEMP: for legacy reasons only - to be removed in the near future
-                    all_items = self.kodi_db.files("plugin://script.skin.helper.widgets%s"%sys.argv[2])
-                    all_items = process_method_on_list(self.kodi_db.prepare_listitem,all_items)
-                    all_items = process_method_on_list(self.kodi_db.create_listitem,all_items)
-                    xbmcplugin.addDirectoryItems(int(sys.argv[1]), all_items, len(all_items))
-                    xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
-                else:
-                    #trigger install of the addon
-                    if KODI_VERSION >= 17:
-                        xbmc.executebuiltin("InstallAddon(%s)" %newaddon)
-                    else:
-                        xbmc.executebuiltin("RunPlugin(plugin://%s)" %newaddon)
-            else:
-                #invalid action
-                xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
-            
+            self.main()
         except Exception as exc:
             log_exception(__name__,exc)
             xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
-    
+            
+    def __del__(self):
+        '''Cleanup Kodi Cpython instances'''
+        del self.win
+        log_msg("PluginContent exited")
+
+    def main(self):
+        '''main action, load correct function'''
+        action = self.params.get("action","")
+        actions = ["launchpvr","playrecording","launch","playalbum","smartshortcuts",
+            "backgrounds","widgets","getthumb","extrafanart","getcast","getcastmedia","alphabet","alphabetletter"]
+
+        if self.win.getProperty("SkinHelperShutdownRequested"):
+            #do not proceed if kodi wants to exit
+            log_msg("%s --> Not forfilling request: Kodi is exiting" %__name__ ,xbmc.LOGWARNING)
+            xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
+        if action in actions:
+            #launch module for action provides by this plugin
+            getattr(self, action)()
+        elif action:
+            #legacy widget path called !!!
+            self.load_widget()
+        else:
+            #invalid action
+            xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
+
+    def load_widget(self):
+        '''legacy action called (widgets are moved to seperate addon), start redirect...'''
+        action = self.params.get("action","")
+        newaddon = "script.skin.helper.widgets"
+        log_msg("Deprecated method: %s. Please call %s directly - \
+            This automatic redirect will be removed in the future" %(action,newaddon), xbmc.LOGWARNING )
+        paramstring = ""
+        for key, value in self.params.iteritems():
+            paramstring += ",%s=%s" %(key,value)
+        if xbmc.getCondVisibility("System.HasAddon(%s)" %newaddon):
+            #TEMP !!! for backwards compatability reasons only - to be removed in the near future!!
+            import imp
+            addon = xbmcaddon.Addon(newaddon)
+            addon_path = addon.getAddonInfo('path').decode("utf-8")
+            plugin = imp.load_source('plugin', os.path.join(addon_path, "plugin.py"))
+            from plugin import main
+            main.Main()
+            del addon
+        else:
+            #trigger install of the addon
+            if KODI_VERSION >= 17:
+                xbmc.executebuiltin("InstallAddon(%s)" %newaddon)
+            else:
+                xbmc.executebuiltin("RunPlugin(plugin://%s)" %newaddon)
+
     def launch_pvr(self):
         xbmcplugin.setResolvedUrl(handle=int(sys.argv[1]), succeeded=False, listitem=xbmcgui.ListItem())
         xbmc.executeJSONRPC('{ "jsonrpc": "2.0", "id": 0, "method": "Player.Open", "params": { "item": {"channelid": %d} } }' %int(self.params["path"]))
-        
+
     def playrecording(self):
         xbmcplugin.setResolvedUrl(handle=int(sys.argv[1]), succeeded=False, listitem=xbmcgui.ListItem())
         #retrieve the recording and play as listitem to get resume working
@@ -73,29 +91,29 @@ class PluginContent:
                         break
                     xbmc.sleep(250)
                 xbmc.Player().seekTime(json_result["resume"].get("position"))
-    
+
     def launch(self):
         xbmcplugin.setResolvedUrl(handle=int(sys.argv[1]), succeeded=False, listitem=xbmcgui.ListItem())
         xbmc.sleep(150)
         xbmc.executebuiltin(sys.argv[2].split("&path=")[1])
-    
+
     def playalbum(self):
         xbmcplugin.setResolvedUrl(handle=int(sys.argv[1]), succeeded=False, listitem=xbmcgui.ListItem())
         xbmc.sleep(150)
         xbmc.executeJSONRPC('{ "jsonrpc": "2.0", "method": "Player.Open", "params": { "item": { "albumid": %d } }, "id": 1 }' % int(self.params["path"]))
-    
+
     def smartshortcuts(self):
         import skinshortcuts
         skinshortcuts.getSmartShortcuts(self.params["path"])
-    
+
     def backgrounds(self):
         import skinshortcuts
         skinshortcuts.getBackgrounds()
-    
+
     def widgets(self):
         import skinshortcuts
         skinshortcuts.getWidgets(self.params["path"])
-    
+
     def extrafanart(self):
         extrafanarts = []
         items_path = self.params["path"]
@@ -104,9 +122,9 @@ class PluginContent:
         if cachedata:
             extrafanarts = cachedata
         else:
-            if items_path.startswith("EFA_FROMWINDOWPROP_"):
+            if items_path.startswith("EFA_FROMself.winPROP_"):
                 #get extrafanarts from window property
-                extrafanarts = eval(WINDOW.getProperty(try_encode(items_path)).decode("utf-8"))
+                extrafanarts = eval(self.win.getProperty(try_encode(items_path)).decode("utf-8"))
             elif items_path.startswith("EFA_FROMCACHE_"):
                 #get extrafanarts from cache system by getting the cache for given cachestr
                 items_path = items_path.split("_")[-1]
@@ -175,7 +193,7 @@ class PluginContent:
         tvshow = self.params.get("tvshow")
         episode = self.params.get("episode")
         movieset = self.params.get("movieset")
-        
+
         try: #try to parse db_id
             if movieset:
                 cache_str = "movieset.castcache-%s-%s" %(self.params["movieset"],download_thumbs)
@@ -191,9 +209,9 @@ class PluginContent:
                 db_id = int(episode)
             elif not (movie or tvshow or episode or movieset) and xbmc.getCondVisibility("Window.IsActive(DialogVideoInfo.xml)"):
                 cache_str = "castcache.%s.%s.%s" %(xbmc.getInfoLabel("ListItem.Title"),xbmc.getInfoLabel("ListItem.FileNameAndPath"),download_thumbs)
-        except Exception: 
+        except Exception:
             pass
-        
+
         cachedata = self.cache.get(cache_str)
         if cachedata:
             #get data from cache
@@ -229,24 +247,26 @@ class PluginContent:
                             break
                 if db_id:
                     params = {"setid": db_id, "movies": {"properties": ["title","cast"]}}
-                    json_result = self.kodi_db.get_db('VideoLibrary.GetMovieSetDetails',None,None,None,None,"moviesets", params)
+                    json_result = self.kodi_db.get_db('VideoLibrary.GetMovieSetDetails',
+                        None,None,None,None,"moviesets", params)
                     if json_result.has_key("movies"):
                         for movie in json_result['movies']:
                             all_cast += movie['cast']
             #no item provided, try to grab the cast list from container 50 (dialogvideoinfo)
-            elif not (movie or tvshow or episode or movieset) and xbmc.getCondVisibility("Window.IsActive(DialogVideoInfo.xml)"):
+            elif ( not (movie or tvshow or episode or movieset) and
+                xbmc.getCondVisibility("Window.IsActive(DialogVideoInfo.xml)") ):
                 for i in range(250):
                     label = xbmc.getInfoLabel("Container(50).ListItemNoWrap(%s).Label" %i).decode("utf-8")
                     if not label: break
                     label2 = xbmc.getInfoLabel("Container(50).ListItemNoWrap(%s).Label2" %i).decode("utf-8")
-                    thumb = getCleanImage( xbmc.getInfoLabel("Container(50).ListItemNoWrap(%s).Thumb" %i).decode("utf-8") )
-                    all_cast.append( { "name": label, "role": label2, "thumbnail": thumb } )
+                    thumb = xbmc.getInfoLabel("Container(50).ListItemNoWrap(%s).Thumb" %i).decode("utf-8")
+                    all_cast.append( { "name": label, "role": label2, "thumbnail": get_clean_image(thumb) } )
 
             #optional: download missing actor thumbs
             if all_cast and download_thumbs:
                 for cast in all_cast:
-                    if cast.get("thumbnail"): 
-                        cast["thumbnail"] = getCleanImage(cast.get("thumbnail"))
+                    if cast.get("thumbnail"):
+                        cast["thumbnail"] = get_clean_image(cast.get("thumbnail"))
                     if not cast.get("thumbnail"):
                         artwork = tmdb.get_actor(cast["name"])
                         cast["thumbnail"] = artwork.get("thumb","")
@@ -265,7 +285,8 @@ class PluginContent:
         #process listing with the results...
         for cast in all_cast:
             if cast.get("name") not in all_cast_names:
-                liz = xbmcgui.ListItem(label=cast.get("name"),label2=cast.get("role"),iconImage=cast.get("thumbnail"))
+                liz = xbmcgui.ListItem(label=cast.get("name"),label2=cast.get("role"),
+                    iconImage=cast.get("thumbnail"))
                 liz.setProperty('IsPlayable', 'false')
                 url = "RunScript(script.extendedinfo,info=extendedactorinfo,name=%s)"%cast.get("name")
                 path="plugin://script.skin.helper.service/?action=launch&path=" + url
@@ -273,7 +294,7 @@ class PluginContent:
                 liz.setThumbnailImage(cast.get("thumbnail"))
                 xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=path, listitem=liz, isFolder=False)
         xbmcplugin.endOfDirectory(int(sys.argv[1]))
-        
+
     @classmethod
     def alphabet(cls):
         '''display an alphabet scrollbar in listings'''
@@ -286,7 +307,8 @@ class PluginContent:
                 if number in all_letters:
                     start_number = number
                     break
-            for letter in [start_number,"A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"]:
+            for letter in [start_number,"A","B","C","D","E","F","G","H","I","J","K","L",
+                "M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"]:
                 if letter == start_number:
                     label = "#"
                 else: label = letter
@@ -298,7 +320,7 @@ class PluginContent:
                     path = "plugin://script.skin.helper.service/?action=alphabetletter&letter=%s" %letter
                 xbmcplugin.addDirectoryItem(int(sys.argv[1]), path, li)
         xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
-        
+
     def alphabetletter(self):
         '''used with the alphabet scrollbar to jump to a letter'''
         xbmcplugin.setResolvedUrl(handle=int(sys.argv[1]), succeeded=False, listitem=xbmcgui.ListItem())
@@ -322,8 +344,8 @@ class PluginContent:
         if jumpcmd:
             xbmc.executebuiltin("SetFocus(50)")
             for i in range(40):
-                xbmc.executeJSONRPC('{ "jsonrpc": "2.0", "method": "Input.ExecuteAction", "params": { "action": "jumpsms%s" }, "id": 1 }' % (jumpcmd))
+                xbmc.executeJSONRPC('{ "jsonrpc": "2.0", "method": "Input.ExecuteAction",\
+                    "params": { "action": "jumpsms%s" }, "id": 1 }' % (jumpcmd))
                 xbmc.sleep(50)
                 if xbmc.getInfoLabel("ListItem.Sortletter").upper() == letter:
                     break
-        

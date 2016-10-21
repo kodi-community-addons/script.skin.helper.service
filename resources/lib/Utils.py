@@ -22,30 +22,24 @@ try:
 except Exception:
     import json
 
-ADDON = xbmcaddon.Addon()
-ADDON_ID = ADDON.getAddonInfo('id').decode("utf-8")
-ADDON_ICON = ADDON.getAddonInfo('icon').decode("utf-8")
-ADDON_NAME = ADDON.getAddonInfo('name').decode("utf-8")
-ADDON_PATH = ADDON.getAddonInfo('path').decode("utf-8")
-ADDON_VERSION = ADDON.getAddonInfo('version').decode("utf-8")
-ADDON_DATA_PATH = xbmc.translatePath("special://profile/addon_data/%s" % ADDON_ID).decode("utf-8")
+ADDON_ID = "script.skin.helper.service"
 KODI_VERSION  = int(xbmc.getInfoLabel( "System.BuildVersion" ).split(".")[0])
-WINDOW = xbmcgui.Window(10000)
-SETTING = ADDON.getSetting
 KODILANGUAGE = xbmc.getLanguage(xbmc.ISO_639_1)
-sys.path.append(xbmc.translatePath(os.path.join(ADDON_PATH, 'resources', 'lib')).decode('utf-8'))
 
-fields_base = '"dateadded", "file", "lastplayed","plot", "title", "art", "playcount",'
-fields_file = fields_base + '"streamdetails", "director", "resume", "runtime",'
-fields_movies = fields_file + '"plotoutline", "sorttitle", "cast", "votes", "showlink", "top250", "trailer", "year", "country", "studio", "set", "genre", "mpaa", "setid", "rating", "tag", "tagline", "writer", "originaltitle", "imdbnumber"'
-fields_tvshows = fields_base + '"sorttitle", "mpaa", "premiered", "year", "episode", "watchedepisodes", "votes", "rating", "studio", "season", "genre", "cast", "episodeguide", "tag", "originaltitle", "imdbnumber"'
-fields_episodes = fields_file + '"cast", "productioncode", "rating", "votes", "episode", "showtitle", "tvshowid", "season", "firstaired", "writer", "originaltitle"'
-fields_musicvideos = fields_file + '"genre", "artist", "tag", "album", "track", "studio", "year"'
-fields_files = fields_file + '"plotoutline", "sorttitle", "cast", "votes", "trailer", "year", "country", "studio", "genre", "mpaa", "rating", "tagline", "writer", "originaltitle", "imdbnumber", "premiered","episode", "showtitle","firstaired","watchedepisodes","duration" '
-fields_songs = '"artist","displayartist", "title", "rating", "fanart", "thumbnail", "duration", "playcount", "comment", "file", "album", "lastplayed", "genre", "musicbrainzartistid", "track"'
-fields_albums = '"title", "fanart", "thumbnail", "genre", "displayartist", "artist", "genreid", "musicbrainzalbumartistid", "year", "rating", "artistid", "musicbrainzalbumid", "theme", "description", "type", "style", "playcount", "albumlabel", "mood"'
-fields_pvrrecordings = '"art", "channel", "directory", "endtime", "file", "genre", "icon", "playcount", "plot", "plotoutline", "resume", "runtime", "starttime", "streamurl", "title"'
-KodiArtTypes = [ ("thumb","thumb.jpg"),("poster","poster.jpg"),("fanart","fanart.jpg"),("banner","banner.jpg"),("landscape","landscape.jpg"),("clearlogo","logo.png"),("clearart","clearart.png"),("channellogo","channellogo.png"),("discart","disc.png"),("discart","cdart.png"),("extrafanart","extrafanart/"),("characterart","characterart.png"),("folder","folder.jpg") ]
+    
+# ADDON = xbmcaddon.Addon()
+# ADDON_ID = ADDON.getAddonInfo('id').decode("utf-8")
+# ADDON_ICON = ADDON.getAddonInfo('icon').decode("utf-8")
+# ADDON_NAME = ADDON.getAddonInfo('name').decode("utf-8")
+# self.addon.getAddonInfo('path').decode("utf-8") = ADDON.getAddonInfo('path').decode("utf-8")
+# ADDON_VERSION = ADDON.getAddonInfo('version').decode("utf-8")
+# ADDON_DATA_PATH = xbmc.translatePath("special://profile/addon_data/%s" % ADDON_ID).decode("utf-8")
+# KODI_VERSION  = int(xbmc.getInfoLabel( "System.BuildVersion" ).split(".")[0])
+# WINDOW = xbmcgui.Window(10000)
+# SETTING = ADDON.getSetting
+# KODILANGUAGE = xbmc.getLanguage(xbmc.ISO_639_1)
+# sys.path.append(xbmc.translatePath(os.path.join(self.addon.getAddonInfo('path').decode("utf-8"), 'resources', 'lib')).decode('utf-8'))
+
 
 def log_msg(msg, loglevel = xbmc.LOGDEBUG):
     if isinstance(msg, unicode):
@@ -484,9 +478,9 @@ def prepareListItem(item):
             if not art.get("landscape") and art.get("tvshow.landscape"):
                 art["landscape"] = art.get("tvshow.landscape")
         if not art.get("fanart") and item.get('fanart'): art["fanart"] = item.get('fanart')
-        if not art.get("thumb") and item.get('thumbnail'): art["thumb"] = getCleanImage(item.get('thumbnail'))
-        if not art.get("thumb") and art.get('poster'): art["thumb"] = getCleanImage(item.get('poster'))
-        if not art.get("thumb") and item.get('icon'): art["thumb"] = getCleanImage(item.get('icon'))
+        if not art.get("thumb") and item.get('thumbnail'): art["thumb"] = get_clean_image(item.get('thumbnail'))
+        if not art.get("thumb") and art.get('poster'): art["thumb"] = get_clean_image(item.get('poster'))
+        if not art.get("thumb") and item.get('icon'): art["thumb"] = get_clean_image(item.get('icon'))
         if not item.get("thumbnail") and art.get('thumb'): item["thumbnail"] = art["thumb"]
 
         item["extraproperties"] = properties
@@ -629,7 +623,7 @@ def createSmartShortcutSubmenu(windowProp,iconimage):
     try:
         if xbmcvfs.exists("special://skin/shortcuts/"):
             shortcutFile = xbmc.translatePath("special://home/addons/script.skinshortcuts/resources/shortcuts/info-window-home-property-%s-title.DATA.xml" %windowProp.replace(".","-")).decode("utf-8")
-            templatefile = os.path.join(ADDON_PATH,"resources","smartshortcuts","smartshortcuts-submenu-template.xml")
+            templatefile = os.path.join(self.addon.getAddonInfo('path').decode("utf-8"),"resources","smartshortcuts","smartshortcuts-submenu-template.xml")
             if not xbmcvfs.exists(shortcutFile):
                 with open(templatefile, 'r') as f:
                     data = f.read()
@@ -716,10 +710,9 @@ def get_current_content_type(containerprefix=""):
             contenttype = "episodes"
         elif xbmc.getCondVisibility("!IsEmpty(%sListItem.Property(ChannelLogo))" %(containerprefix)):
             contenttype = "tvchannels"
-
     return contenttype
 
-def getCleanImage(image):
+def get_clean_image(image):
     if image and "image://" in image:
         image = image.replace("image://","").replace("music@","")
         image=urllib.unquote(image.encode("utf-8"))
