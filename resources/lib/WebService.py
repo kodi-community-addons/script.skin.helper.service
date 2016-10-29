@@ -3,8 +3,8 @@
 
 import SimpleHTTPServer, BaseHTTPServer, httplib
 import threading
-from utils import *
-import artutils
+from utils import log_msg, ADDON_ID, log_exception
+import xbmc, xbmcvfs
 import urlparse
 
 #port is hardcoded as there is no way in Kodi to pass a INFO-label inside a panel,
@@ -14,9 +14,10 @@ port = 52307
 class WebService(threading.Thread):
     event = None
     exit = False
-
-    def __init__(self, *args):
-        log_msg("WebService - start helper webservice on port " + str(port),xbmc.LOGNOTICE)
+    
+    def __init__(self, *args, **kwargs):
+        self.artutils = kwargs.get("artutils")
+        self.win = kwargs.get("win")
         self.event =  threading.Event()
         threading.Thread.__init__(self, *args)
 
@@ -28,14 +29,16 @@ class WebService(threading.Thread):
             conn.getresponse()
             self.exit = True
             self.event.set()
-        except Exception:
-            log_msg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
+        except Exception as exc:
+            log_exception(__name__,exc)
 
     def run(self):
+        log_msg("WebService - start helper webservice on port " + str(port),xbmc.LOGNOTICE)
         try:
             server = StoppableHttpServer(('127.0.0.1', port), StoppableHttpRequestHandler)
             server.serve_forever()
-        except Exception as e: log_msg("WebServer exception occurred " + str(e),0)
+        except Exception as exc:
+            log_exception(__name__,exc)
 
 class Request(object):
     # attributes from urlsplit that this class also sets
@@ -63,8 +66,8 @@ class StoppableHttpRequestHandler (SimpleHTTPServer.SimpleHTTPRequestHandler):
     def __init__(self, request, client_address, server):
         try:
             SimpleHTTPServer.SimpleHTTPRequestHandler.__init__(self, request, client_address, server)
-        except Exception:
-            log_msg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
+        except Exception as exc:
+            log_exception(__name__,exc)
 
     def do_QUIT (self):
         #send 200 OK response, and set server.stop to True
@@ -119,25 +122,13 @@ class StoppableHttpRequestHandler (SimpleHTTPServer.SimpleHTTPRequestHandler):
         if fallback.startswith("Default"): fallback = u"special://skin/media/" + fallback
 
         if action == "getthumb":
-            image = artutils.GoogleImages().search_image(title)
-
-        elif action == "getvarimage":
-            title = title.replace("{","[").replace("}","]")
-            image_tmp = xbmc.getInfoLabel(title)
-            if xbmcvfs.exists(image_tmp):
-                if image_tmp.startswith("resource://"):
-                    #texture packed resource images are failing: http://trac.kodi.tv/ticket/16366
-                    log_msg("WebService --> resource images are currently not supported due to a bug in Kodi" ,xbmc.LOGWARNING)
-                else:
-                    image = image_tmp
+            image = self.artutils.google.search_image(title)
 
         elif action == "getpvrthumb":
             channel = params.get("channel","")
             preferred_type = params.get("type","")
-            if xbmc.getCondVisibility("Window.IsActive(MyPVRRecordings.xml)"): type = "recordings"
-            else: type = "channels"
-            year = params.get("year","")
-            artwork = artutils.PvrArtwork().get_pvr_artwork(title, channel, year)
+            year = params.get("genre","")
+            artwork = self.artutils.get_pvr_artwork(title, channel, genre)
             if preferred_type:
                 preferred_types = preferred_type.split(",")
                 for preftype in preferred_types:
@@ -151,7 +142,7 @@ class StoppableHttpRequestHandler (SimpleHTTPServer.SimpleHTTPRequestHandler):
 
         elif action == "getallpvrthumb":
             channel = params.get("channel","")
-            images = artutils.PvrArtwork().get_pvr_artwork(title, channel)
+            images = self.artutils.get_pvr_artwork(title, channel)
             # Ensure no unicode in images...
             for key, value in images.iteritems():
                 images[key] = unicode(value).encode('utf-8')
@@ -165,7 +156,9 @@ class StoppableHttpRequestHandler (SimpleHTTPServer.SimpleHTTPRequestHandler):
         elif action == "getartwork":
             year = params.get("year","")
             arttype = params.get("type","")
-            artwork = artutils.getAddonArtwork(title,year,arttype)
+            media_type = params.get("mediatype","")
+            imdb_id = params.get("imdbid","")
+            artwork = self.artutils.get_extended_artwork(self, imdb_id=imdb_id,title=title,year=year,media_type=media_type)
             jsonstr = json.dumps(artwork)
             self.send_response(200)
             self.send_header('Content-type','application/json')
@@ -178,7 +171,7 @@ class StoppableHttpRequestHandler (SimpleHTTPServer.SimpleHTTPRequestHandler):
             artist = params.get("artist","")
             album = params.get("album","")
             track = params.get("track","")
-            artwork = artutils.getMusicArtwork(artist, album, track)
+            artwork = self.artutils.get_musicartwork(artist, album, track)
             if preferred_type:
                 preferred_types = preferred_type.split(",")
                 for preftype in preferred_types:
@@ -191,23 +184,23 @@ class StoppableHttpRequestHandler (SimpleHTTPServer.SimpleHTTPRequestHandler):
 
         elif "getmoviegenreimages" in action or "gettvshowgenreimages" in action:
             artwork = {}
-            cachestr = ("%s-%s" %(action,title)).encode("utf-8")
-            cache = WINDOW.getProperty(cachestr).decode("utf-8")
+            cachestr = "%s-%s" %(action,title)
+            cache = self.cache.get(cachestr)
             if cache:
-                artwork = eval(cache)
+                artwork = cache
             else:
                 sort = '"order": "ascending", "method": "sorttitle", "ignorearticle": true'
                 if "random" in action:
                     sort = '"order": "descending", "method": "random"'
                     action = action.replace("random","")
                 if action == "gettvshowgenreimages":
-                    json_result = get_kodi_json('VideoLibrary.GetTvshows', '{ "sort": { %s }, "filter": {"operator":"is", "field":"genre", "value":"%s"}, "properties": [ %s ],"limits":{"end":%d} }' %(sort,title,fields_tvshows,5))
+                    json_result = kodi_json('VideoLibrary.GetTvshows', '{ "sort": { %s }, "filter": {"operator":"is", "field":"genre", "value":"%s"}, "properties": [ "art" ],"limits":{"end":%d} }' %(sort,title,5))
                 else:
-                    json_result = get_kodi_json('VideoLibrary.GetMovies', '{ "sort": { %s }, "filter": {"operator":"is", "field":"genre", "value":"%s"}, "properties": [ %s ],"limits":{"end":%d} }' %(sort,title,fields_movies,5))
+                    json_result = kodi_json('VideoLibrary.GetMovies', '{ "sort": { %s }, "filter": {"operator":"is", "field":"genre", "value":"%s"}, "properties": [ "art" ],"limits":{"end":%d} }' %(sort,title,5))
                 for count, item in enumerate(json_result):
                     artwork["poster.%s" %count] = item["art"].get("poster","")
                     artwork["fanart.%s" %count] = item["art"].get("fanart","")
-                WINDOW.setProperty(cachestr,repr(artwork).encode("utf-8"))
+                self.cache.set(cachestr, artwork)
             if artwork:
                 preferred_type = params.get("type","")
                 if preferred_type:

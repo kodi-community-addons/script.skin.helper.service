@@ -1,6 +1,6 @@
 import sys
 import xbmc, xbmcgui, xbmcvfs
-import Artworkutils as artutils
+from artutils import KodiDb
 import PluginContent as plugincontent
 from utils import *
 import threading
@@ -13,26 +13,28 @@ class InfoDialog( xbmcgui.WindowXMLDialog ):
     def __init__( self, *args, **kwargs ):
         xbmcgui.WindowXMLDialog.__init__( self )
         params = kwargs[ "params" ]
+        self.kodidb = KodiDb()
+        
         if params.get("MOVIEID"):
-            item = get_kodi_json('VideoLibrary.GetMovieDetails', '{ "movieid": %s, "properties": [ %s ] }' %(params["MOVIEID"],fields_movies))
+            item = kodidb.movie(params["movieid"])
             self.content = "movies"
         elif params.get("MUSICVIDEOID"):
-            item = get_kodi_json('VideoLibrary.GetMusicVideoDetails', '{ "musicvideoid": %s, "properties": [ %s ] }' %(params["MUSICVIDEOID"],fields_musicvideos))
+            item = kodi_json('VideoLibrary.GetMusicVideoDetails', '{ "musicvideoid": %s, "properties": [ %s ] }' %(params["MUSICVIDEOID"],fields_musicvideos))
             self.content = "musicvideos"
         elif params.get("EPISODEID"):
-            item = get_kodi_json('VideoLibrary.GetEpisodeDetails', '{ "episodeid": %s, "properties": [ %s ] }' %(params["EPISODEID"],fields_episodes))
+            item = kodi_json('VideoLibrary.GetEpisodeDetails', '{ "episodeid": %s, "properties": [ %s ] }' %(params["EPISODEID"],fields_episodes))
             self.content = "episodes"
         elif params.get("TVSHOWID"):
-            item = get_kodi_json('VideoLibrary.GetTVShowDetails', '{ "tvshowid": %s, "properties": [ %s ] }' %(params["TVSHOWID"],fields_tvshows))
+            item = kodi_json('VideoLibrary.GetTVShowDetails', '{ "tvshowid": %s, "properties": [ %s ] }' %(params["TVSHOWID"],fields_tvshows))
             self.content = "tvshows"
         elif params.get("ALBUMID"):
-            item = get_kodi_json('AudioLibrary.GetAlbumDetails', '{ "albumid": %s, "properties": [ %s ] }' %(params["ALBUMID"],fields_albums))
+            item = kodi_json('AudioLibrary.GetAlbumDetails', '{ "albumid": %s, "properties": [ %s ] }' %(params["ALBUMID"],fields_albums))
             self.content = "albums"
         elif params.get("SONGID"):
-            item = get_kodi_json('AudioLibrary.GetSongDetails', '{ "songid": %s, "properties": [ %s ] }' %(params["SONGID"],fields_songs))
+            item = kodi_json('AudioLibrary.GetSongDetails', '{ "songid": %s, "properties": [ %s ] }' %(params["SONGID"],fields_songs))
             self.content = "songs"
         elif params.get("RECORDINGID"):
-            item = get_kodi_json('PVR.GetRecordingDetails', '{ "recordingid": %s, "properties": [ %s ]}' %( params["RECORDINGID"], fields_pvrrecordings))
+            item = kodi_json('PVR.GetRecordingDetails', '{ "recordingid": %s, "properties": [ %s ]}' %( params["RECORDINGID"], fields_pvrrecordings))
             artwork = artutils.getPVRThumbs(item["title"],item["channel"],"recordings",item["file"])
             item["art"] = artwork
             for key, value in artwork.iteritems():

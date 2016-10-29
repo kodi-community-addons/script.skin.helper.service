@@ -1,9 +1,10 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import xbmc, xbmcplugin, xbmcgui, xbmcaddon
+import xbmc, xbmcvfs, xbmcgui, xbmcaddon
 from simplecache import SimpleCache
-from utils import log_msg, try_encode, normalize_string, get_clean_image, KODI_VERSION, process_method_on_list, log_exception, get_current_content_type, get_kodi_json
+from utils import log_msg, try_encode, normalize_string, get_clean_image, KODI_VERSION, process_method_on_list, log_exception, get_current_content_type, kodi_json, ADDON_ID
 from dialogs import DialogSelectSmall, DialogSelectBig
+from xml.dom.minidom import parse
 from artutils import KodiDb, Tmdb
 from datetime import timedelta
 import urlparse, urllib
@@ -17,36 +18,37 @@ class MainModule:
     def __init__(self):
         '''Initialization'''
         self.win = xbmcgui.Window(10000)
+        self.addon = xbmcaddon.Addon(ADDON_ID)
 
         self.params = self.get_params()
-        log_msg("script called with parameters: %s" %self.params, xbmc.LOGNOTICE)
+        log_msg("MainModule called with parameters: %s" %self.params)
         action = self.params.get("action","")
-
+        xbmc.executebuiltin( "Dialog.Close(busydialog)" )
         #launch module for action provided by this script
         try:
             getattr(self, action)()
         except AttributeError:
             log_msg("No such action: %s"%action, xbmc.LOGWARNING)
-        except Exception:
+        except Exception as exc:
             log_exception(__name__,exc)
 
     def __del__(self):
         '''Cleanup Kodi Cpython instances'''
         del self.win
-        log_msg("Exited")
+        del self.addon
+        log_msg("MainModule exited")
 
     @classmethod
     def get_params(self):
         #extract the self.params from the called script path
         params = {}
-        for arg in sys.argv:
-            arg = arg.decode("utf-8")
-            if arg == 'script.skin.helper.service' or arg == 'default.py':
-                continue
-            elif "=" in arg:
-                paramname = arg.split('=')[0].lower()
-                paramvalue = arg.replace(paramname+"=","")
-                params[paramname] = paramvalue
+        for arg in sys.argv[1:]:
+            paramname = arg.split('=')[0]
+            paramvalue = arg.replace(paramname+"=","")
+            paramname = paramname.lower()
+            if paramname == "action":
+                paramvalue = paramvalue.lower()
+            params[paramname] = paramvalue
         return params
 
     def deprecated_method(self, newaddon):
@@ -206,7 +208,7 @@ class MainModule:
     @staticmethod
     def get_youtube_listing(searchquery):
         lib_path = u"plugin://plugin.video.youtube/kodion/search/query/?q=%s" %searchquery
-        return get_kodi_json(u'Files.GetDirectory','{ "properties": ["title","art","plot"],\
+        return kodi_json(u'Files.GetDirectory','{ "properties": ["title","art","plot"],\
             "directory": "%s", "media": "files", "limits": {"end":25} }' %lib_path)
 
     def searchyoutube(self):
@@ -242,7 +244,7 @@ class MainModule:
     def setfocus(self):
         '''helper to set focus on a list or control'''
         control = self.params.get("control")
-        fallback = self.params.get("FALLBACK")
+        fallback = self.params.get("fallback")
         count = 0
         if control:
             while not xbmc.getCondVisibility("Control.HasFocus(%s)" %control):
@@ -258,7 +260,7 @@ class MainModule:
 
     def setwidgetcontainer(self):
         '''helper that reports the current selected widget container/control'''
-        controls = self.params.get("CONTROLS","").split("-")
+        controls = self.params.get("controls","").split("-")
         if controls:
             xbmc.sleep(150)
             for i in range(10):
@@ -398,6 +400,21 @@ class MainModule:
         #startup playlist (if any)
         autostart_playlist = xbmc.getInfoLabel("$ESCINFO[Skin.String(autostart_playlist)]")
         if autostart_playlist: xbmc.executebuiltin("PlayMedia(%s)" %autostart_playlist)
+        
+    def getfilename(self):
+        '''helper to display a sanitized filename in the vidoeinfo dialog'''
+        output = self.params.get("output")
+        filename = xbmc.getInfoLabel("ListItem.FileNameAndPath")
+        if not filename: 
+            filename = xbmc.getInfoLabel("ListItem.FileName")
+        if not filename: 
+            filename = xbmc.getInfoLabel("Container(999).ListItem.FileName")
+        if not filename: 
+            filename = xbmc.getInfoLabel("Container(999).ListItem.FileNameAndPath")
+        if "filename=" in filename:
+            url_params = dict(urlparse.parse_qsl(filename))
+            filename = url_params.get("filename")
+        self.win.setProperty(output, filename)
 
     def videosearch(self):
         '''show the special search dialog'''
@@ -445,7 +462,7 @@ class MainModule:
                 elif "song" in db_type.lower() or xbmc.getLocalizedString(36920).lower() in db_type.lower(): 
                     dbtype = "song"
             if dbid and dbtype: 
-                self.params["%sID" %dbtype.upper()] = dbid
+                self.params["%sid" %dbtype] = dbid
             self.params["lastwidgetcontainer"] = widget_container
 
         #open info dialog...
@@ -476,42 +493,19 @@ class MainModule:
             if True:
                 pass
 
-
-            
-            
-
-            
-
-            elif action == "COLORTHEMES":
-                from resources.lib.ColorThemes import ColorThemes
-                colorThemes = ColorThemes("DialogSelect.xml", self.addon.getAddonInfo('path').decode("utf-8"))
-                colorThemes.daynight = self.params.get("DAYNIGHT",None)
-                colorThemes.doModal()
-                del colorThemes
-
             elif action == "CONDITIONALBACKGROUNDS":
                 from resources.lib.ConditionalBackgrounds import ConditionalBackgrounds
                 conditionalBackgrounds = ConditionalBackgrounds("DialogSelect.xml", self.addon.getAddonInfo('path').decode("utf-8"))
                 conditionalBackgrounds.doModal()
                 del conditionalBackgrounds
 
-            elif action == "CREATECOLORTHEME":
-                import resources.lib.ColorThemes as colorThemes
-                colorThemes.createColorTheme()
-
-            elif action == "RESTORECOLORTHEME":
-                import resources.lib.ColorThemes as colorThemes
-                colorThemes.restoreColorTheme()
-
+ 
             elif action == "OVERLAYTEXTURE":
                 mainmodule.selectOverlayTexture()
 
             elif action == "BUSYTEXTURE":
                 mainmodule.selectBusyTexture()
 
-            elif action == "CACHEALLMUSICART":
-                import resources.lib.Artworkutils as artworkutils
-                artworkutils.preCacheAllMusicArt()
 
             elif action == "RESETCACHE":
                 path = self.params.get("PATH")
@@ -529,32 +523,13 @@ class MainModule:
                     ret = xbmcgui.Dialog().yesno(heading=self.addon.getLocalizedString(32089), line1=self.addon.getLocalizedString(32090)+path)
                     if ret:
                         self.win.setProperty("SkinHelper.IgnoreCache","ignore")
-                        success = utils.recursiveDelete(path)
+                        success = utils.recursive_delete_dir(path)
                         if success:
-                            utils.checkFolders()
                             xbmcgui.Dialog().ok(heading=self.addon.getLocalizedString(32089), line1=self.addon.getLocalizedString(32091))
                         else:
                             xbmcgui.Dialog().ok(heading=self.addon.getLocalizedString(32089), line1=self.addon.getLocalizedString(32092))
 
-            elif action == "BACKUP":
-                import resources.lib.BackupRestore as backup
-                filter = self.params.get("FILTER","")
-                silent = self.params.get("SILENT",None)
-                promptfilename = self.params.get("PROMPTFILENAME","false")
-                backup.backup(filter,silent,promptfilename.lower())
-
-            elif action == "RESTORE":
-                import resources.lib.BackupRestore as backup
-                silent = self.params.get("SILENT",None)
-                backup.restore(silent)
-
-            elif action == "RESET":
-                import resources.lib.BackupRestore as backup
-                filter = self.params.get("FILTER","")
-                silent = self.params.get("SILENT","") == "true"
-                backup.reset(filter,silent)
-                xbmc.Monitor().waitForAbort(2)
-                mainmodule.correctSkinSettings()
+            
 
             elif action == "DIALOGOK":
                 headerMsg = self.params.get("HEADER")
@@ -647,9 +622,6 @@ class MainModule:
 
 
 
-
-
-
 def selectOverlayTexture():
     overlaysList = []
     overlaysList.append("Custom Overlay Image")
@@ -706,7 +678,7 @@ def selectBusyTexture():
                 listitem.setProperty("icon",path + file)
                 spinnersList.append(listitem)
 
-    w = dialogs.DialogSelectBig( "DialogSelect.xml", self.addon.getAddonInfo('path').decode("utf-8"), listing=spinnersList, windowtitle=self.addon.getLocalizedString(32051),multiselect=False )
+    w = DialogSelectBig( "DialogSelect.xml", self.addon.getAddonInfo('path').decode("utf-8"), listing=spinnersList, windowtitle=self.addon.getLocalizedString(32051),multiselect=False )
 
     count = 0
     for li in spinnersList:
@@ -754,7 +726,7 @@ def multiSelect(item,window_header=""):
             listitem.select(selected=True)
         allOptions.append(listitem)
     #show select dialog
-    w = dialogs.DialogSelectSmall( "DialogSelect.xml", self.addon.getAddonInfo('path').decode("utf-8"), listing=allOptions, windowtitle=window_header,multiselect=True )
+    w = DialogSelectSmall( "DialogSelect.xml", self.addon.getAddonInfo('path').decode("utf-8"), listing=allOptions, windowtitle=window_header,multiselect=True )
     w.doModal()
 
     selected_items = w.result

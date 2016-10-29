@@ -1,15 +1,17 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-from utils import log_msg, ADDON_VERSION, log_exception
+from utils import log_msg, ADDON_ID, log_exception
 from skinsettings import SkinSettings
 from backgrounds_updater import BackgroundsUpdater
 from listitem_monitor import ListItemMonitor
 from kodi_monitor import KodiMonitor
 from player_monitor import PlayerMonitor
 from webservice import WebService
-import xbmc, xbmcaddon
-import time
+from simplecache import SimpleCache
+from artutils import ArtUtils
+import xbmc, xbmcaddon, xbmcgui
+import time, datetime
 
 class MainService:
     '''Service that holds the threads providing info to Kodi skins'''
@@ -18,23 +20,27 @@ class MainService:
     def __init__(self):
         '''our main background service running the various threads'''
         self.win = xbmcgui.Window(10000)
-        self.kodi_monitor = KodiMonitor()
-        self.player_monitor = PlayerMonitor()
-        self.win.clearProperty("SkinHelperShutdownRequested")
-        listitem_monitor = ListItemMonitor()
-        backgrounds_updater = BackgroundsUpdater()
-        webservice = WebService()
+        self.addon = xbmcaddon.Addon(ADDON_ID)
+        self.cache = SimpleCache(autocleanup=True)
+        self.artutils = ArtUtils()
+        self.addonname = self.addon.getAddonInfo('name').decode("utf-8")
+        self.addonversion = self.addon.getAddonInfo('version').decode("utf-8")
+        self.kodimonitor = KodiMonitor(cache=self.cache, artutils=self.artutils, win=self.win)
+        self.player_monitor = PlayerMonitor(cache=self.cache, artutils=self.artutils)
+        listitem_monitor = ListItemMonitor(cache=self.cache, artutils=self.artutils, win=self.win, monitor=self.kodimonitor)
+        backgrounds_updater = BackgroundsUpdater(cache=self.cache, artutils=self.artutils, win=self.win, monitor=self.kodimonitor)
+        webservice = WebService(artutils=self.artutils, win=self.win)
         widget_task_interval = 520
 
         #start the extra threads
         listitem_monitor.start()
         backgrounds_updater.start()
         webservice.start()
-        
-        log_msg('skin helper service version %s started' % ADDON_VERSION, xbmc.LOGNOTICE)
+        self.win.clearProperty("SkinHelperShutdownRequested")
+        log_msg('%s version %s started' %(self.addonname, self.addonversion), xbmc.LOGNOTICE)
 
         #run as service, check skin every 10 seconds and keep the other threads alive
-        while not (self.kodi_monitor.abortRequested()):
+        while not (self.kodimonitor.abortRequested()):
             
             #check skin version info
             self.check_skin_version()
@@ -46,7 +52,7 @@ class MainService:
                 widget_task_interval = 0
             
             #sleep for 10 seconds
-            self.kodi_monitor.waitForAbort(10)
+            self.kodimonitor.waitForAbort(10)
 
         #Abort was requested while waiting. We should exit
         self.win.setProperty("SkinHelperShutdownRequested","shutdown")
@@ -55,14 +61,17 @@ class MainService:
         backgrounds_updater.stop()
         listitem_monitor.stop()
         webservice.stop()
-        
-        
-    def __del__(self):
-        '''Cleanup Kodi Cpython instances'''
+        #cleanup objects
+        self.artutils.close()
+        self.cache.close()
+        del backgrounds_updater
+        del listitem_monitor
+        del webservice
         del self.win
-        del self.kodi_kodi_monitor
+        del self.kodimonitor
         del self.player_monitor
-        log_msg('skin helper service version %s stopped' % ADDON_VERSION, xbmc.LOGNOTICE)
+        del self.addon
+        log_msg('%s version %s stopped'  %(self.addonname, self.addonversion), xbmc.LOGNOTICE)
         
     def check_skin_version(self):
         '''check if skin changed'''
@@ -79,7 +88,7 @@ class MainService:
                     %(skin_label, xbmc.getLocalizedString(19114),skin_version))
                 self.win.setProperty("SkinHelper.skin_version", "%s: %s" 
                     %(xbmc.getLocalizedString(19114),skin_version))
-                self.win.setProperty("SkinHelper.Version", ADDON_VERSION.replace(".",""))
+                self.win.setProperty("SkinHelper.Version", self.addonversion.replace(".",""))
                 SkinSettings().correct_skin_settings()
         except Exception as exc:
             log_exception(__name__,exc)

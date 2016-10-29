@@ -33,29 +33,28 @@ class PluginContent:
     def main(self):
         '''main action, load correct function'''
         action = self.params.get("action","")
-        actions = ["launchpvr","playrecording","launch","playalbum","smartshortcuts",
+        actions = ["playchannel","playrecording","launch","playalbum","smartshortcuts",
             "backgrounds","widgets","getthumb","extrafanart","getcast","getcastmedia","alphabet","alphabetletter"]
 
         if self.win.getProperty("SkinHelperShutdownRequested"):
             #do not proceed if kodi wants to exit
             log_msg("%s --> Not forfilling request: Kodi is exiting" %__name__ ,xbmc.LOGWARNING)
             xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
-        if action in actions:
-            #launch module for action provides by this plugin
-            getattr(self, action)()
-        elif action:
-            #legacy widget path called !!!
-            self.load_widget()
         else:
-            #invalid action
-            xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
+            try:
+                #launch module for action provided by this plugin
+                getattr(self, action)()
+            except AttributeError:
+                #legacy widget path called !!!
+                self.load_widget()
+
 
     def load_widget(self):
         '''legacy action called (widgets are moved to seperate addon), start redirect...'''
         action = self.params.get("action","")
         newaddon = "script.skin.helper.widgets"
-        log_msg("Deprecated method: %s. Please call %s directly - \
-            This automatic redirect will be removed in the future" %(action,newaddon), xbmc.LOGWARNING )
+        log_msg("Deprecated method: %s. Please call %s directly -" +
+            "This automatic redirect will be removed in the future" %(action,newaddon), xbmc.LOGWARNING )
         paramstring = ""
         for key, value in self.params.iteritems():
             paramstring += ",%s=%s" %(key,value)
@@ -75,32 +74,34 @@ class PluginContent:
             else:
                 xbmc.executebuiltin("RunPlugin(plugin://%s)" %newaddon)
 
-    def launch_pvr(self):
-        xbmcplugin.setResolvedUrl(handle=int(sys.argv[1]), succeeded=False, listitem=xbmcgui.ListItem())
-        xbmc.executeJSONRPC('{ "jsonrpc": "2.0", "id": 0, "method": "Player.Open", "params": { "item": {"channelid": %d} } }' %int(self.params["path"]))
+    def playchannel(self):
+        '''play channel from widget helper'''
+        params = { "item": {"channelid": int(self.params["channelid"])} }
+        self.kodi_db.set_json("Player.Open", params)
 
     def playrecording(self):
-        xbmcplugin.setResolvedUrl(handle=int(sys.argv[1]), succeeded=False, listitem=xbmcgui.ListItem())
-        #retrieve the recording and play as listitem to get resume working
-        json_result = kodi_db.tvrecording(self.params["path"])
-        if json_result:
-            xbmc.executeJSONRPC('{ "jsonrpc": "2.0", "method": "Player.Open", "params": { "item": { "recordingid": %d } }, "id": 1 }' % int(self.params["path"]))
-            if json_result["resume"].get("position"):
-                for i in range(25):
-                    if xbmc.getCondVisibility("Player.HasVideo"):
-                        break
-                    xbmc.sleep(250)
-                xbmc.Player().seekTime(json_result["resume"].get("position"))
+        '''retrieve the recording and play to get resume working'''
+        recording = self.kodi_db.recording(self.params["recordingid"])
+        params = { "item": {"recordingid": recording["recordingid"] } }
+        self.kodi_db.set_json("Player.Open", params)
+        #manually seek because passing resume to the player json cmd doesn't seem to work
+        if recording["resume"].get("position"):
+            for i in range(50):
+                if xbmc.getCondVisibility("Player.HasVideo"):
+                    break
+                xbmc.sleep(50)
+            xbmc.Player().seekTime(recording["resume"].get("position"))
 
     def launch(self):
-        xbmcplugin.setResolvedUrl(handle=int(sys.argv[1]), succeeded=False, listitem=xbmcgui.ListItem())
-        xbmc.sleep(150)
-        xbmc.executebuiltin(sys.argv[2].split("&path=")[1])
+        '''launch any builtin action using a plugin listitem'''
+        if "runscript" in self.params["path"]:
+            self.params["path"] = self.params["path"].replace("?",",")
+        xbmc.executebuiltin(self.params["path"])
 
     def playalbum(self):
         xbmcplugin.setResolvedUrl(handle=int(sys.argv[1]), succeeded=False, listitem=xbmcgui.ListItem())
         xbmc.sleep(150)
-        xbmc.executeJSONRPC('{ "jsonrpc": "2.0", "method": "Player.Open", "params": { "item": { "albumid": %d } }, "id": 1 }' % int(self.params["path"]))
+        xbmc.executeJSONRPC('{ "jsonrpc": "2.0", "method": "Player.Open", "params": { "item": { "albumid": %d } }, "id": 1 }' % int(self.params["albumid"]))
 
     def smartshortcuts(self):
         import skinshortcuts
@@ -115,38 +116,10 @@ class PluginContent:
         skinshortcuts.getWidgets(self.params["path"])
 
     def extrafanart(self):
-        extrafanarts = []
-        items_path = self.params["path"]
-        cache_str = "getExtraFanArt.%s"%items_path
-        cachedata = self.cache.get(cache_str)
-        if cachedata:
-            extrafanarts = cachedata
-        else:
-            if items_path.startswith("EFA_FROMself.winPROP_"):
-                #get extrafanarts from window property
-                extrafanarts = eval(self.win.getProperty(try_encode(items_path)).decode("utf-8"))
-            elif items_path.startswith("EFA_FROMCACHE_"):
-                #get extrafanarts from cache system by getting the cache for given cachestr
-                items_path = items_path.split("_")[-1]
-                cache = self.cache.get(items_path)
-                if cache and "extrafanarts" in cache:
-                    extrafanarts = cache["extrafanarts"]
-                    if not isinstance(extrafanarts, list):
-                        extrafanarts = eval(extrafanarts)
-            else:
-                #LEGACY: get extrafanarts by passing an artwork cache xml file
-                if not xbmcvfs.exists(items_path.encode("utf-8")):
-                    filepart = items_path.split("/")[-1]
-                    items_path = items_path.replace(filepart,"") + normalize_string(filepart)
-                    artwork = artutils.getArtworkFromCacheFile(items_path)
-                    if artwork.get("extrafanarts"):
-                        extrafanarts = eval( artwork.get("extrafanarts") )
-            #store in cache
-            self.cache.set(cache_str,extrafanarts,timedelta(days=2))
-
+        fanarts = eval(self.params["fanarts"])
         #process extrafanarts
-        for item in extrafanarts:
-            li = xbmcgui.ListItem(item, items_path=item)
+        for item in fanarts:
+            li = xbmcgui.ListItem(item, path=item)
             li.setProperty('mimetype', 'image/jpeg')
             xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=item, listitem=li)
         xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
@@ -225,14 +198,14 @@ class PluginContent:
                 result = self.kodi_db.get_db('VideoLibrary.GetMovies',None,filters,[ "title", "cast" ],None,"movies")
                 all_cast = result[0]["cast"] if result else []
             elif tvshow and db_id:
-                json_result = get_kodi_json('VideoLibrary.GetTVShowDetails', '{ "tvshowid": %d, "properties": [ "title", "cast" ] }' %db_id)
+                json_result = kodi_json('VideoLibrary.GetTVShowDetails', '{ "tvshowid": %d, "properties": [ "title", "cast" ] }' %db_id)
                 if json_result and json_result.get("cast"): all_cast = json_result.get("cast")
             elif tvshow and not db_id:
                 filters = [{"operator":"contains", "field":"title","value":tvshow}]
                 result = self.kodi_db.get_db('VideoLibrary.GetTvShows',None,filters,[ "title", "cast" ],None,"tvshows")
                 all_cast = result[0]["cast"] if result else []
             elif episode and db_id:
-                json_result = get_kodi_json('VideoLibrary.GetEpisodeDetails', '{ "episodeid": %d, "properties": [ "title", "cast" ] }' %db_id)
+                json_result = kodi_json('VideoLibrary.GetEpisodeDetails', '{ "episodeid": %d, "properties": [ "title", "cast" ] }' %db_id)
                 if json_result and json_result.get("cast"): all_cast = json_result.get("cast")
             elif episode and not db_id:
                 filters = [{"operator":"contains", "field":"title","value":episode}]

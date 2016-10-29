@@ -1,13 +1,15 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import xbmc, xbmcplugin, xbmcgui, xbmcaddon
+import xbmc, xbmcvfs, xbmcgui, xbmcaddon
 from simplecache import SimpleCache
-from utils import log_msg, try_encode, normalize_string, get_clean_image, KODI_VERSION, process_method_on_list, log_exception, ADDON_ID
+from utils import log_msg, try_encode, normalize_string, get_clean_image, KODI_VERSION, process_method_on_list, log_exception, ADDON_ID, try_decode
+from dialogs import DialogSelectSmall, DialogSelectBig
 from artutils import KodiDb, Tmdb
 from datetime import timedelta
 import urlparse, urllib
+from xml.dom.minidom import parse
+import xml.etree.ElementTree as xmltree
 import sys, os
-
 
 class SkinSettings:
     '''several helpers that allows skinners to have custom dialogs for their skin settings and constants'''
@@ -22,7 +24,6 @@ class SkinSettings:
         '''Cleanup Kodi Cpython instances'''
         del self.win
         del self.addon
-
 
     def write_skin_constants(self, listing):
         #writes the list of all skin constants
@@ -44,7 +45,7 @@ class SkinSettings:
                             child.attrib[ "name" ] = key
                             #also write to skin strings
                             xbmc.executebuiltin("Skin.SetString(%s,%s)" %(key.encode("utf-8"),value.encode("utf-8")))
-                    indentXML( tree.getroot() )
+                    self.indent_xml( tree.getroot() )
                     xmlstring = xmltree.tostring(tree.getroot(), encoding="utf-8")
                     f = xbmcvfs.File(includes_file, 'w')
                     f.write(xmlstring)
@@ -154,9 +155,9 @@ class SkinSettings:
             elif len(allValues) > 1:
                 #only use select dialog if we have muliple values
                 if useRichLayout:
-                    w = dialogs.DialogSelectBig( "DialogSelect.xml", self.addon.getAddonInfo('path').decode("utf-8"), listing=allValues, windowtitle=window_header,multiselect=False )
+                    w = DialogSelectBig( "DialogSelect.xml", self.addon.getAddonInfo('path').decode("utf-8"), listing=allValues, windowtitle=window_header,multiselect=False )
                 else:
-                    w = dialogs.DialogSelectSmall( "DialogSelect.xml", self.addon.getAddonInfo('path').decode("utf-8"), listing=allValues, windowtitle=window_header,multiselect=False )
+                    w = DialogSelectSmall( "DialogSelect.xml", self.addon.getAddonInfo('path').decode("utf-8"), listing=allValues, windowtitle=window_header,multiselect=False )
                 if selectId >= 0 and sublevel: selectId += 1
                 w.autoFocusId = selectId
                 w.doModal()
@@ -306,8 +307,8 @@ class SkinSettings:
             value = xbmcgui.Dialog().browse( 2 , header, 'files', '', True, True, cur_value_org).decode("utf-8")
             if value:
                 ext = value.split(".")[-1]
-                newfile = u"special://profile/addon_data/%s/custom_images/%s.%s" 
-                    %(xbmc.getSkinDir(),skinstring + time.strftime("%Y%m%d%H%M%S", time.gmtime()),ext)
+                newfile = (u"special://profile/addon_data/%s/custom_images/%s.%s"
+                    %(xbmc.getSkinDir(),skinstring + time.strftime("%Y%m%d%H%M%S", time.gmtime()),ext))
                 if "special://profile/addon_data/%s/custom_images/"%xbmc.getSkinDir() in cur_value:
                     xbmcvfs.delete(cur_value)
                 xbmcvfs.copy(value, newfile)
@@ -352,4 +353,21 @@ class SkinSettings:
             if not (xbmc.getCondVisibility("Window.IsActive(DialogSelect.xml) | Window.IsActive(script-skin_helper_service-ColorPicker.xml) | Window.IsActive(DialogKeyboard.xml)")):
                 break
             else: xbmc.sleep(100)
+            
+    @staticmethod
+    def indent_xml( elem, level=0 ):
+        '''helper to properly indent xml strings to file'''
+        i = "\n" + level*"\t"
+        if len(elem):
+            if not elem.text or not elem.text.strip():
+                elem.text = i + "\t"
+            if not elem.tail or not elem.tail.strip():
+                elem.tail = i
+            for elem in elem:
+                indent_xml(elem, level+1)
+            if not elem.tail or not elem.tail.strip():
+                elem.tail = i
+        else:
+            if level and (not elem.tail or not elem.tail.strip()):
+                elem.tail = i
 

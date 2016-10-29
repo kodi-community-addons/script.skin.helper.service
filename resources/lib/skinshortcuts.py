@@ -298,7 +298,7 @@ def getPlayListsWidgetListing():
     for path in paths:
         if xbmcvfs.exists(path):
             log_msg("buildWidgetsListing processing: " + path)
-            media_array = get_kodi_json('Files.GetDirectory','{ "directory": "%s", "media": "files" }' %path)
+            media_array = kodi_json('Files.GetDirectory','{ "directory": "%s", "media": "files" }' %path)
             for item in media_array:
                 if item["file"].endswith(".xsp"):
                     playlist = item["file"]
@@ -317,16 +317,16 @@ def getPlayListsWidgetListing():
                         languageid = int(label)
                         label = xbmc.getLocalizedString(languageid)
                     except Exception: pass
-                    if not mediaType: mediaType = detectPluginContent(playlist)
+                    if not mediaType: mediaType = detect_plugin_content(playlist)
                     foundWidgets.append([label, playlist, mediaType])
     return foundWidgets
 
 def buildAddonWidgetItem(pluginpath,sublevel=""):
     foundWidgets = []
     if sublevel:
-        media_array = get_kodi_json('Files.GetDirectory','{ "directory": "%s", "media": "files" }' %pluginpath)
+        media_array = kodi_json('Files.GetDirectory','{ "directory": "%s", "media": "files" }' %pluginpath)
     else:
-        media_array = get_kodi_json('Files.GetDirectory','{ "directory": "plugin://%s", "media": "files" }' %pluginpath)
+        media_array = kodi_json('Files.GetDirectory','{ "directory": "plugin://%s", "media": "files" }' %pluginpath)
     for item in media_array:
         log_msg("buildWidgetsListing processing: %s - %s" %(pluginpath,item["label"]))
         content = item["file"]
@@ -336,7 +336,7 @@ def buildAddonWidgetItem(pluginpath,sublevel=""):
         #extendedinfo has some login-required widgets, skip those
         if ("script.extendedinfo" in pluginpath and hasTMDBCredentials==False and ("info=starred" in content or "info=rated" in content or "info=account" in content)):
             continue
-        mediaType = detectPluginContent(item["file"])
+        mediaType = detect_plugin_content(item["file"])
         if mediaType == "empty":
             continue
         elif mediaType == "folder":
@@ -382,7 +382,7 @@ def getAddonWidgetListing(addonShortName):
 
 def getFavouritesWidgetsListing():
     #widgets from favourites
-    json_result = get_kodi_json('Favourites.GetFavourites', '{"type": null, "properties": ["path", "thumbnail", "window", "windowparameter"]}')
+    json_result = kodi_json('Favourites.GetFavourites', '{"type": null, "properties": ["path", "thumbnail", "window", "windowparameter"]}')
     foundWidgets = []
     for fav in json_result:
         if "windowparameter" in fav:
@@ -391,7 +391,7 @@ def getFavouritesWidgetsListing():
             if not "script://" in content.lower() and not "mode=9" in content.lower() and not "search" in content.lower() and not "play" in content.lower():
                 label = fav["title"]
                 log_msg("buildWidgetsListing processing favourite: %s" %label)
-                type = detectPluginContent(content)
+                type = detect_plugin_content(content)
                 if type and type != "empty":
                     foundWidgets.append([label, content, type])
     return foundWidgets

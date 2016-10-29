@@ -274,14 +274,14 @@ class BackgroundSearchThread(threading.Thread):
         search = urllib.quote(searchTerm)
 
         # Process movies
-        json_response = get_kodi_json('VideoLibrary.GetMovies', '{"properties": [%s], "limits": {"end":50}, "sort": { "method": "label" }, "filter": {"field":"title","operator":"contains","value":"%s"} }' % (fields_movies,search))
+        json_response = kodi_json('VideoLibrary.GetMovies', '{"properties": [%s], "limits": {"end":50}, "sort": { "method": "label" }, "filter": {"field":"title","operator":"contains","value":"%s"} }' % (fields_movies,search))
         for item in json_response:
             item = prepareListItem(item)
             liz = createListItem(item,False)
             movieResultsList.addItem(liz)
 
         # Process TV Shows
-        json_response = get_kodi_json('VideoLibrary.GetTVShows', '{"properties": [%s], "limits": {"end":50}, "sort": { "method": "label" }, "filter": {"field": "title", "operator": "contains", "value": "%s"} }' % (fields_tvshows,search))
+        json_response = kodi_json('VideoLibrary.GetTVShows', '{"properties": [%s], "limits": {"end":50}, "sort": { "method": "label" }, "filter": {"field": "title", "operator": "contains", "value": "%s"} }' % (fields_tvshows,search))
         for item in json_response:
             item = prepareListItem(item)
             liz = createListItem(item,False)
@@ -293,7 +293,7 @@ class BackgroundSearchThread(threading.Thread):
             seriesResultsList.addItem(liz)
 
         # Process episodes
-        json_response = get_kodi_json('VideoLibrary.GetEpisodes', '{ "properties": [%s], "limits": {"end":50}, "sort": { "method": "title" }, "filter": {"field": "title", "operator": "contains", "value": "%s"} }' % (fields_episodes,search))
+        json_response = kodi_json('VideoLibrary.GetEpisodes', '{ "properties": [%s], "limits": {"end":50}, "sort": { "method": "title" }, "filter": {"field": "title", "operator": "contains", "value": "%s"} }' % (fields_episodes,search))
         for item in json_response:
             item = prepareListItem(item)
             liz = createListItem(item,False)
