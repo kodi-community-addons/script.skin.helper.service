@@ -53,7 +53,7 @@ class PluginContent:
         '''legacy action called (widgets are moved to seperate addon), start redirect...'''
         action = self.params.get("action","")
         newaddon = "script.skin.helper.widgets"
-        log_msg("Deprecated method: %s. Please call %s directly -" +
+        log_msg("Deprecated method: %s. Please call %s directly -"\
             "This automatic redirect will be removed in the future" %(action,newaddon), xbmc.LOGWARNING )
         paramstring = ""
         for key, value in self.params.iteritems():
