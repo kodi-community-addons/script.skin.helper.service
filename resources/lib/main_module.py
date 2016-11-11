@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 import xbmc, xbmcvfs, xbmcgui, xbmcaddon
 from simplecache import SimpleCache
-from utils import log_msg, try_encode, normalize_string, get_clean_image, KODI_VERSION, process_method_on_list, log_exception, get_current_content_type, kodi_json, ADDON_ID
+from utils import log_msg, KODI_VERSION
+from utils import log_exception, get_current_content_type, ADDON_ID, recursive_delete_dir
 from dialogs import DialogSelectSmall, DialogSelectBig
 from xml.dom.minidom import parse
 from artutils import KodiDb, Tmdb
@@ -33,14 +34,14 @@ class MainModule:
             log_exception(__name__,exc)
 
     def __del__(self):
-        '''Cleanup Kodi Cpython instances'''
+        '''Cleanup Kodi Cpython instances on exit'''
         del self.win
         del self.addon
         log_msg("MainModule exited")
 
     @classmethod
     def get_params(self):
-        #extract the self.params from the called script path
+        #extract the params from the called script path
         params = {}
         for arg in sys.argv[1:]:
             paramname = arg.split('=')[0]
@@ -58,9 +59,11 @@ class MainModule:
         '''
         action = self.params.get("action")
         log_msg("Deprecated method: %s. Please call %s directly" %(action, newaddon), xbmc.LOGWARNING )
-        paramstring = sys.argv[1:]
+        paramstring = ""
+        for key, value in self.params.iteritems():
+            paramstring += ",%s=%s" % (key, value)
         if xbmc.getCondVisibility("System.HasAddon(%s)" %newaddon):
-            xbmc.executebuiltin("RunAddon(script.skin.helper.colorpicker%s)" %paramstring)
+            xbmc.executebuiltin("RunAddon(%s%s)" % (newaddon, paramstring))
         else:
             #trigger install of the addon
             if KODI_VERSION >= 17:
@@ -208,8 +211,7 @@ class MainModule:
     @staticmethod
     def get_youtube_listing(searchquery):
         lib_path = u"plugin://plugin.video.youtube/kodion/search/query/?q=%s" %searchquery
-        return kodi_json(u'Files.GetDirectory','{ "properties": ["title","art","plot"],\
-            "directory": "%s", "media": "files", "limits": {"end":25} }' %lib_path)
+        return KodiDb().files(lib_path)
 
     def searchyoutube(self):
         xbmc.executebuiltin( "ActivateWindow(busydialog)" )
@@ -296,7 +298,7 @@ class MainModule:
         from skinsettings import SkinSettings
         SkinSettings().set_skin_constant(setting, header, value)
 
-    def setskinconstant():
+    def setskinconstant(self):
         '''allows the skinner to set multiple skin constants'''
         setting = self.params.get("setting","")
         prop = self.params.get("property","")
@@ -312,7 +314,7 @@ class MainModule:
         from skinsettings import SkinSettings
         SkinSettings().set_skinshortcuts_property(setting, header, value)
 
-    def togglekodisetting(settingname):
+    def togglekodisetting(self, settingname):
         '''toggle kodi setting'''
         settingname = self.params.get("setting","")
         cur_value = xbmc.getCondVisibility("system.getbool(%s)"%settingname)
@@ -322,7 +324,7 @@ class MainModule:
             newValue = "true"
         xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"Settings.SetSettingValue","params":{"setting":"%s","value":%s}}' %(settingname,newValue))
 
-    def setkodisetting(settingname):
+    def setkodisetting(self, settingname):
         '''set kodi setting'''
         settingname = self.params.get("setting","")
         value = self.params.get("value","")
@@ -341,7 +343,7 @@ class MainModule:
         xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"Settings.SetSettingValue",\
             "params":{"setting":"%s","value":%s}}' %(settingname,value))
 
-    def playtrailer():
+    def playtrailer(self):
         '''auto play windowed trailer inside video listing'''
         if not xbmc.getCondVisibility("Player.HasMedia | Container.Scrolling | Container.OnNext | \
             Container.OnPrevious | !IsEmpty(Window(Home).Property(traileractionbusy))"):
@@ -372,9 +374,13 @@ class MainModule:
                 self.win.setProperty("TrailerPlaying",trailer_mode)
             self.win.clearProperty("traileractionbusy")
 
-    def colorpicker():
+    def colorpicker(self):
         '''legacy'''
         self.deprecated_method("script.skin.helper.colorpicker")
+        
+    def conditionalbackgrounds(self):
+        '''legacy'''
+        self.deprecated_method("script.skin.helper.backgrounds")
     
     def show_splash(self):
         '''helper to show a user defined splashscreen in the skin'''
@@ -486,20 +492,27 @@ class MainModule:
                 else:
                     xbmc.executebuiltin(result)
     
+    def deletedir(self):
+        '''helper to delete a directory, input can be normal filesystem path or vfs'''
+        del_path = self.params.get("path")
+        if del_path:
+            ret = xbmcgui.Dialog().yesno(heading=xbmc.getLocalizedString(122), 
+                line1= u"%s[CR]%s" % (xbmc.getLocalizedString(125), del_path))
+            if ret:
+                success = recursive_delete_dir(del_path)
+                if success:
+                    xbmcgui.Dialog().ok(heading=xbmc.getLocalizedString(19179), 
+                        line1=self.addon.getLocalizedString(32091))
+                else:
+                    xbmcgui.Dialog().ok(heading=xbmc.getLocalizedString(16205), 
+                        line1=xbmc.getLocalizedString(16206))
+        
     
     def init_old(self):
 
 
             if True:
                 pass
-
-            elif action == "CONDITIONALBACKGROUNDS":
-                from resources.lib.ConditionalBackgrounds import ConditionalBackgrounds
-                conditionalBackgrounds = ConditionalBackgrounds("DialogSelect.xml", self.addon.getAddonInfo('path').decode("utf-8"))
-                conditionalBackgrounds.doModal()
-                del conditionalBackgrounds
-
- 
             elif action == "OVERLAYTEXTURE":
                 mainmodule.selectOverlayTexture()
 

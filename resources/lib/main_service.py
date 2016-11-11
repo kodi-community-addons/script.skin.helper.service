@@ -3,7 +3,6 @@
 
 from utils import log_msg, ADDON_ID, log_exception
 from skinsettings import SkinSettings
-from backgrounds_updater import BackgroundsUpdater
 from listitem_monitor import ListItemMonitor
 from kodi_monitor import KodiMonitor
 from webservice import WebService
@@ -14,6 +13,7 @@ import xbmcaddon
 import xbmcgui
 import time
 import datetime
+import _strptime
 
 
 class MainService:
@@ -30,20 +30,17 @@ class MainService:
         self.kodimonitor = KodiMonitor(cache=self.cache, artutils=self.artutils, win=self.win)
         listitem_monitor = ListItemMonitor(
             cache=self.cache, artutils=self.artutils, win=self.win, monitor=self.kodimonitor)
-        backgrounds_updater = BackgroundsUpdater(
-            cache=self.cache, artutils=self.artutils, win=self.win, monitor=self.kodimonitor)
         webservice = WebService(artutils=self.artutils, win=self.win)
         widget_task_interval = 520
 
         # start the extra threads
         listitem_monitor.start()
-        backgrounds_updater.start()
         webservice.start()
         self.win.clearProperty("SkinHelperShutdownRequested")
         log_msg('%s version %s started' % (self.addonname, self.addonversion), xbmc.LOGNOTICE)
 
         # run as service, check skin every 10 seconds and keep the other threads alive
-        while not (self.kodimonitor.abortRequested()):
+        while not self.kodimonitor.abortRequested():
 
             # check skin version info
             self.check_skin_version()
@@ -61,7 +58,6 @@ class MainService:
         self.win.setProperty("SkinHelperShutdownRequested", "shutdown")
         log_msg('Shutdown requested !', xbmc.LOGNOTICE)
         # stop the extra threads
-        backgrounds_updater.stop()
         listitem_monitor.stop()
         webservice.stop()
         # cleanup objects

@@ -232,6 +232,10 @@ class ListItemMonitor(threading.Thread):
                         li_genre,
                         content_type,
                         ignore_cache=no_cache))
+                        
+            #safety check
+            if not (cur_listitem == self.cur_listitem) or self.exit:
+                return
 
             # music content
             if content_type in ["albums", "artists", "songs"] and xbmc.getCondVisibility(
