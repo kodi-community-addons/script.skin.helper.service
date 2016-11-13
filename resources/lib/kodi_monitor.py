@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-from utils import log_msg, log_exception, get_current_content_type, kodi_json, process_method_on_list, json
+from utils import log_msg, log_exception, get_current_content_type, kodi_json, json
+from artutils import process_method_on_list
 from simplecache import use_cache
 import xbmc
 import time
@@ -129,7 +130,8 @@ class KodiMonitor(xbmc.Monitor):
             self.all_window_props.append(prop_tuple[0])
             self.win.setProperty(prop_tuple[0], prop_tuple[1])
 
-    def prepare_win_props(self, details):
+    @staticmethod
+    def prepare_win_props(details):
         '''helper to pretty string-format a dict with details so it can be used as window props'''
         items = []
         if details:
@@ -263,7 +265,8 @@ class KodiMonitor(xbmc.Monitor):
             if self.cur_title == li_title:
                 process_method_on_list(self.set_win_prop, all_props)
 
-    def get_content_type(self):
+    @staticmethod
+    def get_content_type():
         '''get current content type'''
         content_type = ""
         if xbmc.getInfoLabel("VideoPlayer.ChannelName"):

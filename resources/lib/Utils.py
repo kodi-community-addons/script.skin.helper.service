@@ -8,15 +8,7 @@ import os
 import sys
 import urllib
 from traceback import format_exc
-import _strptime
 import unicodedata
-from simplecache import SimpleCache
-
-try:
-    from multiprocessing.pool import ThreadPool as Pool
-    supportsPool = True
-except Exception:
-    supportsPool = False
 
 try:
     import simplejson as json
@@ -29,17 +21,20 @@ KODILANGUAGE = xbmc.getLanguage(xbmc.ISO_639_1)
 
 
 def log_msg(msg, loglevel=xbmc.LOGDEBUG):
+    '''log message to kodi log'''
     if isinstance(msg, unicode):
         msg = msg.encode('utf-8')
     xbmc.log("Skin Helper Service --> %s" % msg, level=loglevel)
 
 
 def log_exception(modulename, exceptiondetails):
+    '''helper to properly log an exception'''
     log_msg(format_exc(sys.exc_info()), xbmc.LOGWARNING)
     log_msg("ERROR in %s ! --> %s" % (modulename, exceptiondetails), xbmc.LOGERROR)
 
 
 def kodi_json(jsonmethod, params=None, returntype=None):
+    '''get info from the kodi json api'''
     kodi_json = {}
     kodi_json["jsonrpc"] = "2.0"
     kodi_json["method"] = jsonmethod
@@ -48,7 +43,6 @@ def kodi_json(jsonmethod, params=None, returntype=None):
     kodi_json["params"] = params
     kodi_json["id"] = 1
     json_response = xbmc.executeJSONRPC(try_encode(json.dumps(kodi_json)))
-    log_msg("requesting kodi json--> %s" %json.dumps(kodi_json))
     json_object = json.loads(json_response.decode('utf-8', 'replace'))
     # set the default returntype to prevent errors
     if "details" in jsonmethod.lower():
@@ -71,6 +65,7 @@ def kodi_json(jsonmethod, params=None, returntype=None):
 
 
 def try_encode(text, encoding="utf-8"):
+    '''helper to encode a string to utf-8'''
     try:
         return text.encode(encoding, "ignore")
     except Exception:
@@ -78,6 +73,7 @@ def try_encode(text, encoding="utf-8"):
 
 
 def try_decode(text, encoding="utf-8"):
+    '''helpet to decode a string into unicode'''
     try:
         return text.decode(encoding, "ignore")
     except Exception:
@@ -85,11 +81,13 @@ def try_decode(text, encoding="utf-8"):
 
 
 def urlencode(text):
+    '''urlencoe a string'''
     blah = urllib.urlencode({'blahblahblah': try_encode(text)})
     blah = blah[13:]
     return blah
 
 def get_current_content_type(containerprefix=""):
+    '''tries to determine the mediatype for the current listitem'''
     content_type = ""
     if not containerprefix:
         if xbmc.getCondVisibility("Container.Content(episodes)"):
@@ -182,25 +180,8 @@ def get_current_content_type(containerprefix=""):
     return content_type
 
 
-def normalize_string(text):
-    text = text.replace(":", "")
-    text = text.replace("/", "-")
-    text = text.replace("\\", "-")
-    text = text.replace("<", "")
-    text = text.replace(">", "")
-    text = text.replace("*", "")
-    text = text.replace("?", "")
-    text = text.replace('|', "")
-    text = text.replace('(', "")
-    text = text.replace(')', "")
-    text = text.replace("\"", "")
-    text = text.strip()
-    text = text.rstrip('.')
-    text = unicodedata.normalize('NFKD', try_decode(text))
-    return text
-
-
 def recursive_delete_dir(path):
+    '''helper to recursively delete a directory'''
     success = True
     path = try_encode(path)
     dirs, files = xbmcvfs.listdir(path)
@@ -210,23 +191,4 @@ def recursive_delete_dir(path):
         success = recursive_delete_dir(os.path.join(path, dir))
     success = xbmcvfs.rmdir(path)
     return success
-
-
-def process_method_on_list(method_to_run, items):
-    '''helper method that processes a method on each listitem with pooling if the system supports it'''
-    all_items = []
-    if supportsPool:
-        pool = Pool()
-        try:
-            all_items = pool.map(method_to_run, items)
-        except Exception:
-            # catch exception to prevent threadpool running forever
-            log_msg(format_exc(sys.exc_info()))
-            log_msg("Error in %s" % method_to_run)
-        pool.close()
-        pool.join()
-    else:
-        all_items = [method_to_run(item) for item in items]
-    all_items = filter(None, all_items)
-    return all_items
 

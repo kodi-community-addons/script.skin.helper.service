@@ -30,6 +30,6 @@ if __name__ == '__main__':
         win.setProperty("SkinHelper.Artwork.ManualLookup", "busy")
         artwork = artutils.get_animated_artwork(imdb_id, ignore_cache=True, manual_select=True)
     xbmc.executebuiltin("Container.Refresh")
-    xbmc.executebuiltin("Dialog.Close(busydialog)")
+    xbmc.executebuiltin("w.Close(busydialog)")
     win.clearProperty("SkinHelper.Artwork.ManualLookup")
-    del win
+    del dialogin

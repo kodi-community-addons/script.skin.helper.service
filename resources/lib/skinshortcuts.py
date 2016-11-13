@@ -338,7 +338,7 @@ def get_backgrounds():
                     xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=image, listitem=li, isFolder=False)
                 else:
                     break
-        del win
+        del dialogin
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 

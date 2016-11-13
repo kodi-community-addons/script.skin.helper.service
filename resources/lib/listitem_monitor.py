@@ -3,7 +3,8 @@
 
 import threading
 import thread
-from utils import log_msg, log_exception, get_current_content_type, kodi_json, try_encode, process_method_on_list
+from utils import log_msg, log_exception, get_current_content_type, kodi_json, try_encode
+from artutils import process_method_on_list
 import xbmc
 import time
 from datetime import timedelta
@@ -11,14 +12,16 @@ from simplecache import use_cache
 
 
 class ListItemMonitor(threading.Thread):
-
+    '''Our main class monitoring the kodi listitems and providing additional information'''
     event = None
     exit = False
     delayed_task_interval = 1795
     widgetcontainer_prefix = ""
+    widgetdetails = {}
     content_type = ""
     all_window_props = []
     cur_listitem = ""
+    widget_props = {}
 
     def __init__(self, *args, **kwargs):
         self.cache = kwargs.get("cache")
@@ -30,12 +33,13 @@ class ListItemMonitor(threading.Thread):
         threading.Thread.__init__(self, *args)
 
     def stop(self):
+        '''called when the thread has to stop working'''
         log_msg("ListItemMonitor - stop called")
         self.exit = True
         self.event.set()
 
     def run(self):
-
+        '''our main loop monitoring the listitem and folderpath changes'''
         cur_folder = ""
         cur_folder_last = ""
         last_listitem = ""
@@ -77,7 +81,7 @@ class ListItemMonitor(threading.Thread):
                     while xbmc.getCondVisibility("Window.IsActive(%s)" % window):
                         if xbmc.getCondVisibility("System.IdleTime(%s)" % secondsToDisplay):
                             if xbmc.getCondVisibility("Window.IsActive(%s)" % window):
-                                xbmc.executebuiltin("Dialog.Close(%s)" % window)
+                                xbmc.executebuiltin("w.Close(%s)" % window)
                         else:
                             xbmc.sleep(500)
 
@@ -153,6 +157,8 @@ class ListItemMonitor(threading.Thread):
                         if not self.cont_prefix and self.content_type:
                             self.set_forcedview()
                             self.set_content_header()
+                            self.artutils.studiologos_path = xbmc.getInfoLabel(
+                                "Skin.String(SkinHelper.StudioLogos.Path)").decode("utf-8")
                         self.win.setProperty("contenttype", self.content_type)
 
                 self.cur_listitem = "%s--%s--%s--%s" % (cur_folder, self.li_label, self.li_title, self.content_type)
@@ -232,8 +238,8 @@ class ListItemMonitor(threading.Thread):
                         li_genre,
                         content_type,
                         ignore_cache=no_cache))
-                        
-            #safety check
+
+            # safety check
             if not (cur_listitem == self.cur_listitem) or self.exit:
                 return
 
@@ -298,32 +304,28 @@ class ListItemMonitor(threading.Thread):
             log_exception(__name__, exc)
 
     def do_background_work(self):
+        '''stuff that's processed in the background'''
         try:
             if self.exit:
                 return
             log_msg("Started Background worker...")
             self.set_generic_props()
-            self.artutils.studiologos_path = xbmc.getInfoLabel(
-                "Skin.String(SkinHelper.StudioLogos.Path)").decode("utf-8")
+            self.widgetdetails = {}
             log_msg("Ended Background worker...")
         except Exception as exc:
             log_exception(__name__, exc)
 
     def set_generic_props(self):
-
+        '''set some genric window props with item counts'''
         # GET TOTAL ADDONS COUNT
-        allAddonsCount = 0
-        media_array = kodi_json('Addons.GetAddons')
-        for item in media_array:
-            allAddonsCount += 1
-        self.win.setProperty("SkinHelper.TotalAddons", str(allAddonsCount))
+        addons_count = len(kodi_json('Addons.GetAddons'))
+        self.win.setProperty("SkinHelper.TotalAddons", "%s" % addons_count)
 
         addontypes = []
         addontypes.append(["executable", "SkinHelper.TotalProgramAddons", 0])
         addontypes.append(["video", "SkinHelper.TotalVideoAddons", 0])
         addontypes.append(["audio", "SkinHelper.TotalAudioAddons", 0])
         addontypes.append(["image", "SkinHelper.TotalPicturesAddons", 0])
-
         for type in addontypes:
             media_array = kodi_json('Addons.GetAddons', {"content": type[0]})
             for item in media_array:
@@ -331,42 +333,30 @@ class ListItemMonitor(threading.Thread):
             self.win.setProperty(type[1], str(type[2]))
 
         # GET FAVOURITES COUNT
-        allFavouritesCount = 0
-        media_array = kodi_json('Favourites.GetFavourites')
-        for item in media_array:
-            allFavouritesCount += 1
-        self.win.setProperty("SkinHelper.TotalFavourites", str(allFavouritesCount))
+        favs = kodi_json('Favourites.GetFavourites')
+        self.win.setProperty("SkinHelper.TotalFavourites", "%s" % len(favs))
 
         # GET TV CHANNELS COUNT
-        allTvChannelsCount = 0
         if xbmc.getCondVisibility("Pvr.HasTVChannels"):
-            media_array = kodi_json('PVR.GetChannels', {"channelgroupid": "alltv"})
-            for item in media_array:
-                allTvChannelsCount += 1
-        self.win.setProperty("SkinHelper.TotalTVChannels", str(allTvChannelsCount))
+            tv_channels = kodi_json('PVR.GetChannels', {"channelgroupid": "alltv"})
+            self.win.setProperty("SkinHelper.TotalTVChannels", "%s" % len(tv_channels))
 
         # GET MOVIE SETS COUNT
-        allMovieSetsCount = 0
-        allMoviesInSetCount = 0
-        media_array = kodi_json('VideoLibrary.GetMovieSets')
-        for item in media_array:
-            allMovieSetsCount += 1
-            media_array2 = kodi_json('VideoLibrary.GetMovieSetDetails', {"setid": item["setid"]})
-            for item in media_array2:
-                allMoviesInSetCount += 1
-        self.win.setProperty("SkinHelper.TotalMovieSets", str(allMovieSetsCount))
-        self.win.setProperty("SkinHelper.TotalMoviesInSets", str(allMoviesInSetCount))
+        movieset_movies_count = 0
+        moviesets = kodi_json('VideoLibrary.GetMovieSets')
+        for item in moviesets:
+            for item in kodi_json('VideoLibrary.GetMovieSetDetails', {"setid": item["setid"]}):
+                movieset_movies_count += 1
+        self.win.setProperty("SkinHelper.TotalMovieSets", "%s" % len(moviesets))
+        self.win.setProperty("SkinHelper.TotalMoviesInSets", "%s" % movieset_movies_count)
 
         # GET RADIO CHANNELS COUNT
-        allRadioChannelsCount = 0
         if xbmc.getCondVisibility("Pvr.HasRadioChannels"):
-            media_array = kodi_json('PVR.GetChannels', {"channelgroupid": "allradio"})
-            for item in media_array:
-                allRadioChannelsCount += 1
-        self.win.setProperty("SkinHelper.TotalRadioChannels", str(allRadioChannelsCount))
+            radio_channels = kodi_json('PVR.GetChannels', {"channelgroupid": "allradio"})
+            self.win.setProperty("SkinHelper.TotalRadioChannels", "%s" % len(radio_channels))
 
     def reset_win_props(self):
-        # reset all window props set by the script...
+        '''reset all window props set by the script...'''
         process_method_on_list(self.win.clearProperty, self.all_window_props)
         self.all_window_props = []
 
@@ -390,12 +380,10 @@ class ListItemMonitor(threading.Thread):
         return (li_imdb, li_tvdb)
 
     def set_win_prop(self, prop_tuple):
+        '''sets a window property based on the given tuple of key-value'''
         if prop_tuple[1] and not prop_tuple[0] in self.all_window_props:
             self.all_window_props.append(prop_tuple[0])
             self.win.setProperty(prop_tuple[0], prop_tuple[1])
-
-    def set_win_props(self, items):
-        process_method_on_list(self.set_win_prop, items)
 
     def prepare_win_props(self, details, legacyprefix="", sublevelprefix=""):
         '''helper to pretty string-format a dict with details so it can be used as window props'''
@@ -409,6 +397,7 @@ class ListItemMonitor(threading.Thread):
                         key = "%s.%s" % (sublevelprefix, key)
                     else:
                         key = u"SkinHelper.ListItem.%s" % key
+                    key = key.lower()
                     if isinstance(value, (str, unicode)):
                         items.append((key, value))
                     elif isinstance(value, (int, float)):
@@ -429,6 +418,7 @@ class ListItemMonitor(threading.Thread):
         return items
 
     def set_content_header(self):
+        '''sets a window propery which can be used as headertitle'''
         self.win.clearProperty("SkinHelper.ContentHeader")
         itemscount = xbmc.getInfoLabel("Container.NumItems")
         if itemscount:
@@ -459,6 +449,7 @@ class ListItemMonitor(threading.Thread):
 
     @use_cache(0.08, True)
     def get_genres(self, li_genre):
+        '''get formatted genre string from actual genre'''
         items = []
         genres = li_genre.split(" / ")
         items.append(('SkinHelper.ListItem.Genres', "[CR]".join(genres)))
@@ -469,49 +460,55 @@ class ListItemMonitor(threading.Thread):
         return items
 
     def get_directors(self, director):
+        '''get a formatted string with directors from the actual directors string'''
         directors = director.split(" / ")
         return ('SkinHelper.ListItem.Directors', "[CR]".join(directors))
 
-    @use_cache(0.08, True)
     def get_widgetdetails(self, cur_listitem, li_label, li_file, li_title,
                           li_year, li_genre, content_type, ignore_cache=False):
         '''gets all listitem properties as window prop for easy use in a widget details pane'''
+
+        if cur_listitem in self.widgetdetails:
+            return self.widgetdetails[cur_listitem]
+
         # collect all the infolabels
         widget_details = []
-        widget_details.append(("SkinHelper.ListItem.label", li_label))
-        widget_details.append(("SkinHelper.ListItem.title", li_title))
-        widget_details.append(("SkinHelper.ListItem.filenameandpath", li_file))
-        widget_details.append(("SkinHelper.ListItem.year", li_year))
-        widget_details.append(("SkinHelper.ListItem.genre", li_genre))
+        widget_details.append(("skinhelper.listitem.label", li_label))
+        widget_details.append(("skinhelper.listitem.title", li_title))
+        widget_details.append(("skinhelper.listitem.filenameandpath", li_file))
+        widget_details.append(("skinhelper.listitem.year", li_year))
+        widget_details.append(("skinhelper.listitem.genre", li_genre))
         props = [
-            "Art(fanart)", "Art(poster)", "Art(clearlogo)", "Art(clearart)", "Art(landscape)",
-            "FileExtension", "Duration", "Plot", "PlotOutline", "icon", "thumb", "Label2",
-            "Property(FanArt)", "dbtype"
+            "art(fanart)", "art(poster)", "art(clearlogo)", "art(clearart)", "art(landscape)",
+            "fileextension", "duration", "plot", "plotoutline", "icon", "thumb", "label2",
+            "property(fanArt)", "dbtype"
         ]
         if content_type in ["movies", "tvshows", "seasons", "episodes", "musicvideos", "setmovies"]:
-            props += ["Art(characterart)", "studio", "TvShowTitle", "Premiered", "director", "writer",
-                      "firstaired", "VideoResolution", "AudioCodec", "AudioChannels", "VideoCodec", "VideoAspect",
-                      "SubtitleLanguage", "AudioLanguage", "MPAA", "IsStereoScopic", "Property(Video3DFormat)",
+            props += ["Art(characterart)", "studio", "tvshowtitle", "premiered", "director", "writer",
+                      "firstaired", "videoresolution", "audiocodec", "audiochannels", "videocodec", "videoaspect",
+                      "SubtitleLanguage", "audioLanguage", "mpaa", "isstereoscopic", "Property(Video3DFormat)",
                       "tagline", "rating"]
             if content_type in ["episodes"]:
-                props += ["season", "episode", "Art(tvshow.landscape)", "Art(tvshow.clearlogo)",
+                props += ["season", "episode", "art(tvshow.landscape)", "art(tvshow.clearlogo)",
                           "Art(tvshow.poster)"]
         elif content_type in ["musicvideos", "artists", "albums", "songs"]:
             props += ["artist", "album", "rating"]
         elif content_type in ["tvrecordings", "tvchannels"]:
-            props += ["Channel", "Property(StartDateTime)", "DateTime", "Date", "ChannelName",
-                      "StartTime", "StartDate", "EndTime", "EndDate"]
+            props += ["Channel", "property(startdatetime)", "datetime", "date", "channelname",
+                      "starttime", "startdate", "endtime", "enddate"]
         for prop in props:
             propvalue = xbmc.getInfoLabel('%sListItem.%s' % (self.cont_prefix, prop)).decode('utf-8')
             if cur_listitem != self.cur_listitem:
                 return
-            if not propvalue and "Property" not in prop:
+            if not propvalue and "property" not in prop:
                 propvalue = xbmc.getInfoLabel(u'%sListItem.Property(%s)' % (self.cont_prefix, prop)).decode('utf-8')
             if propvalue:
-                widget_details.append((u'SkinHelper.ListItem.%s' % prop, propvalue))
+                widget_details.append((u'skinhelper.listitem.%s' % prop, propvalue))
+        self.widgetdetails[cur_listitem] = widget_details
         return widget_details
 
     def get_studiologo(self, studio):
+        '''gets the studiologo icon for the actual studio'''
         items = []
         if studio and self.artutils.studiologos_path:
             result = self.artutils.get_studio_logo(studio)
@@ -519,6 +516,7 @@ class ListItemMonitor(threading.Thread):
         return items
 
     def get_duration(self, duration):
+        '''get a formatted duration string for the actual runtime'''
         items = []
         if duration:
             result = self.artutils.get_duration(duration)
@@ -526,6 +524,7 @@ class ListItemMonitor(threading.Thread):
         return items
 
     def get_streamdetails(self, li_dbid, li_path, content_type):
+        '''get the streamdetails for the current video'''
         items = []
         if li_dbid and content_type in ["movies", "episodes",
                                         "musicvideos"] and not li_path.startswith("videodb://movies/sets/"):
@@ -534,6 +533,7 @@ class ListItemMonitor(threading.Thread):
         return items
 
     def set_forcedview(self):
+        '''helper to force the view in certain conditions'''
         currentForcedView = xbmc.getInfoLabel("Skin.String(SkinHelper.ForcedViews.%s)" % self.content_type)
         if xbmc.getCondVisibility("Control.IsVisible(%s) | IsEmpty(Container.Viewmode)" % currentForcedView):
             # skip if the view is already visible or if we're not in an actual media window
@@ -550,6 +550,7 @@ class ListItemMonitor(threading.Thread):
             self.win.clearProperty("SkinHelper.ForcedView")
 
     def get_extrafanart(self, li_dbid, content_type):
+        '''get the extrafanart path for the actual video item'''
         items = []
         if xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnableExtraFanart)"):
             if li_dbid and content_type in ["movies", "seasons", "episodes", "tvshows", "setmovies", "moviesets"]:

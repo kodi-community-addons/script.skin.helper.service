@@ -5,8 +5,7 @@ import xbmcplugin
 import xbmcgui
 import xbmcaddon
 from simplecache import SimpleCache
-from utils import log_msg, try_encode, normalize_string
-from utils import KODI_VERSION, log_exception, urlencode
+from utils import log_msg, try_encode, KODI_VERSION, log_exception, urlencode
 from artutils import KodiDb, Tmdb, get_clean_image, process_method_on_list
 from datetime import timedelta
 import urlparse
@@ -18,6 +17,7 @@ import os
 class PluginContent:
     '''Hidden plugin entry point providing some helper features'''
     params = {}
+    win = None
 
     def __init__(self):
         self.cache = SimpleCache()
@@ -30,11 +30,14 @@ class PluginContent:
         except Exception as exc:
             log_exception(__name__, exc)
             xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
+            
+        #cleanup when done processing
+        self.close()
 
-    def __del__(self):
+    def close(self):
         '''Cleanup Kodi Cpython instances'''
+        self.cache.close()
         del self.win
-        log_msg("PluginContent exited")
 
     def main(self):
         '''main action, load correct function'''
@@ -58,8 +61,8 @@ class PluginContent:
         '''legacy entrypoint called (widgets are moved to seperate addon), start redirect...'''
         action = self.params.get("action", "")
         newaddon = "script.skin.helper.widgets"
-        log_msg("Deprecated method: %s. Please call %s directly -"
-                "This automatic redirect will be removed in the future" % (action, newaddon), xbmc.LOGWARNING)
+        log_msg("Deprecated method: %s. Please reassign your widgets to get rid of this message. -"
+                "This automatic redirect will be removed in the future" % (action), xbmc.LOGWARNING)
         paramstring = ""
         for key, value in self.params.iteritems():
             paramstring += ",%s=%s" % (key, value)
@@ -133,38 +136,28 @@ class PluginContent:
             li.setProperty('mimetype', 'image/jpeg')
             xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=item, listitem=li)
         xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
+        
+    def moviegenrebackground(self):
+        '''helper to display images for a specific movie genre in multiimage control in the skin'''
+        genre = self.params.get("genre").split(".")[0]
+        if genre and genre != "..":
+            filters = [{"operator": "is", "field": "genre", "value": genre}]
+            items = self.kodi_db.movies(sort={"method": "random", "order": "descending"}, filters=filters, limits=(0, 50))
+            for item in items:
+                fanart = get_clean_image(item["art"].get("fanart",""))
+                if fanart:
+                    fanart = get_clean_image(item["art"]["fanart"])
+                    li = xbmcgui.ListItem(fanart, path=fanart)
+                    li.setProperty('mimetype', 'image/jpeg')
+                    xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=fanart, listitem=li)
+        xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
 
     def getcastmedia(self):
         '''helper to display get all media for a specific actor'''
         name = self.params.get("name")
         if name:
-            # use db counts as simple checksum
-            cache_checksum = len(self.kodi_db.get_db('VideoLibrary.GetMovies', None, None, [], None, "movies"))
-            cache_checksum += len(self.kodi_db.get_db('VideoLibrary.GetTvShows', None, None, [], None, "tvshows"))
-            cache_str = "CastMedia.%s" % name
-            cachedata = self.cache.get(cache_str, checksum=cache_checksum)
-            if cachedata:
-                all_items = cachedata
-            else:
-                all_items = []
-                filters = [{"operator": "contains", "field": "actor", "value": name}]
-                movies = self.kodi_db.get_db('VideoLibrary.GetMovies', None, filters,
-                                             self.kodi_db.FIELDS_MOVIES, None, "movies")
-                tvshows = self.kodi_db.get_db('VideoLibrary.GetTvShows', None, filters,
-                                              self.kodi_db.FIELDS_TVSHOWS, None, "tvshows")
-                for item in movies:
-                    url = "RunScript(script.skin.helper.service,action=showinfo,movieid=%s)" % item["movieid"]
-                    item["file"] = "plugin://script.skin.helper.service/?action=launch&path=" + url
-                    all_items.append(item)
-                tvshows = self.kodi_db.get_db('VideoLibrary.GetTvShows', None, filters,
-                                              self.kodi_db.FIELDS_TVSHOWS, None, "tvshows")
-                for item in tvshows:
-                    url = "RunScript(script.skin.helper.service,action=showinfo,tvshowid=%s)" % item["tvshowid"]
-                    item["file"] = "plugin://script.skin.helper.service/?action=launch&path=" + url
-                    all_items.append(item)
-                all_items = process_method_on_list(self.kodi_db.prepare_listitem, all_items)
-                self.cache.set(cache_str, all_items, checksum=cache_checksum)
-            # display the listing
+            all_items = self.kodi_db.castmedia(name)
+            all_items = process_method_on_list(self.kodi_db.prepare_listitem, all_items)
             all_items = process_method_on_list(self.kodi_db.create_listitem, all_items)
             xbmcplugin.addDirectoryItems(int(sys.argv[1]), all_items, len(all_items))
         xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
@@ -176,6 +169,7 @@ class PluginContent:
         all_cast_names = list()
         cache_str = ""
         download_thumbs = self.params.get("downloadthumbs", "") == "true"
+        extended_cast_action = self.params.get("castaction", "") == "extendedinfo"
         tmdb = Tmdb()
         movie = self.params.get("movie")
         tvshow = self.params.get("tvshow")
@@ -195,12 +189,6 @@ class PluginContent:
             elif episode:
                 cache_str = "episode.castcache-%s-%s" % (self.params["episode"], download_thumbs)
                 db_id = int(episode)
-            elif not ((movie or tvshow or episode or movieset) and
-                      xbmc.getCondVisibility("Window.IsActive(DialogVideoInfo.xml)")):
-                cache_str = "castcache.%s.%s.%s" % (
-                    xbmc.getInfoLabel("ListItem.Title"),
-                    xbmc.getInfoLabel("ListItem.FileNameAndPath"),
-                    download_thumbs)
         except Exception:
             pass
 
@@ -214,61 +202,32 @@ class PluginContent:
                 all_cast = self.kodi_db.movie(db_id)["cast"]
             elif movie and not db_id:
                 filters = [{"operator": "contains", "field": "title", "value": movie}]
-                result = self.kodi_db.get_db('VideoLibrary.GetMovies', None,
-                                             filters, ["title", "cast"], None, "movies")
+                result = self.kodi_db.movies(filters=filters)
                 all_cast = result[0]["cast"] if result else []
             elif tvshow and db_id:
-                json_result = kodi_json(
-                    'VideoLibrary.GetTVShowDetails',
-                    '{ "tvshowid": %d, "properties": [ "title", "cast" ] }' %
-                    db_id)
-                if json_result and json_result.get("cast"):
-                    all_cast = json_result.get("cast")
+                all_cast = self.kodi_db.tvshow(db_id)["cast"]
             elif tvshow and not db_id:
                 filters = [{"operator": "contains", "field": "title", "value": tvshow}]
-                result = self.kodi_db.get_db(
-                    'VideoLibrary.GetTvShows', None, filters, [
-                        "title", "cast"], None, "tvshows")
+                result = self.kodi_db.tvshows(filters=filters)
                 all_cast = result[0]["cast"] if result else []
             elif episode and db_id:
-                json_result = kodi_json(
-                    'VideoLibrary.GetEpisodeDetails',
-                    '{ "episodeid": %d, "properties": [ "title", "cast" ] }' %
-                    db_id)
-                if json_result and json_result.get("cast"):
-                    all_cast = json_result.get("cast")
+                all_cast = self.kodi_db.episode(db_id)["cast"]
             elif episode and not db_id:
                 filters = [{"operator": "contains", "field": "title", "value": episode}]
-                result = self.kodi_db.get_db(
-                    'VideoLibrary.GetMovies', None, filters, [
-                        "title", "cast"], None, "episodes")
+                result = self.kodi_db.episodes(filters=filters)
                 all_cast = result[0]["cast"] if result else []
             elif movieset:
                 moviesetmovies = []
                 if not db_id:
-                    for result in self.kodi_db.get_db(
-                        'VideoLibrary.GetMovieSets', None, filters, ["title"],
-                            None, "moviesets"):
-                        if result.get("title").lower() == movieset:
-                            db_id = result['setid']
-                            break
+                    filters = [{"operator": "contains", "field": "title", "value": movieset}]
+                    result = self.kodi_db.moviesets(filters=filters)
+                    db_id = result[0]["setid"] if result else 0
                 if db_id:
                     params = {"setid": db_id, "movies": {"properties": ["title", "cast"]}}
-                    json_result = self.kodi_db.get_db('VideoLibrary.GetMovieSetDetails',
-                                                      None, None, None, None, "moviesets", params)
+                    json_result = self.kodi_db.movieset(db_id)
                     if "movies" in json_result:
                         for movie in json_result['movies']:
                             all_cast += movie['cast']
-            # no item provided, try to grab the cast list from container 50 (dialogvideoinfo)
-            elif (not (movie or tvshow or episode or movieset) and
-                  xbmc.getCondVisibility("Window.IsActive(DialogVideoInfo.xml)")):
-                for i in range(250):
-                    label = xbmc.getInfoLabel("Container(50).ListItemNoWrap(%s).Label" % i).decode("utf-8")
-                    if not label:
-                        break
-                    label2 = xbmc.getInfoLabel("Container(50).ListItemNoWrap(%s).Label2" % i).decode("utf-8")
-                    thumb = xbmc.getInfoLabel("Container(50).ListItemNoWrap(%s).Thumb" % i).decode("utf-8")
-                    all_cast.append({"name": label, "role": label2, "thumbnail": get_clean_image(thumb)})
 
             # optional: download missing actor thumbs
             if all_cast and download_thumbs:
@@ -295,12 +254,17 @@ class PluginContent:
             if cast.get("name") not in all_cast_names:
                 liz = xbmcgui.ListItem(label=cast.get("name"), label2=cast.get("role"),
                                        iconImage=cast.get("thumbnail"))
-                liz.setProperty('IsPlayable', 'false')
-                url = "RunScript(script.extendedinfo,info=extendedactorinfo,name=%s)" % cast.get("name")
-                path = "plugin://script.skin.helper.service/?action=launch&path=" + url
+                if extended_cast_action:
+                    url = "RunScript(script.extendedinfo,info=extendedactorinfo,name=%s)" % cast.get("name")
+                    url = "plugin://script.skin.helper.service/?action=launch&path=%s" % url
+                    is_folder = False
+                else:
+                    url = "RunScript(script.skin.helper.service,action=getcastmedia,name=%s)" % cast.get("name")
+                    url = "plugin://script.skin.helper.service/?action=launch&path=%s" % urlencode(url)
+                    is_folder = False
                 all_cast_names.append(cast.get("name"))
                 liz.setThumbnailImage(cast.get("thumbnail"))
-                xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=path, listitem=liz, isFolder=False)
+                xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=url, listitem=liz, isFolder=is_folder)
         xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
     @staticmethod
@@ -323,16 +287,17 @@ class PluginContent:
                     label = letter
                 li = xbmcgui.ListItem(label=label)
                 if letter not in all_letters:
-                    path = "noop"
+                    lipath = "noop"
                     li.setProperty("NotAvailable", "true")
                 else:
-                    path = "plugin://script.skin.helper.service/?action=alphabetletter&letter=%s" % letter
-                xbmcplugin.addDirectoryItem(int(sys.argv[1]), path, li)
+                    lipath = "plugin://script.skin.helper.service/?action=alphabetletter&letter=%s" % letter
+                xbmcplugin.addDirectoryItem(int(sys.argv[1]), lipath, li, isFolder=False)
         xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
 
     def alphabetletter(self):
         '''used with the alphabet scrollbar to jump to a letter'''
-        letter = self.params.get("letter", "")
+        letter = self.params.get("letter", "").upper()
+        jumpcmd = ""
         if letter in ["A", "B", "C", "2"]:
             jumpcmd = "2"
         elif letter in ["D", "E", "F", "3"]:

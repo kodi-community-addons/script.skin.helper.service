@@ -13,7 +13,6 @@ import xbmcaddon
 import xbmcgui
 import time
 import datetime
-import _strptime
 
 
 class MainService:
@@ -30,7 +29,7 @@ class MainService:
         self.kodimonitor = KodiMonitor(cache=self.cache, artutils=self.artutils, win=self.win)
         listitem_monitor = ListItemMonitor(
             cache=self.cache, artutils=self.artutils, win=self.win, monitor=self.kodimonitor)
-        webservice = WebService(artutils=self.artutils, win=self.win)
+        webservice = WebService(artutils=self.artutils)
         widget_task_interval = 520
 
         # start the extra threads
@@ -60,11 +59,20 @@ class MainService:
         # stop the extra threads
         listitem_monitor.stop()
         webservice.stop()
+        
         # cleanup objects
-        self.artutils.close()
-        self.cache.close()
-        log_msg('%s version %s stopped' % (self.addonname, self.addonversion), xbmc.LOGNOTICE)
+        self.close()
 
+    def close(self):
+        '''Cleanup Kodi Cpython instances'''
+        self.cache.close()
+        self.artutils.close()
+        del self.win
+        del self.kodimonitor
+        del self.cache
+        del self.artutils
+        log_msg('%s version %s stopped' % (self.addonname, self.addonversion), xbmc.LOGNOTICE)
+    
     def check_skin_version(self):
         '''check if skin changed'''
         try:

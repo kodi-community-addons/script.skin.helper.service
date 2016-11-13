@@ -5,7 +5,7 @@ import xbmcvfs
 import xbmcgui
 import xbmcaddon
 from utils import log_msg, try_encode, KODI_VERSION, ADDON_ID, try_decode
-from dialogs import DialogSelectSmall, DialogSelectBig
+from dialogs import DialogSelect
 from xml.dom.minidom import parse
 import xml.etree.ElementTree as xmltree
 import sys
@@ -27,7 +27,7 @@ class SkinSettings:
         del self.addon
 
     def write_skin_constants(self, listing):
-        # writes the list of all skin constants
+        '''writes the list of all skin constants'''
         addonpath = xbmc.translatePath(os.path.join("special://skin/", 'addon.xml').encode("utf-8")).decode("utf-8")
         addon = xmltree.parse(addonpath)
         extensionpoints = addon.findall("extension")
@@ -59,8 +59,8 @@ class SkinSettings:
         xbmc.executebuiltin("ReloadSkin()")
 
     def get_skin_constants(self):
-        # gets a list of all skin constants
-        allConstants = {}
+        '''gets a list of all skin constants'''
+        all_constants = {}
         addonpath = xbmc.translatePath(os.path.join("special://skin/", 'addon.xml').encode("utf-8")).decode("utf-8")
         addon = xmltree.parse(addonpath)
         extensionpoints = addon.findall("extension")
@@ -81,33 +81,36 @@ class SkinSettings:
                         for item in listing:
                             name = try_decode(item.attributes['name'].nodeValue)
                             value = try_decode(item.firstChild.nodeValue)
-                            allConstants[name] = value
-        return allConstants
+                            all_constants[name] = value
+        return all_constants
 
     def update_skin_constants(self, new_values):
-        updateNeeded = False
-        allValues = self.get_skin_constants()
+        '''update skin constants if needed'''
+        update_needed = False
+        all_values = self.get_skin_constants()
         for key, value in new_values.iteritems():
-            if key in allValues:
-                if allValues.get(key) != value:
-                    updateNeeded = True
-                    allValues[key] = value
+            if key in all_values:
+                if all_values.get(key) != value:
+                    update_needed = True
+                    all_values[key] = value
             else:
-                updateNeeded = True
-                allValues[key] = value
-        if updateNeeded:
-            self.write_skin_constants(allValues)
+                update_needed = True
+                all_values[key] = value
+        if update_needed:
+            self.write_skin_constants(all_values)
 
     def set_skin_constant(self, setting="", window_header="", value=""):
-        allCurrentValues = self.get_skin_constants()
+        '''set a skin constant'''
+        cur_values = self.get_skin_constants()
         if not value:
             value, label = self.set_skin_setting(
-                setting, window_header, "", allCurrentValues.get(
+                setting, window_header, "", cur_values.get(
                     setting, "emptyconstant"))
         result = {setting: value}
         self.update_skin_constants(result)
 
     def set_skin_constants(self, settings, values):
+        '''set multiple constants at once'''
         result = {}
         for count, setting in enumerate(settings):
             result[setting] = values[count]
@@ -115,14 +118,15 @@ class SkinSettings:
 
     def set_skin_setting(self, setting="", window_header="", sublevel="",
                          cur_value="", skip_skin_string=False, original_id=""):
+        '''allows the skinner to use a select dialog to set skin settings'''
         if not cur_value:
             cur_value = xbmc.getInfoLabel("Skin.String(%s)" % setting).decode("utf-8")
-        cur_valueLabel = xbmc.getInfoLabel("Skin.String(%s.label)" % setting).decode("utf-8")
-        useRichLayout = False
-        selectId = 0
+        cur_value_label = xbmc.getInfoLabel("Skin.String(%s.label)" % setting).decode("utf-8")
+        rich_layout = False
+        select_id = 0
         itemcount = 0
 
-        allValues = []
+        all_values = []
         settings_file = xbmc.translatePath('special://skin/extras/skinsettings.xml').decode("utf-8")
         if xbmcvfs.exists(settings_file):
             doc = parse(settings_file)
@@ -131,18 +135,18 @@ class SkinSettings:
                 listitem = xbmcgui.ListItem(label="..", iconImage="DefaultFolderBack.png")
                 listitem.setProperty("icon", "DefaultFolderBack.png")
                 listitem.setProperty("value", "||BACK||")
-                allValues.append(listitem)
+                all_values.append(listitem)
             for item in listing:
-                settingId = item.attributes['id'].nodeValue
-                if settingId.startswith("$"):
-                    settingId = xbmc.getInfoLabel(settingId).decode("utf-8")
+                setting_id = item.attributes['id'].nodeValue
+                if setting_id.startswith("$"):
+                    setting_id = xbmc.getInfoLabel(setting_id).decode("utf-8")
                 label = xbmc.getInfoLabel(item.attributes['label'].nodeValue).decode("utf-8")
-                if ((not sublevel and settingId.lower() == setting.lower()) or
-                        (sublevel and sublevel.lower() == settingId.lower()) or
-                        (original_id and original_id.lower() == settingId.lower())):
+                if ((not sublevel and setting_id.lower() == setting.lower()) or
+                        (sublevel and sublevel.lower() == setting_id.lower()) or
+                        (original_id and original_id.lower() == setting_id.lower())):
                     value = item.attributes['value'].nodeValue
                     if value == "||MULTISELECT||":
-                        return multiSelect(item, window_header)
+                        return self.multi_select(item, window_header)
                     condition = item.attributes['condition'].nodeValue
                     icon = item.attributes['icon'].nodeValue
                     description = item.attributes['description'].nodeValue
@@ -150,13 +154,13 @@ class SkinSettings:
                     if condition and not xbmc.getCondVisibility(condition):
                         continue
                     if icon:
-                        useRichLayout = True
+                        rich_layout = True
                     if icon and icon.startswith("$"):
                         icon = xbmc.getInfoLabel(icon)
                     if "%" in label:
                         label = label % value
-                    if cur_value and (cur_value.lower() == value.lower() or label.lower() == cur_valueLabel.lower()):
-                        selectId = itemcount
+                    if cur_value and (cur_value.lower() == value.lower() or label.lower() == cur_value_label.lower()):
+                        select_id = itemcount
                     listitem = xbmcgui.ListItem(label=label, iconImage=icon)
                     listitem.setProperty("value", value)
                     listitem.setProperty("icon", icon)
@@ -173,31 +177,31 @@ class SkinSettings:
                             command = xbmc.getInfoLabel(command)
                         additionalactions.append(command)
                     listitem.setProperty("additionalactions", " || ".join(additionalactions))
-                    allValues.append(listitem)
+                    all_values.append(listitem)
                     itemcount += 1
-            if not allValues:
-                selected_item = -1
-            elif len(allValues) > 1:
+            if not all_values:
+                selected_item = None
+            elif len(all_values) > 1:
                 # only use select dialog if we have muliple values
-                if useRichLayout:
-                    w = DialogSelectBig("DialogSelect.xml", self.addon.getAddonInfo('path').decode(
-                        "utf-8"), listing=allValues, windowtitle=window_header, multiselect=False)
-                else:
-                    w = DialogSelectSmall("DialogSelect.xml", self.addon.getAddonInfo('path').decode(
-                        "utf-8"), listing=allValues, windowtitle=window_header, multiselect=False)
-                if selectId >= 0 and sublevel:
-                    selectId += 1
-                w.autoFocusId = selectId
-                w.doModal()
-                selected_item = w.result
-                del w
+                dialog = DialogSelect(
+                    "DialogSelect.xml",
+                    "",
+                    listing=all_values,
+                    windowtitle=window_header,
+                    richlayout=rich_layout)
+                if select_id >= 0 and sublevel:
+                    select_id += 1
+                dialog.autofocus_id = select_id
+                dialog.doModal()
+                selected_item = dialog.result
+                del dialog
             else:
-                selected_item = 0
+                selected_item = None
             # process the results
-            if selected_item != -1:
-                value = try_decode(allValues[selected_item].getProperty("value"))
-                label = try_decode(allValues[selected_item].getLabel())
-                description = allValues[selected_item].getProperty("description")
+            if selected_item:
+                value = try_decode(selected_item.getProperty("value"))
+                label = try_decode(selected_item.getLabel())
+                description = selected_item.getProperty("description")
                 if value.startswith("||SUBLEVEL||"):
                     sublevel = value.replace("||SUBLEVEL||", "")
                     self.set_skin_setting(setting, window_header, sublevel)
@@ -231,7 +235,7 @@ class SkinSettings:
                             "Skin.SetString(%s.label,%s)" %
                             (setting.encode("utf-8"), label.encode("utf-8")))
                     # process additional actions
-                    additionalactions = allValues[selected_item].getProperty("additionalactions").split(" || ")
+                    additionalactions = selected_item.getProperty("additionalactions").split(" || ")
                     for action in additionalactions:
                         xbmc.executebuiltin(action)
                     return (value, label)
@@ -239,13 +243,13 @@ class SkinSettings:
                 return (None, None)
 
     def correct_skin_settings(self):
-        # correct any special skin settings
+        '''correct any special skin settings'''
         skinconstants = {}
         settings_file = xbmc.translatePath('special://skin/extras/skinsettings.xml').decode("utf-8")
         if xbmcvfs.exists(settings_file):
             doc = parse(settings_file)
             listing = doc.documentElement.getElementsByTagName('setting')
-            for count, item in enumerate(listing):
+            for item in listing:
                 id = item.attributes['id'].nodeValue
                 value = item.attributes['value'].nodeValue
                 curvalue = xbmc.getInfoLabel("Skin.String(%s)" % id.encode("utf-8")).decode("utf-8")
@@ -352,9 +356,9 @@ class SkinSettings:
 
         if not force_multi and(
             not allow_multi or xbmcgui.Dialog().yesno(
-                header, self.addon.getLocalizedString(32064),
-                yeslabel=self.addon.getLocalizedString(32065),
-                nolabel=self.addon.getLocalizedString(32066))):
+                header, self.addon.getLocalizedString(32016),
+                yeslabel=self.addon.getLocalizedString(32017),
+                nolabel=self.addon.getLocalizedString(32018))):
             # single image (allow copy to addon_data)
             value = xbmcgui.Dialog().browse(2, header, 'files', '', True, True, cur_value_org).decode("utf-8")
             if value:
@@ -373,7 +377,7 @@ class SkinSettings:
                 curdir = cur_value_org.rsplit(delim, 1)[0] + delim
             else:
                 curdir = ""
-            value = xbmcgui.Dialog().browse(0, self.addon.getLocalizedString(32067),
+            value = xbmcgui.Dialog().browse(0, self.addon.getLocalizedString(32005),
                                             'files', '', True, True, curdir).decode("utf-8")
         xbmc.executebuiltin("Skin.SetString(%s,%s)" % (skinstring.encode("utf-8"), value.encode("utf-8")))
         return value
@@ -399,6 +403,41 @@ class SkinSettings:
                 xbmc.executebuiltin("SendClick(404)")
 
     @staticmethod
+    def multi_select(item, window_header=""):
+        '''allows the user to choose from multiple options'''
+        all_options = []
+        options = item.getElementsByTagName('option')
+        for option in options:
+            id = option.attributes['id'].nodeValue
+            label = xbmc.getInfoLabel(option.attributes['label'].nodeValue).decode("utf-8")
+            default = option.attributes['default'].nodeValue
+            condition = option.attributes['condition'].nodeValue
+            if condition and not xbmc.getCondVisibility(condition):
+                continue
+            listitem = xbmcgui.ListItem(label=label)
+            listitem.setProperty("id", id)
+            if xbmc.getCondVisibility("Skin.HasSetting(%s)" % id) or(not xbmc.getInfoLabel(
+                    "Skin.String(defaultset_%s)" % id) and xbmc.getCondVisibility(default)):
+                listitem.select(selected=True)
+            all_options.append(listitem)
+        # show select dialog
+        dialog = DialogSelect("DialogSelect.xml", "", listing=all_options, windowtitle=window_header, multiselect=True)
+        dialog.doModal()
+
+        result = dialog.result
+        if result:
+            for item in result:
+                if item.isSelected():
+                    #option is enabled
+                    xbmc.executebuiltin("Skin.SetBool(%s)" % skinsetting)
+                else:
+                    #option is disabled
+                    xbmc.executebuiltin("Skin.Reset(%s)" % skinsetting)
+            # always set additional prop to define the defaults
+            xbmc.executebuiltin("Skin.SetString(defaultset_%s,defaultset)" % skinsetting)
+        del dialog
+
+    @staticmethod
     def wait_for_skinshortcuts_window():
         '''wait untill skinshortcuts is active window (because of any animations that may have been applied)'''
         for i in range(40):
@@ -413,16 +452,16 @@ class SkinSettings:
     @staticmethod
     def indent_xml(elem, level=0):
         '''helper to properly indent xml strings to file'''
-        i = "\n" + level * "\t"
+        text_i = "\n" + level * "\t"
         if len(elem):
             if not elem.text or not elem.text.strip():
-                elem.text = i + "\t"
+                elem.text = text_i + "\t"
             if not elem.tail or not elem.tail.strip():
-                elem.tail = i
+                elem.tail = text_i
             for elem in elem:
                 indent_xml(elem, level + 1)
             if not elem.tail or not elem.tail.strip():
-                elem.tail = i
+                elem.tail = text_i
         else:
             if level and (not elem.tail or not elem.tail.strip()):
-                elem.tail = i
+                elem.tail = text_i

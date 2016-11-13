@@ -1,168 +1,143 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
 import sys
-import xbmc, xbmcgui, xbmcvfs
-from artutils import KodiDb
-import PluginContent as plugincontent
-from utils import *
+import xbmc
+import xbmcgui
+import xbmcvfs
+from artutils import ArtUtils, extend_dict, KodiDb
+from utils import log_msg, get_current_content_type
 import threading
 
-CANCEL_DIALOG  = ( 9, 10, 92, 216, 247, 257, 275, 61467, 61448, )
-ACTION_SHOW_INFO = ( 11, )
-
-class InfoDialog( xbmcgui.WindowXMLDialog ):
-
-    def __init__( self, *args, **kwargs ):
-        xbmcgui.WindowXMLDialog.__init__( self )
-        params = kwargs[ "params" ]
-        self.kodidb = KodiDb()
-        
-        if params.get("MOVIEID"):
-            item = kodidb.movie(params["movieid"])
-            self.content = "movies"
-        elif params.get("MUSICVIDEOID"):
-            item = kodi_json('VideoLibrary.GetMusicVideoDetails', '{ "musicvideoid": %s, "properties": [ %s ] }' %(params["MUSICVIDEOID"],fields_musicvideos))
-            self.content = "musicvideos"
-        elif params.get("EPISODEID"):
-            item = kodi_json('VideoLibrary.GetEpisodeDetails', '{ "episodeid": %s, "properties": [ %s ] }' %(params["EPISODEID"],fields_episodes))
-            self.content = "episodes"
-        elif params.get("TVSHOWID"):
-            item = kodi_json('VideoLibrary.GetTVShowDetails', '{ "tvshowid": %s, "properties": [ %s ] }' %(params["TVSHOWID"],fields_tvshows))
-            self.content = "tvshows"
-        elif params.get("ALBUMID"):
-            item = kodi_json('AudioLibrary.GetAlbumDetails', '{ "albumid": %s, "properties": [ %s ] }' %(params["ALBUMID"],fields_albums))
-            self.content = "albums"
-        elif params.get("SONGID"):
-            item = kodi_json('AudioLibrary.GetSongDetails', '{ "songid": %s, "properties": [ %s ] }' %(params["SONGID"],fields_songs))
-            self.content = "songs"
-        elif params.get("RECORDINGID"):
-            item = kodi_json('PVR.GetRecordingDetails', '{ "recordingid": %s, "properties": [ %s ]}' %( params["RECORDINGID"], fields_pvrrecordings))
-            artwork = artutils.getPVRThumbs(item["title"],item["channel"],"recordings",item["file"])
-            item["art"] = artwork
-            for key, value in artwork.iteritems():
-                if not item.get(key):
-                    item[key] = value
-            if artwork.get("tmdb_type") == "movies":
-                self.content = "movies"
-            elif artwork.get("tmdb_type") == "tv":
-                self.content = "episodes"
-            else:
-                self.content = "tvrecordings"
-        else:
-            item = None
-            self.listitem = None
-
-        if item:
-            liz = prepareListItem(item)
-            liz = createListItem(item,False)
-            self.listitem = liz
-            self.lastwidgetcontainer = params.get("lastwidgetcontainer","")
-            WINDOW.setProperty("SkinHelper.WidgetContainer","999")
-
-    def onInit( self ):
-        self._hide_controls()
-        self._show_info()
-        self.bginfoThread = BackgroundInfoThread()
-        self.bginfoThread.setDialog(self)
-        self.bginfoThread.start()
-
-    def _hide_controls( self ):
-        #self.getControl( 110 ).setVisible( False )
-        pass
-
-    def _show_info( self ):
-
-        self.listitem.setProperty("contenttype",self.content)
-        self.listitem.setProperty("type",self.content[:-1])
-
-        list = self.getControl( 999 )
-        list.addItem(self.listitem)
-
-        self.setFocus( self.getControl( 5 ) )
-
-        xbmc.executebuiltin( "Dialog.Close(busydialog)" )
-
-    def _close_dialog( self, action=None ):
-        self.action = action
-        self.bginfoThread.stopRunning()
-        WINDOW.setProperty("SkinHelper.WidgetContainer",self.lastwidgetcontainer)
-        self.close()
-
-    def onClick( self, controlId ):
-        if controlId == 5:
-            type = self.getControl( 999 ).getSelectedItem().getProperty('dbtype')
-            dbid = self.getControl( 999 ).getSelectedItem().getProperty('dbid')
-            if type and dbid and self.content != "tvshows":
-                self._close_dialog('{ "jsonrpc": "2.0", "method": "Player.Open", "params": { "item": { "%sid": %s } }, "id": 1 }' % (type,dbid))
-            elif self.content == 'tvshows':
-                path = self.getControl( 999 ).getSelectedItem().getProperty('path')
-                self._close_dialog('ActivateWindow(Videos,%s,return)' %path)
-        if controlId == 997:
-            path = self.getControl( 997 ).getSelectedItem().getfilename()
-            self._close_dialog('{ "jsonrpc": "2.0", "method": "Player.Open", "params": { "item": { "file": "%s" } }, "id": 1 }' % path)
-        if controlId == 998:
-            path = self.getControl( 998 ).getSelectedItem().getProperty('path')
-            xbmc.executebuiltin(path)
+CANCEL_DIALOG = (9, 10, 92, 216, 247, 257, 275, 61467, 61448, )
+ACTION_SHOW_INFO = (11, )
 
 
+class DialogVideoInfo(xbmcgui.WindowXMLDialog):
+    '''
+        Wrapper around the videoinfodialog which can be used for widgets for example
+        only used for Kodi Jarvis because as of Kodi Krypton this is handled by Kodi natively
+    '''
 
-    def onFocus( self, controlId ):
-        pass
+    def __init__(self, *args, **kwargs):
+        xbmcgui.WindowXMLDialog.__init__(self)
+        self.listitem = kwargs.get("listitem")
 
-    def onAction( self, action ):
-        if ( action.getId() in CANCEL_DIALOG ) or ( action.getId() in ACTION_SHOW_INFO ):
-            self._close_dialog()
+    def onInit(self):
+        '''triggered when the dialog is drawn'''
+        if self.listitem:
+            self.clearList()
+            kodidb = KodiDb()
+            if isinstance(self.listitem, dict):
+                self.listitem = kodidb.prepare_listitem(self.listitem)
+                self.listitem = kodidb.create_listitem(self.listitem, False)
+            del kodidb
+            self.addItem(self.listitem)
+
+        # disable some controls if existing
+        disable_controls = [9, 7, 101, 6]
+        for item in disable_controls:
+            try:
+                self.getControl(item).setVisible(False)
+            except Exception:
+                pass
+
+        # enable some controls if existing
+        disable_controls = [351, 352]
+        for item in disable_controls:
+            try:
+                self.getControl(item).setVisible(True)
+                self.getControl(item).setEnabled(True)
+            except Exception:
+                pass
+
+    def onClick(self, controlId):
+        '''triggers if one of the controls is clicked'''
+        log_msg("onClick --> %s" % controlId, xbmc.LOGNOTICE)
+        if controlId == 8:
+            # play button
+            self.close()
+            xbmc.executebuiltin("Playmedia(%s)" % self.listitem.getfilename())
+        if controlId == 103:
+            # trailer button
+            pass
+
+    def onAction(self, action):
+        '''triggers on certain actions like user navigating'''
+        controlid = self.getFocusId()
+        if (action.getId() in CANCEL_DIALOG):
+            self.close()
+        if (action.getId() in ACTION_SHOW_INFO):
+            self.close()
 
 
-class BackgroundInfoThread(threading.Thread):
-    #fill cast and similar lists in the background
-    active = True
-    infoDialog = None
+def get_cur_listitem(cont_prefix):
+    '''gets the current selected listitem details'''
+    dbid = xbmc.getInfoLabel("%sListItem.DBID" % cont_prefix).decode('utf-8')
+    if not dbid or dbid == "-1":
+        dbid = xbmc.getInfoLabel("%sListItem.Property(DBID)" % cont_prefix).decode('utf-8')
+        if dbid == "-1":
+            dbid = ""
+    dbtype = xbmc.getInfoLabel("%sListItem.DBTYPE" % cont_prefix).decode('utf-8')
+    if not dbtype:
+        dbtype = xbmc.getInfoLabel("%sListItem.Property(DBTYPE)" % cont_prefix).decode('utf-8')
+    if not dbtype:
+        dbtype = get_current_content_type(cont_prefix)
+    return (dbid, dbtype)
 
-    def __init__(self, *args):
-        threading.Thread.__init__(self, *args)
 
-    def stopRunning(self):
-        self.active = False
+def get_cont_prefix():
+    '''gets the container prefix if we're looking at a widget container'''
+    widget_container = xbmc.getInfoLabel("Window(Home).Property(SkinHelper.WidgetContainer)")
+    if widget_container:
+        cont_prefix = "Container(%s)." % widget_container
+    else:
+        cont_prefix = ""
+    return cont_prefix
 
-    def setDialog(self, infoDialog):
-        self.infoDialog = infoDialog
 
-    def run(self):
+def show_infodialog(dbid="", media_type=""):
+    '''shows the special info dialog for this media'''
+    cont_prefix = get_cont_prefix()
+    artutils = ArtUtils()
+    item_details = {}
 
-        lst_control = self.infoDialog.getControl( 999 )
+    # if dbid is provided we prefer that info else we try to locate the dbid and dbtype
+    if not (dbid and media_type):
+        dbid, media_type = get_cur_listitem(cont_prefix)
 
-        try: #optional: recommended list
-            similarlist = self.infoDialog.getControl( 997 )
-            similarcontent = []
-            if self.infoDialog.content == 'movies':
-                similarcontent = plugincontent.SIMILARMOVIES(25,lst_control.getSelectedItem().getProperty("imdbnumber"))
-            elif self.infoDialog.content == 'tvshows':
-                similarcontent = plugincontent.SIMILARSHOWS(25,lst_control.getSelectedItem().getProperty("imdbnumber"))
-            for item in similarcontent:
-                if not self.active: break
-                item = plugincontent.prepareListItem(item)
-                liz = plugincontent.createListItem(item,False)
-                liz.setThumbnailImage(item["art"].get("poster"))
-                similarlist.addItem(liz)
-        except Exception:
-            plugincontent.log_msg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
+    if media_type.endswith("s"):
+        media_type = media_type[:-1]
 
-        try: #optional: cast list
-            castlist = self.infoDialog.getControl( 998 )
-            castitems = []
-            downloadThumbs = xbmc.getInfoLabel("Skin.String(actorthumbslookup)").lower() == "true"
-            if self.infoDialog.content == 'movies':
-                castitems = plugincontent.getCast(movie=lst_control.getSelectedItem().getLabel().decode("utf-8"),downloadThumbs=downloadThumbs,listOnly=True)
-            elif self.infoDialog.content == 'tvshows':
-                castitems = plugincontent.getCast(tvshow=lst_control.getSelectedItem().getLabel().decode("utf-8"),downloadThumbs=downloadThumbs,listOnly=True)
-            elif self.infoDialog.content == 'episodes':
-                castitems = plugincontent.getCast(episode=lst_control.getSelectedItem().getLabel().decode("utf-8"),downloadThumbs=downloadThumbs,listOnly=True)
-            for cast in castitems:
-                liz = xbmcgui.ListItem(label=cast.get("name"),label2=cast.get("role"),iconImage=cast.get("thumbnail"))
-                liz.setProperty('IsPlayable', 'false')
-                url = "RunScript(script.extendedinfo,info=extendedactorinfo,name=%s)"%cast.get("name")
-                liz.setProperty("path",url)
-                liz.setThumbnailImage(cast.get("thumbnail"))
-                castlist.addItem(liz)
+    # get basic details from kodi db if we have a valid dbid and dbtype
+    if dbid and media_type:
+        if hasattr(artutils.kodidb.__class__, media_type):
+            item_details = getattr(artutils.kodidb, media_type)(dbid)
 
-        except Exception:
-            plugincontent.log_msg(format_exc(sys.exc_info()),xbmc.LOGDEBUG)
+    # only proceed if we have a media_type
+    if media_type:
+        title = xbmc.getInfoLabel("%sListItem.Title" % cont_prefix).decode('utf-8')
+        # music content
+        if media_type in ["album", "artist", "song"]:
+            artist = xbmc.getInfoLabel("%sListItem.AlbumArtist" % cont_prefix).decode('utf-8')
+            if not artist:
+                artist = xbmc.getInfoLabel("%sListItem.Artist" % cont_prefix).decode('utf-8')
+            album = xbmc.getInfoLabel("%sListItem.Album" % cont_prefix).decode('utf-8')
+            disc = xbmc.getInfoLabel("%sListItem.DiscNumber" % cont_prefix).decode('utf-8')
+            if artist:
+                item_details = extend_dict(item_details, artutils.get_music_artwork(artist, album, title, disc))
+        # movieset
+        elif media_type == "movieset" and dbid:
+            item_details = extend_dict(item_details, artutils.get_moviesetdetails(dbid))
+        # pvr item
+        elif media_type in ["tvchannel", "tvrecording", "channel", "recording"]:
+            channel = xbmc.getInfoLabel("%sListItem.ChannelName" % cont_prefix).decode('utf-8')
+            genre = xbmc.getInfoLabel("%sListItem.Genre" % cont_prefix)
+            item_details["type"] = media_type
+            item_details = extend_dict(item_details, artutils.get_pvr_artwork(title, channel, genre))
+
+    # proceed with infodialog if we have details
+    if item_details:
+        win = DialogVideoInfo("DialogVideoInfo.xml", "", listitem=item_details)
+        win.doModal()
+        del dialogin
