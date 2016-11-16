@@ -363,9 +363,9 @@ class MainModule:
     def setskinshortcutsproperty(self):
         '''allows the user to make a setting for skinshortcuts using the special skinsettings dialogs'''
         setting = self.params.get("setting", "")
-        value = self.params.get("value", "")
+        property = self.params.get("property", "")
         header = self.params.get("header", "")
-        SkinSettings().set_skinshortcuts_property(setting, header, value)
+        SkinSettings().set_skinshortcuts_property(setting, header, property)
 
     def togglekodisetting(self, settingname):
         '''toggle kodi setting'''
@@ -517,96 +517,34 @@ class MainModule:
     def selectimage(self):
         '''helper which lets the user select an image or imagepath from resourceaddons or custom path'''
         xbmc.executebuiltin("ActivateWindow(busydialog)")
-        from resourceaddons import walk_directory, get_resourceimages
+        skinsettings = SkinSettings()
         images = []
         skinstring = self.params.get("skinstring", "")
-        custom_folder = self.params.get("customfolder", "")
+        skinshortcutsprop = self.params.get("skinshortcutsproperty", "")
+        current_value = self.params.get("currentvalue", "")
         resource_addon = self.params.get("resourceaddon", "")
         allow_multi = self.params.get("allowmulti", "false") == "true"
-        windowheader = self.params.get("header", self.addon.getLocalizedString(32020))
-        current_value = xbmc.getInfoLabel("Skin.String(%s)" % skinstring).decode("utf-8")
-
-        # none option
-        images.append((self.addon.getLocalizedString(32001), "", "", "DefaultAddonNone.png"))
-        # custom single
-        images.append((self.addon.getLocalizedString(32004), "", "", "DefaultAddonPicture.png"))
-        # custom multi
-        if allow_multi:
-            images.append((self.addon.getLocalizedString(32005), "", "", "DefaultFolder.png"))
-
-        # enumerate custom folder with images
-        if custom_folder and allow_multi:
-            images += walk_directory(custom_folder)
-        elif custom_folder and not allow_multi:
-            images += walk_directory(custom_folder, True)
-            
-        #backgrounds supplied in our special skinsettings.xml file
-        skinimages = SkinSettings().get_skin_settings()
-        if skinimages.get(skinstring):
-            for item in skinimages[skinstring]:
-                if xbmc.getCondVisibility(item["condition"]):
-                    images.append( (item["label"], item["value"], item["description"], item["icon"]) )
-            
-        #backgrounds provided by skinhelper
-        if "skinbackgrounds" in resource_addon:
-            from skinshortcuts import get_skinhelper_backgrounds
-            for label, image in get_skinhelper_backgrounds():
-                log_msg("%s - %s" %(label, image), xbmc.LOGWARNING)
-                images.append( (label, image, "Skin Helper Backgrounds", xbmc.getInfoLabel(image)) )
-
-        # resource addon images
-        if resource_addon and allow_multi:
-            images += get_resourceimages(resource_addon)
-        elif resource_addon and not allow_multi:
-            images += get_resourceimages(resource_addon, True)
-
-        # create listitems
-        listitems = []
-        autofocus_count = 0
-        for label, imagepath, label2, icon in images:
-            if imagepath == current_value:
-                autofocus_id = autofocus_count
-            listitem = xbmcgui.ListItem(label=label, label2=label2, iconImage=icon)
-            listitem.setPath(imagepath)
-            autofocus_count += 1
-            listitems.append(listitem)
-
-        # show select dialog with choices
-        dialog = DialogSelect("DialogSelect.xml", "", listing=listitems, windowtitle=windowheader, richlayout=True,
-                              getmorebutton=resource_addon, autofocusid=autofocus_count)
-        xbmc.executebuiltin("Dialog.Close(busydialog)")
-        dialog.doModal()
-        result = dialog.result
-        del dialog
-        if isinstance(result, bool):
-            # refresh listing requested by getmore button
-            return self.selectimage()
-        elif result:
-            label = result.getLabel()
-            if label == self.addon.getLocalizedString(32004):
-                # browse for single image
-                custom_image = SkinSettings().save_skin_image(skinstring, False, self.addon.getLocalizedString(32004))
-                if custom_image:
-                    result.setPath(custom_image)
-                else:
-                    return self.selectimage()
-            elif label == self.addon.getLocalizedString(32005):
-                # browse for image path
-                custom_image = SkinSettings().save_skin_image(skinstring, True, self.addon.getLocalizedString(32005))
-                if custom_image:
-                    result.setPath(custom_image)
-                else:
-                    return self.selectimage()
-            # write the values to skin strings
-            if result.getfilename().startswith("$INFO"):
-                #we got an dynamic image from window property
-                SkinSettings().set_skin_variable(skinstring, result.getfilename())
-                result.setPath("$VAR[%s]" %skinstring)
-            xbmc.executebuiltin("Skin.SetString(%s.label,%s)" % (skinstring, result.getLabel()))
-            xbmc.executebuiltin("Skin.SetString(%s.name,%s)" % (skinstring, result.getLabel()))
-            xbmc.executebuiltin("Skin.SetString(%s,%s)" % (skinstring, result.getfilename()))
-            xbmc.executebuiltin("Skin.SetString(%s.path,%s)" % (skinstring, result.getfilename()))
-            del result
+        windowheader = self.params.get("header", "")
+        skinhelper_backgrounds = self.params.get("skinhelperbackgrounds", "false") == "true"
+        label, value = skinsettings.select_image(
+            skinstring, allow_multi=allow_multi, windowheader=windowheader, resource_addon=resource_addon,
+            skinhelper_backgrounds=skinhelper_backgrounds, current_value=current_value)
+        if value:
+            if skinshortcutsprop:
+                # write value to skinshortcuts prop
+                from skinshortcuts import set_skinshortcuts_property
+                set_skinshortcuts_property(skinshortcutsprop, value, label)
+            else:
+                # write the values to skin strings
+                if value.startswith("$INFO"):
+                    # we got an dynamic image from window property
+                    skinsettings.set_skin_variable(skinstring, value)
+                    value = "$VAR[%s]" % skinstring
+                xbmc.executebuiltin("Skin.SetString(%s.label,%s)" % (skinstring, label))
+                xbmc.executebuiltin("Skin.SetString(%s.name,%s)" % (skinstring, label))
+                xbmc.executebuiltin("Skin.SetString(%s,%s)" % (skinstring, value))
+                xbmc.executebuiltin("Skin.SetString(%s.path,%s)" % (skinstring, value))
+        del skinsettings
 
     def dialogok(self):
         '''helper to show an OK dialog with a message'''

@@ -305,6 +305,7 @@ def get_widgets(item_filter="", sublevel=""):
 
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
+
 def get_skinhelper_backgrounds():
     '''retrieve listing of all backgrounds as provided by skinhelper backgrounds addon'''
     result = []
@@ -316,7 +317,7 @@ def get_skinhelper_backgrounds():
             label = value
             image = "$INFO[Window(Home).Property(%s)]" % key
             if win.getProperty(key):
-                result.append( (label, image) )
+                result.append((label, image))
             # also check if wall images exists for this item
             wall_props = [".Wall", ".Poster.Wall", ".Wall.BW", ".Poster.Wall.BW"]
             for wall_prop in wall_props:
@@ -329,12 +330,13 @@ def get_skinhelper_backgrounds():
                     if ".BW" in wall_prop:
                         newlabel = "%s (%s)" % (newlabel, xbmc.getInfoLabel(
                             "$ADDON[script.skin.helper.backgrounds 32031]"))
-                    result.append( (label, image) )
+                    result.append((newlabel, image))
                 else:
                     break
         del win
     return result
-    
+
+
 def get_backgrounds():
     '''called from skinshortcuts to retrieve listing of all backgrounds'''
     xbmcplugin.setContent(int(sys.argv[1]), 'files')
@@ -488,3 +490,32 @@ def extendedinfo_youtube_widgets():
         label = entry.split("id=")[1]
         widgets.append([label, content, "episodes"])
     return widgets
+    
+def set_skinshortcuts_property(property_name="", value="", label=""):
+    '''set custom property in skinshortcuts menu editor'''
+    if value:
+        wait_for_skinshortcuts_window()
+        xbmc.sleep(250)
+        xbmc.executebuiltin("SetProperty(customProperty,%s)" % property_name.encode("utf-8"))
+        xbmc.executebuiltin("SetProperty(customValue,%s)" % value.encode("utf-8"))
+        xbmc.executebuiltin("SendClick(404)")
+        xbmc.sleep(250)
+        xbmc.executebuiltin("SetProperty(customProperty,%s.name)" % property_name.encode("utf-8"))
+        xbmc.executebuiltin("SetProperty(customValue,%s)" % label.encode("utf-8"))
+        xbmc.executebuiltin("SendClick(404)")
+        xbmc.sleep(250)
+        xbmc.executebuiltin("SetProperty(customProperty,%sName)" % property_name.encode("utf-8"))
+        xbmc.executebuiltin("SetProperty(customValue,%s)" % label.encode("utf-8"))
+        xbmc.executebuiltin("SendClick(404)")
+        
+def wait_for_skinshortcuts_window():
+    '''wait untill skinshortcuts is active window (because of any animations that may have been applied)'''
+    for i in range(40):
+        if not (xbmc.getCondVisibility(
+                "Window.IsActive(DialogSelect.xml) | "
+                "Window.IsActive(script-skin_helper_service-ColorPicker.xml) | "
+                "Window.IsActive(DialogKeyboard.xml)")):
+            break
+        else:
+            xbmc.sleep(100)
+
