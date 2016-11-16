@@ -29,8 +29,8 @@ def log_msg(msg, loglevel=xbmc.LOGDEBUG):
 
 def log_exception(modulename, exceptiondetails):
     '''helper to properly log an exception'''
-    log_msg(format_exc(sys.exc_info()), xbmc.LOGWARNING)
-    log_msg("ERROR in %s ! --> %s" % (modulename, exceptiondetails), xbmc.LOGERROR)
+    log_msg(format_exc(sys.exc_info()), xbmc.LOGERROR)
+    log_msg("Exception in %s ! --> %s" % (modulename, exceptiondetails), xbmc.LOGERROR)
 
 
 def kodi_json(jsonmethod, params=None, returntype=None):
@@ -73,7 +73,7 @@ def try_encode(text, encoding="utf-8"):
 
 
 def try_decode(text, encoding="utf-8"):
-    '''helpet to decode a string into unicode'''
+    '''helper to decode a string into unicode'''
     try:
         return text.decode(encoding, "ignore")
     except Exception:
@@ -81,7 +81,7 @@ def try_decode(text, encoding="utf-8"):
 
 
 def urlencode(text):
-    '''urlencoe a string'''
+    '''urlencode a string'''
     blah = urllib.urlencode({'blahblahblah': try_encode(text)})
     blah = blah[13:]
     return blah

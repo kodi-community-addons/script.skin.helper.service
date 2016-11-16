@@ -16,6 +16,6 @@ if __name__ == '__main__':
     channel = xbmc.getInfoLabel("ListItem.ChannelName").decode('utf-8')
     genre = xbmc.getInfoLabel("ListItem.Genre").decode('utf-8')
     ArtUtils().pvr_artwork_options(title, channel, genre)
-    xbmc.executebuiltin("w.Close(busydialog)")
+    xbmc.executebuiltin("Window.Close(busydialog)")
     win.clearProperty("SkinHelper.Artwork.ManualLookup")
     del dialogin

@@ -4,6 +4,7 @@ import xbmc
 import xbmcvfs
 import xbmcgui
 import xbmcaddon
+from skinsettings import SkinSettings
 from simplecache import SimpleCache, use_cache
 from utils import log_msg, KODI_VERSION, json, kodi_json
 from utils import log_exception, get_current_content_type, ADDON_ID, recursive_delete_dir
@@ -337,7 +338,6 @@ class MainModule:
         skinstring = self.params.get("skinstring", "")
         allow_multi = self.params.get("multi", "") == "true"
         header = self.params.get("header", "")
-        from skinsettings import SkinSettings
         SkinSettings().save_skin_image(skinstring, allow_multi, header)
 
     def setskinsetting(self):
@@ -345,7 +345,6 @@ class MainModule:
         setting = self.params.get("setting", "")
         org_id = self.params.get("id", "")
         header = self.params.get("header", "")
-        from skinsettings import SkinSettings
         SkinSettings().set_skin_setting(setting=setting, window_header=header, original_id=org_id)
 
     def setskinconstant(self):
@@ -353,14 +352,12 @@ class MainModule:
         setting = self.params.get("setting", "").split("|")
         value = self.params.get("value", "").split("|")
         header = self.params.get("header", "")
-        from skinsettings import SkinSettings
         SkinSettings().set_skin_constant(setting, header, value)
 
     def setskinconstants(self):
         '''allows the skinner to set multiple skin constants'''
         settings = self.params.get("settings", "")
         values = self.params.get("values", "")
-        from skinsettings import SkinSettings
         SkinSettings().set_skin_constants(settings, values)
 
     def setskinshortcutsproperty(self):
@@ -368,7 +365,6 @@ class MainModule:
         setting = self.params.get("setting", "")
         value = self.params.get("value", "")
         header = self.params.get("header", "")
-        from skinsettings import SkinSettings
         SkinSettings().set_skinshortcuts_property(setting, header, value)
 
     def togglekodisetting(self, settingname):
@@ -499,91 +495,117 @@ class MainModule:
                                         line1=xbmc.getLocalizedString(32015))
 
     def overlaytexture(self):
-        '''helper to let the user choose a background overlay from a skin defined folder'''
-        overlays = []
-        overlays.append(self.addon.getLocalizedString(32000))  # Custom image
-        dirs, files = xbmcvfs.listdir("special://skin/extras/bgoverlays/")
-        for file in files:
-            if file.endswith(".png"):
-                label = file.replace(".png", "")
-                overlays.append(label)
-        overlays.append(self.addon.getLocalizedString(32001))  # None
-        dialog = xbmcgui.Dialog()
-        ret = dialog.select(self.addon.getLocalizedString(32002), overlays)
-        del dialog
-        if ret == 0:
-            dialog = xbmcgui.Dialog()
-            custom_texture = dialog.browse(2, self.addon.getLocalizedString(32003), 'files')
-            if custom_texture:
-                xbmc.executebuiltin("Skin.SetString(BackgroundOverlayTexture,Custom)")
-                xbmc.executebuiltin("Skin.SetString(CustomBackgroundOverlayTexture,%s)" % custom_texture)
-        elif ret > 0:
-            xbmc.executebuiltin("Skin.SetString(BackgroundOverlayTexture,%s)" % overlays[ret])
-            xbmc.executebuiltin("Skin.Reset(CustomBackgroundOverlayTexture)")
+        '''legacy: helper to let the user choose a background overlay from a skin defined folder'''
+        skinstring = self.params.get("skinstring", "BackgroundOverlayTexture")
+        self.params["skinstring"] = skinstring
+        self.params["resourceaddon"] = "resource.images.backgroundoverlays"
+        self.params["customfolder"] = "special://skin/extras/bgoverlays/"
+        self.params["allowmulti"] = "false"
+        self.params["header"] = self.addon.getLocalizedString(32002)
+        self.selectimage()
 
     def busytexture(self):
-        '''helper which lets the user select a busy spinner from predefined spinners in the skin'''
-        spinners = []
+        '''legacy: helper which lets the user select a busy spinner from predefined spinners in the skin'''
+        skinstring = self.params.get("skinstring", "SkinHelper.SpinnerTexture")
+        self.params["skinstring"] = skinstring
+        self.params["resourceaddon"] = "resource.images.busyspinners"
+        self.params["customfolder"] = "special://skin/extras/busy_spinners/"
+        self.params["allowmulti"] = "true"
+        self.params["header"] = self.addon.getLocalizedString(32006)
+        self.selectimage()
 
-        current_spinner = xbmc.getInfoLabel("Skin.String(SkinHelper.SpinnerTexture)")
+    def selectimage(self):
+        '''helper which lets the user select an image or imagepath from resourceaddons or custom path'''
+        xbmc.executebuiltin("ActivateWindow(busydialog)")
+        from resourceaddons import walk_directory, get_resourceimages
+        images = []
+        skinstring = self.params.get("skinstring", "")
+        custom_folder = self.params.get("customfolder", "")
+        resource_addon = self.params.get("resourceaddon", "")
+        allow_multi = self.params.get("allowmulti", "false") == "true"
+        windowheader = self.params.get("header", self.addon.getLocalizedString(32020))
+        current_value = xbmc.getInfoLabel("Skin.String(%s)" % skinstring).decode("utf-8")
+
         # none option
-        listitem = xbmcgui.ListItem(label=self.addon.getLocalizedString(32001), iconImage="DefaultAddonNone.png")
-        listitem.setProperty("icon", "DefaultAddonNone.png")
-        listitem.setProperty("id", "none")
-        spinners.append(listitem)
+        images.append((self.addon.getLocalizedString(32001), "", "", "DefaultAddonNone.png"))
         # custom single
-        listitem = xbmcgui.ListItem(label=self.addon.getLocalizedString(32004), iconImage="DefaultAddonPicture.png")
-        listitem.setProperty("icon", "DefaultAddonPicture.png")
-        listitem.setProperty("id", "customsingle")
-        spinners.append(listitem)
+        images.append((self.addon.getLocalizedString(32004), "", "", "DefaultAddonPicture.png"))
         # custom multi
-        listitem = xbmcgui.ListItem(label=self.addon.getLocalizedString(32005), iconImage="DefaultFolder.png")
-        listitem.setProperty("icon", "DefaultFolder.png")
-        listitem.setProperty("id", "custommulti")
-        spinners.append(listitem)
-        # enumerate skin folder with busy spinners
-        spinners_path = "special://skin/extras/busy_spinners/"
-        if xbmcvfs.exists(spinners_path):
-            dirs, files = xbmcvfs.listdir(spinners_path)
-            for item in dirs:
-                icon = "DefaultFolder.png"
-                listitem = xbmcgui.ListItem(label=item, iconImage=icon)
-                listitem.setProperty("icon", icon)
-                listitem.setPath(spinners_path + item)
-                spinners.append(listitem)
-            for file in files:
-                if file.endswith(".gif"):
-                    label = file.replace(".gif", "")
-                    icon = spinners_path + file
-                    listitem = xbmcgui.ListItem(label=label, iconImage=icon)
-                    listitem.setProperty("icon", icon)
-                    listitem.setPath(icon)
-                    spinners.append(listitem)
+        if allow_multi:
+            images.append((self.addon.getLocalizedString(32005), "", "", "DefaultFolder.png"))
+
+        # enumerate custom folder with images
+        if custom_folder and allow_multi:
+            images += walk_directory(custom_folder)
+        elif custom_folder and not allow_multi:
+            images += walk_directory(custom_folder, True)
+            
+        #backgrounds supplied in our special skinsettings.xml file
+        skinimages = SkinSettings().get_skin_settings()
+        if skinimages.get(skinstring):
+            for item in skinimages[skinstring]:
+                if xbmc.getCondVisibility(item["condition"]):
+                    images.append( (item["label"], item["value"], item["description"], item["icon"]) )
+            
+        #backgrounds provided by skinhelper
+        if "skinbackgrounds" in resource_addon:
+            from skinshortcuts import get_skinhelper_backgrounds
+            for label, image in get_skinhelper_backgrounds():
+                log_msg("%s - %s" %(label, image), xbmc.LOGWARNING)
+                images.append( (label, image, "Skin Helper Backgrounds", xbmc.getInfoLabel(image)) )
+
+        # resource addon images
+        if resource_addon and allow_multi:
+            images += get_resourceimages(resource_addon)
+        elif resource_addon and not allow_multi:
+            images += get_resourceimages(resource_addon, True)
+
+        # create listitems
+        listitems = []
+        autofocus_count = 0
+        for label, imagepath, label2, icon in images:
+            if imagepath == current_value:
+                autofocus_id = autofocus_count
+            listitem = xbmcgui.ListItem(label=label, label2=label2, iconImage=icon)
+            listitem.setPath(imagepath)
+            autofocus_count += 1
+            listitems.append(listitem)
 
         # show select dialog with choices
-        dialog = DialogSelect("DialogSelect.xml", "", listing=spinners,
-                              windowtitle=self.addon.getLocalizedString(32006), richlayout=True)
-        for count, li in enumerate(spinners):
-            if li.getLabel() == current_spinner:
-                dialog.autofocus_id = count
+        dialog = DialogSelect("DialogSelect.xml", "", listing=listitems, windowtitle=windowheader, richlayout=True,
+                              getmorebutton=resource_addon, autofocusid=autofocus_count)
+        xbmc.executebuiltin("Dialog.Close(busydialog)")
         dialog.doModal()
         result = dialog.result
         del dialog
-        if result:
-            id = result.getLabel()
-            if result.getProperty("id") == "customsingle":
-                dialog = xbmcgui.Dialog()
-                custom_texture = dialog.browse(2, self.addon.getLocalizedString(32004), 'files', mask='.gif')
-                if custom_texture:
-                    result.setPath(custom_texture)
-            elif result.getProperty("id") == "custommulti":
-                dialog = xbmcgui.Dialog()
-                custom_texture = dialog.browse(0, self.addon.getLocalizedString(32005), 'files')
-                if custom_texture:
-                    result.setPath(custom_texture)
+        if isinstance(result, bool):
+            # refresh listing requested by getmore button
+            return self.selectimage()
+        elif result:
+            label = result.getLabel()
+            if label == self.addon.getLocalizedString(32004):
+                # browse for single image
+                custom_image = SkinSettings().save_skin_image(skinstring, False, self.addon.getLocalizedString(32004))
+                if custom_image:
+                    result.setPath(custom_image)
+                else:
+                    return self.selectimage()
+            elif label == self.addon.getLocalizedString(32005):
+                # browse for image path
+                custom_image = SkinSettings().save_skin_image(skinstring, True, self.addon.getLocalizedString(32005))
+                if custom_image:
+                    result.setPath(custom_image)
+                else:
+                    return self.selectimage()
             # write the values to skin strings
-            xbmc.executebuiltin("Skin.SetString(SkinHelper.SpinnerTexture,%s)" % result.getLabel())
-            xbmc.executebuiltin("Skin.SetString(SkinHelper.SpinnerTexturePath,%s)" % result.getfilename())
+            if result.getfilename().startswith("$INFO"):
+                #we got an dynamic image from window property
+                SkinSettings().set_skin_variable(skinstring, result.getfilename())
+                result.setPath("$VAR[%s]" %skinstring)
+            xbmc.executebuiltin("Skin.SetString(%s.label,%s)" % (skinstring, result.getLabel()))
+            xbmc.executebuiltin("Skin.SetString(%s.name,%s)" % (skinstring, result.getLabel()))
+            xbmc.executebuiltin("Skin.SetString(%s,%s)" % (skinstring, result.getfilename()))
+            xbmc.executebuiltin("Skin.SetString(%s.path,%s)" % (skinstring, result.getfilename()))
             del result
 
     def dialogok(self):
@@ -688,219 +710,14 @@ class MainModule:
 
     def setresourceaddon(self):
         '''helper to let the user choose a resource addon and set that as skin string'''
-        xbmc.executebuiltin("ActivateWindow(busydialog)")
+        from resourceaddons import setresourceaddon
         addontype = self.params.get("addontype")
         skinstring = self.params.get("skinstring")
-        listing = []
+        setresourceaddon(addontype, skinstring)
 
-        # none option
-        listitem = xbmcgui.ListItem(label=self.addon.getLocalizedString(32001), iconImage="DefaultAddonNone.png")
-        listitem.setProperty("addonid", "none")
-        listing.append(listitem)
-
-        # custom path
-        listitem = xbmcgui.ListItem(label=self.addon.getLocalizedString(32009), iconImage="DefaultFolder.png")
-        listitem.setProperty("addonid", "custom")
-        listing.append(listitem)
-
-        # installed addons
-        installed_addons = []
-        for item in self.get_resourceaddons(addontype):
-            installed_addons.append(item["addonid"])
-            label2 = "%s: %s" % (xbmc.getLocalizedString(21863), item["author"])
-            listitem = xbmcgui.ListItem(label=item["name"], label2=label2, iconImage=item["thumbnail"])
-            listitem.setPath("resource://%s/" % item["addonid"])
-            listitem.setProperty("addonid", item["addonid"])
-            listing.append(listitem)
-
-        # repo adons
-        for item in self.get_repo_resourceaddons(addontype):
-            if not item["addonid"] in installed_addons:
-                label2 = "%s: %s" % (xbmc.getLocalizedString(21863), item["author"])
-                label2 = "%s - %s" % (label2, self.addon.getLocalizedString(32011))
-                listitem = xbmcgui.ListItem(label=item["name"],
-                                            label2=label2, iconImage=item["thumbnail"])
-                listitem.setPath("resource://%s/" % item["addonid"])
-                listitem.setProperty("addonid", item["addonid"])
-                listing.append(listitem)
-
-        # special skinhelper paths
-        if addontype == "resource.images.moviegenrefanart":
-            label = self.addon.getLocalizedString(32019)
-            listitem = xbmcgui.ListItem(
-                label=label, label2="Skin Helper Service",
-                iconImage="special://home/addons/script.skin.helper.service/icon.png")
-            listitem.setPath("plugin://script.skin.helper.service/?action=moviegenrebackground&genre=")
-            listitem.setProperty("addonid", "skinhelper.forgenre")
-            installed_addons.append("skinhelper.forgenre")
-            listing.append(listitem)
-
-        # show select dialog with choices
-        dialog = DialogSelect("DialogSelect.xml", "", listing=listing,
-                              windowtitle=self.addon.getLocalizedString(32010), richlayout=True)
-        dialog.doModal()
-        result = dialog.result
-        del dialog
-
-        # process selection...
-        if result:
-            addon_id = result.getProperty("addonid")
-            addon_name = result.getLabel()
-            if addon_id == "none":
-                # None
-                xbmc.executebuiltin('Skin.Reset(%s)' % skinstring)
-                xbmc.executebuiltin('Skin.Reset(%s.ext)' % skinstring)
-                xbmc.executebuiltin('Skin.SetString(%s.name,%s)' % (skinstring, addon_name))
-                xbmc.executebuiltin('Skin.Reset(%s.path)' % skinstring)
-                xbmc.executebuiltin('Skin.Reset(%s.multi)' % skinstring)
-            else:
-                if addon_id == "custom":
-                    # custom path
-                    dialog = xbmcgui.Dialog()
-                    custom_path = dialog.browse(0, self.addon.getLocalizedString(32005), 'files')
-                    del dialog
-                    result.setPath(custom_path)
-                elif addon_id not in installed_addons:
-                    # trigger install...
-                    if KODI_VERSION >= 17:
-                        xbmc.executebuiltin("InstallAddon(%s)" % addon_id)
-                    else:
-                        xbmc.executebuiltin("RunPlugin(plugin://%s)" % addon_id)
-                    count = 0
-                    # wait (max 2 minutes) untill install is completed
-                    install_succes = False
-                    while not install_succes and count < 240:
-                        install_succes = xbmc.getCondVisibility("System.HasAddon(%s)" % addon_id)
-                        xbmc.sleep(500)
-                    if not install_succes:
-                        return
-
-                addonpath = result.getfilename()
-                if addonpath:
-                    is_multi, extension = self.get_multi_extension(addonpath)
-                    xbmc.executebuiltin('Skin.SetString(%s,%s)' % (skinstring, addonpath))
-                    xbmc.executebuiltin('Skin.SetString(%s.path,%s)' % (skinstring, addonpath))
-                    xbmc.executebuiltin('Skin.SetString(%s.name,%s)' % (skinstring, addon_name))
-                    xbmc.executebuiltin('Skin.SetString(%s.ext,.%s)' % (skinstring, extension))
-                    if is_multi:
-                        xbmc.executebuiltin('Skin.SetBool(%s.multi)' % skinstring)
-                    else:
-                        xbmc.executebuiltin('Skin.Reset(%s.multi)' % skinstring)
-
-    def checkresourceaddons(self, addonslist):
+    def checkresourceaddons(self):
         '''allow the skinner to perform a basic check if some required resource addons are available'''
+        from resourceaddons import setresourceaddon
         addonslist = self.params.get("addonslist", "")
         addonslist = addonslist.split("|")
-        for item in addonslist:
-            setting = item.split(";")[0]
-            addontype = item.split(";")[1]
-            addontypelabel = item.split(";")[2]
-            skinsetting = xbmc.getInfoLabel("Skin.String(%s.path)" % setting).decode("utf-8")
-            if not skinsetting or (skinsetting and
-                                   xbmc.getCondVisibility("!System.HasAddon(%s)" %
-                                                          skinsetting.replace("resource://", "").replace("/", ""))):
-                # skin setting is empty or filled with non existing addon...
-                if not checkresourceaddon(setting, addontype):
-                    ret = xbmcgui.Dialog().yesno(
-                        heading=self.addon.getLocalizedString(32007) % addontypelabel,
-                        line1=self.addon.getLocalizedString(32008) % addontypelabel)
-                    xbmc.executebuiltin("Skin.Reset(%s.path)" % setting)
-                    if ret:
-                        xbmc.executebuiltin(
-                            "ActivateWindow(AddonBrowser, addons://repository.xbmc.org/kodi.resource.images/)")
-                        # wait untill the addon is installed...
-                        count = 0
-                        while not checkresourceaddon(setting, addontype) and count < 120:
-                            xbmc.sleep(1000)
-                            if self.win.getProperty("SkinHelperShutdownRequested"):
-                                return
-
-    def checkresourceaddon(self, skinstring="", addontype=""):
-        ''' check for existing resource addons of specified type and set first one found'''
-        if not addontype:
-            addontype = self.params.get("addontype")
-        if not skinstring:
-            skinstring = self.params.get("skinstring")
-        if addontype and skinstring:
-            for item in self.get_resourceaddons(addontype):
-                xbmc.executebuiltin("Skin.SetString(%s.path,resource://%s/)" % (skinstring, item['addonid']))
-                xbmc.executebuiltin("Skin.SetString(%s.name,%s)" % (skinstring, item['name']))
-                if item["isMulti"]:
-                    xbmc.executebuiltin("Skin.SetBool(%s.multi)" % (skinstring))
-                return True
-        return False
-
-    def get_resourceaddons(self, filter=""):
-        '''helper to retrieve all installed resource addons'''
-        result = []
-        params = {"type": "kodi.resource.images",
-                  "properties": ["name", "thumbnail", "path", "author"]}
-        for item in kodi_json("Addons.GetAddons", params, "addons"):
-            if not filter or item['addonid'].lower().startswith(filter.lower()):
-                result.append(item)
-
-        return result
-
-    @staticmethod
-    def get_multi_extension(filepath):
-        '''check if resource addon or custom path has subfolders (multiimage)'''
-        is_multi = False
-        extension = ""
-        dirs, files = xbmcvfs.listdir(filepath)
-        for dir in dirs:
-            is_multi = True
-        if not is_multi:
-            for item in files:
-                extension = item.split(".")[-1]
-                break
-        return (is_multi, extension)
-
-    @use_cache(2)
-    def get_repo_resourceaddons(self, filter=""):
-        '''helper to retrieve all available resource addons on the kodi repo'''
-        result = []
-        for item in xbmcvfs.listdir("addons://all/kodi.resource.images/")[1]:
-            if not filter or item.lower().startswith(filter.lower()):
-                addoninfo = self.get_repo_addoninfo(item)
-                if not addoninfo.get("name"):
-                    addoninfo = {"addonid": item, "name": item}
-                    addon["thumbnail"] = "http://mirrors.kodi.tv/addons/krypton/%s/icon.png" % item
-                result.append(addoninfo)
-        return result
-
-    def get_repo_addoninfo(self, addonid):
-        '''tries to grab info about the addon from kodi repo addons listing'''
-        cachestr = "SkinHelper.repoaddoninfo.%s" % addonid
-        cache = self.cache.get(cachestr)
-        if cache:
-            return cache
-        info = {"addonid": addonid, "name": "", "thumbnail": "", "author": ""}
-        mirrorurl = "http://addons.kodi.tv/show/%s/" % addonid
-        try:
-            req = urllib2.Request(mirrorurl)
-            req.add_header('User-Agent',
-                           'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3')
-            response = urllib2.urlopen(req)
-            body = response.read()
-            response.close()
-            body = body.replace('\r', '').replace('\n', '').replace('\t', '')
-            for addondetail in re.compile('<div id="addonDetail">(.*?)</div>').findall(body):
-                for h2_item in re.compile('<h2>(.*?)</h2>').findall(addondetail):
-                    info["name"] = h2_item
-                    break
-                for thumbnail in re.compile('src="(.*?)"').findall(addondetail):
-                    icon = "http://addons.kodi.tv/%s" % thumbnail
-                    info["thumbnail"] = icon
-                    break
-                authors = []
-                for addonmetadata in re.compile('<div id="addonMetaData">(.*?)</div>').findall(body):
-                    for author in re.compile('<a href="(.*?)">(.*?)</a>').findall(addonmetadata):
-                        authors.append(author[1])
-                info["author"] = ",".join(authors)
-                break
-
-        except Exception as exc:
-            log_exception(__name__, exc)
-
-        self.cache.set(cachestr, info)
-        return info
+        setresourceaddon(addontype, addonslist)

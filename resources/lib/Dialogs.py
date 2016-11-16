@@ -14,8 +14,11 @@ class DialogSelect(xbmcgui.WindowXMLDialog):
         self.windowtitle = kwargs.get("windowtitle")
         self.multiselect = kwargs.get("multiselect")
         self.richlayout = kwargs.get("richlayout", False)
+        self.getmorebutton = kwargs.get("getmorebutton", "")
+        self.autofocus_id = kwargs.get("autofocusid", 0)
+        self.autofocus_label = kwargs.get("autofocuslabel", "")
         self.totalitems = 0
-        self.autofocus_id = 0
+        self.result = None
 
     def close_dialog(self, cancelled=False):
         '''close dialog and return value'''
@@ -43,14 +46,25 @@ class DialogSelect(xbmcgui.WindowXMLDialog):
         self.getControl(1).setLabel(self.windowtitle)
 
         self.list_control.addItems(self.listing)
-
         self.setFocus(self.list_control)
-        try:
-            self.list_control.selectItem(self.autofocus_id)
-        except Exception:
-            self.list_control.selectItem(0)
         self.totalitems = len(self.listing)
+        self.autofocus_listitem()
 
+    def autofocus_listitem(self):
+        '''select initial item in the list'''
+        if self.autofocus_id:
+            try:
+                self.list_control.selectItem(self.autofocus_id)
+            except Exception:
+                self.list_control.selectItem(0)
+        if self.autofocus_label:
+            try:
+                for count, item in enumerate(self.listing):
+                    if item.getLabel().decode("utf-8") == self.autofocus_label:
+                        self.list_control.selectItem(count)
+            except Exception:
+                self.list_control.selectItem(0)
+    
     def onAction(self, action):
         '''Respond to Kodi actions e.g. exit'''
         if action.getId() in (9, 10, 92, 216, 247, 257, 275, 61467, 61448, ):
@@ -74,17 +88,12 @@ class DialogSelect(xbmcgui.WindowXMLDialog):
         '''Fires if user clicks the dialog'''
         # OK button
         if controlID == 5:
-            self.close_dialog()
-            # items_list = []
-            # itemcount = self.totalitems - 1
-            # while (itemcount != -1):
-            # listitem = self.list_control.getListItem(itemcount)
-            # if listitem.isSelected():
-            # items_list.append(itemcount)
-            # itemcount -= 1
-            # self.result = items_list
-            # self.close()
-
+            if not self.getmorebutton:
+                self.close_dialog()
+            else:
+                from resourceaddons import downloadresourceaddons
+                self.result = downloadresourceaddons(self.getmorebutton)
+                self.close()
         # Other buttons (including cancel)
         else:
             self.close_dialog(True)
@@ -113,11 +122,15 @@ class DialogSelect(xbmcgui.WindowXMLDialog):
             self.list_control = self.getControl(6)
         self.list_control.setEnabled(True)
         self.list_control.setVisible(True)
-        if self.multiselect:
-            self.set_cancel_button()
-        else:
-            # disable OK button
+        
+        self.set_cancel_button()
+        if not self.multiselect:
             self.getControl(5).setVisible(False)
+            
+        #show get more button
+        if self.getmorebutton:
+            self.getControl(5).setVisible(True)
+            self.getControl(5).setLabel( xbmc.getLocalizedString(21452) )
 
     def set_cancel_button(self):
         '''set cancel button if exists'''

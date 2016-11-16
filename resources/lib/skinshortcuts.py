@@ -19,7 +19,7 @@ import sys
 EXTINFO_CREDS = False
 if xbmc.getCondVisibility("System.Hasaddon(script.extendedinfo)"):
     exinfoaddon = xbmcaddon.Addon(id="script.extendedinfo")
-    if exinfoaddon.getSetting("tmdb_username") != "" and exinfoaddon.getSetting("tmdb_password") != "":
+    if exinfoaddon.getSetting("tmdb_username") and exinfoaddon.getSetting("tmdb_password"):
         EXTINFO_CREDS = True
     del exinfoaddon
 
@@ -184,13 +184,13 @@ def smartshortcuts_widgets():
 def item_filter_mapping():
     '''map label to each filtertype'''
     mappings = OrderedDict()
-    mappings["scriptwidgets"] =  xbmc.getInfoLabel("System.AddonTitle(script.skin.helper.widgets)")
-    mappings["librarydataprovider"] =  xbmc.getInfoLabel("System.AddonTitle(service.library.data.provider)")
-    mappings["extendedinfo"] =  xbmc.getInfoLabel("System.AddonTitle(script.extendedinfo)")
-    mappings["smartshortcuts"] =  "Smart Shortcuts"
-    mappings["smartishwidgets"] =  xbmc.getInfoLabel("System.AddonTitle(service.smartish.widgets)")
+    mappings["scriptwidgets"] = xbmc.getInfoLabel("System.AddonTitle(script.skin.helper.widgets)")
+    mappings["librarydataprovider"] = xbmc.getInfoLabel("System.AddonTitle(service.library.data.provider)")
+    mappings["extendedinfo"] = xbmc.getInfoLabel("System.AddonTitle(script.extendedinfo)")
+    mappings["smartshortcuts"] = "Smart Shortcuts"
+    mappings["smartishwidgets"] = xbmc.getInfoLabel("System.AddonTitle(service.smartish.widgets)")
     mappings["skinplaylists"] = "Playlists"
-    mappings["favourites"] =  "Favourites"
+    mappings["favourites"] = "Favourites"
     return mappings
 
 
@@ -305,10 +305,9 @@ def get_widgets(item_filter="", sublevel=""):
 
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
-
-def get_backgrounds():
-    '''called from skinshortcuts to retrieve listing of all backgrounds'''
-    xbmcplugin.setContent(int(sys.argv[1]), 'files')
+def get_skinhelper_backgrounds():
+    '''retrieve listing of all backgrounds as provided by skinhelper backgrounds addon'''
+    result = []
     backgrounds = xbmc.getInfoLabel("Window(Home).Property(SkinHelper.AllBackgrounds)")
     if backgrounds:
         backgrounds = eval(backgrounds)
@@ -317,10 +316,7 @@ def get_backgrounds():
             label = value
             image = "$INFO[Window(Home).Property(%s)]" % key
             if win.getProperty(key):
-                li = xbmcgui.ListItem(label, path=image)
-                li.setArt({"fanart": image})
-                li.setThumbnailImage(image)
-                xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=image, listitem=li, isFolder=False)
+                result.append( (label, image) )
             # also check if wall images exists for this item
             wall_props = [".Wall", ".Poster.Wall", ".Wall.BW", ".Poster.Wall.BW"]
             for wall_prop in wall_props:
@@ -331,14 +327,22 @@ def get_backgrounds():
                     else:
                         newlabel = "%s: %s" % (xbmc.getInfoLabel("$ADDON[script.skin.helper.backgrounds 32029]"), label)
                     if ".BW" in wall_prop:
-                        newlabel = "%s (%s)" % (newlabel, xbmc.getInfoLabel("$ADDON[script.skin.helper.backgrounds 32031]"))
-                    li = xbmcgui.ListItem(newlabel, path=image)
-                    li.setArt({"fanart": image})
-                    li.setThumbnailImage(image)
-                    xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=image, listitem=li, isFolder=False)
+                        newlabel = "%s (%s)" % (newlabel, xbmc.getInfoLabel(
+                            "$ADDON[script.skin.helper.backgrounds 32031]"))
+                    result.append( (label, image) )
                 else:
                     break
-        del dialogin
+        del win
+    return result
+    
+def get_backgrounds():
+    '''called from skinshortcuts to retrieve listing of all backgrounds'''
+    xbmcplugin.setContent(int(sys.argv[1]), 'files')
+    for label, image in get_skinhelper_backgrounds():
+        li = xbmcgui.ListItem(label, path=image)
+        li.setArt({"fanart": image})
+        li.setThumbnailImage(image)
+        xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=image, listitem=li, isFolder=False)
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 

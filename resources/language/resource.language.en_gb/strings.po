@@ -33,11 +33,11 @@ msgid "Browse custom image for background overlay"
 msgstr ""
 
 msgctxt "#32004"
-msgid "Custom single image (gif)"
+msgid "Custom single image"
 msgstr ""
 
 msgctxt "#32005"
-msgid "Custom multi image (path)"
+msgid "Custom multi image (folder)"
 msgstr ""
 
 msgctxt "#32006"
@@ -94,4 +94,16 @@ msgstr ""
 
 msgctxt "#32019"
 msgid "Random fanart from movie with genre"
+msgstr ""
+
+msgctxt "#32020"
+msgid "Select image"
+msgstr ""
+
+msgctxt "#32021"
+msgid "Available image resource addons"
+msgstr ""
+
+msgctxt "#32022"
+msgid "There are no (more) resource addons available for this type"
 msgstr ""

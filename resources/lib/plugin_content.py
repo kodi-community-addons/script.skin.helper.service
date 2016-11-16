@@ -30,8 +30,8 @@ class PluginContent:
         except Exception as exc:
             log_exception(__name__, exc)
             xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
-            
-        #cleanup when done processing
+
+        # cleanup when done processing
         self.close()
 
     def close(self):
@@ -127,6 +127,16 @@ class PluginContent:
         import skinshortcuts
         skinshortcuts.get_widgets(self.params.get("path", ""), self.params.get("sublevel", ""))
 
+    def resourceimages(self):
+        '''retrieve listing of specific resource addon images'''
+        from resourceaddons import get_resourceimages
+        addontype = self.params.get("addontype", "")
+        for item in get_resourceimages(addontype, True):
+            li = xbmcgui.ListItem(item[0], label2=item[2], path=item[1], icon=item[3])
+            xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),
+                                        url=item[1], listitem=li, isFolder=False)
+        xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
+
     def extrafanart(self):
         '''helper to display extrafanart in multiimage control in the skin'''
         fanarts = eval(self.params["fanarts"])
@@ -136,15 +146,17 @@ class PluginContent:
             li.setProperty('mimetype', 'image/jpeg')
             xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=item, listitem=li)
         xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
-        
+
     def moviegenrebackground(self):
         '''helper to display images for a specific movie genre in multiimage control in the skin'''
         genre = self.params.get("genre").split(".")[0]
         if genre and genre != "..":
             filters = [{"operator": "is", "field": "genre", "value": genre}]
-            items = self.kodi_db.movies(sort={"method": "random", "order": "descending"}, filters=filters, limits=(0, 50))
+            items = self.kodi_db.movies(
+                sort={"method": "random", "order": "descending"},
+                filters=filters, limits=(0, 50))
             for item in items:
-                fanart = get_clean_image(item["art"].get("fanart",""))
+                fanart = get_clean_image(item["art"].get("fanart", ""))
                 if fanart:
                     fanart = get_clean_image(item["art"]["fanart"])
                     li = xbmcgui.ListItem(fanart, path=fanart)

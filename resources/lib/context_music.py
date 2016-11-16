@@ -16,6 +16,6 @@ if __name__ == '__main__':
         artist = xbmc.getInfoLabel("ListItem.Artist").decode('utf-8')
     disc = xbmc.getInfoLabel("ListItem.DiscNumber").decode('utf-8')
     ArtUtils().music_artwork_options(artist, album, track, disc)
-    xbmc.executebuiltin("w.Close(busydialog)")
+    xbmc.executebuiltin("Window.Close(busydialog)")
     win.clearProperty("SkinHelper.Artwork.ManualLookup")
     del dialogin

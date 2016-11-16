@@ -4,29 +4,33 @@ import xbmc
 import xbmcvfs
 import xbmcgui
 import xbmcaddon
-from utils import log_msg, try_encode, KODI_VERSION, ADDON_ID, try_decode
+from utils import log_msg, try_encode, KODI_VERSION, ADDON_ID, try_decode, log_exception
 from dialogs import DialogSelect
 from xml.dom.minidom import parse
 import xml.etree.ElementTree as xmltree
 import sys
 import os
+import time
 
 
 class SkinSettings:
     '''several helpers that allows skinners to have custom dialogs for their skin settings and constants'''
     params = {}
+    skinsettings = {}
 
     def __init__(self):
         '''Initialization'''
         self.win = xbmcgui.Window(10000)
         self.addon = xbmcaddon.Addon(ADDON_ID)
+        self.skinsettings = self.get_skin_settings()
+        self.skin_constants, self.skin_variables = self.get_skin_constants()
 
     def __del__(self):
         '''Cleanup Kodi Cpython instances'''
         del self.win
         del self.addon
 
-    def write_skin_constants(self, listing):
+    def write_skin_constants(self, constants_listing=None, variables_listing=None):
         '''writes the list of all skin constants'''
         addonpath = xbmc.translatePath(os.path.join("special://skin/", 'addon.xml').encode("utf-8")).decode("utf-8")
         addon = xmltree.parse(addonpath)
@@ -44,13 +48,23 @@ class SkinSettings:
                             "script-skin_helper_service-includes.xml").encode("utf-8")).decode('utf-8')
                     tree = xmltree.ElementTree(xmltree.Element("includes"))
                     root = tree.getroot()
-                    for key, value in listing.iteritems():
-                        if value:
-                            child = xmltree.SubElement(root, "constant")
-                            child.text = value
-                            child.attrib["name"] = key
-                            # also write to skin strings
-                            xbmc.executebuiltin("Skin.SetString(%s,%s)" % (key.encode("utf-8"), value.encode("utf-8")))
+                    if constants_listing:
+                        for key, value in constants_listing.iteritems():
+                            if value:
+                                child = xmltree.SubElement(root, "constant")
+                                child.text = value
+                                child.attrib["name"] = key
+                                # also write to skin strings
+                                xbmc.executebuiltin(
+                                    "Skin.SetString(%s,%s)" %
+                                    (key.encode("utf-8"), value.encode("utf-8")))
+                    if variables_listing:
+                        for key, value in variables_listing.iteritems():
+                            if value:
+                                child = xmltree.SubElement(root, "variable")
+                                child.attrib["name"] = key
+                                child2 = xmltree.SubElement(child, "value")
+                                child2.text = value
                     self.indent_xml(tree.getroot())
                     xmlstring = xmltree.tostring(tree.getroot(), encoding="utf-8")
                     f = xbmcvfs.File(includes_file, 'w')
@@ -59,8 +73,9 @@ class SkinSettings:
         xbmc.executebuiltin("ReloadSkin()")
 
     def get_skin_constants(self):
-        '''gets a list of all skin constants'''
+        '''gets a list of all skin constants as set in the special xml file'''
         all_constants = {}
+        all_variables = {}
         addonpath = xbmc.translatePath(os.path.join("special://skin/", 'addon.xml').encode("utf-8")).decode("utf-8")
         addon = xmltree.parse(addonpath)
         extensionpoints = addon.findall("extension")
@@ -78,30 +93,38 @@ class SkinSettings:
                     if xbmcvfs.exists(includes_file):
                         doc = parse(includes_file)
                         listing = doc.documentElement.getElementsByTagName('constant')
+                        # constants
                         for item in listing:
                             name = try_decode(item.attributes['name'].nodeValue)
                             value = try_decode(item.firstChild.nodeValue)
                             all_constants[name] = value
-        return all_constants
+                        # variables
+                        listing = doc.documentElement.getElementsByTagName('variable')
+                        for item in listing:
+                            name = try_decode(item.attributes['name'].nodeValue)
+                            value_item = item.getElementsByTagName('value')[0]
+                            value = try_decode(value_item.firstChild.nodeValue)
+                            all_variables[name] = value
+        return all_constants, all_variables
 
-    def update_skin_constants(self, new_values):
+    def update_skin_constants(self, new_constants):
         '''update skin constants if needed'''
         update_needed = False
-        all_values = self.get_skin_constants()
-        for key, value in new_values.iteritems():
-            if key in all_values:
-                if all_values.get(key) != value:
+        if new_constants:
+            for key, value in new_constants.iteritems():
+                if key in self.skin_constants:
+                    if self.skin_constants.get(key) != value:
+                        update_needed = True
+                        self.skin_constants[key] = value
+                else:
                     update_needed = True
-                    all_values[key] = value
-            else:
-                update_needed = True
-                all_values[key] = value
+                    self.skin_constants[key] = value
         if update_needed:
-            self.write_skin_constants(all_values)
+            self.write_skin_constants(self.skin_constants, self.skin_variables)
 
     def set_skin_constant(self, setting="", window_header="", value=""):
         '''set a skin constant'''
-        cur_values = self.get_skin_constants()
+        cur_values = self.skin_constants
         if not value:
             value, label = self.set_skin_setting(
                 setting, window_header, "", cur_values.get(
@@ -115,6 +138,57 @@ class SkinSettings:
         for count, setting in enumerate(settings):
             result[setting] = values[count]
         self.update_skin_constants(result)
+
+    def set_skin_variable(self, key, value):
+        '''set skin variable in constants file'''
+        if self.skin_variables.get(key, "") != value:
+            self.skin_variables[key] = value
+            self.write_skin_constants(self.skin_constants, self.skin_variables)
+
+    def get_skin_settings(self):
+        '''get the complete list of all settings defined in the special skinsettings file'''
+        all_skinsettings = {}
+        settings_file = xbmc.translatePath('special://skin/extras/skinsettings.xml').decode("utf-8")
+        if xbmcvfs.exists(settings_file):
+            doc = parse(settings_file)
+            listing = doc.documentElement.getElementsByTagName('setting')
+            for item in listing:
+                skinsetting_id = item.attributes["id"].nodeValue.decode("utf-8")
+                
+                if all_skinsettings.get(skinsetting_id):
+                    skinsetting_values = all_skinsettings[skinsetting_id]
+                else:
+                    skinsetting_values = []
+                skinsettingvalue = {}
+                skinsettingvalue["value"] = item.attributes["value"].nodeValue.decode("utf-8")
+                # optional attributes
+                for key in ["label", "condition", "description", "default", "icon"]:
+                    value = ""
+                    try:
+                        value = item.attributes[key].nodeValue
+                        if value.startswith("$"):
+                            value = xbmc.getInfoLabel(value).decode("utf-8")
+                        else:
+                            value = value.decode("utf-8")
+                    except Exception:
+                        pass
+                    skinsettingvalue[key] = value
+                # onselect actions for this skinsetting value
+                onselectactions = []
+                for action in item.getElementsByTagName('onselect'):
+                    selectaction = {}
+                    selectaction["condition"] = action.attributes['condition'].nodeValue.decode("utf-8")
+                    command = action.firstChild.nodeValue
+                    if "$" in command:
+                        command = xbmc.getInfoLabel(command).decode("utf-8")
+                    else:
+                        command = command.decode("utf-8")
+                    selectaction["command"] = command
+                    onselectactions.append(selectaction)
+                skinsettingvalue["onselectactions"] = onselectactions
+                skinsetting_values.append(skinsettingvalue)
+                all_skinsettings[skinsetting_id] = skinsetting_values
+        return all_skinsettings
 
     def set_skin_setting(self, setting="", window_header="", sublevel="",
                          cur_value="", skip_skin_string=False, original_id=""):
@@ -379,7 +453,6 @@ class SkinSettings:
                 curdir = ""
             value = xbmcgui.Dialog().browse(0, self.addon.getLocalizedString(32005),
                                             'files', '', True, True, curdir).decode("utf-8")
-        xbmc.executebuiltin("Skin.SetString(%s,%s)" % (skinstring.encode("utf-8"), value.encode("utf-8")))
         return value
 
     def set_skinshortcuts_property(self, setting="", window_header="", property_name=""):
@@ -449,8 +522,7 @@ class SkinSettings:
             else:
                 xbmc.sleep(100)
 
-    @staticmethod
-    def indent_xml(elem, level=0):
+    def indent_xml(self, elem, level=0):
         '''helper to properly indent xml strings to file'''
         text_i = "\n" + level * "\t"
         if len(elem):
@@ -459,7 +531,7 @@ class SkinSettings:
             if not elem.tail or not elem.tail.strip():
                 elem.tail = text_i
             for elem in elem:
-                indent_xml(elem, level + 1)
+                self.indent_xml(elem, level + 1)
             if not elem.tail or not elem.tail.strip():
                 elem.tail = text_i
         else:
