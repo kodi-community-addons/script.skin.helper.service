@@ -1,13 +1,19 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+'''
+    script.skin.helper.service
+    dialogselect.py
+    Wrapper around Kodi's dialogselect
+'''
+
 import xbmcgui
 import xbmc
 
 
 class DialogSelect(xbmcgui.WindowXMLDialog):
     '''Wrapper around Kodi dialogselect to use for the custom skin settings etc.'''
-    
+
     def __init__(self, *args, **kwargs):
         xbmcgui.WindowXMLDialog.__init__(self)
         self.listing = kwargs.get("listing")
@@ -64,7 +70,7 @@ class DialogSelect(xbmcgui.WindowXMLDialog):
                         self.list_control.selectItem(count)
             except Exception:
                 self.list_control.selectItem(0)
-    
+
     def onAction(self, action):
         '''Respond to Kodi actions e.g. exit'''
         if action.getId() in (9, 10, 92, 216, 247, 257, 275, 61467, 61448, ):
@@ -122,15 +128,15 @@ class DialogSelect(xbmcgui.WindowXMLDialog):
             self.list_control = self.getControl(6)
         self.list_control.setEnabled(True)
         self.list_control.setVisible(True)
-        
+
         self.set_cancel_button()
         if not self.multiselect:
             self.getControl(5).setVisible(False)
-            
-        #show get more button
+
+        # show get more button
         if self.getmorebutton:
             self.getControl(5).setVisible(True)
-            self.getControl(5).setLabel( xbmc.getLocalizedString(21452) )
+            self.getControl(5).setLabel(xbmc.getLocalizedString(21452))
 
     def set_cancel_button(self):
         '''set cancel button if exists'''

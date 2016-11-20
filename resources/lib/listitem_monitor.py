@@ -9,7 +9,7 @@
 
 import threading
 import thread
-from utils import log_msg, log_exception, get_current_content_type, kodi_json, try_encode
+from utils import log_msg, log_exception, get_current_content_type, kodi_json
 from artutils import process_method_on_list, extend_dict
 import xbmc
 from simplecache import use_cache
@@ -194,7 +194,8 @@ class ListItemMonitor(threading.Thread):
             self.screensaver_disabled = False
             log_msg("fullscreen music playback ended - restoring screensaver: %s" % self.screensaver_setting)
 
-    def check_osd(self):
+    @staticmethod
+    def check_osd():
         '''Allow user to set a default close timeout for the OSD panels'''
         if xbmc.getCondVisibility("[Window.IsActive(videoosd) + Skin.String(SkinHelper.AutoCloseVideoOSD)] | "
                                   "[Window.IsActive(musicosd) + Skin.String(SkinHelper.AutoCloseMusicOSD)]"):

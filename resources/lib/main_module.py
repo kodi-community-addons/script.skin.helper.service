@@ -161,7 +161,8 @@ class MainModule:
                     cur_view_select_id = itemcount
                     if display_none:
                         cur_view_select_id += 1
-                if (("all" in mediatypes or content_type.lower() in mediatypes) and (not "!" + content_type.lower() in mediatypes) and not
+                if (("all" in mediatypes or content_type.lower() in mediatypes) and
+                    (not "!" + content_type.lower() in mediatypes) and not
                         xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.view.Disabled.%s)" % viewid)):
                     image = "special://skin/extras/viewthumbs/%s.jpg" % viewid
                     listitem = xbmcgui.ListItem(label=label, iconImage=image)

@@ -7,7 +7,7 @@
     monitor all kodi events
 '''
 
-from utils import log_msg, log_exception, get_current_content_type, json
+from utils import log_msg, get_current_content_type, json
 from artutils import process_method_on_list
 from simplecache import use_cache
 import xbmc

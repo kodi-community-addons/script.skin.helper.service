@@ -13,7 +13,7 @@ import xbmcplugin
 import xbmcgui
 import xbmcaddon
 from simplecache import SimpleCache
-from utils import log_msg, try_encode, KODI_VERSION, log_exception, urlencode
+from utils import log_msg, KODI_VERSION, log_exception, urlencode
 from artutils import KodiDb, Tmdb, get_clean_image, process_method_on_list
 import urlparse
 import sys

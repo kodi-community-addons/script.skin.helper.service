@@ -8,7 +8,7 @@
     Methods to connect skinhelper to skinshortcuts for smartshortcuts, widgets and backgrounds
 '''
 
-from utils import kodi_json, log_msg, log_exception, urlencode
+from utils import kodi_json, log_msg, urlencode
 from artutils import detect_plugin_content
 from collections import OrderedDict
 import xbmc

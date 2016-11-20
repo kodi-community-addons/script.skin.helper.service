@@ -8,7 +8,6 @@
     Various helper methods
 '''
 
-import xbmcgui
 import xbmc
 import xbmcvfs
 import os
