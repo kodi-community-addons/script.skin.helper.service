@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
-import xbmc
-import xbmcgui
-from artutils import ArtUtils
 
 '''
     script.skin.helper.service
     Contextmenu for Animated art
 '''
 
+import xbmc
+import xbmcgui
+from artutils import ArtUtils
 
 def get_imdb_id(win, artutils):
     '''get imdbnumber for listitem'''

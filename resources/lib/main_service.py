@@ -65,7 +65,7 @@ class MainService:
         # stop the extra threads
         listitem_monitor.stop()
         webservice.stop()
-        
+
         # cleanup objects
         self.close()
 
@@ -78,7 +78,7 @@ class MainService:
         del self.cache
         del self.artutils
         log_msg('%s version %s stopped' % (self.addonname, self.addonversion), xbmc.LOGNOTICE)
-    
+
     def check_skin_version(self):
         '''check if skin changed'''
         try:

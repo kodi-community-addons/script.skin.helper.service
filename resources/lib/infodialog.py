@@ -1,9 +1,16 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+'''
+    script.skin.helper.service
+    Helper service and scripts for Kodi skins
+    infodialog.py
+    Wrapper around the videoinfodialog which can be used for widgets for example
+    only used for Kodi Jarvis because as of Kodi Krypton this is handled by Kodi natively
+'''
+
 import xbmc
 import xbmcgui
-import xbmcvfs
 from artutils import ArtUtils, extend_dict, KodiDb
 from utils import log_msg, get_current_content_type
 import threading
@@ -13,10 +20,7 @@ ACTION_SHOW_INFO = (11, )
 
 
 class DialogVideoInfo(xbmcgui.WindowXMLDialog):
-    '''
-        Wrapper around the videoinfodialog which can be used for widgets for example
-        only used for Kodi Jarvis because as of Kodi Krypton this is handled by Kodi natively
-    '''
+    '''Wrapper around the videoinfodialog'''
 
     def __init__(self, *args, **kwargs):
         xbmcgui.WindowXMLDialog.__init__(self)

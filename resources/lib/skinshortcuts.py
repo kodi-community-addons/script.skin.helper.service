@@ -1,7 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 from utils import kodi_json, log_msg, log_exception, ADDON_ID, urlencode
-from simplecache import SimpleCache
 from artutils import detect_plugin_content
 from collections import OrderedDict
 import xbmc
@@ -34,10 +33,10 @@ def add_directoryitem(entry, is_folder=True, widget=None, widget2=None):
 
     if is_folder:
         path = sys.argv[0] + "?action=SMARTSHORTCUTS&path=" + entry
-        li = xbmcgui.ListItem(label, path=path)
-        li.setIconImage("DefaultFolder.png")
+        listitem = xbmcgui.ListItem(label, path=path)
+        listitem.setIconImage("DefaultFolder.png")
     else:
-        li = xbmcgui.ListItem(label, path=path)
+        listitem = xbmcgui.ListItem(label, path=path)
         props = {}
         props["list"] = content
         if not xbmc.getInfoLabel(mediatype):
@@ -45,9 +44,9 @@ def add_directoryitem(entry, is_folder=True, widget=None, widget2=None):
         props["type"] = mediatype
         props["background"] = "$INFO[Window(Home).Property(%s.image)]" % entry
         props["backgroundName"] = "$INFO[Window(Home).Property(%s.title)]" % entry
-        li.setInfo(type="Video", infoLabels={"Title": "smartshortcut"})
-        li.setThumbnailImage(image)
-        li.setIconImage("special://home/addons/script.skin.helper.service/fanart.jpg")
+        listitem.setInfo(type="Video", infoLabels={"Title": "smartshortcut"})
+        listitem.setThumbnailImage(image)
+        listitem.setIconImage("special://home/addons/script.skin.helper.service/fanart.jpg")
 
         if widget:
             widget_type = "$INFO[Window(Home).Property(%s.type)]" % widget
@@ -83,10 +82,10 @@ def add_directoryitem(entry, is_folder=True, widget=None, widget2=None):
                 props["widgetPath.1"] = props["widgetPath.1"] + \
                     "&reload=$INFO[Window(Home).Property(widgetreload)]$INFO[Window(Home).Property(widgetreload2)]"
 
-        li.setInfo(type="Video", infoLabels={"mpaa": repr(props)})
+        listitem.setInfo(type="Video", infoLabels={"mpaa": repr(props)})
 
-    li.setArt({"fanart": image})
-    xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=path, listitem=li, isFolder=is_folder)
+    listitem.setArt({"fanart": image})
+    xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=path, listitem=listitem, isFolder=is_folder)
 
 
 def smartshortcuts_sublevel(entry):
@@ -232,9 +231,9 @@ def get_widgets(item_filter="", sublevel=""):
             # only show main listing for this category...
             if widgets:
                 label = item_filter_mapping()[item_filter]
-                li = xbmcgui.ListItem(label, iconImage="DefaultFolder.png")
+                listitem = xbmcgui.ListItem(label, iconImage="DefaultFolder.png")
                 url = "plugin://script.skin.helper.service?action=widgets&path=%s" % item_filter
-                xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=url, listitem=li, isFolder=True)
+                xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=url, listitem=listitem, isFolder=True)
         else:
             # show widgets for the selected filter...
             for widget in widgets:
@@ -281,12 +280,15 @@ def get_widgets(item_filter="", sublevel=""):
                     target = "video"
 
                 if is_folder:
-                    li = xbmcgui.ListItem(widget[0])
-                    li.setIconImage("DefaultFolder.png")
-                    xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=widget[1], listitem=li, isFolder=True)
+                    listitem = xbmcgui.ListItem(widget[0])
+                    listitem.setIconImage("DefaultFolder.png")
+                    xbmcplugin.addDirectoryItem(
+                        handle=int(sys.argv[1]),
+                        url=widget[1],
+                        listitem=listitem, isFolder=True)
                 else:
                     widgetpath = "ActivateWindow(%s,%s,return)" % (media_library, widget[1].split("&")[0])
-                    li = xbmcgui.ListItem(widget[0], path=widgetpath)
+                    listitem = xbmcgui.ListItem(widget[0], path=widgetpath)
                     props = {}
                     props["list"] = widget[1]
                     props["type"] = widget[2]
@@ -296,12 +298,17 @@ def get_widgets(item_filter="", sublevel=""):
                     props["widgetTarget"] = target
                     props["widgetName"] = widget[0]
                     props["widget"] = item_filter
-                    li.setInfo(type="Video", infoLabels={"Title": "smartshortcut"})
-                    li.setThumbnailImage(image)
-                    li.setArt({"fanart": image})
+                    listitem.setInfo(type="Video", infoLabels={"Title": "smartshortcut"})
+                    listitem.setThumbnailImage(image)
+                    listitem.setArt({"fanart": image})
                     # we use the mpaa property to pass all properties to skinshortcuts
-                    li.setInfo(type="Video", infoLabels={"mpaa": repr(props)})
-                    xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=widgetpath, listitem=li, isFolder=False)
+                    listitem.setInfo(type="Video", infoLabels={"mpaa": repr(props)})
+                    xbmcplugin.addDirectoryItem(
+                        handle=int(
+                            sys.argv[1]),
+                        url=widgetpath,
+                        listitem=listitem,
+                        isFolder=False)
 
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
@@ -341,10 +348,10 @@ def get_backgrounds():
     '''called from skinshortcuts to retrieve listing of all backgrounds'''
     xbmcplugin.setContent(int(sys.argv[1]), 'files')
     for label, image in get_skinhelper_backgrounds():
-        li = xbmcgui.ListItem(label, path=image)
-        li.setArt({"fanart": image})
-        li.setThumbnailImage(image)
-        xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=image, listitem=li, isFolder=False)
+        listitem = xbmcgui.ListItem(label, path=image)
+        listitem.setArt({"fanart": image})
+        listitem.setThumbnailImage(image)
+        xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=image, listitem=listitem, isFolder=False)
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 
@@ -490,7 +497,8 @@ def extendedinfo_youtube_widgets():
         label = entry.split("id=")[1]
         widgets.append([label, content, "episodes"])
     return widgets
-    
+
+
 def set_skinshortcuts_property(property_name="", value="", label=""):
     '''set custom property in skinshortcuts menu editor'''
     if value:
@@ -507,7 +515,8 @@ def set_skinshortcuts_property(property_name="", value="", label=""):
         xbmc.executebuiltin("SetProperty(customProperty,%sName)" % property_name.encode("utf-8"))
         xbmc.executebuiltin("SetProperty(customValue,%s)" % label.encode("utf-8"))
         xbmc.executebuiltin("SendClick(404)")
-        
+
+
 def wait_for_skinshortcuts_window():
     '''wait untill skinshortcuts is active window (because of any animations that may have been applied)'''
     for i in range(40):
@@ -518,4 +527,3 @@ def wait_for_skinshortcuts_window():
             break
         else:
             xbmc.sleep(100)
-

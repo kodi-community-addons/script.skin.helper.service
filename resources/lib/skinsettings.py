@@ -42,7 +42,6 @@ class SkinSettings:
         addonpath = xbmc.translatePath(os.path.join("special://skin/", 'addon.xml').encode("utf-8")).decode("utf-8")
         addon = xmltree.parse(addonpath)
         extensionpoints = addon.findall("extension")
-        paths = []
         for extensionpoint in extensionpoints:
             if extensionpoint.attrib.get("point") == "xbmc.gui.skin":
                 resolutions = extensionpoint.findall("res")
@@ -134,9 +133,9 @@ class SkinSettings:
         '''set a skin constant'''
         cur_values = self.skin_constants
         if not value:
-            value, label = self.set_skin_setting(
+            value = self.set_skin_setting(
                 setting, window_header, "", cur_values.get(
-                    setting, "emptyconstant"))
+                    setting, "emptyconstant"))[0]
         result = {setting: value}
         self.update_skin_constants(result)
 
@@ -281,12 +280,12 @@ class SkinSettings:
                 if value == "||PROMPTSTRING||":
                     value = xbmcgui.Dialog().input(label, cur_value, 0).decode("utf-8")
                 if value == "||PROMPTSTRINGASNUMERIC||":
-                    validInput = False
-                    while not validInput:
+                    validinput = False
+                    while not validinput:
                         try:
                             value = xbmcgui.Dialog().input(label, cur_value, 0).decode("utf-8")
                             valueint = int(value)
-                            validInput = True
+                            validinput = True
                             del valueint
                         except Exception:
                             value = xbmcgui.Dialog().notification("Invalid input", "Please enter a number...")

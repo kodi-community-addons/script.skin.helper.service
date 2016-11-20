@@ -1,12 +1,20 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+
+'''
+    script.skin.helper.service
+    Helper service and scripts for Kodi skins
+    mainmodule.py
+    All script methods provided by the addon
+'''
+
 import xbmc
 import xbmcvfs
 import xbmcgui
 import xbmcaddon
 from skinsettings import SkinSettings
 from simplecache import SimpleCache, use_cache
-from utils import log_msg, KODI_VERSION, json, kodi_json
+from utils import log_msg, KODI_VERSION, kodi_json
 from utils import log_exception, get_current_content_type, ADDON_ID, recursive_delete_dir
 from dialogselect import DialogSelect
 from xml.dom.minidom import parse

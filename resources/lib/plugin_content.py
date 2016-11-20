@@ -15,9 +15,7 @@ import xbmcaddon
 from simplecache import SimpleCache
 from utils import log_msg, try_encode, KODI_VERSION, log_exception, urlencode
 from artutils import KodiDb, Tmdb, get_clean_image, process_method_on_list
-from datetime import timedelta
 import urlparse
-import urllib
 import sys
 import os
 
@@ -125,7 +123,8 @@ class PluginContent:
         import skinshortcuts
         skinshortcuts.get_smartshortcuts(self.params.get("path", ""))
 
-    def backgrounds(self):
+    @staticmethod
+    def backgrounds():
         '''called from skinshortcuts to retrieve listing of all backgrounds'''
         import skinshortcuts
         skinshortcuts.get_backgrounds()
@@ -242,7 +241,6 @@ class PluginContent:
                     result = self.kodi_db.moviesets(filters=filters)
                     db_id = result[0]["setid"] if result else 0
                 if db_id:
-                    params = {"setid": db_id, "movies": {"properties": ["title", "cast"]}}
                     json_result = self.kodi_db.movieset(db_id)
                     if "movies" in json_result:
                         for movie in json_result['movies']:

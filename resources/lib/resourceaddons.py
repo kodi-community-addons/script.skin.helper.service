@@ -208,7 +208,7 @@ def get_multi_extension(filepath):
     is_multi = False
     extension = ""
     dirs, files = xbmcvfs.listdir(filepath)
-    for dir in dirs:
+    if len(dirs) > 0:
         is_multi = True
     if not is_multi:
         for item in files:
