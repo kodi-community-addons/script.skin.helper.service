@@ -1,6 +1,12 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+'''
+    script.skin.helper.service
+    listitem_monitor.py
+    monitor the kodi listitems and providing additional information
+'''
+
 import threading
 import thread
 from utils import log_msg, log_exception, get_current_content_type, kodi_json, try_encode

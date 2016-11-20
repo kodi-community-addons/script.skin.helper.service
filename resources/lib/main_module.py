@@ -19,10 +19,7 @@ from utils import log_exception, get_current_content_type, ADDON_ID, recursive_d
 from dialogselect import DialogSelect
 from xml.dom.minidom import parse
 from artutils import KodiDb, Tmdb, process_method_on_list
-from datetime import timedelta
 import urlparse
-import urllib
-import urllib2
 import sys
 
 
@@ -63,7 +60,7 @@ class MainModule:
 
     @classmethod
     def get_params(self):
-        # extract the params from the called script path
+        '''extract the params from the called script path'''
         params = {}
         for arg in sys.argv[1:]:
             paramname = arg.split('=')[0]

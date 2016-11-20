@@ -86,7 +86,6 @@ class SkinSettings:
         addonpath = xbmc.translatePath(os.path.join("special://skin/", 'addon.xml').encode("utf-8")).decode("utf-8")
         addon = xmltree.parse(addonpath)
         extensionpoints = addon.findall("extension")
-        paths = []
         for extensionpoint in extensionpoints:
             if extensionpoint.attrib.get("point") == "xbmc.gui.skin":
                 resolutions = extensionpoint.findall("res")

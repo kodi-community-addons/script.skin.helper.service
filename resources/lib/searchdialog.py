@@ -25,7 +25,6 @@ class SearchDialog(xbmcgui.WindowXMLDialog):
         xbmcgui.WindowXMLDialog.__init__(self, *args, **kwargs)
 
     def onInit(self):
-        self.action_exitkeys_id = [10, 13]
         self.search_thread = SearchBackgroundThread()
         self.search_thread.set_dialog(self)
         self.search_thread.start()
@@ -186,8 +185,7 @@ class SearchDialog(xbmcgui.WindowXMLDialog):
         elif control_id == 3058:
             self.clear_search()
         elif control_id == 3010:
-            dialog = xbmcgui.Dialog()
-            search_term = w.input(xbmc.getLocalizedString(16017), type=xbmcgui.INPUT_ALPHANUM)
+            search_term = xbmcgui.Dialog().input(xbmc.getLocalizedString(16017), type=xbmcgui.INPUT_ALPHANUM)
             self.getControl(3010).setLabel(search_term)
             self.search_string = search_term
             self.search_thread.set_search(search_term)

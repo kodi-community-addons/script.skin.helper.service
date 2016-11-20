@@ -1,5 +1,13 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+
+'''
+    script.skin.helper.service
+    Helper service and scripts for Kodi skins
+    skinshortcuts.py
+    Methods to connect skinhelper to skinshortcuts for smartshortcuts, widgets and backgrounds
+'''
+
 from utils import kodi_json, log_msg, log_exception, ADDON_ID, urlencode
 from artutils import detect_plugin_content
 from collections import OrderedDict
@@ -9,10 +17,6 @@ import xbmcplugin
 import xbmcgui
 import xbmcaddon
 import sys
-
-'''
-    Methods to connect skinhelper to skinshortcuts for smartshortcuts, widgets and backgrounds
-'''
 
 # extendedinfo has some login-required widgets, these must not be probed without login details
 EXTINFO_CREDS = False

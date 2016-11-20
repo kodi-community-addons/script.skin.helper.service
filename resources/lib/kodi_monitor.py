@@ -1,6 +1,13 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-from utils import log_msg, log_exception, get_current_content_type, kodi_json, json
+
+'''
+    script.skin.helper.service
+    kodi_monitor.py
+    monitor all kodi events
+'''
+
+from utils import log_msg, log_exception, get_current_content_type, json
 from artutils import process_method_on_list
 from simplecache import use_cache
 import xbmc
