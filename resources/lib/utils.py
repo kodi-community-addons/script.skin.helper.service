@@ -1,6 +1,13 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+'''
+    script.skin.helper.service
+    Helper service and scripts for Kodi skins
+    utils.py
+    Various helper methods
+'''
+
 import xbmcgui
 import xbmc
 import xbmcvfs

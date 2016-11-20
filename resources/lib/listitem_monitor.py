@@ -12,7 +12,6 @@ import thread
 from utils import log_msg, log_exception, get_current_content_type, kodi_json, try_encode
 from artutils import process_method_on_list, extend_dict
 import xbmc
-import time
 from simplecache import use_cache
 
 
@@ -437,7 +436,8 @@ class ListItemMonitor(threading.Thread):
             if headerprefix:
                 self.win.setProperty("SkinHelper.ContentHeader", "%s %s" % (itemscount, headerprefix))
 
-    def get_genres(self, li_genre):
+    @staticmethod
+    def get_genres(li_genre):
         '''get formatted genre string from actual genre'''
         details = {}
         genres = li_genre.split(" / ")
@@ -446,7 +446,8 @@ class ListItemMonitor(threading.Thread):
             details["Genre.%s" % count] = genre
         return details
 
-    def get_directors(self, director):
+    @staticmethod
+    def get_directors(director):
         '''get a formatted string with directors from the actual directors string'''
         directors = director.split(" / ")
         return {'Directors': "[CR]".join(directors)}

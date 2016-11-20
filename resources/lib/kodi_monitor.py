@@ -133,6 +133,7 @@ class KodiMonitor(xbmc.Monitor):
         self.all_window_props = []
 
     def set_win_prop(self, prop_tuple):
+        '''set window property from key/value tuple'''
         if prop_tuple[1] and not prop_tuple[0] in self.all_window_props:
             self.all_window_props.append(prop_tuple[0])
             self.win.setProperty(prop_tuple[0], prop_tuple[1])

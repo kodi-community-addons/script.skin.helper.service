@@ -1,6 +1,13 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+'''
+    script.skin.helper.service
+    Helper service and scripts for Kodi skins
+    webservice.py
+    Simple webservice to directly retrieve metadata from artwork module
+'''
+
 import SimpleHTTPServer
 import BaseHTTPServer
 import httplib
@@ -18,6 +25,7 @@ PORT = 52307
 
 
 class WebService(threading.Thread):
+    '''Main webservice class which holds the SimpleHTTPServer instance'''
     event = None
     exit = False
 

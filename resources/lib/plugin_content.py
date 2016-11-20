@@ -77,7 +77,7 @@ class PluginContent:
             import imp
             addon = xbmcaddon.Addon(newaddon)
             addon_path = addon.getAddonInfo('path').decode("utf-8")
-            plugin = imp.load_source('plugin', os.path.join(addon_path, "plugin.py"))
+            imp.load_source('plugin', os.path.join(addon_path, "plugin.py"))
             from plugin import main
             main.Main()
             del addon

@@ -151,7 +151,8 @@ class SkinSettings:
             self.skin_variables[key] = value
             self.write_skin_constants(self.skin_constants, self.skin_variables)
 
-    def get_skin_settings(self):
+    @staticmethod
+    def get_skin_settings():
         '''get the complete list of all settings defined in the special skinsettings file'''
         all_skinsettings = {}
         settings_file = xbmc.translatePath('special://skin/extras/skinsettings.xml').decode("utf-8")

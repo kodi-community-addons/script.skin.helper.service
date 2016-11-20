@@ -13,7 +13,7 @@ import xbmcvfs
 import xbmcgui
 import xbmcaddon
 from skinsettings import SkinSettings
-from simplecache import SimpleCache, use_cache
+from simplecache import SimpleCache
 from utils import log_msg, KODI_VERSION, kodi_json
 from utils import log_exception, get_current_content_type, ADDON_ID, recursive_delete_dir
 from dialogselect import DialogSelect
@@ -156,12 +156,12 @@ class MainModule:
             for view in listing:
                 label = xbmc.getLocalizedString(int(view.attributes['languageid'].nodeValue))
                 viewid = view.attributes['value'].nodeValue
-                type = view.attributes['type'].nodeValue.lower().split(",")
+                mediatypes = view.attributes['type'].nodeValue.lower().split(",")
                 if label.lower() == current_view.lower() or viewid == current_view:
                     cur_view_select_id = itemcount
                     if display_none:
                         cur_view_select_id += 1
-                if (("all" in type or content_type.lower() in type) and (not "!" + content_type.lower() in type) and not
+                if (("all" in mediatypes or content_type.lower() in mediatypes) and (not "!" + content_type.lower() in mediatypes) and not
                         xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.view.Disabled.%s)" % viewid)):
                     image = "special://skin/extras/viewthumbs/%s.jpg" % viewid
                     listitem = xbmcgui.ListItem(label=label, iconImage=image)

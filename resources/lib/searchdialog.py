@@ -42,14 +42,14 @@ class SearchDialog(xbmcgui.WindowXMLDialog):
         else:
             self.action_textbox(action)
 
-    def close_dialog(self, action=None):
+    def close_dialog(self):
         '''stop background thread and close the dialog'''
         self.search_thread.stop_running()
         self.close()
 
     def remove_char(self):
         '''remove character from query string'''
-        if (len(self.search_string) == 0 or self.search_string == " "):
+        if len(self.search_string) == 0 or self.search_string == " ":
             self.close_dialog()
         else:
             if(len(self.search_string) == 1):
