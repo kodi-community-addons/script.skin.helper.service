@@ -5,10 +5,9 @@ import xbmcvfs
 import xbmcgui
 import xbmcaddon
 from utils import log_msg, try_encode, KODI_VERSION, ADDON_ID, try_decode, log_exception, kodi_json
-from dialogs import DialogSelect
+from dialogselect import DialogSelect
 from xml.dom.minidom import parse
 import xml.etree.ElementTree as xmltree
-import sys
 import os
 import urllib2
 import re
@@ -188,13 +187,13 @@ def checkresourceaddon(skinstring="", addontype=""):
     return False
 
 
-def get_resourceaddons(filter=""):
+def get_resourceaddons(filterstr=""):
     '''helper to retrieve all installed resource addons'''
     result = []
     params = {"type": "kodi.resource.images",
               "properties": ["name", "thumbnail", "path", "author"]}
     for item in kodi_json("Addons.GetAddons", params, "addons"):
-        if not filter or item['addonid'].lower().startswith(filter.lower()):
+        if not filterstr or item['addonid'].lower().startswith(filterstr.lower()):
             item["path"] = "resource://%s/" % item["addonid"]
             result.append(item)
 

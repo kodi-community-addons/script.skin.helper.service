@@ -229,7 +229,6 @@ class PluginContent:
                 result = self.kodi_db.episodes(filters=filters)
                 all_cast = result[0]["cast"] if result else []
             elif movieset:
-                moviesetmovies = []
                 if not db_id:
                     filters = [{"operator": "contains", "field": "title", "value": movieset}]
                     result = self.kodi_db.moviesets(filters=filters)

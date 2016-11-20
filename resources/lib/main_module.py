@@ -8,9 +8,9 @@ from skinsettings import SkinSettings
 from simplecache import SimpleCache, use_cache
 from utils import log_msg, KODI_VERSION, json, kodi_json
 from utils import log_exception, get_current_content_type, ADDON_ID, recursive_delete_dir
-from dialogs import DialogSelect
+from dialogselect import DialogSelect
 from xml.dom.minidom import parse
-from artutils import KodiDb, Tmdb, process_method_on_list, extend_dict
+from artutils import KodiDb, Tmdb, process_method_on_list
 from datetime import timedelta
 import urlparse
 import urllib
@@ -93,7 +93,7 @@ class MainModule:
         xbmc.executebuiltin('SendClick(301)')
         count = 0
         # wait untill the empy item is focused
-        while (count != 60 and xbmc.getCondVisibility("Windodialog.IsActive(script-skinshortcuts.xml)")):
+        while (count != 60 and xbmc.getCondVisibility("Window.IsActive(script-skinshortcuts.xml)")):
             if not xbmc.getCondVisibility("StringCompare(Container(211).ListItem.Property(path), noop)"):
                 xbmc.sleep(100)
                 count += 1
@@ -101,7 +101,7 @@ class MainModule:
                 break
         if xbmc.getCondVisibility(
                 "StringCompare(Container(211).ListItem.Property(path), noop) + "
-                "Windodialog.IsActive(script-skinshortcuts.xml)"):
+                "Window.IsActive(script-skinshortcuts.xml)"):
             xbmc.executebuiltin('SendClick(401)')
 
     @staticmethod
@@ -260,9 +260,10 @@ class MainModule:
         del dialog
         if result:
             if xbmc.getCondVisibility(
-                    "Windodialog.IsActive(script-skin_helper_service-CustomInfo.xml) | Windodialog.IsActive(movieinformation)"):
-                xbmc.executebuiltin("dialog.Close(movieinformation)")
-                xbmc.executebuiltin("dialog.Close(script-skin_helper_service-CustomInfo.xml)")
+                    "Window.IsActive(script-skin_helper_service-CustomInfo.xml) | "
+                    "Window.IsActive(movieinformation)"):
+                xbmc.executebuiltin("Dialog.Close(movieinformation)")
+                xbmc.executebuiltin("Dialog.Close(script-skin_helper_service-CustomInfo.xml)")
                 xbmc.sleep(1000)
             xbmc.executebuiltin('PlayMedia("%s")' % result.getProperty("path"))
             del result
@@ -445,15 +446,15 @@ class MainModule:
     def reset(self):
         '''legacy'''
         self.deprecated_method("script.skin.helper.skinbackup")
-        
+
     def colorthemes(self):
         '''legacy'''
         self.deprecated_method("script.skin.helper.skinbackup")
-        
+
     def createcolortheme(self):
         '''legacy'''
         self.deprecated_method("script.skin.helper.skinbackup")
-        
+
     def restorecolortheme(self):
         '''legacy'''
         self.deprecated_method("script.skin.helper.skinbackup")

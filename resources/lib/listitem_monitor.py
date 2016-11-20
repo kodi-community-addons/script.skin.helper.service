@@ -7,7 +7,6 @@ from utils import log_msg, log_exception, get_current_content_type, kodi_json, t
 from artutils import process_method_on_list, extend_dict
 import xbmc
 import time
-from datetime import timedelta
 from simplecache import use_cache
 
 

@@ -28,7 +28,7 @@ class DialogSelect(xbmcgui.WindowXMLDialog):
             # for multiselect we return the entire listing
             items_list = []
             itemcount = self.totalitems - 1
-            while (itemcount != -1):
+            while itemcount != -1:
                 items_list.append(self.list_control.getListItem(itemcount))
                 itemcount -= 1
             self.result = items_list
