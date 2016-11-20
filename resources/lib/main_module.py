@@ -361,9 +361,9 @@ class MainModule:
     def setskinshortcutsproperty(self):
         '''allows the user to make a setting for skinshortcuts using the special skinsettings dialogs'''
         setting = self.params.get("setting", "")
-        property = self.params.get("property", "")
+        prop = self.params.get("property", "")
         header = self.params.get("header", "")
-        SkinSettings().set_skinshortcuts_property(setting, header, property)
+        SkinSettings().set_skinshortcuts_property(setting, header, prop)
 
     def togglekodisetting(self, settingname):
         '''toggle kodi setting'''

@@ -13,7 +13,7 @@ import xbmc
 import xbmcgui
 import xbmcvfs
 from artutils import process_method_on_list, KodiDb
-from utils import log_msg, get_current_content_type
+from utils import log_msg
 
 
 class SearchDialog(xbmcgui.WindowXMLDialog):

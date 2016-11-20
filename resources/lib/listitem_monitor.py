@@ -312,11 +312,11 @@ class ListItemMonitor(threading.Thread):
         addontypes.append(["video", "SkinHelper.TotalVideoAddons", 0])
         addontypes.append(["audio", "SkinHelper.TotalAudioAddons", 0])
         addontypes.append(["image", "SkinHelper.TotalPicturesAddons", 0])
-        for type in addontypes:
-            media_array = kodi_json('Addons.GetAddons', {"content": type[0]})
+        for addontype in addontypes:
+            media_array = kodi_json('Addons.GetAddons', {"content": addontype[0]})
             for item in media_array:
-                type[2] += 1
-            self.win.setProperty(type[1], str(type[2]))
+                addontype[2] += 1
+            self.win.setProperty(addontype[1], str(addontype[2]))
 
         # GET FAVOURITES COUNT
         favs = kodi_json('Favourites.GetFavourites')
@@ -373,7 +373,8 @@ class ListItemMonitor(threading.Thread):
             self.all_window_props.append(prop_tuple[0])
             self.win.setProperty(prop_tuple[0], prop_tuple[1])
 
-    def prepare_win_props(self, details):
+    @staticmethod
+    def prepare_win_props(details):
         '''helper to pretty string-format a dict with details so it can be used as window props'''
         items = []
         if details:
@@ -470,7 +471,7 @@ class ListItemMonitor(threading.Thread):
                       "starttime", "startdate", "endtime", "enddate"]
         for prop in props:
             propvalue = xbmc.getInfoLabel('%sListItem.%s' % (prefix, prop)).decode('utf-8')
-            if (not propvalue or propvalue == "-1"):
+            if not propvalue or propvalue == "-1":
                 propvalue = xbmc.getInfoLabel('%sListItem.Property(%s)' % (prefix, prop)).decode('utf-8')
             if "art(" in prop:
                 prop = prop.replace("art(", "").replace(")", "")

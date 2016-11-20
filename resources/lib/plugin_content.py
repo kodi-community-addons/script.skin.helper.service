@@ -1,5 +1,13 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+
+'''
+    script.skin.helper.service
+    Helper service and scripts for Kodi skins
+    plugin_content.py
+    Hidden plugin entry point providing some helper features
+'''
+
 import xbmc
 import xbmcplugin
 import xbmcgui
@@ -132,9 +140,9 @@ class PluginContent:
         from resourceaddons import get_resourceimages
         addontype = self.params.get("addontype", "")
         for item in get_resourceimages(addontype, True):
-            li = xbmcgui.ListItem(item[0], label2=item[2], path=item[1], iconImage=item[3])
+            listitem = xbmcgui.ListItem(item[0], label2=item[2], path=item[1], iconImage=item[3])
             xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),
-                                        url=item[1], listitem=li, isFolder=False)
+                                        url=item[1], listitem=listitem, isFolder=False)
         xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
 
     def extrafanart(self):
@@ -142,9 +150,9 @@ class PluginContent:
         fanarts = eval(self.params["fanarts"])
         # process extrafanarts
         for item in fanarts:
-            li = xbmcgui.ListItem(item, path=item)
-            li.setProperty('mimetype', 'image/jpeg')
-            xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=item, listitem=li)
+            listitem = xbmcgui.ListItem(item, path=item)
+            listitem.setProperty('mimetype', 'image/jpeg')
+            xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=item, listitem=listitem)
         xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
 
     def moviegenrebackground(self):
@@ -159,9 +167,9 @@ class PluginContent:
                 fanart = get_clean_image(item["art"].get("fanart", ""))
                 if fanart:
                     fanart = get_clean_image(item["art"]["fanart"])
-                    li = xbmcgui.ListItem(fanart, path=fanart)
-                    li.setProperty('mimetype', 'image/jpeg')
-                    xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=fanart, listitem=li)
+                    listitem = xbmcgui.ListItem(fanart, path=fanart)
+                    listitem.setProperty('mimetype', 'image/jpeg')
+                    xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=fanart, listitem=listitem)
         xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
 
     def getcastmedia(self):
@@ -296,13 +304,13 @@ class PluginContent:
                     label = "#"
                 else:
                     label = letter
-                li = xbmcgui.ListItem(label=label)
+                listitem = xbmcgui.ListItem(label=label)
                 if letter not in all_letters:
                     lipath = "noop"
-                    li.setProperty("NotAvailable", "true")
+                    listitem.setProperty("NotAvailable", "true")
                 else:
                     lipath = "plugin://script.skin.helper.service/?action=alphabetletter&letter=%s" % letter
-                xbmcplugin.addDirectoryItem(int(sys.argv[1]), lipath, li, isFolder=False)
+                xbmcplugin.addDirectoryItem(int(sys.argv[1]), lipath, listitem, isFolder=False)
         xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
 
     def alphabetletter(self):

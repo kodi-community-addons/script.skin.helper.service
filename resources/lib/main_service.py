@@ -1,6 +1,13 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+'''
+    script.skin.helper.service
+    Helper service and scripts for Kodi skins
+    main_service.py
+    Background service running the various threads
+'''
+
 from utils import log_msg, ADDON_ID, log_exception
 from skinsettings import SkinSettings
 from listitem_monitor import ListItemMonitor
@@ -12,7 +19,6 @@ import xbmc
 import xbmcaddon
 import xbmcgui
 import time
-import datetime
 
 
 class MainService:

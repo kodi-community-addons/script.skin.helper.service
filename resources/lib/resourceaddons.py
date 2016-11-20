@@ -1,7 +1,12 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-'''several helpers to get data/images from kodi image resource addons'''
+'''
+    script.skin.helper.service
+    Helper service and scripts for Kodi skins
+    resourceaddons.py
+    several helpers to get data/images from kodi image resource addons
+'''
 
 import xbmc
 import xbmcvfs
@@ -9,8 +14,6 @@ import xbmcgui
 import xbmcaddon
 from utils import log_msg, try_encode, KODI_VERSION, ADDON_ID, try_decode, log_exception, kodi_json
 from dialogselect import DialogSelect
-from xml.dom.minidom import parse
-import os
 import urllib2
 import re
 from simplecache import SimpleCache

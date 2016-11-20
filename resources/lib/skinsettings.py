@@ -1,5 +1,13 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+
+'''
+    script.skin.helper.service
+    Helper service and scripts for Kodi skins
+    skinsettings.py
+    several helpers that allows skinners to have custom dialogs for their skin settings and constants
+'''
+
 import xbmc
 import xbmcvfs
 import xbmcgui
@@ -66,12 +74,13 @@ class SkinSettings:
                                 child2.text = value
                     self.indent_xml(tree.getroot())
                     xmlstring = xmltree.tostring(tree.getroot(), encoding="utf-8")
-                    f = xbmcvfs.File(includes_file, 'w')
-                    f.write(xmlstring)
-                    f.close()
+                    fileobj = xbmcvfs.File(includes_file, 'w')
+                    fileobj.write(xmlstring)
+                    fileobj.close()
         xbmc.executebuiltin("ReloadSkin()")
 
-    def get_skin_constants(self):
+    @staticmethod
+    def get_skin_constants():
         '''gets a list of all skin constants as set in the special xml file'''
         all_constants = {}
         all_variables = {}
@@ -278,6 +287,7 @@ class SkinSettings:
                             value = xbmcgui.Dialog().input(label, cur_value, 0).decode("utf-8")
                             valueint = int(value)
                             validInput = True
+                            del valueint
                         except Exception:
                             value = xbmcgui.Dialog().notification("Invalid input", "Please enter a number...")
 
