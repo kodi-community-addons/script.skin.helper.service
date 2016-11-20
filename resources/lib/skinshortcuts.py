@@ -30,7 +30,7 @@ def add_directoryitem(entry, is_folder=True, widget=None, widget2=None):
     path = "$INFO[Window(Home).Property(%s.path)]" % entry
     content = "$INFO[Window(Home).Property(%s.content)]" % entry
     image = "$INFO[Window(Home).Property(%s.image)]" % entry
-    type = "$INFO[Window(Home).Property(%s.type)]" % entry
+    mediatype = "$INFO[Window(Home).Property(%s.type)]" % entry
 
     if is_folder:
         path = sys.argv[0] + "?action=SMARTSHORTCUTS&path=" + entry
@@ -40,9 +40,9 @@ def add_directoryitem(entry, is_folder=True, widget=None, widget2=None):
         li = xbmcgui.ListItem(label, path=path)
         props = {}
         props["list"] = content
-        if not xbmc.getInfoLabel(type):
-            type = "media"
-        props["type"] = type
+        if not xbmc.getInfoLabel(mediatype):
+            mediatype = "media"
+        props["type"] = mediatype
         props["background"] = "$INFO[Window(Home).Property(%s.image)]" % entry
         props["backgroundName"] = "$INFO[Window(Home).Property(%s.title)]" % entry
         li.setInfo(type="Video", infoLabels={"Title": "smartshortcut"})
@@ -51,8 +51,8 @@ def add_directoryitem(entry, is_folder=True, widget=None, widget2=None):
 
         if widget:
             widget_type = "$INFO[Window(Home).Property(%s.type)]" % widget
-            if not xbmc.getInfoLabel(type):
-                widget_type = type
+            if not xbmc.getInfoLabel(mediatype):
+                widget_type = mediatype
             if widget_type in ["albums", "artists", "songs"]:
                 widget_target = "music"
             else:
@@ -68,8 +68,8 @@ def add_directoryitem(entry, is_folder=True, widget=None, widget2=None):
 
         if widget2:
             widget_type = "$INFO[Window(Home).Property(%s.type)]" % widget2
-            if not xbmc.getInfoLabel(type):
-                widget_type = type
+            if not xbmc.getInfoLabel(mediatype):
+                widget_type = mediatype
             if widget_type == "albums" or widget_type == "artists" or widget_type == "songs":
                 widget_target = "music"
             else:
@@ -122,17 +122,17 @@ def smartshortcuts_sublevel(entry):
         widget2 = None
         if content_string == "":
             # this is the main item so define our widgets
-            type = xbmc.getInfoLabel("$INFO[Window(Home).Property(%s.type)]" % entry)
+            mediatype = xbmc.getInfoLabel("$INFO[Window(Home).Property(%s.type)]" % entry)
             if "plex" in entry:
                 widget = entry + ".ondeck"
                 widget2 = entry + ".recent"
-            elif type == "movies" or type == "movie" or type == "artist" or "netflix" in entry:
+            elif mediatype == "movies" or mediatype == "movie" or mediatype == "artist" or "netflix" in entry:
                 widget = entry + ".recent"
                 widget2 = entry + ".inprogress"
-            elif type == "tvshows" and "emby" in entry:
+            elif mediatype == "tvshows" and "emby" in entry:
                 widget = entry + ".nextepisodes"
                 widget2 = entry + ".recent"
-            elif (type == "homevideos" or type == "photos") and "emby" in entry:
+            elif (mediatype == "homevideos" or mediatype == "photos") and "emby" in entry:
                 widget = entry + ".recent"
                 widget2 = entry + ".recommended"
             else:

@@ -15,7 +15,6 @@ from datetime import timedelta
 import urlparse
 import urllib
 import urllib2
-import re
 import sys
 import os
 
@@ -153,17 +152,17 @@ class MainModule:
             itemcount = 0
             for view in listing:
                 label = xbmc.getLocalizedString(int(view.attributes['languageid'].nodeValue))
-                id = view.attributes['value'].nodeValue
+                viewid = view.attributes['value'].nodeValue
                 type = view.attributes['type'].nodeValue.lower().split(",")
-                if label.lower() == current_view.lower() or id == current_view:
+                if label.lower() == current_view.lower() or viewid == current_view:
                     cur_view_select_id = itemcount
                     if display_none:
                         cur_view_select_id += 1
                 if (("all" in type or content_type.lower() in type) and (not "!" + content_type.lower() in type) and not
-                        xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.view.Disabled.%s)" % id)):
-                    image = "special://skin/extras/viewthumbs/%s.jpg" % id
+                        xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.view.Disabled.%s)" % viewid)):
+                    image = "special://skin/extras/viewthumbs/%s.jpg" % viewid
                     listitem = xbmcgui.ListItem(label=label, iconImage=image)
-                    listitem.setProperty("id", id)
+                    listitem.setProperty("viewid", viewid)
                     listitem.setProperty("icon", image)
                     all_views.append(listitem)
                     itemcount += 1
@@ -174,9 +173,9 @@ class MainModule:
         result = dialog.result
         del dialog
         if result:
-            id = result.getProperty("id")
+            viewid = result.getProperty("viewid")
             label = result.getLabel()
-            return (id, label)
+            return (viewid, label)
         else:
             return (None, None)
 
@@ -192,7 +191,7 @@ class MainModule:
                 label = xbmc.getLocalizedString(int(view.attributes['languageid'].nodeValue))
                 desc = label + " (" + str(view_id) + ")"
                 listitem = xbmcgui.ListItem(label=label, label2=desc)
-                listitem.setProperty("id", view_id)
+                listitem.setProperty("viewid", view_id)
                 if not xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.view.Disabled.%s)" % view_id):
                     listitem.select(selected=True)
                 all_views.append(listitem)
@@ -208,7 +207,7 @@ class MainModule:
         del dialog
         if result:
             for item in result:
-                view_id = item.getProperty("id")
+                view_id = item.getProperty("viewid")
                 if item.isSelected():
                     # view is enabled
                     xbmc.executebuiltin("Skin.Reset(SkinHelper.view.Disabled.%s)" % view_id)
@@ -543,7 +542,6 @@ class MainModule:
         '''helper which lets the user select an image or imagepath from resourceaddons or custom path'''
         xbmc.executebuiltin("ActivateWindow(busydialog)")
         skinsettings = SkinSettings()
-        images = []
         skinstring = self.params.get("skinstring", "")
         skinshortcutsprop = self.params.get("skinshortcutsproperty", "")
         current_value = self.params.get("currentvalue", "")

@@ -191,8 +191,8 @@ def recursive_delete_dir(path):
     dirs, files = xbmcvfs.listdir(path)
     for file in files:
         success = xbmcvfs.delete(os.path.join(path, file))
-    for dir in dirs:
-        success = recursive_delete_dir(os.path.join(path, dir))
+    for directory in dirs:
+        success = recursive_delete_dir(os.path.join(path, directory))
     success = xbmcvfs.rmdir(path)
     return success
 

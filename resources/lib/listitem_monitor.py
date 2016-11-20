@@ -194,16 +194,16 @@ class ListItemMonitor(threading.Thread):
         if xbmc.getCondVisibility("[Window.IsActive(videoosd) + Skin.String(SkinHelper.AutoCloseVideoOSD)] | "
                                   "[Window.IsActive(musicosd) + Skin.String(SkinHelper.AutoCloseMusicOSD)]"):
             if xbmc.getCondVisibility("Window.IsActive(videoosd)"):
-                secondsToDisplay = xbmc.getInfoLabel("Skin.String(SkinHelper.AutoCloseVideoOSD)")
+                seconds = xbmc.getInfoLabel("Skin.String(SkinHelper.AutoCloseVideoOSD)")
                 window = "videoosd"
             elif xbmc.getCondVisibility("Window.IsActive(musicosd)"):
-                secondsToDisplay = xbmc.getInfoLabel("Skin.String(SkinHelper.AutoCloseMusicOSD)")
+                seconds = xbmc.getInfoLabel("Skin.String(SkinHelper.AutoCloseMusicOSD)")
                 window = "musicosd"
             else:
-                secondsToDisplay = ""
-            if secondsToDisplay and secondsToDisplay != "0":
+                seconds = ""
+            if seconds and seconds != "0":
                 while xbmc.getCondVisibility("Window.IsActive(%s)" % window):
-                    if xbmc.getCondVisibility("System.IdleTime(%s)" % secondsToDisplay):
+                    if xbmc.getCondVisibility("System.IdleTime(%s)" % seconds):
                         if xbmc.getCondVisibility("Window.IsActive(%s)" % window):
                             xbmc.executebuiltin("w.Close(%s)" % window)
                     else:
@@ -217,7 +217,7 @@ class ListItemMonitor(threading.Thread):
                 all_props = self.listitem_details[cur_listitem]
             else:
                 # collect all data
-                listitem = self.get_listitem_details(cur_listitem, content_type, prefix)
+                listitem = self.get_listitem_details(content_type, prefix)
 
                 # safety check
                 if not (cur_listitem == self.last_listitem) or self.exit:
@@ -444,7 +444,7 @@ class ListItemMonitor(threading.Thread):
         directors = director.split(" / ")
         return {'Directors': "[CR]".join(directors)}
 
-    def get_listitem_details(self, cur_listitem, content_type, prefix):
+    def get_listitem_details(self, content_type, prefix):
         '''collect all listitem properties/values we need'''
 
         # collect all the infolabels we need

@@ -1,5 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+
+'''several helpers to get data/images from kodi image resource addons'''
+
 import xbmc
 import xbmcvfs
 import xbmcgui
@@ -12,8 +15,6 @@ import os
 import urllib2
 import re
 from simplecache import SimpleCache
-
-'''several helpers to get data/images from kodi image resource addons'''
 
 
 def setresourceaddon(addontype, skinstring=""):
@@ -214,12 +215,12 @@ def get_multi_extension(filepath):
     return (is_multi, extension)
 
 
-def get_repo_resourceaddons(filter=""):
+def get_repo_resourceaddons(filterstr=""):
     '''helper to retrieve all available resource addons on the kodi repo'''
     result = []
     simplecache = SimpleCache()
     for item in xbmcvfs.listdir("addons://all/kodi.resource.images/")[1]:
-        if not filter or item.lower().startswith(filter.lower()):
+        if not filterstr or item.lower().startswith(filterstr.lower()):
             addoninfo = get_repo_addoninfo(item, simplecache)
             if not addoninfo.get("name"):
                 addoninfo = {"addonid": item, "name": item, "author": ""}

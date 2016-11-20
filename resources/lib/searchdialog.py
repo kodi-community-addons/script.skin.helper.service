@@ -1,3 +1,6 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
 import threading
 import sys
 import xbmc
@@ -239,7 +242,7 @@ class SearchBackgroundThread(threading.Thread):
         last_searchstring = ""
         monitor = xbmc.Monitor()
         while not monitor.abortRequested() and self.active:
-            if(self.search_string != last_searchstring):
+            if self.search_string != last_searchstring:
                 last_searchstring = self.search_string
                 self.do_search(self.search_string)
             monitor.waitForAbort(1)
