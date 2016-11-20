@@ -13,7 +13,6 @@ import xbmc
 import xbmcgui
 from artutils import ArtUtils, extend_dict, KodiDb
 from utils import log_msg, get_current_content_type
-import threading
 
 CANCEL_DIALOG = (9, 10, 92, 216, 247, 257, 275, 61467, 61448, )
 ACTION_SHOW_INFO = (11, )
@@ -22,7 +21,7 @@ ACTION_SHOW_INFO = (11, )
 class DialogVideoInfo(xbmcgui.WindowXMLDialog):
     '''Wrapper around the videoinfodialog'''
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, **kwargs):
         xbmcgui.WindowXMLDialog.__init__(self)
         self.listitem = kwargs.get("listitem")
 

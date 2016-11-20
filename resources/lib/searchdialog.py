@@ -8,7 +8,6 @@
 '''
 
 import threading
-import sys
 import xbmc
 import xbmcgui
 from artutils import process_method_on_list, KodiDb

@@ -14,11 +14,11 @@ import xbmcgui
 import xbmcaddon
 from skinsettings import SkinSettings
 from simplecache import SimpleCache
-from utils import log_msg, KODI_VERSION, kodi_json
+from utils import log_msg, KODI_VERSION
 from utils import log_exception, get_current_content_type, ADDON_ID, recursive_delete_dir
 from dialogselect import DialogSelect
 from xml.dom.minidom import parse
-from artutils import KodiDb, Tmdb, process_method_on_list
+from artutils import KodiDb, process_method_on_list
 import urlparse
 import sys
 
@@ -477,7 +477,7 @@ class MainModule:
             self.win.setProperty("SkinHelper.SplashScreen", splashfile)
             # for images we just wait for X seconds to close the splash again
             start_time = time.time()
-            while(time.time() - start_time <= duration):
+            while time.time() - start_time <= duration:
                 xbmc.sleep(500)
         else:
             # for video or audio we have to wait for the player to finish...

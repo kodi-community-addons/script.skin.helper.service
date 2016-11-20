@@ -14,7 +14,7 @@ import xbmc
 class DialogSelect(xbmcgui.WindowXMLDialog):
     '''Wrapper around Kodi dialogselect to use for the custom skin settings etc.'''
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, **kwargs):
         xbmcgui.WindowXMLDialog.__init__(self)
         self.listing = kwargs.get("listing")
         self.windowtitle = kwargs.get("windowtitle")

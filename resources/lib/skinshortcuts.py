@@ -450,9 +450,9 @@ def favourites_widgets():
                     "search" not in content.lower() and "play" not in content.lower()):
                 label = fav["title"]
                 log_msg("skinshortcuts widgets processing favourite: %s" % label)
-                type = detect_plugin_content(content)
-                if type and type != "empty":
-                    widgets.append([label, content, type])
+                mediatype = detect_plugin_content(content)
+                if mediatype and mediatype != "empty":
+                    widgets.append([label, content, mediatype])
     return widgets
 
 

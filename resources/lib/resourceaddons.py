@@ -12,7 +12,7 @@ import xbmc
 import xbmcvfs
 import xbmcgui
 import xbmcaddon
-from utils import log_msg, KODI_VERSION, ADDON_ID, log_exception, kodi_json
+from utils import KODI_VERSION, ADDON_ID, log_exception, kodi_json
 from dialogselect import DialogSelect
 import urllib2
 import re

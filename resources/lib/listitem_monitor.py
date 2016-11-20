@@ -76,8 +76,8 @@ class ListItemMonitor(threading.Thread):
             elif xbmc.getCondVisibility("[Window.IsMedia | "
                                         "!IsEmpty(Window(Home).Property(SkinHelper.WidgetContainer))]"):
                 self.monitor_listitem()
-                self.kodimonitor.waitForAbort(0.10)
-                self.delayed_task_interval += 0.10
+                self.kodimonitor.waitForAbort(0.01)
+                self.delayed_task_interval += 0.01
 
             # flush any remaining window properties
             elif self.all_window_props:
