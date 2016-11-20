@@ -54,20 +54,19 @@ class DialogVideoInfo(xbmcgui.WindowXMLDialog):
             except Exception:
                 pass
 
-    def onClick(self, controlId):
+    def onClick(self, controlid):
         '''triggers if one of the controls is clicked'''
-        log_msg("onClick --> %s" % controlId, xbmc.LOGNOTICE)
-        if controlId == 8:
+        log_msg("onClick --> %s" % controlid, xbmc.LOGNOTICE)
+        if controlid == 8:
             # play button
             self.close()
             xbmc.executebuiltin("Playmedia(%s)" % self.listitem.getfilename())
-        if controlId == 103:
+        if controlid == 103:
             # trailer button
             pass
 
     def onAction(self, action):
         '''triggers on certain actions like user navigating'''
-        controlid = self.getFocusId()
         if action.getId() in CANCEL_DIALOG:
             self.close()
         if action.getId() in ACTION_SHOW_INFO:

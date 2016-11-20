@@ -24,4 +24,4 @@ if __name__ == '__main__':
     ArtUtils().music_artwork_options(artist, album, track, disc)
     xbmc.executebuiltin("Window.Close(busydialog)")
     win.clearProperty("SkinHelper.Artwork.ManualLookup")
-    del dialogin
+    del win

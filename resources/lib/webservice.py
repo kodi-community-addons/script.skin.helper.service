@@ -12,7 +12,7 @@ import SimpleHTTPServer
 import BaseHTTPServer
 import httplib
 import threading
-from utils import log_msg, ADDON_ID, log_exception, try_encode, try_decode, json
+from utils import log_msg, log_exception, try_encode, try_decode, json
 import xbmc
 import xbmcvfs
 import urlparse

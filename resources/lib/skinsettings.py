@@ -12,7 +12,7 @@ import xbmc
 import xbmcvfs
 import xbmcgui
 import xbmcaddon
-from utils import log_msg, try_encode, KODI_VERSION, ADDON_ID, try_decode, log_exception
+from utils import log_msg, try_encode, ADDON_ID, try_decode
 from dialogselect import DialogSelect
 from xml.dom.minidom import parse
 import xml.etree.ElementTree as xmltree
@@ -229,12 +229,10 @@ class SkinSettings:
             listitem.setProperty("value", "||BACK||")
             listitems.append(listitem)
             all_values = self.skinsettings.get(sublevel, [])
-            setting_id = sublevel
+        elif original_id:
+            all_values = self.skinsettings.get(original_id, [])
         else:
             all_values = self.skinsettings.get(setting, [])
-            setting_id = setting
-            if original_id:
-                setting_id = original_id
         for item in all_values:
             if not item["condition"] or xbmc.getCondVisibility(item["condition"]):
                 value = item["value"]

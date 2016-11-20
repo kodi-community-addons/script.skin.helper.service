@@ -14,7 +14,6 @@ import os
 import sys
 import urllib
 from traceback import format_exc
-import unicodedata
 
 try:
     import simplejson as json

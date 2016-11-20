@@ -11,9 +11,7 @@ import threading
 import sys
 import xbmc
 import xbmcgui
-import xbmcvfs
 from artutils import process_method_on_list, KodiDb
-from utils import log_msg
 
 
 class SearchDialog(xbmcgui.WindowXMLDialog):
@@ -25,6 +23,7 @@ class SearchDialog(xbmcgui.WindowXMLDialog):
         xbmcgui.WindowXMLDialog.__init__(self, *args, **kwargs)
 
     def onInit(self):
+        '''triggers on initialization of the dialog'''
         self.search_thread = SearchBackgroundThread()
         self.search_thread.set_dialog(self)
         self.search_thread.start()
@@ -52,7 +51,7 @@ class SearchDialog(xbmcgui.WindowXMLDialog):
         if len(self.search_string) == 0 or self.search_string == " ":
             self.close_dialog()
         else:
-            if(len(self.search_string) == 1):
+            if len(self.search_string) == 1:
                 search_term = " "
             else:
                 search_term = self.search_string[:-1]
