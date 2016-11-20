@@ -55,9 +55,13 @@ def kodi_json(jsonmethod, params=None, returntype=None):
             result = json_object['result'][returntype]
         else:
             # no returntype specified, we'll have to look for it
-            for key, value in json_object['result'].iteritems():
-                if not key == "limits" and (isinstance(value, list) or isinstance(value, dict)):
-                    result = value
+            if isinstance(json_object['result'], dict):
+                for key, value in json_object['result'].iteritems():
+                    if not key == "limits":
+                        result = value
+                        break
+            else:
+                return json_object['result']
     else:
         log_msg(json_response)
         log_msg(kodi_json)

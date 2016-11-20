@@ -22,7 +22,6 @@ import os
 
 class MainModule:
     '''mainmodule provides the script methods for the skinhelper addon'''
-    params = {}
 
     def __init__(self):
         '''Initialization and main code run'''
@@ -34,7 +33,7 @@ class MainModule:
         self.params = self.get_params()
         log_msg("MainModule called with parameters: %s" % self.params)
         action = self.params.get("action", "")
-        xbmc.executebuiltin("dialog.Close(busydialog)")
+        xbmc.executebuiltin("ActivateWindow(busydialog)")
         # launch module for action provided by this script
         try:
             getattr(self, action)()
@@ -168,12 +167,8 @@ class MainModule:
                     listitem.setProperty("icon", image)
                     all_views.append(listitem)
                     itemcount += 1
-        dialog = DialogSelect(
-            "DialogSelect.xml",
-            "",
-            listing=all_views,
-            windowtitle=self.addon.getLocalizedString(32012),
-            richlayout=True)
+        dialog = DialogSelect("DialogSelect.xml", "", listing=all_views,
+                              windowtitle=self.addon.getLocalizedString(32012), richlayout=True)
         dialog.autofocus_id = cur_view_select_id
         dialog.doModal()
         result = dialog.result
@@ -340,6 +335,11 @@ class MainModule:
         header = self.params.get("header", "")
         SkinSettings().save_skin_image(skinstring, allow_multi, header)
 
+    @staticmethod
+    def checkskinsettings():
+        '''performs check of all default skin settings and labels'''
+        SkinSettings().correct_skin_settings()
+
     def setskinsetting(self):
         '''allows the user to set a skin setting with a select dialog'''
         setting = self.params.get("setting", "")
@@ -433,6 +433,30 @@ class MainModule:
     def colorpicker(self):
         '''legacy'''
         self.deprecated_method("script.skin.helper.colorpicker")
+
+    def backup(self):
+        '''legacy'''
+        self.deprecated_method("script.skin.helper.skinbackup")
+
+    def restore(self):
+        '''legacy'''
+        self.deprecated_method("script.skin.helper.skinbackup")
+
+    def reset(self):
+        '''legacy'''
+        self.deprecated_method("script.skin.helper.skinbackup")
+        
+    def colorthemes(self):
+        '''legacy'''
+        self.deprecated_method("script.skin.helper.skinbackup")
+        
+    def createcolortheme(self):
+        '''legacy'''
+        self.deprecated_method("script.skin.helper.skinbackup")
+        
+    def restorecolortheme(self):
+        '''legacy'''
+        self.deprecated_method("script.skin.helper.skinbackup")
 
     def conditionalbackgrounds(self):
         '''legacy'''
@@ -649,13 +673,14 @@ class MainModule:
     def setresourceaddon(self):
         '''helper to let the user choose a resource addon and set that as skin string'''
         from resourceaddons import setresourceaddon
-        addontype = self.params.get("addontype")
-        skinstring = self.params.get("skinstring")
+        addontype = self.params.get("addontype", "")
+        skinstring = self.params.get("skinstring", "")
         setresourceaddon(addontype, skinstring)
 
     def checkresourceaddons(self):
         '''allow the skinner to perform a basic check if some required resource addons are available'''
-        from resourceaddons import setresourceaddon
-        addonslist = self.params.get("addonslist", "")
-        addonslist = addonslist.split("|")
-        setresourceaddon(addontype, addonslist)
+        from resourceaddons import checkresourceaddons
+        addonslist = self.params.get("addonslist", [])
+        if addonslist:
+            addonslist = addonslist.split("|")
+        checkresourceaddons(addonslist)

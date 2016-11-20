@@ -108,7 +108,7 @@ def downloadresourceaddons(addontype):
             listitem.setPath(item["path"])
             listitem.setProperty("addonid", item["addonid"])
             listitems.append(listitem)
-    #if no addons available show OK dialog..
+    # if no addons available show OK dialog..
     if not listitems:
         dialog = xbmcgui.Dialog()
         dialog.ok(addon.getLocalizedString(32021), addon.getLocalizedString(32022))
@@ -178,10 +178,12 @@ def checkresourceaddon(skinstring="", addontype=""):
         skinstring = params.get("skinstring")
     if addontype and skinstring:
         for item in get_resourceaddons(addontype):
-            xbmc.executebuiltin("Skin.SetString(%s.path,resource://%s/)" % (skinstring, item['addonid']))
+            xbmc.executebuiltin("Skin.SetString(%s.path,%s)" % (skinstring, item['path']))
             xbmc.executebuiltin("Skin.SetString(%s.name,%s)" % (skinstring, item['name']))
-            if item["isMulti"]:
+            is_multi, extension = get_multi_extension(item["path"])
+            if is_multi:
                 xbmc.executebuiltin("Skin.SetBool(%s.multi)" % (skinstring))
+            xbmc.executebuiltin("Skin.SetString(%s.ext,.%s)" % (skinstring, extension))
             return True
     return False
 

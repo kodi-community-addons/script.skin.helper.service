@@ -30,7 +30,7 @@ class SkinSettings:
         del self.win
         del self.addon
 
-    def write_skin_constants(self, constants_listing=None, variables_listing=None):
+    def write_skin_constants(self, constants=None, variables=None):
         '''writes the list of all skin constants'''
         addonpath = xbmc.translatePath(os.path.join("special://skin/", 'addon.xml').encode("utf-8")).decode("utf-8")
         addon = xmltree.parse(addonpath)
@@ -48,8 +48,8 @@ class SkinSettings:
                             "script-skin_helper_service-includes.xml").encode("utf-8")).decode('utf-8')
                     tree = xmltree.ElementTree(xmltree.Element("includes"))
                     root = tree.getroot()
-                    if constants_listing:
-                        for key, value in constants_listing.iteritems():
+                    if constants:
+                        for key, value in constants.iteritems():
                             if value:
                                 child = xmltree.SubElement(root, "constant")
                                 child.text = value
@@ -58,8 +58,8 @@ class SkinSettings:
                                 xbmc.executebuiltin(
                                     "Skin.SetString(%s,%s)" %
                                     (key.encode("utf-8"), value.encode("utf-8")))
-                    if variables_listing:
-                        for key, value in variables_listing.iteritems():
+                    if variables:
+                        for key, value in variables.iteritems():
                             if value:
                                 child = xmltree.SubElement(root, "variable")
                                 child.attrib["name"] = key
@@ -161,7 +161,7 @@ class SkinSettings:
                 skinsettingvalue = {}
                 skinsettingvalue["value"] = item.attributes["value"].nodeValue.decode("utf-8")
                 # optional attributes
-                for key in ["label", "condition", "description", "default", "icon"]:
+                for key in ["label", "condition", "description", "default", "icon", "constantdefault"]:
                     value = ""
                     try:
                         value = item.attributes[key].nodeValue
@@ -301,105 +301,50 @@ class SkinSettings:
     def correct_skin_settings(self):
         '''correct any special skin settings'''
         skinconstants = {}
-        settings_file = xbmc.translatePath('special://skin/extras/skinsettings.xml').decode("utf-8")
-        if xbmcvfs.exists(settings_file):
-            doc = parse(settings_file)
-            listing = doc.documentElement.getElementsByTagName('setting')
-            for item in listing:
-                id = item.attributes['id'].nodeValue
-                value = item.attributes['value'].nodeValue
-                curvalue = xbmc.getInfoLabel("Skin.String(%s)" % id.encode("utf-8")).decode("utf-8")
-                label = xbmc.getInfoLabel(item.attributes['label'].nodeValue).decode("utf-8")
-                if "%" in label:
-                    label = label % value
-                additionalactions = item.getElementsByTagName('onselect')
-                try:
-                    default = item.attributes['default'].nodeValue
-                except Exception:
-                    default = ""
-                try:
-                    constantdefault = item.attributes['constantdefault'].nodeValue
-                except Exception:
-                    constantdefault = ""
+        for settingid, settingvalues in self.skinsettings.iteritems():
+            curvalue = xbmc.getInfoLabel("Skin.String(%s)" % settingid).decode("utf-8")
+            # first check if we have a sublevel
+            if settingvalues and settingvalues[0]["value"].startswith("||SUBLEVEL||"):
+                sublevel = settingvalues[0]["value"].replace("||SUBLEVEL||", "")
+                settingvalues = self.skinsettings.get(sublevel)
+            for settingvalue in settingvalues:
+                value = settingvalue["value"]
+                label = settingvalue["label"]
 
-                # skip submenu level itself, this happens when a setting id also exists as a submenu value for an item
-                skip = False
-                for count3, item3 in enumerate(listing):
-                    if item3.attributes['value'].nodeValue == "||SUBLEVEL||" + id:
-                        skip = True
-                if skip:
-                    continue
+                # only correct the label if value already set
+                if value and value == curvalue:
+                    xbmc.executebuiltin(
+                        "Skin.SetString(%s.label,%s)" %
+                        (settingid.encode("utf-8"), label.encode("utf-8")))
 
-                # enumerate sublevel if needed
-                if value.startswith("||SUBLEVEL||"):
-                    sublevel = value.replace("||SUBLEVEL||", "")
-                    for item2 in listing:
-                        if item2.attributes['id'].nodeValue == sublevel:
-                            try:
-                                subdefault = item2.attributes['default'].nodeValue
-                            except Exception:
-                                subdefault = ""
-                            try:
-                                subconstantdefault = item2.attributes['constantdefault'].nodeValue
-                            except Exception:
-                                subconstantdefault = ""
-                            # match in sublevel or default found in sublevel values
-                            if (item2.attributes['value'].nodeValue.lower() == curvalue.lower()) or (
-                                    not curvalue and xbmc.getCondVisibility(subdefault)):
-                                label = xbmc.getInfoLabel(item2.attributes['label'].nodeValue).decode("utf-8")
-                                value = item2.attributes['value'].nodeValue
-                                if "%" in label:
-                                    label = label % value
-                                default = subdefault
-                                additionalactions = item2.getElementsByTagName('onselect')
-                            if ((item2.attributes['value'].nodeValue.lower() == curvalue.lower()) or
-                                    xbmc.getCondVisibility(subconstantdefault)):
-                                label = xbmc.getInfoLabel(item2.attributes['label'].nodeValue).decode("utf-8")
-                                value = item2.attributes['value'].nodeValue
-                                if "%" in label:
-                                    label = label % value
-                                constantdefault = subconstantdefault
-                                additionalactions = item2.getElementsByTagName('onselect')
-                # process any multiselects
-                if value.startswith("||MULTISELECT||"):
-                    options = item.getElementsByTagName('option')
-                    for option in options:
-                        skinsetting = option.attributes['id'].nodeValue
-                        if not xbmc.getInfoLabel(
-                                "Skin.String(defaultset_%s)" % skinsetting) and xbmc.getCondVisibility(
-                                option.attributes['default'].nodeValue):
-                            xbmc.executebuiltin("Skin.SetBool(%s)" % skinsetting)
-                        # always set additional prop to define the defaults
-                        xbmc.executebuiltin("Skin.SetString(defaultset_%s,defaultset)" % skinsetting)
-
-                # only correct the label
-                if value and value.lower() == curvalue.lower():
-                    xbmc.executebuiltin("Skin.SetString(%s.label,%s)" % (id.encode("utf-8"), label.encode("utf-8")))
                 # set the default value if current value is empty
-                if not curvalue and xbmc.getCondVisibility(default):
-                    xbmc.executebuiltin("Skin.SetString(%s.label,%s)" % (id.encode("utf-8"), label.encode("utf-8")))
-                    xbmc.executebuiltin("Skin.SetString(%s,%s)" % (id.encode("utf-8"), value.encode("utf-8")))
+                if not curvalue and settingvalue["default"] and xbmc.getCondVisibility(settingvalue["default"]):
+                    xbmc.executebuiltin(
+                        "Skin.SetString(%s.label,%s)" %
+                        (settingid.encode("utf-8"), label.encode("utf-8")))
+                    xbmc.executebuiltin("Skin.SetString(%s,%s)" % (settingid.encode("utf-8"), value.encode("utf-8")))
                     # additional onselect actions
-                    for action in additionalactions:
-                        condition = action.attributes['condition'].nodeValue
-                        if condition and not xbmc.getCondVisibility(condition):
-                            continue
-                        command = action.firstChild.nodeValue
-                        if "$" in command:
-                            command = xbmc.getInfoLabel(command)
-                        xbmc.executebuiltin(command)
+                    for action in settingvalue["onselectactions"]:
+                        if action["condition"] and xbmc.getCondVisibility(action["condition"]):
+                            command = action["command"]
+                            if "$" in command:
+                                command = xbmc.getInfoLabel(command)
+                            xbmc.executebuiltin(command.encode("utf-8"))
+
+                # process any multiselects
+                for option in settingvalue["settingoptions"]:
+                    settingid = option["id"]
+                    if (not xbmc.getInfoLabel("Skin.String(defaultset_%s)" % settingid) and option["default"] and
+                            xbmc.getCondVisibility(option["default"])):
+                        xbmc.executebuiltin("Skin.SetBool(%s)" % settingid)
+                    xbmc.executebuiltin("Skin.SetString(defaultset_%s,defaultset)" % settingid)
+
                 # set the default constant value if current value is empty
-                if xbmc.getCondVisibility(constantdefault) and not curvalue:
-                    skinconstants[id] = value
-                    # additional onselect actions
-                    for action in additionalactions:
-                        condition = action.attributes['condition'].nodeValue
-                        if condition and not xbmc.getCondVisibility(condition):
-                            continue
-                        command = action.firstChild.nodeValue
-                        if "$" in command:
-                            command = xbmc.getInfoLabel(command)
-                        xbmc.executebuiltin(command)
+                if (not curvalue and settingvalue["constantdefault"] and
+                        xbmc.getCondVisibility(settingvalue["constantdefault"])):
+                    skinconstants[settingid] = value
+
+        # update skin constants if needed only
         if skinconstants:
             self.update_skin_constants(skinconstants)
 
@@ -505,7 +450,8 @@ class SkinSettings:
         del dialog
         if isinstance(result, bool):
             # refresh listing requested by getmore button
-            return self.select_image()
+            return self.select_image(skinstring, allow_multi, windowheader,
+                                     resource_addon, skinhelper_backgrounds, current_value)
         elif result:
             label = result.getLabel()
             if label == self.addon.getLocalizedString(32004):
@@ -556,7 +502,6 @@ class SkinSettings:
             xbmc.executebuiltin("Skin.SetString(defaultset_%s,defaultset)" % item.getProperty("id"))
         del dialog
 
-    
     def indent_xml(self, elem, level=0):
         '''helper to properly indent xml strings to file'''
         text_i = "\n" + level * "\t"
