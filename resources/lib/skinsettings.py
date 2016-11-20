@@ -8,7 +8,6 @@ from utils import log_msg, try_encode, KODI_VERSION, ADDON_ID, try_decode, log_e
 from dialogselect import DialogSelect
 from xml.dom.minidom import parse
 import xml.etree.ElementTree as xmltree
-import sys
 import os
 import time
 

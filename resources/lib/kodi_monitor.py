@@ -14,7 +14,7 @@ class KodiMonitor(xbmc.Monitor):
     all_window_props = []
     cur_title = ""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, **kwargs):
         xbmc.Monitor.__init__(self)
         self.cache = kwargs.get("cache")
         self.artutils = kwargs.get("artutils")

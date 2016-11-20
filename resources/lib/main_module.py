@@ -16,7 +16,6 @@ import urlparse
 import urllib
 import urllib2
 import sys
-import os
 
 
 class MainModule:
@@ -92,7 +91,7 @@ class MainModule:
         xbmc.executebuiltin('SendClick(301)')
         count = 0
         # wait untill the empy item is focused
-        while (count != 60 and xbmc.getCondVisibility("Window.IsActive(script-skinshortcuts.xml)")):
+        while count != 60 and xbmc.getCondVisibility("Window.IsActive(script-skinshortcuts.xml)"):
             if not xbmc.getCondVisibility("StringCompare(Container(211).ListItem.Property(path), noop)"):
                 xbmc.sleep(100)
                 count += 1
@@ -137,7 +136,6 @@ class MainModule:
     def selectview(self, content_type="other", current_view=None, display_none=False):
         '''reads skinfile with all views to present a dialog to choose from'''
         cur_view_select_id = None
-        id = None
         label = ""
         all_views = []
         if display_none:
@@ -387,6 +385,7 @@ class MainModule:
         try:
             valueint = int(value)
             is_int = True
+            del valueint
         except Exception:
             pass
         if value.lower() == "true":

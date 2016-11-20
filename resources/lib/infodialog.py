@@ -65,9 +65,9 @@ class DialogVideoInfo(xbmcgui.WindowXMLDialog):
     def onAction(self, action):
         '''triggers on certain actions like user navigating'''
         controlid = self.getFocusId()
-        if (action.getId() in CANCEL_DIALOG):
+        if action.getId() in CANCEL_DIALOG:
             self.close()
-        if (action.getId() in ACTION_SHOW_INFO):
+        if action.getId() in ACTION_SHOW_INFO:
             self.close()
 
 

@@ -94,7 +94,7 @@ class ListItemMonitor(threading.Thread):
         li_label = xbmc.getInfoLabel("%sListItem.Label" % cont_prefix).decode('utf-8')
 
         # perform actions if the container path has changed
-        if (cur_folder != self.last_folder):
+        if cur_folder != self.last_folder:
             self.reset_win_props()
             self.last_folder = cur_folder
             content_type = self.get_content_type(cur_folder, li_label, cont_prefix)
@@ -444,7 +444,8 @@ class ListItemMonitor(threading.Thread):
         directors = director.split(" / ")
         return {'Directors': "[CR]".join(directors)}
 
-    def get_listitem_details(self, content_type, prefix):
+    @staticmethod
+    def get_listitem_details(content_type, prefix):
         '''collect all listitem properties/values we need'''
 
         # collect all the infolabels we need

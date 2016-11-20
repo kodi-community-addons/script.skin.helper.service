@@ -85,9 +85,9 @@ class StoppableHttpRequestHandler (SimpleHTTPServer.SimpleHTTPRequestHandler):
         self.end_headers()
         self.server.stop = True
 
-    def log_message(self, format, *args):
+    def log_message(self, logformat, *args):
         ''' log message to kodi log'''
-        log_msg("Webservice --> [%s] %s\n" % (self.log_date_time_string(), format % args))
+        log_msg("Webservice --> [%s] %s\n" % (self.log_date_time_string(), logformat % args))
 
     def parse_request(self):
         '''hack to accept non url encoded strings to pass listitem details from Kodi to webservice

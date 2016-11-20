@@ -1,4 +1,10 @@
 # -*- coding: utf-8 -*-
+
+'''
+    script.skin.helper.service
+    Contextmenu for Music art
+'''
+
 import xbmc, xbmcgui
 from artutils import ArtUtils
 

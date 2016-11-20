@@ -1,6 +1,12 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+'''
+    script.skin.helper.service
+    searchdialog.py
+    Special window to search the Kodi video database
+'''
+
 import threading
 import sys
 import xbmc
@@ -11,7 +17,7 @@ from utils import log_msg, get_current_content_type
 
 
 class SearchDialog(xbmcgui.WindowXMLDialog):
-
+    ''' Special window to search the Kodi video database'''
     search_thread = None
     search_string = ""
 
@@ -35,7 +41,7 @@ class SearchDialog(xbmcgui.WindowXMLDialog):
             self.show_info()
 
         else:
-            self.onActionTextBox(action)
+            self.action_textbox(action)
 
     def close_dialog(self, action=None):
         '''stop background thread and close the dialog'''
@@ -56,10 +62,10 @@ class SearchDialog(xbmcgui.WindowXMLDialog):
             self.search_string = search_term
             self.search_thread.set_search(search_term)
 
-    def onActionTextBox(self, act):
+    def action_textbox(self, act):
         '''special handler to allow direct typing to search'''
-        ACTION_NUMBER_0 = 58
-        ACTION_NUMBER_9 = 67
+        action_number_0 = 58
+        action_number_9 = 67
         action = act.getId()
         button = act.getButtonCode()
 
@@ -72,8 +78,8 @@ class SearchDialog(xbmcgui.WindowXMLDialog):
             self.add_character(chr(button - 0xEFE0))
 
         # Numbers
-        if action >= ACTION_NUMBER_0 and action <= ACTION_NUMBER_9:
-            self.add_character(chr(action - ACTION_NUMBER_0 + 48))
+        if action >= action_number_0 and action <= action_number_9:
+            self.add_character(chr(action - action_number_0 + 48))
 
         # Backspace
         if button == 0xF008:
