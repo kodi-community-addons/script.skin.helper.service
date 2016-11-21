@@ -34,10 +34,8 @@ class MainModule:
         self.cache = SimpleCache()
 
         self.params = self.get_params()
-        log_msg("MainModule called with parameters: %s" % self.params)
+        log_msg("MainModule called with parameters: %s" % self.params, xbmc.LOGWARNING)
         action = self.params.get("action", "")
-        if action != "showinfo":
-            xbmc.executebuiltin("ActivateWindow(busydialog)")
         # launch module for action provided by this script
         try:
             getattr(self, action)()
@@ -92,23 +90,6 @@ class MainModule:
                 xbmc.executebuiltin("RunPlugin(plugin://%s)" % newaddon)
 
     @staticmethod
-    def addshortcut():
-        '''workaround for skinshortcuts to add new shortcut by adding empty first'''
-        xbmc.executebuiltin('SendClick(301)')
-        count = 0
-        # wait untill the empy item is focused
-        while count != 60 and xbmc.getCondVisibility("Window.IsActive(script-skinshortcuts.xml)"):
-            if not xbmc.getCondVisibility("StringCompare(Container(211).ListItem.Property(path), noop)"):
-                xbmc.sleep(100)
-                count += 1
-            else:
-                break
-        if xbmc.getCondVisibility(
-                "StringCompare(Container(211).ListItem.Property(path), noop) + "
-                "Window.IsActive(script-skinshortcuts.xml)"):
-            xbmc.executebuiltin('SendClick(401)')
-
-    @staticmethod
     def musicsearch():
         '''helper to go directly to music search dialog'''
         xbmc.executebuiltin("ActivateWindow(Music)")
@@ -116,6 +97,7 @@ class MainModule:
 
     def setview(self):
         '''sets the selected viewmode for the container'''
+        xbmc.executebuiltin("ActivateWindow(busydialog)")
         content_type = get_current_content_type()
         if not content_type:
             content_type = "files"
@@ -305,12 +287,12 @@ class MainModule:
         fallback = self.params.get("fallback")
         count = 0
         if control:
-            xbmc.sleep(200)
             while not xbmc.getCondVisibility("Control.HasFocus(%s)" % control):
-                if count == 20 or(
-                    fallback and xbmc.getCondVisibility(
-                        "Control.IsVisible(%s)"
-                        "+ !IntegerGreaterThan(Container(%s).NumItems,0)" % (control, control))):
+                if xbmc.getCondVisibility("Window.IsActive(busydialog)"):
+                    continue
+                elif count == 20 or ( xbmc.getCondVisibility(
+                        "!Control.IsVisible(%s) | "
+                        "!IntegerGreaterThan(Container(%s).NumItems,0)" % (control, control))):
                     if fallback:
                         xbmc.executebuiltin("Control.SetFocus(%s)" % fallback)
                     break
@@ -318,6 +300,7 @@ class MainModule:
                     xbmc.executebuiltin("Control.SetFocus(%s)" % control)
                     xbmc.sleep(50)
                     count += 1
+                    break
 
     def setwidgetcontainer(self):
         '''helper that reports the current selected widget container/control'''
@@ -335,6 +318,7 @@ class MainModule:
 
     def saveskinimage(self):
         '''let the user select an image and save it to addon_data for easy backup'''
+        xbmc.executebuiltin("ActivateWindow(busydialog)")
         skinstring = self.params.get("skinstring", "")
         allow_multi = self.params.get("multi", "") == "true"
         header = self.params.get("header", "")
@@ -347,6 +331,7 @@ class MainModule:
 
     def setskinsetting(self):
         '''allows the user to set a skin setting with a select dialog'''
+        xbmc.executebuiltin("ActivateWindow(busydialog)")
         setting = self.params.get("setting", "")
         org_id = self.params.get("id", "")
         header = self.params.get("header", "")
@@ -354,6 +339,7 @@ class MainModule:
 
     def setskinconstant(self):
         '''allows the user to set a skin constant with a select dialog'''
+        xbmc.executebuiltin("ActivateWindow(busydialog)")
         setting = self.params.get("setting", "").split("|")
         value = self.params.get("value", "").split("|")
         header = self.params.get("header", "")
@@ -367,6 +353,7 @@ class MainModule:
 
     def setskinshortcutsproperty(self):
         '''allows the user to make a setting for skinshortcuts using the special skinsettings dialogs'''
+        xbmc.executebuiltin("ActivateWindow(busydialog)")
         setting = self.params.get("setting", "")
         prop = self.params.get("property", "")
         header = self.params.get("header", "")
@@ -496,6 +483,7 @@ class MainModule:
 
     def videosearch(self):
         '''show the special search dialog'''
+        xbmc.executebuiltin("ActivateWindow(busydialog)")
         from resources.lib.searchdialog import SearchDialog
         search_dialog = SearchDialog("script-skin_helper_service-CustomSearch.xml",
                                      self.addon.getAddonInfo('path').decode("utf-8"), "Default", "1080i")

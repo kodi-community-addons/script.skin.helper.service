@@ -28,6 +28,12 @@ class ListItemMonitor(threading.Thread):
     foldercontent = {}
     screensaver_setting = None
     screensaver_disabled = False
+    lookup_busy = {}
+    enable_extendedart = False
+    enable_musicart = False
+    enable_animatedart = False
+    enable_extrafanart = False
+    enable_pvrart = False
 
     def __init__(self, *args, **kwargs):
         self.cache = kwargs.get("cache")
@@ -74,8 +80,8 @@ class ListItemMonitor(threading.Thread):
                 self.last_listitem = ""
 
             # media window is opened or widgetcontainer set - start listitem monitoring!
-            elif xbmc.getCondVisibility("[Window.IsMedia | "
-                                        "!IsEmpty(Window(Home).Property(SkinHelper.WidgetContainer))]"):
+            elif xbmc.getCondVisibility("Window.IsMedia | "
+                                        "!IsEmpty(Window(Home).Property(SkinHelper.WidgetContainer))"):
                 self.monitor_listitem()
                 self.kodimonitor.waitForAbort(0.15)
                 self.delayed_task_interval += 0.15
@@ -93,6 +99,19 @@ class ListItemMonitor(threading.Thread):
                 self.kodimonitor.waitForAbort(1)
                 self.delayed_task_interval += 1
 
+    def get_settings(self):
+        '''collect our skin settings that control the monitoring'''
+        self.enable_extendedart = xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnableExtendedArt)") == 1
+        self.enable_musicart = xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnableMusicArt)") == 1
+        self.enable_animatedart = xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnableAnimatedPosters)") == 1
+        self.enable_extrafanart = xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnableExtraFanart)") == 1
+        self.enable_pvrart = xbmc.getCondVisibility(
+            "Skin.HasSetting(SkinHelper.EnablePVRThumbs) + PVR.HasTVChannels") == 1
+        studiologos_path = xbmc.getInfoLabel("Skin.String(SkinHelper.StudioLogos.Path)").decode("utf-8")
+        if studiologos_path != self.artutils.studiologos_path:
+            self.listitem_details = {}
+            self.artutils.studiologos_path = studiologos_path
+
     def monitor_listitem(self):
         '''Monitor listitem details'''
 
@@ -102,17 +121,13 @@ class ListItemMonitor(threading.Thread):
         # perform actions if the container path has changed
         if cur_folder != self.last_folder:
             self.reset_win_props()
+            self.get_settings()
             self.last_folder = cur_folder
             content_type = self.get_content_type(cur_folder, li_label, cont_prefix)
-
             # additional actions to perform when we have a valid contenttype and no widget container
             if not cont_prefix and content_type:
                 self.set_forcedview(content_type)
                 self.set_content_header(content_type)
-
-            # make sure that we have a valid path for studio logos
-            self.artutils.studiologos_path = xbmc.getInfoLabel(
-                "Skin.String(SkinHelper.StudioLogos.Path)").decode("utf-8")
         else:
             content_type = self.get_content_type(cur_folder, li_label, cont_prefix)
 
@@ -234,9 +249,15 @@ class ListItemMonitor(threading.Thread):
                     # for widgets we immediately set all normal properties as window prop
                     self.set_win_props(self.prepare_win_props(listitem))
 
+                # if another lookup for the same listitem already in progress... wait for it to complete
+                while self.lookup_busy.get(cur_listitem):
+                    xbmc.sleep(250)
+                    if cur_listitem != self.last_listitem or self.exit:
+                        return
+                self.lookup_busy[cur_listitem] = True
+
                 # music content
-                if content_type in ["albums", "artists", "songs"] and xbmc.getCondVisibility(
-                        "Skin.HasSetting(SkinHelper.EnableMusicArt)"):
+                if content_type in ["albums", "artists", "songs"] and self.enable_musicart:
                     artist = listitem["albumartist"]
                     if not artist:
                         artist = listitem["artist"]
@@ -265,7 +286,7 @@ class ListItemMonitor(threading.Thread):
                         listitem, self.get_streamdetails(
                             listitem["dbid"], listitem["path"], content_type))
                     listitem = extend_dict(listitem, self.artutils.get_top250_rating(listitem["imdbnumber"]))
-                    if xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnableExtendedArt)"):
+                    if self.enable_extendedart:
                         if not (listitem["art"]["clearlogo"] or listitem["art"]["landscape"]):
                             listitem = extend_dict(listitem, self.artutils.get_extended_artwork(
                                 listitem["imdbnumber"], tvdbid, content_type))
@@ -278,8 +299,7 @@ class ListItemMonitor(threading.Thread):
                     # movies-only properties (tmdb, animated art)
                     if content_type in ["movies", "setmovies"]:
                         listitem = extend_dict(listitem, self.artutils.get_tmdb_details(listitem["imdbnumber"]))
-                        if listitem["imdbnumber"] and xbmc.getCondVisibility(
-                                "Skin.HasSetting(SkinHelper.EnableAnimatedPosters)"):
+                        if listitem["imdbnumber"] and self.enable_animatedart:
                             listitem = extend_dict(listitem, self.artutils.get_animated_artwork(listitem["imdbnumber"]))
 
                 # monitor listitem props when PVR is active
@@ -290,6 +310,8 @@ class ListItemMonitor(threading.Thread):
                 all_props = self.prepare_win_props(listitem)
                 if content_type not in ["weathers", "systeminfos"]:
                     self.listitem_details[cur_listitem] = all_props
+
+                self.lookup_busy.pop(cur_listitem, None)
 
             if cur_listitem == self.last_listitem:
                 self.set_win_props(all_props)
@@ -380,7 +402,7 @@ class ListItemMonitor(threading.Thread):
         if prop_tuple[1] and not prop_tuple[0] in self.all_window_props:
             self.all_window_props.append(prop_tuple[0])
             self.win.setProperty(prop_tuple[0], prop_tuple[1])
-            
+
     def set_win_props(self, prop_tuples):
         '''set multiple window properties from list of tuples'''
         for prop_tuple in prop_tuples:
@@ -529,14 +551,14 @@ class ListItemMonitor(threading.Thread):
     def get_extrafanart(self, li_dbid, content_type):
         '''get the extrafanart path for the actual video item'''
         details = {}
-        if xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnableExtraFanart)"):
+        if self.enable_extrafanart:
             if li_dbid and content_type in ["movies", "seasons", "episodes", "tvshows", "setmovies", "moviesets"]:
                 details = self.artutils.get_extrafanart(li_dbid, content_type)
         return details
 
     def get_pvr_artwork(self, listitem, prefix):
         '''get pvr artwork from artwork module'''
-        if xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnablePVRThumbs) + PVR.HasTVChannels"):
+        if self.enable_pvrart:
             if xbmc.getCondVisibility("%sListItem.IsFolder" % prefix) and not listitem[
                     "channelname"] and not listitem["title"]:
                 listitem["title"] = listitem["label"]
