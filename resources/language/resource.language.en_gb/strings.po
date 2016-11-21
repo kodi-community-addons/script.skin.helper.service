@@ -107,3 +107,11 @@ msgstr ""
 msgctxt "#32022"
 msgid "There are no (more) resource addons available for this type"
 msgstr ""
+
+msgctxt "#32023"
+msgid "Artwork options"
+msgstr ""
+
+msgctxt "#32024"
+msgid "Select Animated Art"
+msgstr ""

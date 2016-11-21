@@ -469,7 +469,7 @@ class ListItemMonitor(threading.Thread):
         props = ["label", "title", "filenameandpath", "year", "genre", "path", "folderpath",
                  "art(fanart)", "art(poster)", "art(clearlogo)", "art(clearart)", "art(landscape)",
                  "fileextension", "duration", "plot", "plotoutline", "icon", "thumb", "label2",
-                 "dbtype", "dbid", "art(thumb)"
+                 "dbtype", "dbid", "art(thumb)", "art(banner)"
                  ]
         if content_type in ["movies", "tvshows", "seasons", "episodes", "musicvideos", "setmovies"]:
             props += ["art(characterart)", "studio", "tvshowtitle", "premiered", "director", "writer",
