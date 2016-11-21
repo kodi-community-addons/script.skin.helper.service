@@ -6,6 +6,6 @@ ________________________________________________________________________________
 
 All documentation for this addon can be found in the online wiki:
 
-https://github.com/marcelveldt/script.skin.helper.service/wiki/Webservice
+https://github.com/marcelveldt/script.skin.helper.service/wiki
 
 
