@@ -36,7 +36,8 @@ class MainModule:
         self.params = self.get_params()
         log_msg("MainModule called with parameters: %s" % self.params)
         action = self.params.get("action", "")
-        xbmc.executebuiltin("ActivateWindow(busydialog)")
+        if action != "showinfo":
+            xbmc.executebuiltin("ActivateWindow(busydialog)")
         # launch module for action provided by this script
         try:
             getattr(self, action)()

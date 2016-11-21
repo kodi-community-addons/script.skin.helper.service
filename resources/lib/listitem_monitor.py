@@ -10,7 +10,7 @@
 import threading
 import thread
 from utils import log_msg, log_exception, get_current_content_type, kodi_json
-from artutils import process_method_on_list, extend_dict
+from artutils import extend_dict
 import xbmc
 from simplecache import use_cache
 
@@ -59,7 +59,7 @@ class ListItemMonitor(threading.Thread):
 
             # skip if any of the artwork context menus is opened
             if self.win.getProperty("SkinHelper.Artwork.ManualLookup"):
-                if self.cur_listitem:
+                if self.last_listitem:
                     self.reset_win_props()
                     self.last_listitem = ""
                     self.listitem_details = {}
@@ -71,13 +71,14 @@ class ListItemMonitor(threading.Thread):
                     "System.HasModalDialog | Window.IsActive(progressdialog) | Window.IsActive(busydialog)"):
                 self.kodimonitor.waitForAbort(2)
                 self.delayed_task_interval += 2
+                self.last_listitem = ""
 
             # media window is opened or widgetcontainer set - start listitem monitoring!
             elif xbmc.getCondVisibility("[Window.IsMedia | "
                                         "!IsEmpty(Window(Home).Property(SkinHelper.WidgetContainer))]"):
                 self.monitor_listitem()
-                self.kodimonitor.waitForAbort(0.01)
-                self.delayed_task_interval += 0.01
+                self.kodimonitor.waitForAbort(0.15)
+                self.delayed_task_interval += 0.15
 
             # flush any remaining window properties
             elif self.all_window_props:
@@ -120,10 +121,10 @@ class ListItemMonitor(threading.Thread):
         cur_listitem = "%s--%s--%s--%s" % (cur_folder, li_label, li_title, content_type)
 
         if cur_listitem and content_type and cur_listitem != self.last_listitem:
+            self.last_listitem = cur_listitem
             # clear all window props first
             self.reset_win_props()
             self.set_win_prop(("curlistitem", cur_listitem))
-            self.last_listitem = cur_listitem
             if not li_label == "..":
                 # set listitem details in background thread
                 thread.start_new_thread(
@@ -218,7 +219,7 @@ class ListItemMonitor(threading.Thread):
     def set_listitem_details(self, cur_listitem, content_type, prefix):
         '''set the window properties based on the current listitem'''
         try:
-            if self.listitem_details.get(cur_listitem):
+            if cur_listitem in self.listitem_details:
                 # data already in memory
                 all_props = self.listitem_details[cur_listitem]
             else:
@@ -226,12 +227,12 @@ class ListItemMonitor(threading.Thread):
                 listitem = self.get_listitem_details(content_type, prefix)
 
                 # safety check
-                if not (cur_listitem == self.last_listitem) or self.exit:
+                if cur_listitem != self.last_listitem or self.exit:
                     return
 
                 if prefix:
                     # for widgets we immediately set all normal properties as window prop
-                    process_method_on_list(self.set_win_prop, self.prepare_win_props(listitem))
+                    self.set_win_props(self.prepare_win_props(listitem))
 
                 # music content
                 if content_type in ["albums", "artists", "songs"] and xbmc.getCondVisibility(
@@ -291,7 +292,7 @@ class ListItemMonitor(threading.Thread):
                     self.listitem_details[cur_listitem] = all_props
 
             if cur_listitem == self.last_listitem:
-                process_method_on_list(self.set_win_prop, all_props)
+                self.set_win_props(all_props)
         except Exception as exc:
             log_exception(__name__, exc)
 
@@ -349,7 +350,8 @@ class ListItemMonitor(threading.Thread):
 
     def reset_win_props(self):
         '''reset all window props set by the script...'''
-        process_method_on_list(self.win.clearProperty, self.all_window_props)
+        for prop in self.all_window_props:
+            self.win.clearProperty(prop)
         self.all_window_props = []
 
     @use_cache(14, True)
@@ -378,6 +380,11 @@ class ListItemMonitor(threading.Thread):
         if prop_tuple[1] and not prop_tuple[0] in self.all_window_props:
             self.all_window_props.append(prop_tuple[0])
             self.win.setProperty(prop_tuple[0], prop_tuple[1])
+            
+    def set_win_props(self, prop_tuples):
+        '''set multiple window properties from list of tuples'''
+        for prop_tuple in prop_tuples:
+            self.set_win_prop(prop_tuple)
 
     @staticmethod
     def prepare_win_props(details):
@@ -508,7 +515,8 @@ class ListItemMonitor(threading.Thread):
             # skip if the view is already visible or if we're not in an actual media window
             return
         if (content_type and cur_forced_view and cur_forced_view != "None" and xbmc.getCondVisibility(
-                "Skin.HasSetting(SkinHelper.ForcedViews.Enabled)") and "pvr://guide" not in self.li_path):
+                "Skin.HasSetting(SkinHelper.ForcedViews.Enabled)") and not
+                xbmc.getCondVisibility("Window.IsActive(MyPvrGuide.xml)")):
             self.win.setProperty("SkinHelper.ForcedView", cur_forced_view)
             xbmc.executebuiltin("Container.SetViewMode(%s)" % cur_forced_view)
             if not xbmc.getCondVisibility("Control.HasFocus(%s)" % cur_forced_view):

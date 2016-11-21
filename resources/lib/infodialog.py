@@ -12,7 +12,7 @@
 import xbmc
 import xbmcgui
 from artutils import ArtUtils, extend_dict, KodiDb
-from utils import log_msg, get_current_content_type
+from utils import get_current_content_type
 
 CANCEL_DIALOG = (9, 10, 92, 216, 247, 257, 275, 61467, 61448, )
 ACTION_SHOW_INFO = (11, )
@@ -21,7 +21,7 @@ ACTION_SHOW_INFO = (11, )
 class DialogVideoInfo(xbmcgui.WindowXMLDialog):
     '''Wrapper around the videoinfodialog'''
 
-    def __init__(self, **kwargs):
+    def __init__(self, *args, **kwargs):
         xbmcgui.WindowXMLDialog.__init__(self)
         self.listitem = kwargs.get("listitem")
 
@@ -55,7 +55,6 @@ class DialogVideoInfo(xbmcgui.WindowXMLDialog):
 
     def onClick(self, controlid):
         '''triggers if one of the controls is clicked'''
-        log_msg("onClick --> %s" % controlid, xbmc.LOGNOTICE)
         if controlid == 8:
             # play button
             self.close()
@@ -74,6 +73,9 @@ class DialogVideoInfo(xbmcgui.WindowXMLDialog):
 
 def get_cur_listitem(cont_prefix):
     '''gets the current selected listitem details'''
+    if xbmc.getCondVisibility("Window.IsActive(busydialog)"):
+        xbmc.executebuiltin("Dialog.Close(busydialog)")
+        xbmc.sleep(1000)
     dbid = xbmc.getInfoLabel("%sListItem.DBID" % cont_prefix).decode('utf-8')
     if not dbid or dbid == "-1":
         dbid = xbmc.getInfoLabel("%sListItem.Property(DBID)" % cont_prefix).decode('utf-8')
@@ -137,8 +139,9 @@ def show_infodialog(dbid="", media_type=""):
             item_details["type"] = media_type
             item_details = extend_dict(item_details, artutils.get_pvr_artwork(title, channel, genre))
 
+    artutils.close()
     # proceed with infodialog if we have details
     if item_details:
         win = DialogVideoInfo("DialogVideoInfo.xml", "", listitem=item_details)
         win.doModal()
-        del dialogin
+        del win

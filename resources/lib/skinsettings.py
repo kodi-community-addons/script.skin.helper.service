@@ -172,7 +172,7 @@ class SkinSettings:
                     value = ""
                     try:
                         value = item.attributes[key].nodeValue
-                        if value.startswith("$"):
+                        if "$" in value:
                             value = xbmc.getInfoLabel(value).decode("utf-8")
                         else:
                             value = value.decode("utf-8")
@@ -316,6 +316,8 @@ class SkinSettings:
             for settingvalue in settingvalues:
                 value = settingvalue["value"]
                 label = settingvalue["label"]
+                if "%" in label:
+                    label = label % value
 
                 # only correct the label if value already set
                 if value and value == curvalue:

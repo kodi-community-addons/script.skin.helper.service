@@ -9,5 +9,3 @@
 
 from resources.lib.main_service import MainService
 MainService()
-
-
