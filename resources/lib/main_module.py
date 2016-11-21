@@ -34,7 +34,7 @@ class MainModule:
         self.cache = SimpleCache()
 
         self.params = self.get_params()
-        log_msg("MainModule called with parameters: %s" % self.params, xbmc.LOGWARNING)
+        log_msg("MainModule called with parameters: %s" % self.params)
         action = self.params.get("action", "")
         # launch module for action provided by this script
         try:
