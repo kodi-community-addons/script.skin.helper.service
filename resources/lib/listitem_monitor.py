@@ -349,7 +349,8 @@ class ListItemMonitor(threading.Thread):
 
         # GET FAVOURITES COUNT
         favs = kodi_json('Favourites.GetFavourites')
-        self.win.setProperty("SkinHelper.TotalFavourites", "%s" % len(favs))
+        if favs:
+            self.win.setProperty("SkinHelper.TotalFavourites", "%s" % len(favs))
 
         # GET TV CHANNELS COUNT
         if xbmc.getCondVisibility("Pvr.HasTVChannels"):
