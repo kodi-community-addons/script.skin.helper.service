@@ -220,28 +220,28 @@ class PluginContent:
             if movie and db_id:
                 all_cast = self.kodi_db.movie(db_id)["cast"]
             elif movie and not db_id:
-                filters = [{"operator": "contains", "field": "title", "value": movie}]
+                filters = [{"operator": "is", "field": "title", "value": movie}]
                 result = self.kodi_db.movies(filters=filters)
                 all_cast = result[0]["cast"] if result else []
             elif tvshow and db_id:
                 all_cast = self.kodi_db.tvshow(db_id)["cast"]
             elif tvshow and not db_id:
-                filters = [{"operator": "contains", "field": "title", "value": tvshow}]
+                filters = [{"operator": "is", "field": "title", "value": tvshow}]
                 result = self.kodi_db.tvshows(filters=filters)
                 all_cast = result[0]["cast"] if result else []
             elif episode and db_id:
                 all_cast = self.kodi_db.episode(db_id)["cast"]
             elif episode and not db_id:
-                filters = [{"operator": "contains", "field": "title", "value": episode}]
+                filters = [{"operator": "is", "field": "title", "value": episode}]
                 result = self.kodi_db.episodes(filters=filters)
                 all_cast = result[0]["cast"] if result else []
             elif movieset:
                 if not db_id:
-                    filters = [{"operator": "contains", "field": "title", "value": movieset}]
-                    result = self.kodi_db.moviesets(filters=filters)
-                    db_id = result[0]["setid"] if result else 0
+                    for item in self.kodi_db.moviesets():
+                        if item["title"].lower() == movieset.lower():
+                            db_id = item["setid"]
                 if db_id:
-                    json_result = self.kodi_db.movieset(db_id)
+                    json_result = self.kodi_db.movieset(db_id, include_set_movies_fields=["cast"])
                     if "movies" in json_result:
                         for movie in json_result['movies']:
                             all_cast += movie['cast']
