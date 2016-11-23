@@ -62,7 +62,11 @@ class KodiMonitor(xbmc.Monitor):
                 log_msg("waiting for player...")
                 xbmc.sleep(100)
             if xbmc.getCondVisibility("Player.HasAudio"):
-                self.set_music_properties()
+                if xbmc.getCondVisibility("Player.IsInternetStream"):
+                    log_msg("Monitoring radio stream !", xbmc.LOGNOTICE)
+                    self.monitor_radiostream()
+                else:
+                    self.set_music_properties()
             else:
                 self.set_video_properties()
                 self.show_info_panel()
@@ -238,12 +242,12 @@ class KodiMonitor(xbmc.Monitor):
             # pvr channellogo
             all_props.append(("SkinHelper.Player.ChannelLogo", self.artutils.get_channellogo(li_channel)))
 
-        if self.cur_title:
+        if self.cur_title == li_title:
             process_method_on_list(self.set_win_prop, all_props)
 
     def set_music_properties(self):
         '''sets the window props for a playing song'''
-        li_title = xbmc.getInfoLabel("Player.Title").decode('utf-8')
+        li_title = xbmc.getInfoLabel("MusicPlayer.Title").decode('utf-8')
         li_artist = xbmc.getInfoLabel("MusicPlayer.Artist").decode('utf-8')
         li_album = xbmc.getInfoLabel("MusicPlayer.Album").decode('utf-8')
         li_disc = xbmc.getInfoLabel("MusicPlayer.DiscNumber").decode('utf-8')
@@ -272,6 +276,22 @@ class KodiMonitor(xbmc.Monitor):
             all_props = self.prepare_win_props(result)
             if self.cur_title == li_title:
                 process_method_on_list(self.set_win_prop, all_props)
+
+    def monitor_radiostream(self):
+        '''
+            for radiostreams we are not notified when the track changes
+            so we have to monitor that ourself
+        '''
+        last_title = ""
+        cur_title = ""
+        while not self.abortRequested() and xbmc.getCondVisibility("Player.HasAudio"):
+            #check details every 5 seconds
+            cur_title = xbmc.getInfoLabel("$INFO[MusicPlayer.Artist]-$INFO[MusicPlayer.Title]").decode('utf-8')
+            if cur_title != last_title:
+                last_title = cur_title
+                self.reset_win_props()
+                self.set_music_properties()
+            self.waitForAbort(5)
 
     @staticmethod
     def get_content_type():

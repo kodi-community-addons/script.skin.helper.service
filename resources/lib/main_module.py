@@ -453,8 +453,8 @@ class MainModule:
     def conditionalbackgrounds(self):
         '''legacy'''
         self.deprecated_method("script.skin.helper.backgrounds")
-
-    def show_splash(self):
+        
+    def splashscreen(self):
         '''helper to show a user defined splashscreen in the skin'''
         splashfile = self.params.get("file", "")
         duration = int(params.get("duration", 5))
