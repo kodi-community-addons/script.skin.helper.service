@@ -29,7 +29,7 @@ class DialogSelect(xbmcgui.WindowXMLDialog):
     def close_dialog(self, cancelled=False):
         '''close dialog and return value'''
         if cancelled:
-            self.result = None
+            self.result = False
         elif self.multiselect:
             # for multiselect we return the entire listing
             items_list = []
@@ -92,13 +92,16 @@ class DialogSelect(xbmcgui.WindowXMLDialog):
 
     def onClick(self, controlID):
         '''Fires if user clicks the dialog'''
-        # OK button
+        
         if controlID == 5:
+            # OK button
             if not self.getmorebutton:
                 self.close_dialog()
             else:
+                # OK button
                 from resourceaddons import downloadresourceaddons
-                self.result = downloadresourceaddons(self.getmorebutton)
+                downloadresourceaddons(self.getmorebutton)
+                self.result = True
                 self.close()
         # Other buttons (including cancel)
         else:
@@ -106,37 +109,27 @@ class DialogSelect(xbmcgui.WindowXMLDialog):
 
     def set_list_control(self):
         '''select correct list (3=small, 6=big with icons)'''
-        has_list3 = False
-        has_list6 = False
-        try:
-            control = self.getControl(3)
-            has_list3 = True
-        except Exception:
-            pass
-        try:
-            control = self.getControl(6)
-            has_list6 = True
-        except Exception:
-            pass
-
-        if has_list3:
-            self.list_control = self.getControl(3)
-        else:
-            self.list_control = self.getControl(6)
+        
         # set list id 6 if available for rich dialog
-        if has_list6 and self.richlayout and not self.multiselect:
+        if self.richlayout and not self.multiselect:
             self.list_control = self.getControl(6)
+            self.getControl(3).setVisible(False)
+        else:
+            self.list_control = self.getControl(3)
+            self.getControl(6).setVisible(False)
+        
         self.list_control.setEnabled(True)
         self.list_control.setVisible(True)
 
+        # enable cancel button
         self.set_cancel_button()
-        if not self.multiselect:
-            self.getControl(5).setVisible(False)
 
         # show get more button
         if self.getmorebutton:
             self.getControl(5).setVisible(True)
             self.getControl(5).setLabel(xbmc.getLocalizedString(21452))
+        elif not self.multiselect:
+            self.getControl(5).setVisible(False)
 
     def set_cancel_button(self):
         '''set cancel button if exists'''

@@ -28,8 +28,8 @@ class MainService:
     def __init__(self):
         self.win = xbmcgui.Window(10000)
         self.addon = xbmcaddon.Addon(ADDON_ID)
-        self.cache = SimpleCache(autocleanup=True)
-        self.artutils = ArtUtils()
+        self.cache = SimpleCache(allow_mem_cache=True)
+        self.artutils = ArtUtils(self.cache)
         self.addonname = self.addon.getAddonInfo('name').decode("utf-8")
         self.addonversion = self.addon.getAddonInfo('version').decode("utf-8")
         self.kodimonitor = KodiMonitor(cache=self.cache, artutils=self.artutils, win=self.win)

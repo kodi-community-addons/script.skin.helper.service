@@ -353,7 +353,6 @@ class MainModule:
 
     def setskinshortcutsproperty(self):
         '''allows the user to make a setting for skinshortcuts using the special skinsettings dialogs'''
-        xbmc.executebuiltin("ActivateWindow(busydialog)")
         setting = self.params.get("setting", "")
         prop = self.params.get("property", "")
         header = self.params.get("header", "")
@@ -546,7 +545,7 @@ class MainModule:
         label, value = skinsettings.select_image(
             skinstring, allow_multi=allow_multi, windowheader=windowheader, resource_addon=resource_addon,
             skinhelper_backgrounds=skinhelper_backgrounds, current_value=current_value)
-        if value:
+        if label:
             if skinshortcutsprop:
                 # write value to skinshortcuts prop
                 from skinshortcuts import set_skinshortcuts_property

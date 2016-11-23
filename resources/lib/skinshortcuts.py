@@ -194,6 +194,7 @@ def item_filter_mapping():
     mappings["smartishwidgets"] = xbmc.getInfoLabel("System.AddonTitle(service.smartish.widgets)")
     mappings["skinplaylists"] = "Playlists"
     mappings["favourites"] = "Favourites"
+    mappings["static"] = "Static widgets"
     return mappings
 
 

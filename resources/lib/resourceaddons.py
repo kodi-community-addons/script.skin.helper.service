@@ -89,7 +89,7 @@ def setresourceaddon(addontype, skinstring=""):
                 xbmc.executebuiltin('Skin.SetString(%s,%s)' % (skinstring, addonpath))
                 xbmc.executebuiltin('Skin.SetString(%s.path,%s)' % (skinstring, addonpath))
                 xbmc.executebuiltin('Skin.SetString(%s.name,%s)' % (skinstring, addon_name))
-                xbmc.executebuiltin('Skin.SetString(%s.ext,.%s)' % (skinstring, extension))
+                xbmc.executebuiltin('Skin.SetString(%s.ext,%s)' % (skinstring, extension))
                 if is_multi:
                     xbmc.executebuiltin('Skin.SetBool(%s.multi)' % skinstring)
                 else:
@@ -212,7 +212,7 @@ def get_multi_extension(filepath):
         is_multi = True
     if not is_multi:
         for item in files:
-            extension = item.split(".")[-1]
+            extension = "." + item.split(".")[-1]
             break
     return (is_multi, extension)
 

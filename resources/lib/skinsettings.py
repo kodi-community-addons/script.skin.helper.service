@@ -402,7 +402,7 @@ class SkinSettings:
                 cur_value = "None"
             value = xbmcgui.Dialog().input(window_header, cur_value, type=xbmcgui.INPUT_ALPHANUM).decode("utf-8")
             label = value
-        if value:
+        if label:
             from skinshortcuts import set_skinshortcuts_property
             set_skinshortcuts_property(property_name, value, label)
 
@@ -440,7 +440,7 @@ class SkinSettings:
         # resource addon images
         if resource_addon:
             from resourceaddons import get_resourceimages
-            images += get_resourceimages(resource_addon, allow_multi)
+            images += get_resourceimages(resource_addon)
 
         # create listitems
         listitems = []
@@ -457,9 +457,10 @@ class SkinSettings:
         result = dialog.result
         del dialog
         if isinstance(result, bool):
-            # refresh listing requested by getmore button
-            return self.select_image(skinstring, allow_multi, windowheader,
-                                     resource_addon, skinhelper_backgrounds, current_value)
+            if result:
+                # refresh listing requested by getmore button
+                return self.select_image(skinstring, allow_multi, windowheader,
+                                         resource_addon, skinhelper_backgrounds, current_value)
         elif result:
             label = result.getLabel()
             if label == self.addon.getLocalizedString(32004):
@@ -478,9 +479,8 @@ class SkinSettings:
                     return self.selectimage()
             # return values
             return (result.getLabel(), result.getfilename())
-        else:
-            # return empty values
-            return (None, None)
+        # return empty values
+        return ("", "")
 
     @staticmethod
     def multi_select(options, window_header=""):

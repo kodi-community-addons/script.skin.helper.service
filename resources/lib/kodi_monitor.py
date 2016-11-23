@@ -288,7 +288,7 @@ class KodiMonitor(xbmc.Monitor):
         log_msg("detected content type is %s" % content_type)
         return content_type
 
-    @use_cache(14, True)
+    @use_cache(14)
     def get_imdb_id(self, li_imdb, li_title, li_year, li_showtitle, content_type):
         '''try to figure out the imdbnumber because that's what we use for all lookup actions'''
         li_tvdb = ""

@@ -377,7 +377,7 @@ class ListItemMonitor(threading.Thread):
             self.win.clearProperty(prop)
         self.all_window_props = []
 
-    @use_cache(14, True)
+    @use_cache(14)
     def get_imdb_id(self, listitem, content_type):
         '''try to figure out the imdbnumber because that's what we use for all lookup actions'''
         tvdbid = ""

@@ -24,4 +24,4 @@ if __name__ == '__main__':
     ArtUtils().pvr_artwork_options(title, CHANNEL, genre)
     xbmc.executebuiltin("Dialog.Close(busydialog)")
     win.clearProperty("SkinHelper.Artwork.ManualLookup")
-    del dialogin
+    del win

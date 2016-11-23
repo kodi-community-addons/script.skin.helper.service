@@ -212,7 +212,7 @@ class SearchDialog(xbmcgui.WindowXMLDialog):
         from infodialog import DialogVideoInfo
         win = DialogVideoInfo("DialogVideoInfo.xml", "", listitem=listitem)
         win.doModal()
-        del dialogin
+        del win
 
 
 class SearchBackgroundThread(threading.Thread):
