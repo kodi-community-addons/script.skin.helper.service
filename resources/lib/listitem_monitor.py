@@ -65,10 +65,9 @@ class ListItemMonitor(threading.Thread):
 
             # skip if any of the artwork context menus is opened
             if self.win.getProperty("SkinHelper.Artwork.ManualLookup"):
-                if self.last_listitem:
-                    self.reset_win_props()
-                    self.last_listitem = ""
-                    self.listitem_details = {}
+                self.reset_win_props()
+                self.last_listitem = ""
+                self.listitem_details = {}
                 self.kodimonitor.waitForAbort(3)
                 self.delayed_task_interval += 3
 
@@ -130,6 +129,9 @@ class ListItemMonitor(threading.Thread):
                 self.set_content_header(content_type)
         else:
             content_type = self.get_content_type(cur_folder, li_label, cont_prefix)
+            
+        if self.exit:
+            return
 
         # only perform actions when the listitem has actually changed
         li_title = xbmc.getInfoLabel("%sListItem.Title" % cont_prefix).decode('utf-8')
@@ -238,21 +240,17 @@ class ListItemMonitor(threading.Thread):
                 # data already in memory
                 all_props = self.listitem_details[cur_listitem]
             else:
-                # collect all data
+                # collect all details from listitem
                 listitem = self.get_listitem_details(content_type, prefix)
 
-                # safety check
-                if cur_listitem != self.last_listitem or self.exit:
-                    return
-
-                if prefix:
+                if prefix and cur_listitem == self.last_listitem:
                     # for widgets we immediately set all normal properties as window prop
                     self.set_win_props(self.prepare_win_props(listitem))
 
                 # if another lookup for the same listitem already in progress... wait for it to complete
                 while self.lookup_busy.get(cur_listitem):
                     xbmc.sleep(250)
-                    if cur_listitem != self.last_listitem or self.exit:
+                    if self.exit:
                         return
                 self.lookup_busy[cur_listitem] = True
 
@@ -326,6 +324,7 @@ class ListItemMonitor(threading.Thread):
             log_msg("Started Background worker...")
             self.set_generic_props()
             self.listitem_details = {}
+            self.cache.check_cleanup()
             log_msg("Ended Background worker...")
         except Exception as exc:
             log_exception(__name__, exc)

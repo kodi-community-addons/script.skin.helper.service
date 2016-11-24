@@ -28,7 +28,7 @@ class MainService:
     def __init__(self):
         self.win = xbmcgui.Window(10000)
         self.addon = xbmcaddon.Addon(ADDON_ID)
-        self.cache = SimpleCache(allow_mem_cache=True)
+        self.cache = SimpleCache()
         self.artutils = ArtUtils(self.cache)
         self.addonname = self.addon.getAddonInfo('name').decode("utf-8")
         self.addonversion = self.addon.getAddonInfo('version').decode("utf-8")

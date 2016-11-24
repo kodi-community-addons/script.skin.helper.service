@@ -334,6 +334,8 @@ class MainModule:
         xbmc.executebuiltin("ActivateWindow(busydialog)")
         setting = self.params.get("setting", "")
         org_id = self.params.get("id", "")
+        if "$" in org_id:
+            org_id = xbmc.getInfoLabel(org_id).decode("utf-8")
         header = self.params.get("header", "")
         SkinSettings().set_skin_setting(setting=setting, window_header=header, original_id=org_id)
 

@@ -10,7 +10,6 @@
 
 from utils import kodi_json, log_msg, urlencode
 from artutils import detect_plugin_content
-from collections import OrderedDict
 import xbmc
 import xbmcvfs
 import xbmcplugin
@@ -186,7 +185,11 @@ def smartshortcuts_widgets():
 
 def item_filter_mapping():
     '''map label to each filtertype'''
-    mappings = OrderedDict()
+    try:
+        from collections import OrderedDict
+        mappings = OrderedDict()
+    except:
+        mappings = {}
     mappings["scriptwidgets"] = xbmc.getInfoLabel("System.AddonTitle(script.skin.helper.widgets)")
     mappings["librarydataprovider"] = xbmc.getInfoLabel("System.AddonTitle(service.library.data.provider)")
     mappings["extendedinfo"] = xbmc.getInfoLabel("System.AddonTitle(script.extendedinfo)")
