@@ -471,9 +471,9 @@ class ListItemMonitor(threading.Thread):
         '''get formatted genre string from actual genre'''
         details = {}
         genres = li_genre.split(" / ")
-        details['Genres'] = "[CR]".join(genres)
+        details['genres'] = "[CR]".join(genres)
         for count, genre in enumerate(genres):
-            details["Genre.%s" % count] = genre
+            details["genre.%s" % count] = genre
         return details
 
     @staticmethod

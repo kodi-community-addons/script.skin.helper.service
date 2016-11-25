@@ -339,13 +339,13 @@ class SkinSettings:
                                 command = xbmc.getInfoLabel(command)
                             xbmc.executebuiltin(command.encode("utf-8"))
 
-                # process any multiselects
-                for option in settingvalue["settingoptions"]:
-                    settingid = option["id"]
-                    if (not xbmc.getInfoLabel("Skin.String(defaultset_%s)" % settingid) and option["default"] and
-                            xbmc.getCondVisibility(option["default"])):
-                        xbmc.executebuiltin("Skin.SetBool(%s)" % settingid)
-                    xbmc.executebuiltin("Skin.SetString(defaultset_%s,defaultset)" % settingid)
+                    # process any multiselects
+                    for option in settingvalue["settingoptions"]:
+                        settingid = option["id"]
+                        if (not xbmc.getInfoLabel("Skin.String(defaultset_%s)" % settingid) and option["default"] and
+                                xbmc.getCondVisibility(option["default"])):
+                            xbmc.executebuiltin("Skin.SetBool(%s)" % settingid)
+                        xbmc.executebuiltin("Skin.SetString(defaultset_%s,defaultset)" % settingid)
 
                 # set the default constant value if current value is empty
                 if (not curvalue and settingvalue["constantdefault"] and

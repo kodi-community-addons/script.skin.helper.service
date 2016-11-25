@@ -185,20 +185,24 @@ def smartshortcuts_widgets():
 
 def item_filter_mapping():
     '''map label to each filtertype'''
-    try:
-        from collections import OrderedDict
-        mappings = OrderedDict()
-    except:
-        mappings = {}
-    mappings["scriptwidgets"] = xbmc.getInfoLabel("System.AddonTitle(script.skin.helper.widgets)")
-    mappings["librarydataprovider"] = xbmc.getInfoLabel("System.AddonTitle(service.library.data.provider)")
-    mappings["extendedinfo"] = xbmc.getInfoLabel("System.AddonTitle(script.extendedinfo)")
-    mappings["smartshortcuts"] = "Smart Shortcuts"
-    mappings["smartishwidgets"] = xbmc.getInfoLabel("System.AddonTitle(service.smartish.widgets)")
-    mappings["skinplaylists"] = "Playlists"
-    mappings["favourites"] = "Favourites"
-    mappings["static"] = "Static widgets"
+    mappings = []
+    mappings.append(("scriptwidgets", xbmc.getInfoLabel("System.AddonTitle(script.skin.helper.widgets)")))
+    mappings.append(("librarydataprovider", xbmc.getInfoLabel("System.AddonTitle(service.library.data.provider)")))
+    mappings.append(("extendedinfo", xbmc.getInfoLabel("System.AddonTitle(script.extendedinfo)")))
+    mappings.append(("smartshortcuts", "Smart Shortcuts"))
+    mappings.append(("smartishwidgets", xbmc.getInfoLabel("System.AddonTitle(service.smartish.widgets)")))
+    mappings.append(("skinplaylists", "Playlists"))
+    mappings.append(("favourites", "Favourites"))
+    mappings.append(("static", "Static widgets"))
     return mappings
+
+
+def get_item_filter_label(filterkey):
+    label = ""
+    for item in item_filter_mapping():
+        if item[0] == filterkey:
+            label = item[1]
+    return label
 
 
 def get_widgets(item_filter="", sublevel=""):
@@ -209,7 +213,7 @@ def get_widgets(item_filter="", sublevel=""):
         item_filters = item_filter.split(",")
     else:
         # no list provided by the skinner so just show all available widgets
-        item_filters = item_filter_mapping().keys()
+        item_filters = [mapping[0] for mapping in item_filter_mapping()]
 
     # build the widget listiing...
     for item_filter in item_filters:
@@ -238,7 +242,7 @@ def get_widgets(item_filter="", sublevel=""):
         if not sublevel and len(item_filters) > 1 and item_filter != "static":
             # only show main listing for this category...
             if widgets:
-                label = item_filter_mapping()[item_filter]
+                label = get_item_filter_label(item_filter)
                 listitem = xbmcgui.ListItem(label, iconImage="DefaultFolder.png")
                 url = "plugin://script.skin.helper.service?action=widgets&path=%s" % item_filter
                 xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=url, listitem=listitem, isFolder=True)
@@ -328,7 +332,7 @@ def get_skinhelper_backgrounds():
     if backgrounds:
         backgrounds = eval(backgrounds)
         win = xbmcgui.Window(10000)
-        for key, value in backgrounds.iteritems():
+        for key, value in backgrounds:
             label = value
             image = "$INFO[Window(Home).Property(%s)]" % key
             if win.getProperty(key):
@@ -424,7 +428,7 @@ def plugin_widgetlisting(pluginpath, sublevel=""):
                 urlencode(item["file"]), label)
         # add reload param for skinhelper and libraryprovider widgets
         if "reload=" not in content and (
-                pluginpath == "script.skin.helper.service" or pluginpath == "service.library.data.provider"):
+                "script.skin.helper" in pluginpath or pluginpath == "service.library.data.provider"):
             if "albums" in content or "songs" in content or "artists" in content:
                 reloadstr = "&reload=$INFO[Window(Home).Property(widgetreloadmusic)]"
             elif ("pvr" in content or "media" in content or "favourite" in content) and "progress" not in content:

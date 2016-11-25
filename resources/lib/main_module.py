@@ -459,7 +459,7 @@ class MainModule:
     def splashscreen(self):
         '''helper to show a user defined splashscreen in the skin'''
         splashfile = self.params.get("file", "")
-        duration = int(params.get("duration", 5))
+        duration = int(self.params.get("duration", 5))
         if (splashfile.lower().endswith("jpg") or splashfile.lower().endswith("gif") or
                 splashfile.lower().endswith("png") or splashfile.lower().endswith("tiff")):
             # this is an image file
