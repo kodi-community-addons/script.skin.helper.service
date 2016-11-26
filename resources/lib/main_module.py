@@ -290,7 +290,7 @@ class MainModule:
             while not xbmc.getCondVisibility("Control.HasFocus(%s)" % control):
                 if xbmc.getCondVisibility("Window.IsActive(busydialog)"):
                     continue
-                elif count == 20 or ( xbmc.getCondVisibility(
+                elif count == 20 or (xbmc.getCondVisibility(
                         "!Control.IsVisible(%s) | "
                         "!IntegerGreaterThan(Container(%s).NumItems,0)" % (control, control))):
                     if fallback:
@@ -455,9 +455,10 @@ class MainModule:
     def conditionalbackgrounds(self):
         '''legacy'''
         self.deprecated_method("script.skin.helper.backgrounds")
-        
+
     def splashscreen(self):
         '''helper to show a user defined splashscreen in the skin'''
+        import time
         splashfile = self.params.get("file", "")
         duration = int(self.params.get("duration", 5))
         if (splashfile.lower().endswith("jpg") or splashfile.lower().endswith("gif") or
@@ -466,7 +467,7 @@ class MainModule:
             self.win.setProperty("SkinHelper.SplashScreen", splashfile)
             # for images we just wait for X seconds to close the splash again
             start_time = time.time()
-            while time.time() - start_time <= duration:
+            while (time.time() - start_time) <= duration:
                 xbmc.sleep(500)
         else:
             # for video or audio we have to wait for the player to finish...
@@ -475,9 +476,8 @@ class MainModule:
             while xbmc.getCondVisibility("Player.HasMedia"):
                 xbmc.sleep(150)
         # replace startup window with home
-        startupwindow = xbmc.getInfoLabel("$INFO[System.StartupWindow]")
+        startupwindow = xbmc.getInfoLabel("System.StartupWindow")
         xbmc.executebuiltin("ReplaceWindow(%s)" % startupwindow)
-        # startup playlist (if any)
         autostart_playlist = xbmc.getInfoLabel("$ESCINFO[Skin.String(autostart_playlist)]")
         if autostart_playlist:
             xbmc.executebuiltin("PlayMedia(%s)" % autostart_playlist)

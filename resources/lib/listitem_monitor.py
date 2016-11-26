@@ -9,7 +9,7 @@
 
 import threading
 import thread
-from utils import log_msg, log_exception, get_current_content_type, kodi_json
+from utils import log_msg, log_exception, get_current_content_type, kodi_json, prepare_win_props
 from artutils import extend_dict
 import xbmc
 from simplecache import use_cache
@@ -129,7 +129,7 @@ class ListItemMonitor(threading.Thread):
                 self.set_content_header(content_type)
         else:
             content_type = self.get_content_type(cur_folder, li_label, cont_prefix)
-            
+
         if self.exit:
             return
 
@@ -245,7 +245,7 @@ class ListItemMonitor(threading.Thread):
 
                 if prefix and cur_listitem == self.last_listitem:
                     # for widgets we immediately set all normal properties as window prop
-                    self.set_win_props(self.prepare_win_props(listitem))
+                    self.set_win_props(prepare_win_props(listitem))
 
                 # if another lookup for the same listitem already in progress... wait for it to complete
                 while self.lookup_busy.get(cur_listitem):
@@ -283,11 +283,16 @@ class ListItemMonitor(threading.Thread):
                     listitem = extend_dict(
                         listitem, self.get_streamdetails(
                             listitem["dbid"], listitem["path"], content_type))
+                    if self.exit:
+                        return
                     listitem = extend_dict(listitem, self.artutils.get_top250_rating(listitem["imdbnumber"]))
                     if self.enable_extendedart:
                         if not (listitem["art"]["clearlogo"] or listitem["art"]["landscape"]):
                             listitem = extend_dict(listitem, self.artutils.get_extended_artwork(
                                 listitem["imdbnumber"], tvdbid, content_type))
+
+                    if self.exit:
+                        return
 
                     # tvshows-only properties (tvdb)
                     if content_type in ["tvshows", "seasons", "episodes"]:
@@ -300,12 +305,15 @@ class ListItemMonitor(threading.Thread):
                         if listitem["imdbnumber"] and self.enable_animatedart:
                             listitem = extend_dict(listitem, self.artutils.get_animated_artwork(listitem["imdbnumber"]))
 
+                if self.exit:
+                    return
+
                 # monitor listitem props when PVR is active
                 elif content_type in ["tvchannels", "tvrecordings", "channels", "recordings", "timers", "tvtimers"]:
                     listitem = self.get_pvr_artwork(listitem, prefix)
 
                 # process all properties
-                all_props = self.prepare_win_props(listitem)
+                all_props = prepare_win_props(listitem)
                 if content_type not in ["weathers", "systeminfos"]:
                     self.listitem_details[cur_listitem] = all_props
 
@@ -407,34 +415,6 @@ class ListItemMonitor(threading.Thread):
         '''set multiple window properties from list of tuples'''
         for prop_tuple in prop_tuples:
             self.set_win_prop(prop_tuple)
-
-    @staticmethod
-    def prepare_win_props(details):
-        '''helper to pretty string-format a dict with details so it can be used as window props'''
-        items = []
-        if details:
-            for key, value in details.iteritems():
-                if value:
-                    key = u"SkinHelper.ListItem.%s" % key
-                    key = key.lower()
-                    if isinstance(value, (str, unicode)):
-                        items.append((key, value))
-                    elif isinstance(value, (int, float)):
-                        items.append((key, "%s" % value))
-                    elif isinstance(value, dict):
-                        for key2, value2 in value.iteritems():
-                            if isinstance(value2, (str, unicode)):
-                                items.append((u"%s.%s" % (key, key2), value2))
-                    elif isinstance(value, list):
-                        list_strings = []
-                        for listvalue in value:
-                            if isinstance(listvalue, (str, unicode)):
-                                list_strings.append(listvalue)
-                        if list_strings:
-                            items.append((key, u" / ".join(list_strings)))
-                        elif len(value) == 1 and isinstance(value[0], (str, unicode)):
-                            items.append((key, value))
-        return items
 
     def set_content_header(self, content_type):
         '''sets a window propery which can be used as headertitle'''

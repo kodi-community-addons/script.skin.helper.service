@@ -145,8 +145,12 @@ class StoppableHttpRequestHandler (SimpleHTTPServer.SimpleHTTPRequestHandler):
             params = self.get_params()
             action = params.get("action", "")
             title = params.get("title", "")
-            preferred_type = params.get("type", "")
-            fallback = params.get("fallback", "DefaultAddonNone.png")
+            preferred_types = params.get("type")
+            if preferred_types:
+                preferred_types = preferred_types.split(",")
+            else:
+                preferred_types = []
+            fallback = params.get("fallback", "")
             is_json_request = params.get("json", "") == "true"
             if fallback.startswith("Default"):
                 fallback = "special://skin/media/" + fallback
@@ -167,7 +171,7 @@ class StoppableHttpRequestHandler (SimpleHTTPServer.SimpleHTTPRequestHandler):
 
             # get video artwork and metadata
             elif action == "getartwork":
-                if not preferred_type:
+                if not preferred_types:
                     is_json_request = True
                 year = params.get("year", "")
                 media_type = params.get("mediatype", "")
@@ -197,8 +201,8 @@ class StoppableHttpRequestHandler (SimpleHTTPServer.SimpleHTTPRequestHandler):
                 for count, item in enumerate(self.server.artutils.kodidb.files(lib_path, limits=(0, 5))):
                     artwork["poster.%s" % count] = item["art"].get("poster", "")
                     artwork["fanart.%s" % count] = item["art"].get("fanart", "")
-                if not preferred_type:
-                    preferred_type = "fanart.0"
+                if not preferred_types:
+                    preferred_types = ["fanart.0"]
 
             # image from variable
             elif "getvarimage" in action:
@@ -214,8 +218,10 @@ class StoppableHttpRequestHandler (SimpleHTTPServer.SimpleHTTPRequestHandler):
             if not is_json_request:
                 if artwork and artwork.get("art"):
                     artwork = artwork["art"]
-                if preferred_type:
-                    image = artwork.get(preferred_type, "")
+                if preferred_types:
+                    for pref_type in preferred_types:
+                        if not image:
+                            image = artwork.get(pref_type, "")
                 elif not image and artwork.get("landscape"):
                     image = artwork["landscape"]
                 elif not image and artwork.get("fanart"):

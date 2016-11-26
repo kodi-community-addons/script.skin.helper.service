@@ -260,7 +260,7 @@ class PluginContent:
                 if movie and not db_id:
                     tmdbdetails = tmdb.search_movie(movie)
                 elif tvshow and not db_id:
-                    tmdbdetails = tmdb.search_tvshow(movie)
+                    tmdbdetails = tmdb.search_tvshow(tvshow)
                 if tmdbdetails.get("cast"):
                     all_cast = tmdbdetails["cast"]
             # save to cache
@@ -313,6 +313,8 @@ class PluginContent:
 
     def alphabetletter(self):
         '''used with the alphabet scrollbar to jump to a letter'''
+        if KODI_VERSION > 16:
+            xbmcplugin.setResolvedUrl(handle=int(sys.argv[1]), succeeded=False, listitem=xbmcgui.ListItem())
         letter = self.params.get("letter", "").upper()
         jumpcmd = ""
         if letter in ["A", "B", "C", "2"]:

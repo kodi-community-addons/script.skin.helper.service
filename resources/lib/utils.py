@@ -95,6 +95,7 @@ def urlencode(text):
     blah = blah[13:]
     return blah
 
+
 def get_current_content_type(containerprefix=""):
     '''tries to determine the mediatype for the current listitem'''
     content_type = ""
@@ -201,3 +202,30 @@ def recursive_delete_dir(path):
     success = xbmcvfs.rmdir(path)
     return success
 
+
+def prepare_win_props(details, prefix=u"SkinHelper.ListItem."):
+    '''helper to pretty string-format a dict with details to key/value pairs so it can be used as window props'''
+    items = []
+    if details:
+        for key, value in details.iteritems():
+            if value:
+                key = u"%s%s" % (prefix, key)
+                key = key.lower()
+                if isinstance(value, (str, unicode)):
+                    items.append((key, value))
+                elif isinstance(value, (int, float)):
+                    items.append((key, "%s" % value))
+                elif isinstance(value, dict):
+                    for key2, value2 in value.iteritems():
+                        if isinstance(value2, (str, unicode)):
+                            items.append((u"%s.%s" % (key, key2), value2))
+                elif isinstance(value, list):
+                    list_strings = []
+                    for listvalue in value:
+                        if isinstance(listvalue, (str, unicode)):
+                            list_strings.append(listvalue)
+                    if list_strings:
+                        items.append((key, u" / ".join(list_strings)))
+                    elif len(value) == 1 and isinstance(value[0], (str, unicode)):
+                        items.append((key, value))
+    return items
