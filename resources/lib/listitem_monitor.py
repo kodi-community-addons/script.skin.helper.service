@@ -12,7 +12,7 @@ import thread
 from utils import log_msg, log_exception, get_current_content_type, kodi_json, prepare_win_props
 from artutils import extend_dict
 import xbmc
-from simplecache import use_cache
+from simplecache import use_cache, SimpleCache
 
 
 class ListItemMonitor(threading.Thread):
@@ -36,7 +36,7 @@ class ListItemMonitor(threading.Thread):
     enable_pvrart = False
 
     def __init__(self, *args, **kwargs):
-        self.cache = kwargs.get("cache")
+        self.cache = SimpleCache()
         self.artutils = kwargs.get("artutils")
         self.win = kwargs.get("win")
         self.kodimonitor = kwargs.get("monitor")
@@ -52,6 +52,7 @@ class ListItemMonitor(threading.Thread):
     def run(self):
         '''our main loop monitoring the listitem and folderpath changes'''
         log_msg("ListItemMonitor - started")
+        
         while not self.exit:
 
             # check screensaver and OSD
@@ -528,12 +529,12 @@ class ListItemMonitor(threading.Thread):
         else:
             self.win.clearProperty("SkinHelper.ForcedView")
 
-    def get_extrafanart(self, li_dbid, content_type):
+    def get_extrafanart(self, file_path, content_type):
         '''get the extrafanart path for the actual video item'''
         details = {}
         if self.enable_extrafanart:
-            if li_dbid and content_type in ["movies", "seasons", "episodes", "tvshows", "setmovies", "moviesets"]:
-                details = self.artutils.get_extrafanart(li_dbid, content_type)
+            if file_path and content_type in ["movies", "seasons", "episodes", "tvshows", "setmovies", "moviesets"]:
+                details = self.artutils.get_extrafanart(file_path, content_type)
         return details
 
     def get_pvr_artwork(self, listitem, prefix):

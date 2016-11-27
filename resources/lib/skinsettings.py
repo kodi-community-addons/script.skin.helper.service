@@ -161,6 +161,8 @@ class SkinSettings:
             listing = doc.documentElement.getElementsByTagName('setting')
             for item in listing:
                 skinsetting_id = item.attributes["id"].nodeValue.decode("utf-8")
+                if "$" in skinsetting_id:
+                    skinsetting_id = xbmc.getInfoLabel(skinsetting_id).decode("utf-8")
                 if all_skinsettings.get(skinsetting_id):
                     skinsetting_values = all_skinsettings[skinsetting_id]
                 else:

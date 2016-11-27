@@ -28,13 +28,12 @@ class MainService:
     def __init__(self):
         self.win = xbmcgui.Window(10000)
         self.addon = xbmcaddon.Addon(ADDON_ID)
-        self.cache = SimpleCache()
-        self.artutils = ArtUtils(self.cache)
+        self.artutils = ArtUtils()
         self.addonname = self.addon.getAddonInfo('name').decode("utf-8")
         self.addonversion = self.addon.getAddonInfo('version').decode("utf-8")
-        self.kodimonitor = KodiMonitor(cache=self.cache, artutils=self.artutils, win=self.win)
+        self.kodimonitor = KodiMonitor(artutils=self.artutils, win=self.win)
         listitem_monitor = ListItemMonitor(
-            cache=self.cache, artutils=self.artutils, win=self.win, monitor=self.kodimonitor)
+            artutils=self.artutils, win=self.win, monitor=self.kodimonitor)
         webservice = WebService(artutils=self.artutils)
         widget_task_interval = 520
 
@@ -71,11 +70,9 @@ class MainService:
 
     def close(self):
         '''Cleanup Kodi Cpython instances'''
-        self.cache.close()
         self.artutils.close()
         del self.win
         del self.kodimonitor
-        del self.cache
         del self.artutils
         log_msg('%s version %s stopped' % (self.addonname, self.addonversion), xbmc.LOGNOTICE)
 

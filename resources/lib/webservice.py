@@ -84,8 +84,8 @@ class StoppableHttpRequestHandler (SimpleHTTPServer.SimpleHTTPRequestHandler):
     def __init__(self, request, client_address, server):
         try:
             SimpleHTTPServer.SimpleHTTPRequestHandler.__init__(self, request, client_address, server)
-        except Exception as exc:
-            log_exception(__name__, exc)
+        except Exception:
+            pass
 
     def do_QUIT(self):
         '''send 200 OK response, and set server.stop to True'''

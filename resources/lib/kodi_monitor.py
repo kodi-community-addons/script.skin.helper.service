@@ -9,7 +9,7 @@
 
 from utils import log_msg, json, prepare_win_props, log_exception
 from artutils import process_method_on_list, extend_dict
-from simplecache import use_cache
+from simplecache import use_cache, SimpleCache
 import xbmc
 import time
 
@@ -23,7 +23,7 @@ class KodiMonitor(xbmc.Monitor):
 
     def __init__(self, **kwargs):
         xbmc.Monitor.__init__(self)
-        self.cache = kwargs.get("cache")
+        self.cache = SimpleCache()
         self.artutils = kwargs.get("artutils")
         self.win = kwargs.get("win")
 
@@ -34,12 +34,13 @@ class KodiMonitor(xbmc.Monitor):
             data = json.loads(data.decode('utf-8'))
             mediatype = ""
             dbid = 0
-            if data and data.get("item"):
-                mediatype = data["item"].get("type", "")
-                dbid = data["item"].get("id", 0)
-            elif data and data.get("type"):
-                mediatype = data["type"]
-                id = data.get("id",0)
+            if data and isinstance(data, dict):
+                if data.get("item"):
+                    mediatype = data["item"].get("type", "")
+                    dbid = data["item"].get("id", 0)
+                elif data.get("type"):
+                    mediatype = data["type"]
+                    id = data.get("id",0)
 
             if method == "System.OnQuit":
                 self.win.setProperty("SkinHelperShutdownRequested", "shutdown")

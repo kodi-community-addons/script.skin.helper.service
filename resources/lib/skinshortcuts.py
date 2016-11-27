@@ -190,7 +190,6 @@ def item_filter_mapping():
     mappings.append(("librarydataprovider", xbmc.getInfoLabel("System.AddonTitle(service.library.data.provider)")))
     mappings.append(("extendedinfo", xbmc.getInfoLabel("System.AddonTitle(script.extendedinfo)")))
     mappings.append(("smartshortcuts", "Smart Shortcuts"))
-    mappings.append(("smartishwidgets", xbmc.getInfoLabel("System.AddonTitle(service.smartish.widgets)")))
     mappings.append(("skinplaylists", "Playlists"))
     mappings.append(("favourites", "Favourites"))
     mappings.append(("static", "Static widgets"))
@@ -225,8 +224,6 @@ def get_widgets(item_filter="", sublevel=""):
             widgets = favourites_widgets()
         elif item_filter == "static":
             widgets = static_widgets()
-        elif item_filter == "smartishwidgets":
-            widgets = smartish_widgets()
         elif sublevel:
             widgets = plugin_widgetlisting(item_filters[0], sublevel)
         elif item_filter == "scriptwidgets":
@@ -447,41 +444,21 @@ def plugin_widgetlisting(pluginpath, sublevel=""):
 
 def favourites_widgets():
     '''widgets from favourites'''
-    json_result = kodi_json('Favourites.GetFavourites',
-                            {"type": None, "properties": ["path", "thumbnail", "window", "windowparameter"]})
+    favourites = kodi_json('Favourites.GetFavourites',
+                           {"type": None, "properties": ["path", "thumbnail", "window", "windowparameter"]})
     widgets = []
-    for fav in json_result:
-        if "windowparameter" in fav:
-            content = fav["windowparameter"]
-            # check if this is a valid path with content
-            if ("script://" not in content.lower() and "mode=9" not in content.lower() and
-                    "search" not in content.lower() and "play" not in content.lower()):
-                label = fav["title"]
-                log_msg("skinshortcuts widgets processing favourite: %s" % label)
-                mediatype = detect_plugin_content(content)
-                if mediatype and mediatype != "empty":
-                    widgets.append([label, content, mediatype])
-    return widgets
-
-
-def smartish_widgets():
-    '''endpoints for the smartish widgets addon'''
-    widgets = []
-    if xbmc.getCondVisibility(
-            "System.Hasaddon(service.smartish.widgets) + Skin.HasSetting(enable.smartish.widgets)"):
-        widgets.append(["Smart(ish) Movies widget",
-                        "plugin://service.smartish.widgets?type=movies&reload=$INFO[Window.Property(smartish.movies)]",
-                        "movies"])
-        widgets.append(
-            ["Smart(ish) Episodes widget",
-             "plugin://service.smartish.widgets?type=episodes&reload=$INFO[Window.Property(smartish.episodes)]",
-             "episodes"])
-        widgets.append(["Smart(ish) PVR widget",
-                        "plugin://service.smartish.widgets?type=pvr&reload=$INFO[Window.Property(smartish.pvr)]",
-                        "pvr"])
-        widgets.append(["Smart(ish) Albums widget",
-                        "plugin://service.smartish.widgets?type=albums&reload=$INFO[Window.Property(smartish.albums)]",
-                        "albums"])
+    if favourites:
+        for fav in favourites:
+            if "windowparameter" in fav:
+                content = fav["windowparameter"]
+                # check if this is a valid path with content
+                if ("script://" not in content.lower() and "mode=9" not in content.lower() and
+                        "search" not in content.lower() and "play" not in content.lower()):
+                    label = fav["title"]
+                    log_msg("skinshortcuts widgets processing favourite: %s" % label)
+                    mediatype = detect_plugin_content(content)
+                    if mediatype and mediatype != "empty":
+                        widgets.append([label, content, mediatype])
     return widgets
 
 
