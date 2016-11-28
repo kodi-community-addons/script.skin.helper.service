@@ -318,7 +318,6 @@ class MainModule:
 
     def saveskinimage(self):
         '''let the user select an image and save it to addon_data for easy backup'''
-        xbmc.executebuiltin("ActivateWindow(busydialog)")
         skinstring = self.params.get("skinstring", "")
         allow_multi = self.params.get("multi", "") == "true"
         header = self.params.get("header", "")
@@ -331,7 +330,6 @@ class MainModule:
 
     def setskinsetting(self):
         '''allows the user to set a skin setting with a select dialog'''
-        xbmc.executebuiltin("ActivateWindow(busydialog)")
         setting = self.params.get("setting", "")
         org_id = self.params.get("id", "")
         if "$" in org_id:
@@ -341,7 +339,6 @@ class MainModule:
 
     def setskinconstant(self):
         '''allows the user to set a skin constant with a select dialog'''
-        xbmc.executebuiltin("ActivateWindow(busydialog)")
         setting = self.params.get("setting", "").split("|")
         value = self.params.get("value", "").split("|")
         header = self.params.get("header", "")
@@ -535,7 +532,6 @@ class MainModule:
 
     def selectimage(self):
         '''helper which lets the user select an image or imagepath from resourceaddons or custom path'''
-        xbmc.executebuiltin("ActivateWindow(busydialog)")
         skinsettings = SkinSettings()
         skinstring = self.params.get("skinstring", "")
         skinshortcutsprop = self.params.get("skinshortcutsproperty", "")

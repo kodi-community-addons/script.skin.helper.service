@@ -154,21 +154,28 @@ class PluginContent:
             xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=item, listitem=listitem)
         xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
 
-    def moviegenrebackground(self):
-        '''helper to display images for a specific movie genre in multiimage control in the skin'''
+    def genrebackground(self):
+        '''helper to display images for a specific genre in multiimage control in the skin'''
         genre = self.params.get("genre").split(".")[0]
+        arttype = self.params.get("arttype", "fanart")
+        randomize = self.params.get("random", "false") == "true"
+        mediatype = self.params.get("mediatype", "movies")
         if genre and genre != "..":
             filters = [{"operator": "is", "field": "genre", "value": genre}]
-            items = self.kodi_db.movies(
-                sort={"method": "random", "order": "descending"},
+            if randomize:
+                sort = {"method": "random", "order": "descending"}
+            else:
+                sort = None
+            items = getattr(self.kodi_db, mediatype)(
+                sort=sort,
                 filters=filters, limits=(0, 50))
             for item in items:
-                fanart = get_clean_image(item["art"].get("fanart", ""))
-                if fanart:
-                    fanart = get_clean_image(item["art"]["fanart"])
-                    listitem = xbmcgui.ListItem(fanart, path=fanart)
+                image = get_clean_image(item["art"].get(arttype, ""))
+                if image:
+                    image = get_clean_image(item["art"][arttype])
+                    listitem = xbmcgui.ListItem(image, path=image)
                     listitem.setProperty('mimetype', 'image/jpeg')
-                    xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=fanart, listitem=listitem)
+                    xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=image, listitem=listitem)
         xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
 
     def getcastmedia(self):

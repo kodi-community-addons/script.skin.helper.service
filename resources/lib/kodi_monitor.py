@@ -9,7 +9,6 @@
 
 from utils import log_msg, json, prepare_win_props, log_exception
 from artutils import process_method_on_list, extend_dict
-from simplecache import use_cache, SimpleCache
 import xbmc
 import time
 
@@ -23,7 +22,6 @@ class KodiMonitor(xbmc.Monitor):
 
     def __init__(self, **kwargs):
         xbmc.Monitor.__init__(self)
-        self.cache = SimpleCache()
         self.artutils = kwargs.get("artutils")
         self.win = kwargs.get("win")
 
@@ -186,7 +184,7 @@ class KodiMonitor(xbmc.Monitor):
         if mediatype in ["movies", "episodes", "musicvideos"]:
 
             # get imdb_id
-            li_imdb, li_tvdb = self.get_imdb_id(li_imdb, li_title, li_year, li_showtitle, mediatype)
+            li_imdb, li_tvdb = self.artutils.get_imdbtvdb_id(li_title, media_type, li_year, li_imdb, li_showtitle)
 
             # generic video properties (studio, streamdetails, omdb, top250)
             details = extend_dict(details, self.artutils.get_omdb_info(li_imdb))
@@ -301,22 +299,3 @@ class KodiMonitor(xbmc.Monitor):
         else:
             mediatype = "files"
         return mediatype
-
-    @use_cache(14)
-    def get_imdb_id(self, li_imdb, li_title, li_year, li_showtitle, mediatype):
-        '''try to figure out the imdbnumber because that's what we use for all lookup actions'''
-        li_tvdb = ""
-        if mediatype == "episodes":
-            li_title = li_showtitle
-            mediatype = "tvshows"
-        if li_imdb and not li_imdb.startswith("tt"):
-            if mediatype == "episodes":
-                li_tvdb = li_imdb
-                li_imdb = ""
-        if not li_imdb and li_year:
-            li_imdb = self.artutils.get_omdb_info("", li_title, li_year, mediatype).get("imdbnumber", "")
-        if not li_imdb:
-            # repeat without year
-            li_imdb = self.artutils.get_omdb_info("", li_title, "", mediatype).get("imdbnumber", "")
-        # return results
-        return (li_imdb, li_tvdb)

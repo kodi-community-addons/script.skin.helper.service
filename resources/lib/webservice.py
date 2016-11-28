@@ -193,16 +193,14 @@ class StoppableHttpRequestHandler (SimpleHTTPServer.SimpleHTTPRequestHandler):
                 artwork = self.server.artutils.get_music_artwork(artist, album, track)
 
             # genre images
-            elif "genreimages" in action:
-                if "getmoviegenreimages" in action:
-                    lib_path = u"plugin://script.skin.helper.service/?action=moviegenrebackground&genre=%s" % title
-                else:
-                    lib_path = u"plugin://script.skin.helper.service/?action=tvshowgenrebackground&genre=%s" % title
+            elif "genreimages" in action and preferred_types:
+                arttype = preferred_types[0].split(".")[0]
+                mediatype = "tvshows" if "tvshow" in action else "movies"
+                randomize = "true" if "random" in action else "false"
+                lib_path = u"plugin://script.skin.helper.service/?action=genrebackground"\
+                    "&genre=%s&arttype=%s&mediatype=%s&random=%s" % (title, arttype, mediatype, randomize)
                 for count, item in enumerate(self.server.artutils.kodidb.files(lib_path, limits=(0, 5))):
-                    artwork["poster.%s" % count] = item["art"].get("poster", "")
-                    artwork["fanart.%s" % count] = item["art"].get("fanart", "")
-                if not preferred_types:
-                    preferred_types = ["fanart.0"]
+                    artwork["%s.%s" % (arttype, count)] = item["file"]
 
             # image from variable
             elif "getvarimage" in action:

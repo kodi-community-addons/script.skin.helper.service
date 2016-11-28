@@ -52,7 +52,7 @@ class ListItemMonitor(threading.Thread):
     def run(self):
         '''our main loop monitoring the listitem and folderpath changes'''
         log_msg("ListItemMonitor - started")
-        
+
         while not self.exit:
 
             # check screensaver and OSD
@@ -271,8 +271,10 @@ class ListItemMonitor(threading.Thread):
                 # video content
                 elif content_type in ["movies", "setmovies", "tvshows", "seasons", "episodes", "musicvideos"]:
 
-                    # get imdb_id
-                    listitem["imdbnumber"], tvdbid = self.get_imdb_id(listitem, content_type)
+                    # get imdb and tvdbid
+                    listitem["imdbnumber"], tvdbid = self.artutils.get_imdbtvdb_id(
+                        listitem["title"], content_type, 
+                        listitem["year"], listitem["imdbnumber"], listitem["tvshowtitle"])
 
                     # generic video properties (studio, streamdetails, omdb, top250)
                     listitem = extend_dict(listitem, self.get_directors(listitem["director"]))
@@ -384,27 +386,6 @@ class ListItemMonitor(threading.Thread):
         for prop in self.all_window_props:
             self.win.clearProperty(prop)
         self.all_window_props = []
-
-    @use_cache(14)
-    def get_imdb_id(self, listitem, content_type):
-        '''try to figure out the imdbnumber because that's what we use for all lookup actions'''
-        tvdbid = ""
-        imdbid = listitem["imdbnumber"]
-        if content_type in ["seasons", "episodes"]:
-            listitem["title"] = listitem["tvshowtitle"]
-            content_type = "tvshows"
-        if imdbid and not imdbid.startswith("tt"):
-            if content_type in ["tvshows", "seasons", "episodes"]:
-                tvdbid = imdbid
-                imdbid = ""
-        if not imdbid and listitem["year"]:
-            imdbid = self.artutils.get_omdb_info(
-                "", listitem["title"], listitem["year"], content_type).get("imdbnumber", "")
-        if not imdbid:
-            # repeat without year
-            imdbid = self.artutils.get_omdb_info("", listitem["title"], "", content_type).get("imdbnumber", "")
-        # return results
-        return (imdbid, tvdbid)
 
     def set_win_prop(self, prop_tuple):
         '''sets a window property based on the given tuple of key-value'''
