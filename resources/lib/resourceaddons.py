@@ -19,12 +19,15 @@ import re
 from simplecache import SimpleCache
 
 
-def setresourceaddon(addontype, skinstring=""):
+def setresourceaddon(addontype, skinstring="", header=""):
     '''helper to let the user choose a resource addon and set that as skin string'''
     xbmc.executebuiltin("ActivateWindow(busydialog)")
     cur_value = xbmc.getInfoLabel("Skin.String(%s.name)" % skinstring).decode("utf-8")
     listing = []
     addon = xbmcaddon.Addon(ADDON_ID)
+    if not header:
+        header = addon.getLocalizedString(32010)
+        
     # none option
     listitem = xbmcgui.ListItem(label=addon.getLocalizedString(32001), iconImage="DefaultAddonNone.png")
     listitem.setProperty("addonid", "none")
@@ -55,25 +58,26 @@ def setresourceaddon(addontype, skinstring=""):
         listing.append(listitem)
 
     # show select dialog with choices
-    dialog = DialogSelect("DialogSelect.xml", "", listing=listing, windowtitle=addon.getLocalizedString(32010),
+    dialog = DialogSelect("DialogSelect.xml", "", listing=listing, windowtitle=header,
                           richlayout=True, getmorebutton=addontype, autofocuslabel=cur_value)
     dialog.doModal()
     result = dialog.result
     del dialog
 
     # process selection...
-    if isinstance(result, bool):
+    if isinstance(result, bool) and result:
         # refresh listing requested by getmore button
         del addon
         return setresourceaddon(addontype, skinstring)
     elif result:
         addon_id = result.getProperty("addonid")
-        addon_name = result.getLabel()
+        addon_name = result.getLabel().decode("utf-8")
         if addon_id == "none" and skinstring:
             # None
             xbmc.executebuiltin('Skin.Reset(%s)' % skinstring)
             xbmc.executebuiltin('Skin.Reset(%s.ext)' % skinstring)
             xbmc.executebuiltin('Skin.SetString(%s.name,%s)' % (skinstring, addon_name))
+            xbmc.executebuiltin('Skin.SetString(%s.label,%s)' % (skinstring, addon_name))
             xbmc.executebuiltin('Skin.Reset(%s.path)' % skinstring)
             xbmc.executebuiltin('Skin.Reset(%s.multi)' % skinstring)
         else:
@@ -83,12 +87,13 @@ def setresourceaddon(addontype, skinstring=""):
                 custom_path = dialog.browse(0, addon.getLocalizedString(32005), 'files')
                 del dialog
                 result.setPath(custom_path)
-            addonpath = result.getfilename()
+            addonpath = result.getfilename().decode("utf-8")
             if addonpath:
                 is_multi, extension = get_multi_extension(addonpath)
                 xbmc.executebuiltin('Skin.SetString(%s,%s)' % (skinstring, addonpath))
                 xbmc.executebuiltin('Skin.SetString(%s.path,%s)' % (skinstring, addonpath))
                 xbmc.executebuiltin('Skin.SetString(%s.name,%s)' % (skinstring, addon_name))
+                xbmc.executebuiltin('Skin.SetString(%s.label,%s)' % (skinstring, addon_name))
                 xbmc.executebuiltin('Skin.SetString(%s.ext,%s)' % (skinstring, extension))
                 if is_multi:
                     xbmc.executebuiltin('Skin.SetBool(%s.multi)' % skinstring)
@@ -161,14 +166,8 @@ def checkresourceaddons(addonslist):
                     line1=addon.getLocalizedString(32008) % addontypelabel)
                 xbmc.executebuiltin("Skin.Reset(%s.path)" % setting)
                 if ret:
-                    xbmc.executebuiltin(
-                        "ActivateWindow(AddonBrowser, addons://repository.xbmc.org/kodi.resource.images/)")
-                    # wait untill the addon is installed...
-                    count = 0
-                    while not checkresourceaddon(setting, addontype) and count < 120:
-                        xbmc.sleep(1000)
-                        if win.getProperty("SkinHelperShutdownRequested"):
-                            return
+                    downloadresourceaddons(addontype)
+                    checkresourceaddon(setting, addontype)
     del addon
 
 
@@ -180,12 +179,14 @@ def checkresourceaddon(skinstring="", addontype=""):
         skinstring = params.get("skinstring")
     if addontype and skinstring:
         for item in get_resourceaddons(addontype):
+            xbmc.executebuiltin("Skin.SetString(%s,%s)" % (skinstring, item['path']))
             xbmc.executebuiltin("Skin.SetString(%s.path,%s)" % (skinstring, item['path']))
             xbmc.executebuiltin("Skin.SetString(%s.name,%s)" % (skinstring, item['name']))
+            xbmc.executebuiltin("Skin.SetString(%s.label,%s)" % (skinstring, item['name']))
             is_multi, extension = get_multi_extension(item["path"])
             if is_multi:
                 xbmc.executebuiltin("Skin.SetBool(%s.multi)" % (skinstring))
-            xbmc.executebuiltin("Skin.SetString(%s.ext,.%s)" % (skinstring, extension))
+            xbmc.executebuiltin("Skin.SetString(%s.ext,%s)" % (skinstring, extension))
             return True
     return False
 

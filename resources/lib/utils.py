@@ -34,7 +34,7 @@ def log_msg(msg, loglevel=xbmc.LOGDEBUG):
 
 def log_exception(modulename, exceptiondetails):
     '''helper to properly log an exception'''
-    log_msg(format_exc(sys.exc_info()))
+    log_msg(format_exc(sys.exc_info()), xbmc.LOGWARNING)
     log_msg("Exception in %s ! --> %s" % (modulename, exceptiondetails), xbmc.LOGERROR)
 
 

@@ -219,10 +219,12 @@ class SkinSettings:
         return all_skinsettings
 
     def set_skin_setting(self, setting="", window_header="", sublevel="",
-                         cur_value_label="", skip_skin_string=False, original_id=""):
+                         cur_value_label="", skip_skin_string=False, original_id="", cur_value=""):
         '''allows the skinner to use a select dialog to set all kind of skin settings'''
         if not cur_value_label:
             cur_value_label = xbmc.getInfoLabel("Skin.String(%s.label)" % setting).decode("utf-8")
+        if not cur_value:
+            cur_value = xbmc.getInfoLabel("Skin.String(%s)" % setting).decode("utf-8")
         rich_layout = False
         listitems = []
         if sublevel:
@@ -341,13 +343,13 @@ class SkinSettings:
                                 command = xbmc.getInfoLabel(command)
                             xbmc.executebuiltin(command.encode("utf-8"))
 
-                    # process any multiselects
-                    for option in settingvalue["settingoptions"]:
-                        settingid = option["id"]
-                        if (not xbmc.getInfoLabel("Skin.String(defaultset_%s)" % settingid) and option["default"] and
-                                xbmc.getCondVisibility(option["default"])):
-                            xbmc.executebuiltin("Skin.SetBool(%s)" % settingid)
-                        xbmc.executebuiltin("Skin.SetString(defaultset_%s,defaultset)" % settingid)
+                # process any multiselects
+                for option in settingvalue["settingoptions"]:
+                    settingid = option["id"]
+                    if (not xbmc.getInfoLabel("Skin.String(defaultset_%s)" % settingid) and option["default"] and
+                            xbmc.getCondVisibility(option["default"])):
+                        xbmc.executebuiltin("Skin.SetBool(%s)" % settingid)
+                    xbmc.executebuiltin("Skin.SetString(defaultset_%s,defaultset)" % settingid)
 
                 # set the default constant value if current value is empty
                 if (not curvalue and settingvalue["constantdefault"] and
@@ -389,6 +391,9 @@ class SkinSettings:
     def set_skinshortcuts_property(self, setting="", window_header="", property_name=""):
         '''allows the user to make a setting for skinshortcuts using the special skinsettings dialogs'''
         cur_value = xbmc.getInfoLabel(
+            "$INFO[Container(211).ListItem.Property(%s)]" %
+            property_name).decode("utf-8")
+        cur_value_label = xbmc.getInfoLabel(
             "$INFO[Container(211).ListItem.Property(%s.name)]" %
             property_name).decode("utf-8")
         if setting == "||IMAGE||":
@@ -397,7 +402,7 @@ class SkinSettings:
         if setting:
             # use skin settings select dialog
             value, label = self.set_skin_setting(
-                setting, window_header=window_header, sublevel="", cur_value_label=cur_value, skip_skin_string=True)
+                setting, window_header=window_header, sublevel="", cur_value_label=cur_value_label, skip_skin_string=True, cur_value=cur_value)
         else:
             # manually input string
             if not cur_value:
@@ -464,7 +469,7 @@ class SkinSettings:
                 return self.select_image(skinstring, allow_multi, windowheader,
                                          resource_addon, skinhelper_backgrounds, current_value)
         elif result:
-            label = result.getLabel()
+            label = result.getLabel().decode("utf-8")
             if label == self.addon.getLocalizedString(32004):
                 # browse for single image
                 custom_image = SkinSettings().save_skin_image(skinstring, False, self.addon.getLocalizedString(32004))
@@ -480,7 +485,7 @@ class SkinSettings:
                 else:
                     return self.selectimage()
             # return values
-            return (result.getLabel(), result.getfilename())
+            return (result.getLabel().decode("utf-8"), result.getfilename().decode("utf-8"))
         # return empty values
         return ("", "")
 

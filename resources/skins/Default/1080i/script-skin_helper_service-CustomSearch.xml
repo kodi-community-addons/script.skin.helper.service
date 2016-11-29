@@ -557,7 +557,7 @@
 				<colordiffuse>FF3e3e3e</colordiffuse>
 			</control>
         
-			
+			<!-- Movies -->
 			<control type="label">
 				<left>0</left>
 				<top>80</top>
@@ -568,7 +568,6 @@
 				<textcolor>white</textcolor>
 				<angle>-90</angle>
 			</control>   
-			
 			<control type="panel" id="3110">
 				<left>70</left>
 				<top>80</top>
@@ -581,7 +580,6 @@
 				<pagecontrol>noop</pagecontrol>
 				<scrolltime>200</scrolltime>
 				<orientation>horizontal</orientation>
-                <!-- itemlayout movies -->
                 <itemlayout height="245" width="182">
                     <control type="group">
 						<posx>7</posx>
@@ -603,7 +601,6 @@
 						  </control>
 					  </control>
                 </itemlayout>
-                <!-- focussed layout movies -->
                 <focusedlayout height="245" width="182">
                     <control type="group">
 						<posx>7</posx>
@@ -696,8 +693,7 @@
                 </focusedlayout>
 			</control>
 			
-			
-			<!-- episodes -->
+			<!-- Actors -->
 			<control type="label">
 				<left>0</left>
 				<top>580</top>
@@ -708,7 +704,6 @@
 				<textcolor>white</textcolor>
 				<angle>-90</angle>
 			</control> 
-			
 			<control type="panel" id="3112">
 				<left>70</left>
 				<top>580</top>
@@ -805,7 +800,6 @@
                 </focusedlayout>
 			</control>
  
-		
 		</control>
     
 	</controls>

@@ -20,6 +20,7 @@ ACTION_SHOW_INFO = (11, )
 
 class DialogVideoInfo(xbmcgui.WindowXMLDialog):
     '''Wrapper around the videoinfodialog'''
+    result = None
 
     def __init__(self, *args, **kwargs):
         xbmcgui.WindowXMLDialog.__init__(self)
@@ -57,8 +58,12 @@ class DialogVideoInfo(xbmcgui.WindowXMLDialog):
         '''triggers if one of the controls is clicked'''
         if controlid == 8:
             # play button
+            self.result = True
             self.close()
-            xbmc.executebuiltin("Playmedia(%s)" % self.listitem.getfilename())
+            if "videodb:" in self.listitem.getfilename():
+                xbmc.executebuiltin('ReplaceWindow(Videos,"%s")' % self.listitem.getfilename())
+            else:
+                xbmc.executebuiltin('PlayMedia("%s")' % self.listitem.getfilename())
         if controlid == 103:
             # trailer button
             pass

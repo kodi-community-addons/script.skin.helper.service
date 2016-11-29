@@ -161,7 +161,7 @@ class MainModule:
         del dialog
         if result:
             viewid = result.getProperty("viewid")
-            label = result.getLabel()
+            label = result.getLabel().decode("utf-8")
             return (viewid, label)
         else:
             return (None, None)
@@ -321,7 +321,9 @@ class MainModule:
         skinstring = self.params.get("skinstring", "")
         allow_multi = self.params.get("multi", "") == "true"
         header = self.params.get("header", "")
-        SkinSettings().save_skin_image(skinstring, allow_multi, header)
+        value = SkinSettings().save_skin_image(skinstring, allow_multi, header)
+        if value:
+            xbmc.executebuiltin("Skin.SetString(%s,%s)" %(skinstring.encode("utf-8"), value.encode("utf-8")))
 
     @staticmethod
     def checkskinsettings():
@@ -554,6 +556,8 @@ class MainModule:
                     # we got an dynamic image from window property
                     skinsettings.set_skin_variable(skinstring, value)
                     value = "$VAR[%s]" % skinstring
+                skinstring = skinstring.encode("utf-8")
+                label = label.encode("utf-8")
                 xbmc.executebuiltin("Skin.SetString(%s.label,%s)" % (skinstring, label))
                 xbmc.executebuiltin("Skin.SetString(%s.name,%s)" % (skinstring, label))
                 xbmc.executebuiltin("Skin.SetString(%s,%s)" % (skinstring, value))

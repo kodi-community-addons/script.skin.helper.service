@@ -9,7 +9,7 @@
 
 import threading
 import thread
-from utils import log_msg, log_exception, get_current_content_type, kodi_json, prepare_win_props
+from utils import log_msg, log_exception, get_current_content_type, kodi_json, prepare_win_props, get_clean_image
 from artutils import extend_dict
 import xbmc
 from simplecache import use_cache, SimpleCache
@@ -52,6 +52,7 @@ class ListItemMonitor(threading.Thread):
     def run(self):
         '''our main loop monitoring the listitem and folderpath changes'''
         log_msg("ListItemMonitor - started")
+        self.get_settings()
 
         while not self.exit:
 
@@ -72,9 +73,9 @@ class ListItemMonitor(threading.Thread):
                 self.kodimonitor.waitForAbort(3)
                 self.delayed_task_interval += 3
 
-            # skip when modal dialogs are opened (e.g. textviewer in musicinfo dialog)
+            # skip when modal dialogs are opened (e.g. textviewer in musicinfo dialog) or container scrolling
             elif xbmc.getCondVisibility(
-                    "System.HasModalDialog | Window.IsActive(progressdialog) | Window.IsActive(busydialog)"):
+                    "System.HasModalDialog | Window.IsActive(progressdialog) | Window.IsActive(busydialog) | Container.Scrolling"):
                 self.kodimonitor.waitForAbort(2)
                 self.delayed_task_interval += 2
                 self.last_listitem = ""
@@ -111,6 +112,12 @@ class ListItemMonitor(threading.Thread):
         if studiologos_path != self.artutils.studiologos_path:
             self.listitem_details = {}
             self.artutils.studiologos_path = studiologos_path
+        #set additional window props to control contextmenus as using the skinsetting gives unreliable results
+        for skinsetting in ["EnableAnimatedPosters", "EnableMusicArt", "EnablePVRThumbs"]:
+            if xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.%s)" % skinsetting):
+                self.win.setProperty("SkinHelper.%s" % skinsetting, "enabled")
+            else:
+                self.win.clearProperty("SkinHelper.%s" % skinsetting)
 
     def monitor_listitem(self):
         '''Monitor listitem details'''
@@ -462,7 +469,7 @@ class ListItemMonitor(threading.Thread):
                       "tagline", "rating", "imdbnumber"]
             if content_type in ["episodes"]:
                 props += ["season", "episode", "art(tvshow.landscape)", "art(tvshow.clearlogo)",
-                          "art(tvshow.poster)"]
+                          "art(tvshow.poster)","art(tvshow.fanart)"]
         elif content_type in ["musicvideos", "artists", "albums", "songs"]:
             props += ["artist", "album", "rating", "albumartist", "discnumber"]
         elif content_type in ["tvchannels", "tvrecordings", "channels", "recordings", "timers", "tvtimers"]:
@@ -473,7 +480,8 @@ class ListItemMonitor(threading.Thread):
             if not propvalue or propvalue == "-1":
                 propvalue = xbmc.getInfoLabel('%sListItem.Property(%s)' % (prefix, prop)).decode('utf-8')
             if "art(" in prop:
-                prop = prop.replace("art(", "").replace(")", "")
+                prop = prop.replace("art(", "").replace(")", "").replace("tvshow.", "")
+                propvalue = get_clean_image(propvalue)
                 listitem_details["art"][prop] = propvalue
             else:
                 listitem_details[prop] = propvalue

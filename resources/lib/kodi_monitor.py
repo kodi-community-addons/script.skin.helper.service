@@ -28,23 +28,26 @@ class KodiMonitor(xbmc.Monitor):
     def onNotification(self, sender, method, data):
         '''builtin function for the xbmc.Monitor class'''
         try:
-            log_msg("Kodi_Monitor: sender %s - method: %s  - data: %s" % (sender, method, data), xbmc.LOGNOTICE)
+            log_msg("Kodi_Monitor: sender %s - method: %s  - data: %s" % (sender, method, data))
             data = json.loads(data.decode('utf-8'))
             mediatype = ""
             dbid = 0
+            transaction = False
             if data and isinstance(data, dict):
                 if data.get("item"):
                     mediatype = data["item"].get("type", "")
                     dbid = data["item"].get("id", 0)
                 elif data.get("type"):
                     mediatype = data["type"]
-                    id = data.get("id",0)
+                    id = data.get("id", 0)
+                if data.get("transaction"):
+                    transaction = True
 
             if method == "System.OnQuit":
                 self.win.setProperty("SkinHelperShutdownRequested", "shutdown")
 
             if method == "VideoLibrary.OnUpdate":
-                self.process_db_update(mediatype, dbid)
+                self.process_db_update(mediatype, dbid, transaction)
 
             if method == "AudioLibrary.OnUpdate":
                 self.process_db_update(mediatype, dbid)
@@ -98,7 +101,7 @@ class KodiMonitor(xbmc.Monitor):
                 self.win.setProperty("widgetreload-%ss" % media_type, timestr)
             self.update_video_widgets_busy = False
 
-    def process_db_update(self, media_type, dbid):
+    def process_db_update(self, media_type, dbid, transaction):
         '''precache/refresh items when a kodi db item gets updated/added'''
 
         # refresh widgets
@@ -108,21 +111,27 @@ class KodiMonitor(xbmc.Monitor):
             self.refresh_video_widgets(media_type)
 
         # item specific actions
-        if dbid and media_type == "movie":
+        if dbid and media_type == "movie" and transaction:
             movie = self.artutils.kodidb.movie(dbid)
             imdb_id = movie["imdbnumber"]
             if imdb_id:
                 self.artutils.get_animated_artwork(imdb_id)
+
         if dbid and media_type in ["movie", "episode", "musicvideo"]:
             self.artutils.get_streamdetails(dbid, media_type, ignore_cache=True)
+            if transaction:
+                self.artwork_downloader(media_type, dbid)
+
         if dbid and media_type == "song":
             song = self.artutils.kodidb.song(dbid)
             self.artutils.get_music_artwork(
                 song["artist"][0], song["album"], song["title"], str(
                     song["disc"], ignore_cache=True))
+
         elif dbid and media_type == "album":
             song = self.artutils.kodidb.album(dbid)
             self.artutils.get_music_artwork(item["artist"][0], item["title"], ignore_cache=True)
+
         elif dbid and media_type == "artist":
             song = self.artutils.kodidb.artist(dbid)
             self.artutils.get_music_artwork(item["artist"], ignore_cache=True)
@@ -234,10 +243,20 @@ class KodiMonitor(xbmc.Monitor):
                 li_title = li_title.split(splitchar)[1]
 
         if xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnableMusicArt)") and li_artist:
-            result = self.artutils.get_music_artwork(li_artist, li_album, li_title, li_disc)
+            result = self.artutils.get_music_artwork(li_artist, li_album, li_title, li_disc, appendplot=True)
             all_props = prepare_win_props(result, u"SkinHelper.Player.")
             if li_title_org == xbmc.getInfoLabel("MusicPlayer.Title").decode('utf-8'):
                 process_method_on_list(self.set_win_prop, all_props)
+
+    def artwork_downloader(self, media_type, dbid):
+        '''trigger artwork scan with artwork downloader if enabled'''
+        if xbmc.getCondVisibility(
+                "System.HasAddon(script.artwork.downloader) + Skin.HasSetting(EnableArtworkDownloader)"):
+            if media_type == "episode":
+                media_type = "tvshow"
+                dbid = self.artutils.kodidb.episode(dbid)["tvshowid"]
+            xbmc.executebuiltin(
+                "RunScript(script.artwork.downloader,silent=true,mediatype=%s,dbid=%s)" % (media_type, dbid))
 
     def monitor_radiostream(self):
         '''
