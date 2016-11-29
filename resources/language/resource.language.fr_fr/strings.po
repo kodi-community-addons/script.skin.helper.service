@@ -49,8 +49,8 @@ msgid "%s missing!"
 msgstr "%s manquant !"
 
 msgctxt "#32008"
-msgid "To get the most out of this skin, it is suggested to install a resource addon for %s. \n Please install the resource addon(s) to your preference in the next dialog. You can always change your preference later in the skin settings."
-msgstr "Pour tirer le meilleur parti de ce thème, il est suggéré d'installer une extension de ressources pour %s. \n Veuillez installer les extensions de ressources selon votre préférence dans la boîte de dialogue suivante. Vous pouvez toujours modifier vos préférences ultérieurement dans les paramètres du thème."
+msgid "To get the most out of this skin, it is suggested to install a image resource addon for %s. \n Do you want to select and install this image resource addon now ?"
+msgstr "Pour tirer le meilleur parti de ce thème, il est suggéré d'installer une extension de ressources d’images pour %s. \n Voulez-vous sélectionner et installer cette extension maintenant ?"
 
 msgctxt "#32009"
 msgid "Custom path"
