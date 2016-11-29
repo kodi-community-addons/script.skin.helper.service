@@ -9,8 +9,8 @@
 
 import threading
 import thread
-from utils import log_msg, log_exception, get_current_content_type, kodi_json, prepare_win_props, get_clean_image
-from artutils import extend_dict
+from utils import log_msg, log_exception, get_current_content_type, kodi_json, prepare_win_props
+from artutils import extend_dict, get_clean_image
 import xbmc
 from simplecache import use_cache, SimpleCache
 
