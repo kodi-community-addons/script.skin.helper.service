@@ -50,7 +50,7 @@ class KodiMonitor(xbmc.Monitor):
                 self.process_db_update(mediatype, dbid, transaction)
 
             if method == "AudioLibrary.OnUpdate":
-                self.process_db_update(mediatype, dbid)
+                self.process_db_update(mediatype, dbid, transaction)
 
             if method == "Player.OnStop":
                 self.monitoring_stream = False
@@ -58,7 +58,7 @@ class KodiMonitor(xbmc.Monitor):
                 self.win.clearProperty("TrailerPlaying")
                 self.reset_win_props()
                 if not dbid:
-                    self.process_db_update(mediatype, "")
+                    self.process_db_update(mediatype, "", transaction)
 
             if method == "Player.OnPlay":
                 self.reset_win_props()
@@ -101,7 +101,7 @@ class KodiMonitor(xbmc.Monitor):
                 self.win.setProperty("widgetreload-%ss" % media_type, timestr)
             self.update_video_widgets_busy = False
 
-    def process_db_update(self, media_type, dbid, transaction):
+    def process_db_update(self, media_type, dbid, transaction=False):
         '''precache/refresh items when a kodi db item gets updated/added'''
 
         # refresh widgets
@@ -238,6 +238,10 @@ class KodiMonitor(xbmc.Monitor):
                 splitchar = " -"
             elif "-" in li_title:
                 splitchar = "-"
+            elif ": " in li_title:
+                splitchar = ": "
+            elif ":" in li_title:
+                splitchar = ":"
             if splitchar:
                 li_artist = li_title.split(splitchar)[0]
                 li_title = li_title.split(splitchar)[1]
