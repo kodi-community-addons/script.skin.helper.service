@@ -16,7 +16,6 @@ if __name__ == '__main__':
     win = xbmcgui.Window(10000)
     artutils = ArtUtils()
     win.setProperty("SkinHelper.Artwork.ManualLookup", "busy")
-    xbmc.executebuiltin("ActivateWindow(busydialog)")
     track = xbmc.getInfoLabel("ListItem.Title").decode('utf-8')
     album = xbmc.getInfoLabel("ListItem.Album").decode('utf-8')
     artist = xbmc.getInfoLabel("ListItem.AlbumArtist").decode('utf-8')
@@ -24,7 +23,6 @@ if __name__ == '__main__':
         artist = xbmc.getInfoLabel("ListItem.Artist").decode('utf-8')
     disc = xbmc.getInfoLabel("ListItem.DiscNumber").decode('utf-8')
     artutils.music_artwork_options(artist, album, track, disc)
-    xbmc.executebuiltin("Dialog.Close(busydialog)")
     win.clearProperty("SkinHelper.Artwork.ManualLookup")
     artutils.close()
     del win

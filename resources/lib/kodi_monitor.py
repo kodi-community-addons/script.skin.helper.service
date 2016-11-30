@@ -229,22 +229,11 @@ class KodiMonitor(xbmc.Monitor):
 
         if not li_artist:
             # fix for internet streams
-            splitchar = None
-            if " - " in li_title:
-                splitchar = " - "
-            elif "- " in li_title:
-                splitchar = "- "
-            elif " -" in li_title:
-                splitchar = " -"
-            elif "-" in li_title:
-                splitchar = "-"
-            elif ": " in li_title:
-                splitchar = ": "
-            elif ":" in li_title:
-                splitchar = ":"
-            if splitchar:
-                li_artist = li_title.split(splitchar)[0]
-                li_title = li_title.split(splitchar)[1]
+            for splitchar in [" - ","-", ":", ";"]:
+                if splitchar in li_title:
+                    li_artist = li_title.split(splitchar)[0].strip()
+                    li_title = li_title.split(splitchar)[1].strip()
+                    break
 
         if xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnableMusicArt)") and li_artist:
             result = self.artutils.get_music_artwork(li_artist, li_album, li_title, li_disc, appendplot=True)
