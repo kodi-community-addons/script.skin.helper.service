@@ -10,7 +10,7 @@
 import threading
 import thread
 from utils import log_msg, log_exception, get_current_content_type, kodi_json, prepare_win_props
-from artutils import extend_dict, get_clean_image
+from artutils import extend_dict, get_clean_image, process_method_on_list
 import xbmc
 from simplecache import use_cache, SimpleCache
 
@@ -324,7 +324,7 @@ class ListItemMonitor(threading.Thread):
 
                 # process all properties
                 all_props = prepare_win_props(listitem)
-                if content_type not in ["weathers", "systeminfos"]:
+                if content_type not in ["weathers", "systeminfos", "sets"]:
                     self.listitem_details[cur_listitem] = all_props
 
                 self.lookup_busy.pop(cur_listitem, None)
@@ -402,8 +402,7 @@ class ListItemMonitor(threading.Thread):
 
     def set_win_props(self, prop_tuples):
         '''set multiple window properties from list of tuples'''
-        for prop_tuple in prop_tuples:
-            self.set_win_prop(prop_tuple)
+        process_method_on_list(self.set_win_prop, prop_tuples)
 
     def set_content_header(self, content_type):
         '''sets a window propery which can be used as headertitle'''

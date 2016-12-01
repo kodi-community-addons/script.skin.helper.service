@@ -208,7 +208,7 @@ def prepare_win_props(details, prefix=u"SkinHelper.ListItem."):
     items = []
     if details:
         for key, value in details.iteritems():
-            if value:
+            if value or value == 0:
                 key = u"%s%s" % (prefix, key)
                 key = key.lower()
                 if isinstance(value, (str, unicode)):
