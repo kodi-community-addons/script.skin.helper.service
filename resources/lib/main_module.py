@@ -359,7 +359,7 @@ class MainModule:
         header = self.params.get("header", "")
         SkinSettings().set_skinshortcuts_property(setting, header, prop)
 
-    def togglekodisetting(self, settingname):
+    def togglekodisetting(self):
         '''toggle kodi setting'''
         settingname = self.params.get("setting", "")
         cur_value = xbmc.getCondVisibility("system.getbool(%s)" % settingname)
@@ -371,7 +371,7 @@ class MainModule:
             '{"jsonrpc":"2.0", "id":1, "method":"Settings.SetSettingValue","params":{"setting":"%s","value":%s}}' %
             (settingname, new_value))
 
-    def setkodisetting(self, settingname):
+    def setkodisetting(self):
         '''set kodi setting'''
         settingname = self.params.get("setting", "")
         value = self.params.get("value", "")
