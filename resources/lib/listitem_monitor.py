@@ -112,7 +112,7 @@ class ListItemMonitor(threading.Thread):
         if studiologos_path != self.artutils.studiologos_path:
             self.listitem_details = {}
             self.artutils.studiologos_path = studiologos_path
-        #set additional window props to control contextmenus as using the skinsetting gives unreliable results
+        # set additional window props to control contextmenus as using the skinsetting gives unreliable results
         for skinsetting in ["EnableAnimatedPosters", "EnableMusicArt", "EnablePVRThumbs"]:
             if xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.%s)" % skinsetting):
                 self.win.setProperty("SkinHelper.%s" % skinsetting, "enabled")
@@ -251,6 +251,10 @@ class ListItemMonitor(threading.Thread):
                 # collect all details from listitem
                 listitem = self.get_listitem_details(content_type, prefix)
 
+                # prefer listitem's contenttype
+                if listitem["dbtype"]:
+                    content_type = listitem["dbtype"] + "s"
+
                 if prefix and cur_listitem == self.last_listitem:
                     # for widgets we immediately set all normal properties as window prop
                     self.set_win_props(prepare_win_props(listitem))
@@ -274,18 +278,23 @@ class ListItemMonitor(threading.Thread):
                 # moviesets
                 elif listitem["path"].startswith("videodb://movies/sets/") and listitem["dbid"]:
                     listitem = extend_dict(listitem, self.artutils.get_moviesetdetails(listitem["dbid"]))
+                    content_type = "sets"
 
                 # video content
                 elif content_type in ["movies", "setmovies", "tvshows", "seasons", "episodes", "musicvideos"]:
 
                     # get imdb and tvdbid
                     listitem["imdbnumber"], tvdbid = self.artutils.get_imdbtvdb_id(
-                        listitem["title"], content_type, 
+                        listitem["title"], content_type,
                         listitem["year"], listitem["imdbnumber"], listitem["tvshowtitle"])
 
                     # generic video properties (studio, streamdetails, omdb, top250)
-                    listitem = extend_dict(listitem, self.get_directors(listitem["director"]))
-                    listitem = extend_dict(listitem, self.get_extrafanart(listitem["path"], content_type))
+                    listitem = extend_dict(listitem,
+                                           self.get_directors_writers(listitem["director"], listitem["writer"]))
+                    if self.enable_extrafanart:
+                        if not listitem["filenameandpath"]:
+                            listitem["filenameandpath"] = listitem["path"]
+                        listitem = extend_dict(listitem, self.artutils.get_extrafanart(listitem["filenameandpath"]))
                     listitem = extend_dict(listitem, self.get_genres(listitem["genre"]))
                     listitem = extend_dict(listitem, self.artutils.get_duration(listitem["duration"]))
                     listitem = extend_dict(listitem, self.artutils.get_studio_logo(listitem["studio"]))
@@ -445,10 +454,13 @@ class ListItemMonitor(threading.Thread):
         return details
 
     @staticmethod
-    def get_directors(director):
-        '''get a formatted string with directors from the actual directors string'''
+    def get_directors_writers(director, writer):
+        '''get a formatted string with directors/writers from the actual string'''
         directors = director.split(" / ")
-        return {'Directors': "[CR]".join(directors)}
+        writers = writer.split(" / ")
+        return {
+            'Directors': "[CR]".join(directors),
+            'Writers': "[CR]".join(writers)}
 
     @staticmethod
     def get_listitem_details(content_type, prefix):
@@ -468,7 +480,7 @@ class ListItemMonitor(threading.Thread):
                       "tagline", "rating", "imdbnumber"]
             if content_type in ["episodes"]:
                 props += ["season", "episode", "art(tvshow.landscape)", "art(tvshow.clearlogo)",
-                          "art(tvshow.poster)","art(tvshow.fanart)"]
+                          "art(tvshow.poster)", "art(tvshow.fanart)"]
         elif content_type in ["musicvideos", "artists", "albums", "songs"]:
             props += ["artist", "album", "rating", "albumartist", "discnumber"]
         elif content_type in ["tvchannels", "tvrecordings", "channels", "recordings", "timers", "tvtimers"]:
@@ -516,14 +528,6 @@ class ListItemMonitor(threading.Thread):
                 xbmc.executebuiltin("SetFocus(%s)" % cur_forced_view)
         else:
             self.win.clearProperty("SkinHelper.ForcedView")
-
-    def get_extrafanart(self, file_path, content_type):
-        '''get the extrafanart path for the actual video item'''
-        details = {}
-        if self.enable_extrafanart:
-            if file_path and content_type in ["movies", "seasons", "episodes", "tvshows", "setmovies", "moviesets"]:
-                details = self.artutils.get_extrafanart(file_path, content_type)
-        return details
 
     def get_pvr_artwork(self, listitem, prefix):
         '''get pvr artwork from artwork module'''

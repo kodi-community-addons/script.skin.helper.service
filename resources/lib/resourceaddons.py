@@ -54,7 +54,6 @@ def setresourceaddon(addontype, skinstring="", header=""):
             iconImage="special://home/addons/script.skin.helper.service/icon.png")
         listitem.setPath("plugin://script.skin.helper.service/?action=moviegenrebackground&genre=")
         listitem.setProperty("addonid", "skinhelper.forgenre")
-        installed_addons.append("skinhelper.forgenre")
         listing.append(listitem)
 
     # show select dialog with choices
