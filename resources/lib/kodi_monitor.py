@@ -19,6 +19,7 @@ class KodiMonitor(xbmc.Monitor):
     update_music_widgets_busy = False
     all_window_props = []
     monitoring_stream = False
+    infopanelshown = False
 
     def __init__(self, **kwargs):
         xbmc.Monitor.__init__(self)
@@ -54,6 +55,7 @@ class KodiMonitor(xbmc.Monitor):
 
             if method == "Player.OnStop":
                 self.monitoring_stream = False
+                self.infopanelshown = False
                 self.win.clearProperty("Skinhelper.PlayerPlaying")
                 self.win.clearProperty("TrailerPlaying")
                 self.reset_win_props()
@@ -164,19 +166,20 @@ class KodiMonitor(xbmc.Monitor):
             sec_to_display = int(xbmc.getInfoLabel("Skin.String(SkinHelper.ShowInfoAtPlaybackStart)"))
         except Exception:
             return
-        log_msg("Show OSD Infopanel - number of seconds: %s" % sec_to_display)
-        if sec_to_display > 0:
+        
+        if sec_to_display > 0 and not self.infopanelshown:
             retries = 0
+            log_msg("Show OSD Infopanel - number of seconds: %s" % sec_to_display)
+            self.infopanelshown = True
             if self.win.getProperty("VideoScreensaverRunning") != "true":
                 while retries != 50 and xbmc.getCondVisibility("!Player.ShowInfo"):
                     xbmc.sleep(100)
                     if xbmc.getCondVisibility("!Player.ShowInfo + Window.IsActive(fullscreenvideo)"):
                         xbmc.executebuiltin('Action(info)')
                     retries += 1
-
                 # close info again after given amount of time
                 xbmc.Monitor().waitForAbort(sec_to_display)
-                if xbmc.getCondVisibility("Player.ShowInfo"):
+                if xbmc.getCondVisibility("Player.ShowInfo + Window.IsActive(fullscreenvideo)"):
                     xbmc.executebuiltin('Action(info)')
 
     def set_video_properties(self, mediatype, li_dbid):

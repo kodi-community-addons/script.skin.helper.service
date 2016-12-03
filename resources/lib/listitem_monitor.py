@@ -34,6 +34,7 @@ class ListItemMonitor(threading.Thread):
     enable_animatedart = False
     enable_extrafanart = False
     enable_pvrart = False
+    enable_forcedviews = False
 
     def __init__(self, *args, **kwargs):
         self.cache = SimpleCache()
@@ -108,6 +109,7 @@ class ListItemMonitor(threading.Thread):
         self.enable_extrafanart = xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnableExtraFanart)") == 1
         self.enable_pvrart = xbmc.getCondVisibility(
             "Skin.HasSetting(SkinHelper.EnablePVRThumbs) + PVR.HasTVChannels") == 1
+        self.enable_forcedviews = xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.ForcedViews.Enabled)") == 1
         studiologos_path = xbmc.getInfoLabel("Skin.String(SkinHelper.StudioLogos.Path)").decode("utf-8")
         if studiologos_path != self.artutils.studiologos_path:
             self.listitem_details = {}
@@ -150,6 +152,7 @@ class ListItemMonitor(threading.Thread):
             # clear all window props first
             self.reset_win_props()
             self.set_win_prop(("curlistitem", cur_listitem))
+            self.set_forcedview(content_type)
             if not li_label == "..":
                 # set listitem details in background thread
                 thread.start_new_thread(
@@ -480,7 +483,7 @@ class ListItemMonitor(threading.Thread):
                       "tagline", "rating", "imdbnumber"]
             if content_type in ["episodes"]:
                 props += ["season", "episode", "art(tvshow.landscape)", "art(tvshow.clearlogo)",
-                          "art(tvshow.poster)", "art(tvshow.fanart)"]
+                          "art(tvshow.poster)", "art(tvshow.fanart)", "art(tvshow.banner)"]
         elif content_type in ["musicvideos", "artists", "albums", "songs"]:
             props += ["artist", "album", "rating", "albumartist", "discnumber"]
         elif content_type in ["tvchannels", "tvrecordings", "channels", "recordings", "timers", "tvtimers"]:
@@ -513,19 +516,24 @@ class ListItemMonitor(threading.Thread):
 
     def set_forcedview(self, content_type):
         '''helper to force the view in certain conditions'''
-        cur_forced_view = xbmc.getInfoLabel("Skin.String(SkinHelper.ForcedViews.%s)" % content_type)
-        if xbmc.getCondVisibility("Control.IsVisible(%s) | IsEmpty(Container.Viewmode)" % cur_forced_view):
-            # skip if the view is already visible or if we're not in an actual media window
-            return
-        if (content_type and cur_forced_view and cur_forced_view != "None" and xbmc.getCondVisibility(
-                "Skin.HasSetting(SkinHelper.ForcedViews.Enabled)") and not
-                xbmc.getCondVisibility("Window.IsActive(MyPvrGuide.xml)")):
-            self.win.setProperty("SkinHelper.ForcedView", cur_forced_view)
-            xbmc.executebuiltin("Container.SetViewMode(%s)" % cur_forced_view)
-            if not xbmc.getCondVisibility("Control.HasFocus(%s)" % cur_forced_view):
-                xbmc.sleep(100)
-                xbmc.executebuiltin("Container.SetViewMode(%s)" % cur_forced_view)
-                xbmc.executebuiltin("SetFocus(%s)" % cur_forced_view)
+        if self.enable_forcedviews:
+            cur_forced_view = xbmc.getInfoLabel("Skin.String(SkinHelper.ForcedViews.%s)" % content_type)
+            if xbmc.getCondVisibility("Control.IsVisible(%s) | IsEmpty(Container.Viewmode)" % cur_forced_view):
+                # skip if the view is already visible or if we're not in an actual media window
+                return
+            if (content_type and cur_forced_view and cur_forced_view != "None" and not
+                    xbmc.getCondVisibility("Window.IsActive(MyPvrGuide.xml)")):
+                self.win.setProperty("SkinHelper.ForcedView", cur_forced_view)
+                count = 0
+                while not xbmc.getCondVisibility("Control.HasFocus(%s)" % cur_forced_view):
+                    xbmc.sleep(100)
+                    xbmc.executebuiltin("Container.SetViewMode(%s)" % cur_forced_view)
+                    xbmc.executebuiltin("SetFocus(%s)" % cur_forced_view)
+                    count += 1
+                    if count == 50:
+                        break
+            else:
+                self.win.clearProperty("SkinHelper.ForcedView")
         else:
             self.win.clearProperty("SkinHelper.ForcedView")
 
