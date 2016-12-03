@@ -51,7 +51,7 @@ class MainService:
 
             # set generic widget reload
             widget_task_interval += 10
-            if widget_task_interval >= 600:
+            if widget_task_interval >= 300:
                 self.win.setProperty("widgetreload2", time.strftime("%Y%m%d%H%M%S", time.gmtime()))
                 widget_task_interval = 0
 
