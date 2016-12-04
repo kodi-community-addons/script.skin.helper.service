@@ -252,12 +252,15 @@ class ListItemMonitor(threading.Thread):
                 # data already in memory
                 all_props = self.listitem_details[cur_listitem]
             else:
+                # prefer listitem's contenttype over container's contenttype
+                dbtype = xbmc.getInfoLabel("%sListItem.DBTYPE" % prefix)
+                if not dbtype:
+                    dbtype = xbmc.getInfoLabel("%sListItem.Property(DBTYPE)" % prefix)
+                if dbtype:
+                    content_type = dbtype + "s"
+            
                 # collect all details from listitem
                 listitem = self.get_listitem_details(content_type, prefix)
-
-                # prefer listitem's contenttype
-                if listitem["dbtype"]:
-                    content_type = listitem["dbtype"] + "s"
 
                 if prefix and cur_listitem == self.last_listitem:
                     # for widgets we immediately set all normal properties as window prop
@@ -550,5 +553,8 @@ class ListItemMonitor(threading.Thread):
                     listitem["channelname"],
                     listitem["genre"]), ["title", "genre", "genres", "thumb"])
         # pvr channellogo
-        listitem["ChannelLogo"] = self.artutils.get_channellogo(listitem["channelname"])
+        if listitem["channelname"]:
+            listitem["ChannelLogo"] = self.artutils.get_channellogo(listitem["channelname"])
+        elif listitem.get("pvrchannel"):
+            listitem["ChannelLogo"] = self.artutils.get_channellogo(listitem["pvrchannel"])
         return listitem
