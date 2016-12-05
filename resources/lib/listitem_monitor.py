@@ -146,7 +146,10 @@ class ListItemMonitor(threading.Thread):
 
         # only perform actions when the listitem has actually changed
         li_title = xbmc.getInfoLabel("%sListItem.Title" % cont_prefix).decode('utf-8')
-        cur_listitem = "%s--%s--%s--%s" % (cur_folder, li_label, li_title, content_type)
+        li_dbid = xbmc.getInfoLabel(
+            "$INFO[%sListItem.DBID]$INFO[%sListItem.Property(DBID)]" %
+            (cont_prefix, cont_prefix)).decode('utf-8')
+        cur_listitem = "%s--%s--%s--%s--%s" % (cur_folder, li_label, li_title, content_type, li_dbid)
 
         if cur_listitem and content_type and cur_listitem != self.last_listitem:
             self.last_listitem = cur_listitem
@@ -258,7 +261,7 @@ class ListItemMonitor(threading.Thread):
                     dbtype = xbmc.getInfoLabel("%sListItem.Property(DBTYPE)" % prefix)
                 if dbtype:
                     content_type = dbtype + "s"
-            
+
                 # collect all details from listitem
                 listitem = self.get_listitem_details(content_type, prefix)
 
