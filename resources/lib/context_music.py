@@ -18,9 +18,7 @@ if __name__ == '__main__':
     win.setProperty("SkinHelper.Artwork.ManualLookup", "busy")
     track = xbmc.getInfoLabel("ListItem.Title").decode('utf-8')
     album = xbmc.getInfoLabel("ListItem.Album").decode('utf-8')
-    artist = xbmc.getInfoLabel("ListItem.AlbumArtist").decode('utf-8')
-    if not artist:
-        artist = xbmc.getInfoLabel("ListItem.Artist").decode('utf-8')
+    artist = xbmc.getInfoLabel("ListItem.Artist").decode('utf-8')
     disc = xbmc.getInfoLabel("ListItem.DiscNumber").decode('utf-8')
     artutils.music_artwork_options(artist, album, track, disc)
     win.clearProperty("SkinHelper.Artwork.ManualLookup")

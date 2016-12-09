@@ -244,7 +244,7 @@ class ListItemMonitor(threading.Thread):
                 while xbmc.getCondVisibility("Window.IsActive(%s)" % window):
                     if xbmc.getCondVisibility("System.IdleTime(%s)" % seconds):
                         if xbmc.getCondVisibility("Window.IsActive(%s)" % window):
-                            xbmc.executebuiltin("w.Close(%s)" % window)
+                            xbmc.executebuiltin("Dialog.Close(%s)" % window)
                     else:
                         xbmc.sleep(500)
 
@@ -278,12 +278,8 @@ class ListItemMonitor(threading.Thread):
 
                 # music content
                 if content_type in ["albums", "artists", "songs"] and self.enable_musicart:
-                    artist = listitem["albumartist"]
-                    if not artist:
-                        artist = listitem["artist"]
-                    listitem = extend_dict(listitem,
-                                           self.artutils.get_music_artwork(
-                                               artist, listitem["album"], listitem["title"], listitem["discnumber"]))
+                    listitem = extend_dict(listitem, self.artutils.get_music_artwork(
+                        listitem["artist"], listitem["album"], listitem["title"], listitem["discnumber"]))
 
                 # moviesets
                 elif listitem["path"].startswith("videodb://movies/sets/") and listitem["dbid"]:
@@ -373,15 +369,13 @@ class ListItemMonitor(threading.Thread):
         self.win.setProperty("SkinHelper.TotalAddons", "%s" % addons_count)
 
         addontypes = []
-        addontypes.append(["executable", "SkinHelper.TotalProgramAddons", 0])
-        addontypes.append(["video", "SkinHelper.TotalVideoAddons", 0])
-        addontypes.append(["audio", "SkinHelper.TotalAudioAddons", 0])
-        addontypes.append(["image", "SkinHelper.TotalPicturesAddons", 0])
+        addontypes.append(("executable", "SkinHelper.TotalProgramAddons"))
+        addontypes.append(("video", "SkinHelper.TotalVideoAddons"))
+        addontypes.append(("audio", "SkinHelper.TotalAudioAddons"))
+        addontypes.append(("image", "SkinHelper.TotalPicturesAddons"))
         for addontype in addontypes:
             media_array = kodi_json('Addons.GetAddons', {"content": addontype[0]})
-            for item in media_array:
-                addontype[2] += 1
-            self.win.setProperty(addontype[1], str(addontype[2]))
+            self.win.setProperty(addontype[1], str(len(media_array)))
 
         # GET FAVOURITES COUNT
         favs = kodi_json('Favourites.GetFavourites')

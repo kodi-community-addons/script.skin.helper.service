@@ -229,6 +229,7 @@ class KodiMonitor(xbmc.Monitor):
         li_artist = xbmc.getInfoLabel("MusicPlayer.Artist").decode('utf-8')
         li_album = xbmc.getInfoLabel("MusicPlayer.Album").decode('utf-8')
         li_disc = xbmc.getInfoLabel("MusicPlayer.DiscNumber").decode('utf-8')
+        li_plot = xbmc.getInfoLabel("MusicPlayer.Comment").decode('utf-8')
 
         if not li_artist:
             # fix for internet streams
@@ -239,7 +240,10 @@ class KodiMonitor(xbmc.Monitor):
                     break
 
         if xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnableMusicArt)") and li_artist:
-            result = self.artutils.get_music_artwork(li_artist, li_album, li_title, li_disc, appendplot=True)
+            result = self.artutils.get_music_artwork(li_artist, li_album, li_title, li_disc)
+            if result.get("extendedplot") and li_plot:
+                li_plot = li_plot.replace('\n', ' ').replace('\r', '').rstrip()
+                result["extendedplot"] = "%s -- %s" % (result["extendedplot"], li_plot)
             all_props = prepare_win_props(result, u"SkinHelper.Player.")
             if li_title_org == xbmc.getInfoLabel("MusicPlayer.Title").decode('utf-8'):
                 process_method_on_list(self.set_win_prop, all_props)
