@@ -25,6 +25,7 @@ class KodiMonitor(xbmc.Monitor):
         xbmc.Monitor.__init__(self)
         self.artutils = kwargs.get("artutils")
         self.win = kwargs.get("win")
+        self.enable_extendedart = xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnableExtendedArt)") == 1
 
     def onNotification(self, sender, method, data):
         '''builtin function for the xbmc.Monitor class'''
@@ -113,7 +114,7 @@ class KodiMonitor(xbmc.Monitor):
             self.refresh_video_widgets(media_type)
 
         # item specific actions
-        if dbid and media_type == "movie" and transaction:
+        if dbid and media_type == "movie" and transaction and self.enable_extendedart:
             movie = self.artutils.kodidb.movie(dbid)
             imdb_id = movie["imdbnumber"]
             if imdb_id:

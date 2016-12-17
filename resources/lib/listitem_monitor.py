@@ -76,8 +76,8 @@ class ListItemMonitor(threading.Thread):
 
             # skip when modal dialogs are opened (e.g. textviewer in musicinfo dialog) or container scrolling
             elif xbmc.getCondVisibility(
-                    "System.HasModalDialog | Window.IsActive(progressdialog) | "
-                    "Window.IsActive(busydialog) | Container.Scrolling"):
+                    "Window.IsActive(DialogSelect.xml) | Window.IsActive(progressdialog) | "
+                    "Window.IsActive(contextmenu) | Window.IsActive(busydialog) | Container.Scrolling"):
                 self.kodimonitor.waitForAbort(2)
                 self.delayed_task_interval += 2
                 self.last_listitem = ""
