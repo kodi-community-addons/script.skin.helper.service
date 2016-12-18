@@ -206,7 +206,7 @@ class ListItemMonitor(threading.Thread):
                 else:
                     xbmc.sleep(250)
             self.foldercontent[cur_folder] = content_type
-            self.win.setProperty("contenttype", content_type)
+        self.win.setProperty("contenttype", content_type)
         return content_type
 
     def check_screensaver(self):

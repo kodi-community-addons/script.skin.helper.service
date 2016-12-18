@@ -240,7 +240,8 @@ class MainModule:
 
         # finished lookup - display listing with results
         xbmc.executebuiltin("dialog.Close(busydialog)")
-        dialog = DialogSelect("DialogSelect.xml", "", listing=results, windowtitle=window_header, multiselect=False)
+        dialog = DialogSelect("DialogSelect.xml", "", listing=results, windowtitle=window_header,
+                              multiselect=False, richlayout=True)
         dialog.doModal()
         result = dialog.result
         del dialog
@@ -323,7 +324,7 @@ class MainModule:
         header = self.params.get("header", "")
         value = SkinSettings().save_skin_image(skinstring, allow_multi, header)
         if value:
-            xbmc.executebuiltin("Skin.SetString(%s,%s)" %(skinstring.encode("utf-8"), value.encode("utf-8")))
+            xbmc.executebuiltin("Skin.SetString(%s,%s)" % (skinstring.encode("utf-8"), value.encode("utf-8")))
 
     @staticmethod
     def checkskinsettings():
