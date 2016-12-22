@@ -192,12 +192,12 @@ class KodiMonitor(xbmc.Monitor):
         li_imdb = xbmc.getInfoLabel("VideoPlayer.IMDBNumber").decode('utf-8')
         li_showtitle = xbmc.getInfoLabel("VideoPlayer.TvShowTitle").decode('utf-8')
         details = {}
-
+        
         # video content
-        if mediatype in ["movies", "episodes", "musicvideos"]:
+        if mediatype in ["movie", "episode", "musicvideo"]:
 
             # get imdb_id
-            li_imdb, li_tvdb = self.artutils.get_imdbtvdb_id(li_title, media_type, li_year, li_imdb, li_showtitle)
+            li_imdb, li_tvdb = self.artutils.get_imdbtvdb_id(li_title, mediatype, li_year, li_imdb, li_showtitle)
 
             # generic video properties (studio, streamdetails, omdb, top250)
             details = extend_dict(details, self.artutils.get_omdb_info(li_imdb))
@@ -205,19 +205,21 @@ class KodiMonitor(xbmc.Monitor):
                 details = extend_dict(details, self.artutils.get_streamdetails(li_dbid, mediatype))
             details = extend_dict(details, self.artutils.get_top250_rating(li_imdb))
 
-            if xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnableExtendedArt)"):
-                details = extend_dict(details, self.artutils.get_extended_artwork(
-                    li_imdb, li_tvdb, mediatype))
-
             # tvshows-only properties (tvdb)
-            if mediatype == "episodes":
+            if mediatype == "episode":
                 details = extend_dict(details, self.artutils.get_tvdb_details(li_imdb, li_tvdb))
 
             # movies-only properties (tmdb, animated art)
-            if mediatype == "movies":
+            if mediatype == "movie":
                 details = extend_dict(details, self.artutils.get_tmdb_details(li_imdb))
                 if li_imdb and xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnableAnimatedPosters)"):
                     details = extend_dict(details, self.artutils.get_animated_artwork(li_imdb))
+                    
+            # extended art
+            if xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnableExtendedArt)"):
+                tmdbid = details.get("tmdb_id","")
+                details = extend_dict(details, self.artutils.get_extended_artwork(
+                    li_imdb, li_tvdb, tmdbid, mediatype))
 
         if li_title == xbmc.getInfoLabel("Player.Title").decode('utf-8'):
             all_props = prepare_win_props(details, u"SkinHelper.Player.")
@@ -311,11 +313,11 @@ class KodiMonitor(xbmc.Monitor):
     def get_mediatype():
         '''get current content type'''
         if xbmc.getCondVisibility("VideoPlayer.Content(movies)"):
-            mediatype = "movies"
+            mediatype = "movie"
         elif xbmc.getCondVisibility("VideoPlayer.Content(episodes) | !IsEmpty(VideoPlayer.TvShowTitle)"):
-            mediatype = "episodes"
+            mediatype = "episode"
         elif xbmc.getInfoLabel("VideoPlayer.Content(musicvideos) | !IsEmpty(VideoPlayer.Artist)"):
-            mediatype = "musicvideos"
+            mediatype = "musicvideo"
         else:
-            mediatype = "files"
+            mediatype = "file"
         return mediatype

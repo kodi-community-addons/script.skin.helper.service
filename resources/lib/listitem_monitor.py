@@ -311,10 +311,6 @@ class ListItemMonitor(threading.Thread):
                     if self.exit:
                         return
                     listitem = extend_dict(listitem, self.artutils.get_top250_rating(listitem["imdbnumber"]))
-                    if self.enable_extendedart:
-                        if not (listitem["art"]["clearlogo"] or listitem["art"]["landscape"]):
-                            listitem = extend_dict(listitem, self.artutils.get_extended_artwork(
-                                listitem["imdbnumber"], tvdbid, content_type))
 
                     if self.exit:
                         return
@@ -329,6 +325,13 @@ class ListItemMonitor(threading.Thread):
                         listitem = extend_dict(listitem, self.artutils.get_tmdb_details(listitem["imdbnumber"]))
                         if listitem["imdbnumber"] and self.enable_animatedart:
                             listitem = extend_dict(listitem, self.artutils.get_animated_artwork(listitem["imdbnumber"]))
+                            
+                    # extended art
+                    if self.enable_extendedart:
+                        if not (listitem["art"]["clearlogo"] or listitem["art"]["landscape"]):
+                            tmdbid = details.get("tmdb_id","")
+                            listitem = extend_dict(listitem, self.artutils.get_extended_artwork(
+                                listitem["imdbnumber"], tvdbid, tmdbid, content_type))
 
                 if self.exit:
                     return

@@ -183,7 +183,7 @@ class StoppableHttpRequestHandler (SimpleHTTPServer.SimpleHTTPRequestHandler):
                         if not media_type:
                             media_type = artwork.get("media_type")
                 if imdb_id:
-                    artwork = extend_dict(artwork, self.server.artutils.get_extended_artwork(imdb_id, "", media_type))
+                    artwork = extend_dict(artwork, self.server.artutils.get_extended_artwork(imdb_id, "", "", media_type))
 
             # music art
             elif action == "getmusicart":
