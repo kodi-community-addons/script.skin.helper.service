@@ -60,8 +60,7 @@ class KodiMonitor(xbmc.Monitor):
                 self.win.clearProperty("Skinhelper.PlayerPlaying")
                 self.win.clearProperty("TrailerPlaying")
                 self.reset_win_props()
-                if not dbid:
-                    self.process_db_update(mediatype, "", transaction)
+                self.process_db_update(mediatype, dbid, transaction)
 
             if method == "Player.OnPlay":
                 self.reset_win_props()
