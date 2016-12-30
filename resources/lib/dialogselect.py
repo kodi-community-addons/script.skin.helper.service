@@ -92,7 +92,7 @@ class DialogSelect(xbmcgui.WindowXMLDialog):
 
     def onClick(self, controlID):
         '''Fires if user clicks the dialog'''
-        
+
         if controlID == 5:
             # OK button
             if not self.getmorebutton:
@@ -109,7 +109,7 @@ class DialogSelect(xbmcgui.WindowXMLDialog):
 
     def set_list_control(self):
         '''select correct list (3=small, 6=big with icons)'''
-        
+
         # set list id 6 if available for rich dialog
         if self.richlayout and not self.multiselect:
             self.list_control = self.getControl(6)
@@ -117,7 +117,7 @@ class DialogSelect(xbmcgui.WindowXMLDialog):
         else:
             self.list_control = self.getControl(3)
             self.getControl(6).setVisible(False)
-        
+
         self.list_control.setEnabled(True)
         self.list_control.setVisible(True)
 

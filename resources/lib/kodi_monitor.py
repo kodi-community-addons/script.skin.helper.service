@@ -7,7 +7,7 @@
     monitor all kodi events
 '''
 
-from utils import log_msg, json, prepare_win_props, log_exception
+from utils import log_msg, json, prepare_win_props, log_exception, KODI_VERSION
 from artutils import process_method_on_list, extend_dict
 import xbmc
 import time
@@ -41,7 +41,7 @@ class KodiMonitor(xbmc.Monitor):
                     dbid = data["item"].get("id", 0)
                 elif data.get("type"):
                     mediatype = data["type"]
-                    id = data.get("id", 0)
+                    dbid = data.get("id", 0)
                 if data.get("transaction"):
                     transaction = True
 
@@ -115,7 +115,10 @@ class KodiMonitor(xbmc.Monitor):
         # item specific actions
         if dbid and media_type == "movie" and transaction and self.enable_animatedart:
             movie = self.artutils.kodidb.movie(dbid)
-            imdb_id = movie["imdbnumber"]
+            if KODI_VERSION > 16:
+                imdb_id = movie["uniqueid"]["imdb"]
+            else:
+                imdb_id = movie["imdbnumber"]
             if imdb_id:
                 self.artutils.get_animated_artwork(imdb_id)
 
@@ -166,7 +169,7 @@ class KodiMonitor(xbmc.Monitor):
             sec_to_display = int(xbmc.getInfoLabel("Skin.String(SkinHelper.ShowInfoAtPlaybackStart)"))
         except Exception:
             return
-        
+
         if sec_to_display > 0 and not self.infopanelshown:
             retries = 0
             log_msg("Show OSD Infopanel - number of seconds: %s" % sec_to_display)
@@ -191,7 +194,7 @@ class KodiMonitor(xbmc.Monitor):
         li_imdb = xbmc.getInfoLabel("VideoPlayer.IMDBNumber").decode('utf-8')
         li_showtitle = xbmc.getInfoLabel("VideoPlayer.TvShowTitle").decode('utf-8')
         details = {}
-        
+
         # video content
         if mediatype in ["movie", "episode", "musicvideo"]:
 
@@ -213,10 +216,10 @@ class KodiMonitor(xbmc.Monitor):
                 details = extend_dict(details, self.artutils.get_tmdb_details(li_imdb))
                 if li_imdb and xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnableAnimatedPosters)"):
                     details = extend_dict(details, self.artutils.get_animated_artwork(li_imdb))
-                    
+
             # extended art
             if xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnableExtendedArt)"):
-                tmdbid = details.get("tmdb_id","")
+                tmdbid = details.get("tmdb_id", "")
                 details = extend_dict(details, self.artutils.get_extended_artwork(
                     li_imdb, li_tvdb, tmdbid, mediatype))
 
@@ -235,7 +238,7 @@ class KodiMonitor(xbmc.Monitor):
 
         if not li_artist:
             # fix for internet streams
-            for splitchar in [" - ","-", ":", ";"]:
+            for splitchar in [" - ", "-", ":", ";"]:
                 if splitchar in li_title:
                     li_artist = li_title.split(splitchar)[0].strip()
                     li_title = li_title.split(splitchar)[1].strip()

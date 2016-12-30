@@ -12,7 +12,7 @@ import thread
 from utils import log_msg, log_exception, get_current_content_type, kodi_json, prepare_win_props
 from artutils import extend_dict, get_clean_image, process_method_on_list
 import xbmc
-from simplecache import use_cache, SimpleCache
+from simplecache import SimpleCache
 
 
 class ListItemMonitor(threading.Thread):
@@ -366,7 +366,7 @@ class ListItemMonitor(threading.Thread):
             log_exception(__name__, exc)
 
     def set_generic_props(self):
-        '''set some genric window props with item counts'''
+        '''set some generic window props with item counts'''
         # GET TOTAL ADDONS COUNT
         addons_count = len(kodi_json('Addons.GetAddons'))
         self.win.setProperty("SkinHelper.TotalAddons", "%s" % addons_count)
@@ -428,7 +428,6 @@ class ListItemMonitor(threading.Thread):
             if xbmc.getInfoLabel("Container.ListItemNoWrap(0).Label").startswith(
                     "*") or xbmc.getInfoLabel("Container.ListItemNoWrap(1).Label").startswith("*"):
                 itemscount = int(itemscount) - 1
-
             headerprefix = ""
             if content_type == "movies":
                 headerprefix = xbmc.getLocalizedString(36901)
@@ -446,7 +445,6 @@ class ListItemMonitor(threading.Thread):
                 headerprefix = xbmc.getLocalizedString(36921)
             elif content_type == "artists":
                 headerprefix = xbmc.getLocalizedString(36917)
-
             if headerprefix:
                 self.win.setProperty("SkinHelper.ContentHeader", "%s %s" % (itemscount, headerprefix))
 
@@ -522,7 +520,7 @@ class ListItemMonitor(threading.Thread):
         '''helper to force the view in certain conditions'''
         if self.enable_forcedviews:
             cur_forced_view = xbmc.getInfoLabel("Skin.String(SkinHelper.ForcedViews.%s)" % content_type)
-            if xbmc.getCondVisibility("Control.IsVisible(%s) | IsEmpty(Container.Viewmode)" % cur_forced_view):
+            if xbmc.getCondVisibility("Control.IsVisible(%s) | IsEmpty(Container.Viewmode) | System.HasModalDialog" % cur_forced_view):
                 # skip if the view is already visible or if we're not in an actual media window
                 return
             if (content_type and cur_forced_view and cur_forced_view != "None" and not

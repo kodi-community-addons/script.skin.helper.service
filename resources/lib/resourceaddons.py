@@ -27,7 +27,7 @@ def setresourceaddon(addontype, skinstring="", header=""):
     addon = xbmcaddon.Addon(ADDON_ID)
     if not header:
         header = addon.getLocalizedString(32010)
-        
+
     # none option
     listitem = xbmcgui.ListItem(label=addon.getLocalizedString(32001), iconImage="DefaultAddonNone.png")
     listitem.setProperty("addonid", "none")

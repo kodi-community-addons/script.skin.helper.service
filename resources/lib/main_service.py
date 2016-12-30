@@ -13,7 +13,6 @@ from skinsettings import SkinSettings
 from listitem_monitor import ListItemMonitor
 from kodi_monitor import KodiMonitor
 from webservice import WebService
-from simplecache import SimpleCache
 from artutils import ArtUtils
 import xbmc
 import xbmcaddon

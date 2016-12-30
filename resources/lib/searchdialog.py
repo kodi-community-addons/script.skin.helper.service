@@ -225,17 +225,17 @@ class SearchDialog(xbmcgui.WindowXMLDialog):
             del win
             if result:
                 self.close_dialog()
-            
+
     def open_item(self):
         '''open selected item'''
         control_id = self.getFocusId()
         listitem = self.getControl(control_id).getSelectedItem()
         if "videodb:" in listitem.getfilename():
-            #tvshow: open path
+            # tvshow: open path
             xbmc.executebuiltin('ReplaceWindow(Videos,"%s")' % self.listitem.getfilename())
             self.close_dialog()
         elif "actor" in listitem.getProperty("DBTYPE"):
-            #cast dialog
+            # cast dialog
             xbmc.executebuiltin("ActivateWindow(busydialog)")
             from dialogselect import DialogSelect
             results = []
@@ -289,7 +289,7 @@ class SearchBackgroundThread(threading.Thread):
     def set_dialog(self, dialog):
         '''set the active dialog to perform actions'''
         self.dialog = dialog
-        
+
     def set_actors(self):
         '''fill list with all actors'''
         self.actors = self.kodidb.actors()
@@ -348,5 +348,3 @@ class SearchBackgroundThread(threading.Thread):
                 item["file"] = "RunScript(script.skin.helper.service,action=getcastmedia,name=%s)" % item["label"]
                 result.append(self.kodidb.create_listitem(item, False))
         cast_list.addItems(result)
-        
-        

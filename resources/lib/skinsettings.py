@@ -402,7 +402,8 @@ class SkinSettings:
         if setting:
             # use skin settings select dialog
             value, label = self.set_skin_setting(
-                setting, window_header=window_header, sublevel="", cur_value_label=cur_value_label, skip_skin_string=True, cur_value=cur_value)
+                setting, window_header=window_header, sublevel="", cur_value_label=cur_value_label,
+                skip_skin_string=True, cur_value=cur_value)
         else:
             # manually input string
             if not cur_value:

@@ -197,6 +197,7 @@ def item_filter_mapping():
 
 
 def get_item_filter_label(filterkey):
+    '''gets the label for the fiven filterkey'''
     label = ""
     for item in item_filter_mapping():
         if item[0] == filterkey:
