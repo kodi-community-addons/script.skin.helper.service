@@ -7,7 +7,7 @@
     monitor all kodi events
 '''
 
-from utils import log_msg, json, prepare_win_props, log_exception, KODI_VERSION
+from utils import log_msg, json, prepare_win_props, log_exception
 from artutils import process_method_on_list, extend_dict
 import xbmc
 import time
@@ -115,10 +115,11 @@ class KodiMonitor(xbmc.Monitor):
         # item specific actions
         if dbid and media_type == "movie" and transaction and self.enable_animatedart:
             movie = self.artutils.kodidb.movie(dbid)
-            if KODI_VERSION > 16:
-                imdb_id = movie["uniqueid"]["imdb"]
-            else:
-                imdb_id = movie["imdbnumber"]
+            imdb_id = movie["imdbnumber"]
+            if not imdb_id and "uniqueid" in movie:
+                for value in movie["uniqueid"]:
+                    if value.startswith("tt"):
+                        imdb_id = value
             if imdb_id:
                 self.artutils.get_animated_artwork(imdb_id)
 

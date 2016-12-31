@@ -283,7 +283,9 @@ class ListItemMonitor(threading.Thread):
 
                 # moviesets
                 elif listitem["path"].startswith("videodb://movies/sets/") and listitem["dbid"]:
-                    listitem = extend_dict(listitem, self.artutils.get_moviesetdetails(listitem["dbid"]))
+                    listitem = extend_dict(
+                        listitem, self.artutils.get_moviesetdetails(
+                            listitem["title"], listitem["dbid"]))
                     content_type = "sets"
 
                 # video content
@@ -325,11 +327,11 @@ class ListItemMonitor(threading.Thread):
                         listitem = extend_dict(listitem, self.artutils.get_tmdb_details(listitem["imdbnumber"]))
                         if listitem["imdbnumber"] and self.enable_animatedart:
                             listitem = extend_dict(listitem, self.artutils.get_animated_artwork(listitem["imdbnumber"]))
-                            
+
                     # extended art
                     if self.enable_extendedart:
                         if not (listitem["art"]["clearlogo"] or listitem["art"]["landscape"]):
-                            tmdbid = listitem.get("tmdb_id","")
+                            tmdbid = listitem.get("tmdb_id", "")
                             listitem = extend_dict(listitem, self.artutils.get_extended_artwork(
                                 listitem["imdbnumber"], tvdbid, tmdbid, content_type))
 
@@ -520,7 +522,8 @@ class ListItemMonitor(threading.Thread):
         '''helper to force the view in certain conditions'''
         if self.enable_forcedviews:
             cur_forced_view = xbmc.getInfoLabel("Skin.String(SkinHelper.ForcedViews.%s)" % content_type)
-            if xbmc.getCondVisibility("Control.IsVisible(%s) | IsEmpty(Container.Viewmode) | System.HasModalDialog" % cur_forced_view):
+            if xbmc.getCondVisibility(
+                    "Control.IsVisible(%s) | IsEmpty(Container.Viewmode) | System.HasModalDialog" % cur_forced_view):
                 # skip if the view is already visible or if we're not in an actual media window
                 return
             if (content_type and cur_forced_view and cur_forced_view != "None" and not
