@@ -132,7 +132,7 @@ def downloadresourceaddons(addontype):
             addon_id = result.getProperty("addonid")
             # trigger install...
             monitor = xbmc.Monitor()
-            if KODI_VERSION >= 17:
+            if KODI_VERSION > 16:
                 xbmc.executebuiltin("InstallAddon(%s)" % addon_id)
             else:
                 xbmc.executebuiltin("RunPlugin(plugin://%s)" % addon_id)

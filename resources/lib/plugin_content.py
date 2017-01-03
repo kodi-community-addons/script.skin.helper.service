@@ -83,7 +83,7 @@ class PluginContent:
             del addon
         else:
             # trigger install of the addon
-            if KODI_VERSION >= 17:
+            if KODI_VERSION > 16:
                 xbmc.executebuiltin("InstallAddon(%s)" % newaddon)
             else:
                 xbmc.executebuiltin("RunPlugin(plugin://%s)" % newaddon)
