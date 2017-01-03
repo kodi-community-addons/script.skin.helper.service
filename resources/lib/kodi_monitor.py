@@ -63,7 +63,8 @@ class KodiMonitor(xbmc.Monitor):
                 self.process_db_update(mediatype, dbid, transaction)
 
             if method == "Player.OnPlay":
-                self.reset_win_props()
+                if not self.monitoring_stream:
+                    self.reset_win_props()
                 if self.wait_for_player():
                     if xbmc.getCondVisibility("Player.HasAudio"):
                         if xbmc.getCondVisibility("Player.IsInternetStream"):
