@@ -175,6 +175,8 @@ class StoppableHttpRequestHandler (SimpleHTTPServer.SimpleHTTPRequestHandler):
                     is_json_request = True
                 year = params.get("year", "")
                 media_type = params.get("mediatype", "")
+                if not media_type:
+                    media_type = params.get("type", "")
                 imdb_id = params.get("imdbid", "")
                 if not imdb_id:
                     artwork = self.server.artutils.get_tmdb_details("", "", title, year, media_type)

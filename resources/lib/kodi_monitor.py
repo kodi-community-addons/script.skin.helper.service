@@ -133,7 +133,7 @@ class KodiMonitor(xbmc.Monitor):
             song = self.artutils.kodidb.song(dbid)
             self.artutils.get_music_artwork(
                 song["artist"][0], song["album"], song["title"], str(
-                    song["disc"], ignore_cache=True))
+                    song["disc"]), ignore_cache=True)
 
         elif dbid and media_type == "album":
             song = self.artutils.kodidb.album(dbid)
