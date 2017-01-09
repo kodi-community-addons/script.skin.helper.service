@@ -555,7 +555,7 @@ class ListItemMonitor(threading.Thread):
                     listitem["genre"]), ["title", "genre", "genres", "thumb"])
         # pvr channellogo
         if listitem["channelname"]:
-            listitem["ChannelLogo"] = self.artutils.get_channellogo(listitem["channelname"])
+            listitem["art"]["ChannelLogo"] = self.artutils.get_channellogo(listitem["channelname"])
         elif listitem.get("pvrchannel"):
-            listitem["ChannelLogo"] = self.artutils.get_channellogo(listitem["pvrchannel"])
+            listitem["art"]["ChannelLogo"] = self.artutils.get_channellogo(listitem["pvrchannel"])
         return listitem
