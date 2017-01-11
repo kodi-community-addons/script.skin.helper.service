@@ -330,10 +330,11 @@ class ListItemMonitor(threading.Thread):
 
                     # extended art
                     if self.enable_extendedart:
-                        if not (listitem["art"]["clearlogo"] or listitem["art"]["landscape"]):
-                            tmdbid = listitem.get("tmdb_id", "")
-                            listitem = extend_dict(listitem, self.artutils.get_extended_artwork(
-                                listitem["imdbnumber"], tvdbid, tmdbid, content_type))
+                        tmdbid = listitem.get("tmdb_id", "")
+                        listitem = extend_dict(
+                            listitem, self.artutils.get_extended_artwork(
+                                listitem["imdbnumber"], tvdbid, tmdbid, content_type), [
+                                "posters", "clearlogos", "banners"])
 
                 if self.exit:
                     return

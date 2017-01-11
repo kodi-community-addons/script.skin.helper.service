@@ -152,8 +152,14 @@ class StoppableHttpRequestHandler (SimpleHTTPServer.SimpleHTTPRequestHandler):
                 preferred_types = []
             fallback = params.get("fallback", "")
             is_json_request = params.get("json", "") == "true"
-            if fallback.startswith("Default"):
+            if fallback and not xbmcvfs.exists(fallback):
                 fallback = "special://skin/media/" + fallback
+                if not xbmcvfs.exists(fallback):
+                    fallback = ""
+                    log_msg(
+                        "Webservice --> Non existent fallback image detected - "
+                        "please use a full path to the fallback image!",
+                        xbmc.LOGWARNING)
 
             log_msg("webservice called with params: %s" % params)
 
@@ -175,8 +181,6 @@ class StoppableHttpRequestHandler (SimpleHTTPServer.SimpleHTTPRequestHandler):
                     is_json_request = True
                 year = params.get("year", "")
                 media_type = params.get("mediatype", "")
-                if not media_type:
-                    media_type = params.get("type", "")
                 imdb_id = params.get("imdbid", "")
                 if not imdb_id:
                     artwork = self.server.artutils.get_tmdb_details("", "", title, year, media_type)
@@ -233,7 +237,7 @@ class StoppableHttpRequestHandler (SimpleHTTPServer.SimpleHTTPRequestHandler):
                 elif not image and artwork.get("thumb"):
                     image = artwork["thumb"]
                 # set fallback image if nothing else worked
-                if not image:
+                if not image or not xbmcvfs.exists(image):
                     image = fallback
 
             log_msg("webservice image: %s - fallback: %s - artwork: %s - title: %s" %
@@ -251,12 +255,8 @@ class StoppableHttpRequestHandler (SimpleHTTPServer.SimpleHTTPRequestHandler):
             elif image:
                 # send single image
                 self.send_response(200)
-                if ".jpg" in image:
-                    self.send_header('Content-type', 'image/jpg')
-                elif image.lower().endswith(".gif"):
-                    self.send_header('Content-type', 'image/gif')
-                else:
-                    self.send_header('Content-type', 'image/png')
+                ext = image.split(".")[-1]
+                self.send_header('Content-type', 'image/%s' % ext)
                 modified = xbmcvfs.Stat(image).st_mtime()
                 self.send_header('Last-Modified', "%s" % modified)
                 image = xbmcvfs.File(image)
