@@ -102,6 +102,8 @@ class KodiMonitor(xbmc.Monitor):
             self.win.setProperty("widgetreload", timestr)
             if media_type:
                 self.win.setProperty("widgetreload-%ss" % media_type, timestr)
+                if "episode" in media_type:
+                    self.win.setProperty("widgetreload-tvshows", timestr)
             self.update_video_widgets_busy = False
 
     def process_db_update(self, media_type, dbid, transaction=False):
