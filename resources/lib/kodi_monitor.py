@@ -8,7 +8,7 @@
 '''
 
 from utils import log_msg, json, prepare_win_props, log_exception
-from artutils import process_method_on_list, extend_dict
+from artutils import process_method_on_list, extend_dict, get_clean_image
 import xbmc
 import time
 
@@ -20,6 +20,7 @@ class KodiMonitor(xbmc.Monitor):
     all_window_props = []
     monitoring_stream = False
     infopanelshown = False
+    bgtasks = 0
 
     def __init__(self, **kwargs):
         xbmc.Monitor.__init__(self)
@@ -108,6 +109,12 @@ class KodiMonitor(xbmc.Monitor):
 
     def process_db_update(self, media_type, dbid, transaction=False):
         '''precache/refresh items when a kodi db item gets updated/added'''
+        
+        # no more than 10 tasks to not stress out the system so big library scans will be ignored
+        # todo: implement a proper queue system
+        if self.bgtasks > 10:
+            return
+        self.bgtasks += 1
 
         # refresh widgets
         if media_type in ["song", "artist", "album"]:
@@ -144,6 +151,9 @@ class KodiMonitor(xbmc.Monitor):
         elif dbid and media_type == "artist":
             song = self.artutils.kodidb.artist(dbid)
             self.artutils.get_music_artwork(item["artist"], ignore_cache=True)
+            
+        # remove task
+        self.bgtasks += 1
 
     def reset_win_props(self):
         '''reset all window props set by the script...'''
@@ -193,15 +203,16 @@ class KodiMonitor(xbmc.Monitor):
         '''sets the window props for a playing video item'''
         if not mediatype:
             mediatype = self.get_mediatype()
-        li_title = xbmc.getInfoLabel("Player.Title").decode('utf-8')
-        li_year = xbmc.getInfoLabel("Player.Year").decode('utf-8')
-        li_imdb = xbmc.getInfoLabel("VideoPlayer.IMDBNumber").decode('utf-8')
-        li_showtitle = xbmc.getInfoLabel("VideoPlayer.TvShowTitle").decode('utf-8')
-        details = {}
+        details = self.get_player_infolabels()
+        li_title = details["title"]
+        li_year = details["year"]
+        li_imdb = details["imdbnumber"]
+        li_showtitle = details["tvshowtitle"]
+        details = {"art": {} }
 
         # video content
         if mediatype in ["movie", "episode", "musicvideo"]:
-
+        
             # get imdb_id
             li_imdb, li_tvdb = self.artutils.get_imdbtvdb_id(li_title, mediatype, li_year, li_imdb, li_showtitle)
 
@@ -327,3 +338,29 @@ class KodiMonitor(xbmc.Monitor):
         else:
             mediatype = "file"
         return mediatype
+
+        
+    @staticmethod
+    def get_player_infolabels():
+        '''collect basic infolabels for the current item in the videoplayer'''
+        details = {"art": {}}
+        # normal properties
+        props = ["title", "filenameandpath", "year", "genre", "duration", "plot", "plotoutline", 
+                 "studio", "tvshowtitle", "premiered", "director", "writer", "season", "episode",
+                 "artist", "album", "rating", "albumartist", "discnumber",
+                 "firstaired", "mpaa", "tagline", "rating", "imdbnumber"
+                 ]
+        for prop in props:
+            propvalue = xbmc.getInfoLabel('VideoPlayer.%s' % prop).decode('utf-8')
+            details[prop] = propvalue
+        # art properties
+        props = ["fanart", "poster", "clearlogo", "clearart", "landscape",
+                 "characterart", "thumb", "banner", "discart", "tvshow.landscape", 
+                 "tvshow.clearlogo", "tvshow.poster", "tvshow.fanart", "tvshow.banner"
+                 ]
+        for prop in props:
+            propvalue = xbmc.getInfoLabel('Player.Art(%s)' % prop).decode('utf-8')
+            prop = prop.replace("tvshow.", "")
+            propvalue = get_clean_image(propvalue)
+            details["art"][prop] = propvalue
+        return details
