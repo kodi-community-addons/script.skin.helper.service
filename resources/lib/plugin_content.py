@@ -165,7 +165,7 @@ class PluginContent:
             if randomize:
                 sort = {"method": "random", "order": "descending"}
             else:
-                sort = None
+                sort = {"method": "sorttitle", "order": "ascending"}
             items = getattr(self.kodi_db, mediatype)(
                 sort=sort,
                 filters=filters, limits=(0, 50))

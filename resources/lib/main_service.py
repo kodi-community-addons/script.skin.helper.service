@@ -17,7 +17,6 @@ from artutils import ArtUtils
 import xbmc
 import xbmcaddon
 import xbmcgui
-import time
 
 
 class MainService:
@@ -34,7 +33,6 @@ class MainService:
         listitem_monitor = ListItemMonitor(
             artutils=self.artutils, win=self.win, monitor=self.kodimonitor)
         webservice = WebService(artutils=self.artutils)
-        widget_task_interval = 520
 
         # start the extra threads
         listitem_monitor.start()
@@ -47,12 +45,6 @@ class MainService:
 
             # check skin version info
             self.check_skin_version()
-
-            # set generic widget reload
-            widget_task_interval += 10
-            if widget_task_interval >= 300:
-                self.win.setProperty("widgetreload2", time.strftime("%Y%m%d%H%M%S", time.gmtime()))
-                widget_task_interval = 0
 
             # sleep for 10 seconds
             self.kodimonitor.waitForAbort(10)

@@ -342,15 +342,15 @@ class MainModule:
 
     def setskinconstant(self):
         '''allows the user to set a skin constant with a select dialog'''
-        setting = self.params.get("setting", "").split("|")
-        value = self.params.get("value", "").split("|")
+        setting = self.params.get("setting", "")
+        value = self.params.get("value", "")
         header = self.params.get("header", "")
         SkinSettings().set_skin_constant(setting, header, value)
 
     def setskinconstants(self):
         '''allows the skinner to set multiple skin constants'''
-        settings = self.params.get("settings", "")
-        values = self.params.get("values", "")
+        settings = self.params.get("settings", "").split("|")
+        values = self.params.get("values", "").split("|")
         SkinSettings().set_skin_constants(settings, values)
 
     def setskinshortcutsproperty(self):

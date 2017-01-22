@@ -132,9 +132,8 @@ class SkinSettings:
         '''set a skin constant'''
         cur_values = self.skin_constants
         if not value:
-            value = self.set_skin_setting(
-                setting, window_header, "", cur_values.get(
-                    setting, "emptyconstant"))[0]
+            cur_value = cur_values.get(setting, "emptyconstant")
+            value = self.set_skin_setting(setting, window_header, "", cur_value)[0]
         result = {setting: value}
         self.update_skin_constants(result)
 

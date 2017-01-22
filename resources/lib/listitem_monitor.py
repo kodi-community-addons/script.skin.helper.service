@@ -35,6 +35,8 @@ class ListItemMonitor(threading.Thread):
     enable_extrafanart = False
     enable_pvrart = False
     enable_forcedviews = False
+    bgtasks = 0
+    
 
     def __init__(self, *args, **kwargs):
         self.cache = SimpleCache()
@@ -74,12 +76,19 @@ class ListItemMonitor(threading.Thread):
                 self.kodimonitor.waitForAbort(3)
                 self.delayed_task_interval += 3
 
-            # skip when modal dialogs are opened (e.g. textviewer in musicinfo dialog) or container scrolling
+            # skip when modal dialogs are opened (e.g. textviewer in musicinfo dialog)
             elif xbmc.getCondVisibility(
                     "Window.IsActive(DialogSelect.xml) | Window.IsActive(progressdialog) | "
-                    "Window.IsActive(contextmenu) | Window.IsActive(busydialog) | Container.Scrolling"):
+                    "Window.IsActive(contextmenu) | Window.IsActive(busydialog)"):
                 self.kodimonitor.waitForAbort(2)
                 self.delayed_task_interval += 2
+                self.last_listitem = ""
+                
+            # skip when container scrolling
+            elif xbmc.getCondVisibility(
+                    "Container.OnScrollNext | Container.OnScrollPrevious | Container.Scrolling"):
+                self.kodimonitor.waitForAbort(1)
+                self.delayed_task_interval += 1
                 self.last_listitem = ""
 
             # media window is opened or widgetcontainer set - start listitem monitoring!
@@ -151,7 +160,7 @@ class ListItemMonitor(threading.Thread):
             (cont_prefix, cont_prefix)).decode('utf-8')
         cur_listitem = "%s--%s--%s--%s--%s" % (cur_folder, li_label, li_title, content_type, li_dbid)
 
-        if cur_listitem and content_type and cur_listitem != self.last_listitem:
+        if cur_listitem and content_type and cur_listitem != self.last_listitem and self.bgtasks < 6:
             self.last_listitem = cur_listitem
             # clear all window props first
             self.reset_win_props()
@@ -250,6 +259,7 @@ class ListItemMonitor(threading.Thread):
 
     def set_listitem_details(self, cur_listitem, content_type, prefix):
         '''set the window properties based on the current listitem'''
+        self.bgtasks += 1
         try:
             if cur_listitem in self.listitem_details:
                 # data already in memory
@@ -354,6 +364,7 @@ class ListItemMonitor(threading.Thread):
                 self.set_win_props(all_props)
         except Exception as exc:
             log_exception(__name__, exc)
+        self.bgtasks -= 1
 
     def do_background_work(self):
         '''stuff that's processed in the background'''

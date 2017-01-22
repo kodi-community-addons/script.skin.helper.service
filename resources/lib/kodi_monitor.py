@@ -15,8 +15,6 @@ import time
 
 class KodiMonitor(xbmc.Monitor):
     '''Monitor all events in Kodi'''
-    update_video_widgets_busy = False
-    update_music_widgets_busy = False
     all_window_props = []
     monitoring_stream = False
     infopanelshown = False
@@ -27,7 +25,7 @@ class KodiMonitor(xbmc.Monitor):
         self.artutils = kwargs.get("artutils")
         self.win = kwargs.get("win")
         self.enable_animatedart = xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnableAnimatedPosters)") == 1
-
+    
     def onNotification(self, sender, method, data):
         '''builtin function for the xbmc.Monitor class'''
         try:
@@ -61,7 +59,6 @@ class KodiMonitor(xbmc.Monitor):
                 self.win.clearProperty("Skinhelper.PlayerPlaying")
                 self.win.clearProperty("TrailerPlaying")
                 self.reset_win_props()
-                self.process_db_update(mediatype, dbid, transaction)
 
             if method == "Player.OnPlay":
                 if not self.monitoring_stream:
@@ -80,47 +77,10 @@ class KodiMonitor(xbmc.Monitor):
         except Exception as exc:
             log_exception(__name__, exc)
 
-    def refresh_music_widgets(self, media_type):
-        '''refresh music widgets'''
-        if not self.update_music_widgets_busy:
-            self.update_music_widgets_busy = True
-            log_msg("Music database changed - type: %s - refreshing widgets...." % media_type)
-            xbmc.sleep(500)
-            timestr = time.strftime("%Y%m%d%H%M%S", time.gmtime())
-            self.win.setProperty("widgetreload-music", timestr)
-            self.win.setProperty("widgetreloadmusic", timestr)
-            if media_type:
-                self.win.setProperty("widgetreload-%ss" % media_type, timestr)
-            self.update_music_widgets_busy = False
-
-    def refresh_video_widgets(self, media_type):
-        '''refresh video widgets'''
-        if not self.update_video_widgets_busy:
-            self.update_video_widgets_busy = True
-            log_msg("Video database changed - type: %s - refreshing widgets...." % media_type)
-            xbmc.sleep(500)
-            timestr = time.strftime("%Y%m%d%H%M%S", time.gmtime())
-            self.win.setProperty("widgetreload", timestr)
-            if media_type:
-                self.win.setProperty("widgetreload-%ss" % media_type, timestr)
-                if "episode" in media_type:
-                    self.win.setProperty("widgetreload-tvshows", timestr)
-            self.update_video_widgets_busy = False
-
     def process_db_update(self, media_type, dbid, transaction=False):
         '''precache/refresh items when a kodi db item gets updated/added'''
         
-        # no more than 10 tasks to not stress out the system so big library scans will be ignored
-        # todo: implement a proper queue system
-        if self.bgtasks > 10:
-            return
         self.bgtasks += 1
-
-        # refresh widgets
-        if media_type in ["song", "artist", "album"]:
-            self.refresh_music_widgets(media_type)
-        else:
-            self.refresh_video_widgets(media_type)
 
         # item specific actions
         if dbid and media_type == "movie" and transaction and self.enable_animatedart:
@@ -130,30 +90,29 @@ class KodiMonitor(xbmc.Monitor):
                 for value in movie["uniqueid"]:
                     if value.startswith("tt"):
                         imdb_id = value
-            if imdb_id:
+            if imdb_id and self.bgtasks < 2:
                 self.artutils.get_animated_artwork(imdb_id)
 
         if dbid and media_type in ["movie", "episode", "musicvideo"]:
             self.artutils.get_streamdetails(dbid, media_type, ignore_cache=True)
-            if transaction:
+            if transaction and self.bgtasks < 2:
                 self.artwork_downloader(media_type, dbid)
 
+        # for music content we only flush the cache
         if dbid and media_type == "song":
             song = self.artutils.kodidb.song(dbid)
             self.artutils.get_music_artwork(
                 song["artist"][0], song["album"], song["title"], str(
-                    song["disc"]), ignore_cache=True)
-
+                    song["disc"]), ignore_cache=True, flush_cache=True)
         elif dbid and media_type == "album":
             song = self.artutils.kodidb.album(dbid)
-            self.artutils.get_music_artwork(item["artist"][0], item["title"], ignore_cache=True)
-
+            self.artutils.get_music_artwork(item["artist"][0], item["title"], ignore_cache=True, flush_cache=True)
         elif dbid and media_type == "artist":
             song = self.artutils.kodidb.artist(dbid)
-            self.artutils.get_music_artwork(item["artist"], ignore_cache=True)
+            self.artutils.get_music_artwork(item["artist"], ignore_cache=True, flush_cache=True)
             
         # remove task
-        self.bgtasks += 1
+        self.bgtasks -= 1
 
     def reset_win_props(self):
         '''reset all window props set by the script...'''
@@ -339,7 +298,6 @@ class KodiMonitor(xbmc.Monitor):
             mediatype = "file"
         return mediatype
 
-        
     @staticmethod
     def get_player_infolabels():
         '''collect basic infolabels for the current item in the videoplayer'''
