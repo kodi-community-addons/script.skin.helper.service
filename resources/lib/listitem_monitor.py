@@ -312,7 +312,8 @@ class ListItemMonitor(threading.Thread):
                     if self.enable_extrafanart:
                         if not listitem["filenameandpath"]:
                             listitem["filenameandpath"] = listitem["path"]
-                        listitem = extend_dict(listitem, self.artutils.get_extrafanart(listitem["filenameandpath"]))
+                        if "videodb://" not in listitem["filenameandpath"]:
+                            listitem = extend_dict(listitem, self.artutils.get_extrafanart(listitem["filenameandpath"]))
                     listitem = extend_dict(listitem, self.get_genres(listitem["genre"]))
                     listitem = extend_dict(listitem, self.artutils.get_duration(listitem["duration"]))
                     listitem = extend_dict(listitem, self.artutils.get_studio_logo(listitem["studio"]))

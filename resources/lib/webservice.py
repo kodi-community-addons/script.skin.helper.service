@@ -54,7 +54,8 @@ class WebService(threading.Thread):
             server.artutils = self.artutils
             server.serve_forever()
         except Exception as exc:
-            log_exception(__name__, exc)
+            if "10053" not in exc: # ignore host diconnected errors
+                log_exception(__name__, exc)
 
 
 class Request(object):
@@ -273,8 +274,7 @@ class StoppableHttpRequestHandler (SimpleHTTPServer.SimpleHTTPRequestHandler):
         except Exception as exc:
             log_exception(__name__, exc)
             self.send_error(500, 'Exception occurred: %s' % exc)
-        finally:
-            return
+        return
 
     def do_GET(self):
         '''called on GET requests'''
