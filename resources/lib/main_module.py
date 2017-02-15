@@ -286,6 +286,10 @@ class MainModule:
         '''helper to set focus on a list or control'''
         control = self.params.get("control")
         fallback = self.params.get("fallback")
+        position = self.params.get("position","0")
+        relativeposition = self.params.get("relativeposition")
+        if relativeposition:
+            position = int(relativeposition)-1
         count = 0
         if control:
             while not xbmc.getCondVisibility("Control.HasFocus(%s)" % control):
@@ -298,7 +302,7 @@ class MainModule:
                         xbmc.executebuiltin("Control.SetFocus(%s)" % fallback)
                     break
                 else:
-                    xbmc.executebuiltin("Control.SetFocus(%s)" % control)
+                    xbmc.executebuiltin("Control.SetFocus(%s,%s)" % (control, position))
                     xbmc.sleep(50)
                     count += 1
                     break

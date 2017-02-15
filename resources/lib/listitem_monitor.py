@@ -485,24 +485,21 @@ class ListItemMonitor(threading.Thread):
     @staticmethod
     def get_listitem_details(content_type, prefix):
         '''collect all listitem properties/values we need'''
-
-        # collect all infolabels from a listitem
         listitem_details = {"art": {}}
+        
+        # generic properties
         props = ["label", "title", "filenameandpath", "year", "genre", "path", "folderpath",
-                 "art(fanart)", "art(poster)", "art(clearlogo)", "art(clearart)", "art(landscape)",
-                 "fileextension", "duration", "plot", "plotoutline", "icon", "thumb", "label2",
-                 "dbtype", "dbid", "art(thumb)", "art(banner)", "art(discart)"
-                 ]
+                 "fileextension", "duration", "plot", "plotoutline", "label2", "dbtype", "dbid", "icon", "thumb" ]
+        # properties for media items
         if content_type in ["movies", "tvshows", "seasons", "episodes", "musicvideos", "setmovies"]:
-            props += ["art(characterart)", "studio", "tvshowtitle", "premiered", "director", "writer",
+            props += ["studio", "tvshowtitle", "premiered", "director", "writer",
                       "firstaired", "videoresolution", "audiocodec", "audiochannels", "videocodec", "videoaspect",
                       "subtitlelanguage", "audiolanguage", "mpaa", "isstereoscopic", "video3dformat",
-                      "tagline", "rating", "imdbnumber"]
-            if content_type in ["episodes"]:
-                props += ["season", "episode", "art(tvshow.landscape)", "art(tvshow.clearlogo)",
-                          "art(tvshow.poster)", "art(tvshow.fanart)", "art(tvshow.banner)"]
+                      "tagline", "rating", "imdbnumber", "season", "episode"]
+        # properties for music items
         elif content_type in ["musicvideos", "artists", "albums", "songs"]:
             props += ["artist", "album", "rating", "albumartist", "discnumber"]
+        # properties for pvr items
         elif content_type in ["tvchannels", "tvrecordings", "channels", "recordings", "timers", "tvtimers"]:
             props += ["channel", "startdatetime", "datetime", "date", "channelname",
                       "starttime", "startdate", "endtime", "enddate"]
@@ -510,15 +507,20 @@ class ListItemMonitor(threading.Thread):
             propvalue = xbmc.getInfoLabel('%sListItem.%s' % (prefix, prop)).decode('utf-8')
             if not propvalue or propvalue == "-1":
                 propvalue = xbmc.getInfoLabel('%sListItem.Property(%s)' % (prefix, prop)).decode('utf-8')
-            if "art(" in prop:
-                prop = prop.replace("art(", "").replace(")", "").replace("tvshow.", "")
-                propvalue = get_clean_image(propvalue)
+            listitem_details[prop] = propvalue
+                
+        # artwork properties
+        artprops = ["fanart", "poster", "clearlogo", "clearart", 
+            "landscape", "thumb", "banner", "discart", "characterart" ]
+        for prop in artprops:
+            propvalue = xbmc.getInfoLabel('%sListItem.Art(%s)' % (prefix, prop)).decode('utf-8')
+            if not propvalue:
+                propvalue = xbmc.getInfoLabel('%sListItem.Art(tvshow.%s)' % (prefix, prop)).decode('utf-8')
+            if propvalue:
                 listitem_details["art"][prop] = propvalue
-            else:
-                listitem_details[prop] = propvalue
 
         # fix for folderpath
-        if not listitem_details.get("path"):
+        if not listitem_details.get("path") and "folderpath" in listitem_details:
             listitem_details["path"] = listitem_details["folderpath"]
         # fix for thumb
         if not "thumb" in listitem_details["art"] and "thumb" in listitem_details:
