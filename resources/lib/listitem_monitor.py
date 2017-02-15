@@ -36,7 +36,6 @@ class ListItemMonitor(threading.Thread):
     enable_pvrart = False
     enable_forcedviews = False
     bgtasks = 0
-    
 
     def __init__(self, *args, **kwargs):
         self.cache = SimpleCache()
@@ -83,7 +82,7 @@ class ListItemMonitor(threading.Thread):
                 self.kodimonitor.waitForAbort(2)
                 self.delayed_task_interval += 2
                 self.last_listitem = ""
-                
+
             # skip when container scrolling
             elif xbmc.getCondVisibility(
                     "Container.OnScrollNext | Container.OnScrollPrevious | Container.Scrolling"):
@@ -486,10 +485,10 @@ class ListItemMonitor(threading.Thread):
     def get_listitem_details(content_type, prefix):
         '''collect all listitem properties/values we need'''
         listitem_details = {"art": {}}
-        
+
         # generic properties
         props = ["label", "title", "filenameandpath", "year", "genre", "path", "folderpath",
-                 "fileextension", "duration", "plot", "plotoutline", "label2", "dbtype", "dbid", "icon", "thumb" ]
+                 "fileextension", "duration", "plot", "plotoutline", "label2", "dbtype", "dbid", "icon", "thumb"]
         # properties for media items
         if content_type in ["movies", "tvshows", "seasons", "episodes", "musicvideos", "setmovies"]:
             props += ["studio", "tvshowtitle", "premiered", "director", "writer",
@@ -508,10 +507,10 @@ class ListItemMonitor(threading.Thread):
             if not propvalue or propvalue == "-1":
                 propvalue = xbmc.getInfoLabel('%sListItem.Property(%s)' % (prefix, prop)).decode('utf-8')
             listitem_details[prop] = propvalue
-                
+
         # artwork properties
-        artprops = ["fanart", "poster", "clearlogo", "clearart", 
-            "landscape", "thumb", "banner", "discart", "characterart" ]
+        artprops = ["fanart", "poster", "clearlogo", "clearart",
+                    "landscape", "thumb", "banner", "discart", "characterart"]
         for prop in artprops:
             propvalue = xbmc.getInfoLabel('%sListItem.Art(%s)' % (prefix, prop)).decode('utf-8')
             if not propvalue:
@@ -523,7 +522,7 @@ class ListItemMonitor(threading.Thread):
         if not listitem_details.get("path") and "folderpath" in listitem_details:
             listitem_details["path"] = listitem_details["folderpath"]
         # fix for thumb
-        if not "thumb" in listitem_details["art"] and "thumb" in listitem_details:
+        if "thumb" not in listitem_details["art"] and "thumb" in listitem_details:
             listitem_details["art"]["thumb"] = listitem_details["thumb"]
         return listitem_details
 

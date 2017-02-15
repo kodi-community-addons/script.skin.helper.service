@@ -25,7 +25,7 @@ class KodiMonitor(xbmc.Monitor):
         self.artutils = kwargs.get("artutils")
         self.win = kwargs.get("win")
         self.enable_animatedart = xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnableAnimatedPosters)") == 1
-    
+
     def onNotification(self, sender, method, data):
         '''builtin function for the xbmc.Monitor class'''
         try:
@@ -79,7 +79,7 @@ class KodiMonitor(xbmc.Monitor):
 
     def process_db_update(self, media_type, dbid, transaction=False):
         '''precache/refresh items when a kodi db item gets updated/added'''
-        
+
         self.bgtasks += 1
 
         # item specific actions
@@ -99,18 +99,25 @@ class KodiMonitor(xbmc.Monitor):
                 self.artwork_downloader(media_type, dbid)
 
         # for music content we only flush the cache
-        if dbid and media_type == "song":
-            song = self.artutils.kodidb.song(dbid)
-            self.artutils.get_music_artwork(
-                song["artist"][0], song["album"], song["title"], str(
-                    song["disc"]), ignore_cache=True, flush_cache=True)
-        elif dbid and media_type == "album":
-            song = self.artutils.kodidb.album(dbid)
-            self.artutils.get_music_artwork(item["artist"][0], item["title"], ignore_cache=True, flush_cache=True)
-        elif dbid and media_type == "artist":
-            song = self.artutils.kodidb.artist(dbid)
-            self.artutils.get_music_artwork(item["artist"], ignore_cache=True, flush_cache=True)
-            
+        if dbid and (not transaction or bgtasks < 2):
+            if media_type == "song":
+                song = self.artutils.kodidb.song(dbid)
+                if song:
+                    self.artutils.get_music_artwork(
+                        song["artist"][0], song["album"], song["title"], str(
+                            song["disc"]), ignore_cache=True, flush_cache=True)
+            elif media_type == "album":
+                album = self.artutils.kodidb.album(dbid)
+                if album:
+                    self.artutils.get_music_artwork(
+                        album["artist"][0],
+                        album["title"],
+                        ignore_cache=True, flush_cache=True)
+            elif media_type == "artist":
+                artist = self.artutils.kodidb.artist(dbid)
+                if artist:
+                    self.artutils.get_music_artwork(artist["artist"], ignore_cache=True, flush_cache=True)
+
         # remove task
         self.bgtasks -= 1
 
@@ -167,11 +174,11 @@ class KodiMonitor(xbmc.Monitor):
         li_year = details["year"]
         li_imdb = details["imdbnumber"]
         li_showtitle = details["tvshowtitle"]
-        details = {"art": {} }
+        details = {"art": {}}
 
         # video content
         if mediatype in ["movie", "episode", "musicvideo"]:
-        
+
             # get imdb_id
             li_imdb, li_tvdb = self.artutils.get_imdbtvdb_id(li_title, mediatype, li_year, li_imdb, li_showtitle)
 
@@ -303,7 +310,7 @@ class KodiMonitor(xbmc.Monitor):
         '''collect basic infolabels for the current item in the videoplayer'''
         details = {"art": {}}
         # normal properties
-        props = ["title", "filenameandpath", "year", "genre", "duration", "plot", "plotoutline", 
+        props = ["title", "filenameandpath", "year", "genre", "duration", "plot", "plotoutline",
                  "studio", "tvshowtitle", "premiered", "director", "writer", "season", "episode",
                  "artist", "album", "rating", "albumartist", "discnumber",
                  "firstaired", "mpaa", "tagline", "rating", "imdbnumber"
@@ -313,7 +320,7 @@ class KodiMonitor(xbmc.Monitor):
             details[prop] = propvalue
         # art properties
         props = ["fanart", "poster", "clearlogo", "clearart", "landscape",
-                 "characterart", "thumb", "banner", "discart", "tvshow.landscape", 
+                 "characterart", "thumb", "banner", "discart", "tvshow.landscape",
                  "tvshow.clearlogo", "tvshow.poster", "tvshow.fanart", "tvshow.banner"
                  ]
         for prop in props:
