@@ -12,7 +12,6 @@ from artutils import ArtUtils
 # Kodi contextmenu item to configure music artwork
 if __name__ == '__main__':
 
-    ##### Music Artwork ########
     win = xbmcgui.Window(10000)
     artutils = ArtUtils()
     win.setProperty("SkinHelper.Artwork.ManualLookup", "busy")
@@ -21,7 +20,7 @@ if __name__ == '__main__':
     artist = xbmc.getInfoLabel("ListItem.Artist").decode('utf-8')
     disc = xbmc.getInfoLabel("ListItem.DiscNumber").decode('utf-8')
     artutils.music_artwork_options(artist, album, track, disc)
-    win.clearProperty("SkinHelper.Artwork.ManualLookup")
     artutils.close()
+    win.clearProperty("SkinHelper.Artwork.ManualLookup")
     del win
     del artutils

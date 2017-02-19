@@ -170,6 +170,7 @@ class MainModule:
         '''show select dialog to enable/disable views'''
         all_views = []
         views_file = xbmc.translatePath('special://skin/extras/views.xml').decode("utf-8")
+        richlayout = self.params.get("richlayout", "") == "true"
         if xbmcvfs.exists(views_file):
             doc = parse(views_file)
             listing = doc.documentElement.getElementsByTagName('view')
@@ -177,18 +178,25 @@ class MainModule:
                 view_id = view.attributes['value'].nodeValue
                 label = xbmc.getLocalizedString(int(view.attributes['languageid'].nodeValue))
                 desc = label + " (" + str(view_id) + ")"
-                listitem = xbmcgui.ListItem(label=label, label2=desc)
+                image = "special://skin/extras/viewthumbs/%s.jpg" % view_id
+                listitem = xbmcgui.ListItem(label=label, label2=desc, iconImage=image)
                 listitem.setProperty("viewid", view_id)
                 if not xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.view.Disabled.%s)" % view_id):
                     listitem.select(selected=True)
-                all_views.append(listitem)
+                excludefromdisable = False
+                try:
+                    excludefromdisable = view.attributes['excludefromdisable'].nodeValue == "true"
+                except Exception:
+                    pass
+                if not excludefromdisable:
+                    all_views.append(listitem)
 
         dialog = DialogSelect(
             "DialogSelect.xml",
             "",
             listing=all_views,
             windowtitle=self.addon.getLocalizedString(32013),
-            multiselect=True)
+            multiselect=True, richlayout=richlayout)
         dialog.doModal()
         result = dialog.result
         del dialog
@@ -210,7 +218,7 @@ class MainModule:
             if not current_view:
                 current_view = "0"
             view_id, view_label = self.selectview(content_type, current_view, True)
-            if view_id:
+            if view_id or view_label:
                 xbmc.executebuiltin("Skin.SetString(SkinHelper.ForcedViews.%s,%s)" % (content_type, view_id))
                 xbmc.executebuiltin("Skin.SetString(SkinHelper.ForcedViews.%s.label,%s)" % (content_type, view_label))
 

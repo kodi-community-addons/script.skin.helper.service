@@ -223,17 +223,22 @@ class ListItemMonitor(threading.Thread):
                 "Window.IsActive(visualisation) + Skin.HasSetting(SkinHelper.DisableScreenSaverOnFullScreenMusic)"):
             if not self.screensaver_disabled:
                 # disable screensaver when fullscreen music active
-                self.screensaver_setting = kodi_json('Settings.GetSettingValue', '{"setting":"screensaver.mode"}')
-                kodi_json('Settings.SetSettingValue', {"setting": "screensaver.mode", "value": None})
                 self.screensaver_disabled = True
-                log_msg(
-                    "Disabled screensaver while fullscreen music playback - previous setting: %s" %
-                    self.screensaver_setting)
-        elif self.screensaver_setting and self.screensaver_disabled:
+                screensaver_setting = kodi_json('Settings.GetSettingValue', '{"setting":"screensaver.mode"}')
+                if screensaver_setting:
+                    self.screensaver_setting = screensaver_setting
+                    kodi_json('Settings.SetSettingValue', {"setting": "screensaver.mode", "value": None})
+                    log_msg(
+                        "Disabled screensaver while fullscreen music playback - previous setting: %s" %
+                        self.screensaver_setting, xbmc.LOGNOTICE)
+        elif self.screensaver_disabled and self.screensaver_setting:
             # enable screensaver again after fullscreen music playback was ended
             kodi_json('Settings.SetSettingValue', {"setting": "screensaver.mode", "value": self.screensaver_setting})
             self.screensaver_disabled = False
-            log_msg("fullscreen music playback ended - restoring screensaver: %s" % self.screensaver_setting)
+            self.screensaver_setting = None
+            log_msg(
+                "fullscreen music playback ended - restoring screensaver: %s" %
+                self.screensaver_setting, xbmc.LOGNOTICE)
 
     @staticmethod
     def check_osd():

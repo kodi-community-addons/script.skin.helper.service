@@ -99,7 +99,7 @@ class KodiMonitor(xbmc.Monitor):
                 self.artwork_downloader(media_type, dbid)
 
         # for music content we only flush the cache
-        if dbid and (not transaction or bgtasks < 2):
+        if dbid and (not transaction or self.bgtasks < 2):
             if media_type == "song":
                 song = self.artutils.kodidb.song(dbid)
                 if song:
@@ -325,7 +325,8 @@ class KodiMonitor(xbmc.Monitor):
                  ]
         for prop in props:
             propvalue = xbmc.getInfoLabel('Player.Art(%s)' % prop).decode('utf-8')
-            prop = prop.replace("tvshow.", "")
-            propvalue = get_clean_image(propvalue)
-            details["art"][prop] = propvalue
+            if propvalue:
+                prop = prop.replace("tvshow.", "")
+                propvalue = get_clean_image(propvalue)
+                details["art"][prop] = propvalue
         return details
