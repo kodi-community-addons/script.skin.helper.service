@@ -10,6 +10,8 @@ import xbmcgui
 from metadatautils import MetadataUtils
 from utils import log_msg
 
+# pylint: disable-msg=invalid-constant-name
+
 
 def get_imdb_id(win, metadatautils):
     '''get imdbnumber for listitem'''

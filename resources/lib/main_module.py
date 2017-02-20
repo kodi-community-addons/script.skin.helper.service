@@ -166,6 +166,7 @@ class MainModule:
         else:
             return (None, None)
 
+    # pylint: disable-msg=too-many-local-variables
     def enableviews(self):
         '''show select dialog to enable/disable views'''
         all_views = []
@@ -209,6 +210,7 @@ class MainModule:
                 else:
                     # view is disabled
                     xbmc.executebuiltin("Skin.SetBool(SkinHelper.view.Disabled.%s)" % view_id)
+    # pylint: enable-msg=too-many-local-variables
 
     def setforcedview(self):
         '''helper that sets a forced view for a specific content type'''
@@ -294,10 +296,10 @@ class MainModule:
         '''helper to set focus on a list or control'''
         control = self.params.get("control")
         fallback = self.params.get("fallback")
-        position = self.params.get("position","0")
+        position = self.params.get("position", "0")
         relativeposition = self.params.get("relativeposition")
         if relativeposition:
-            position = int(relativeposition)-1
+            position = int(relativeposition) - 1
         count = 0
         if control:
             while not xbmc.getCondVisibility("Control.HasFocus(%s)" % control):

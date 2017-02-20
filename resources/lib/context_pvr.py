@@ -9,6 +9,8 @@ import xbmc
 import xbmcgui
 from metadatautils import MetadataUtils
 
+# pylint: disable-msg=invalid-constant-name
+
 # Kodi contextmenu item to configure pvr artwork
 if __name__ == '__main__':
 

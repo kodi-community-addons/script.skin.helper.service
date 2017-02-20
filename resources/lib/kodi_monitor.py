@@ -10,7 +10,6 @@
 from utils import log_msg, json, prepare_win_props, log_exception
 from metadatautils import process_method_on_list, extend_dict, get_clean_image
 import xbmc
-import time
 
 
 class KodiMonitor(xbmc.Monitor):

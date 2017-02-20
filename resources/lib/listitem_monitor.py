@@ -10,7 +10,7 @@
 import threading
 import thread
 from utils import log_msg, log_exception, get_current_content_type, kodi_json, prepare_win_props
-from metadatautils import extend_dict, get_clean_image, process_method_on_list
+from metadatautils import extend_dict, process_method_on_list
 import xbmc
 from simplecache import SimpleCache
 
@@ -317,7 +317,8 @@ class ListItemMonitor(threading.Thread):
                         if not listitem["filenameandpath"]:
                             listitem["filenameandpath"] = listitem["path"]
                         if "videodb://" not in listitem["filenameandpath"]:
-                            listitem = extend_dict(listitem, self.metadatautils.get_extrafanart(listitem["filenameandpath"]))
+                            listitem = extend_dict(listitem,
+                                                   self.metadatautils.get_extrafanart(listitem["filenameandpath"]))
                     listitem = extend_dict(listitem, self.get_genres(listitem["genre"]))
                     listitem = extend_dict(listitem, self.metadatautils.get_duration(listitem["duration"]))
                     listitem = extend_dict(listitem, self.metadatautils.get_studio_logo(listitem["studio"]))
@@ -341,7 +342,9 @@ class ListItemMonitor(threading.Thread):
                     if content_type in ["movies", "setmovies"]:
                         listitem = extend_dict(listitem, self.metadatautils.get_tmdb_details(listitem["imdbnumber"]))
                         if listitem["imdbnumber"] and self.enable_animatedart:
-                            listitem = extend_dict(listitem, self.metadatautils.get_animated_artwork(listitem["imdbnumber"]))
+                            listitem = extend_dict(
+                                listitem, self.metadatautils.get_animated_artwork(
+                                    listitem["imdbnumber"]))
 
                     # extended art
                     if self.enable_extendedart:
