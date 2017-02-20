@@ -7,11 +7,11 @@
 
 import xbmc
 import xbmcgui
-from artutils import ArtUtils
+from metadatautils import MetadataUtils
 from utils import log_msg
 
 
-def get_imdb_id(win, artutils):
+def get_imdb_id(win, metadatautils):
     '''get imdbnumber for listitem'''
     content_type = win.getProperty("contenttype")
     imdb_id = xbmc.getInfoLabel("ListItem.IMDBNumber").decode('utf-8')
@@ -26,7 +26,7 @@ def get_imdb_id(win, artutils):
             title = xbmc.getInfoLabel("ListItem.TvShowTitle").decode('utf-8')
         if title:
             log_msg("Animated Art: lookup imdbid by title and year: (%s - %s)" % (title, year), xbmc.LOGNOTICE)
-            imdb_id = artutils.get_omdb_info("", title, year, content_type).get("imdbnumber", "")
+            imdb_id = metadatautils.get_omdb_info("", title, year, content_type).get("imdbnumber", "")
         if not imdb_id:
             return title
     return imdb_id
@@ -35,7 +35,7 @@ def get_imdb_id(win, artutils):
 if __name__ == '__main__':
     xbmc.executebuiltin("ActivateWindow(busydialog)")
     log_msg("Contextmenu for Animated Art opened", xbmc.LOGNOTICE)
-    ARTUTILS = ArtUtils()
+    ARTUTILS = MetadataUtils()
     WIN = xbmcgui.Window(10000)
     imdb_id = get_imdb_id(WIN, ARTUTILS)
     WIN.setProperty("SkinHelper.Artwork.ManualLookup", "busy")

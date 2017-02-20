@@ -17,7 +17,7 @@ import xbmc
 import xbmcvfs
 import urlparse
 import urllib
-from artutils import extend_dict
+from metadatautils import extend_dict
 
 # port is hardcoded as there is no way in Kodi to pass a INFO-label inside a panel,
 # otherwise the portnumber could be passed to the skin through a skin setting or window prop
@@ -32,7 +32,7 @@ class WebService(threading.Thread):
     def __init__(self, *args, **kwargs):
         self.event = threading.Event()
         threading.Thread.__init__(self, *args)
-        self.artutils = kwargs.get("artutils")
+        self.metadatautils = kwargs.get("metadatautils")
 
     def stop(self):
         '''called when the thread needs to stop'''
@@ -51,7 +51,7 @@ class WebService(threading.Thread):
         log_msg("WebService - start helper webservice on port %s" % PORT, xbmc.LOGNOTICE)
         try:
             server = StoppableHttpServer(('127.0.0.1', PORT), StoppableHttpRequestHandler)
-            server.artutils = self.artutils
+            server.metadatautils = self.metadatautils
             server.serve_forever()
         except Exception as exc:
             if "10053" not in exc: # ignore host diconnected errors
@@ -166,13 +166,13 @@ class StoppableHttpRequestHandler (SimpleHTTPServer.SimpleHTTPRequestHandler):
 
             # search image on google
             if action == "getthumb":
-                image = self.server.artutils.google.search_image(title)
+                image = self.server.metadatautils.google.search_image(title)
 
             # get pvr image
             elif "pvrthumb" in action:
                 channel = params.get("channel", "")
                 genre = params.get("genre", "")
-                artwork = self.server.artutils.get_pvr_artwork(title, channel, genre)
+                artwork = self.server.metadatautils.get_pvr_artwork(title, channel, genre)
                 if action == "getallpvrthumb":
                     is_json_request = True
 
@@ -184,14 +184,14 @@ class StoppableHttpRequestHandler (SimpleHTTPServer.SimpleHTTPRequestHandler):
                 media_type = params.get("mediatype", "")
                 imdb_id = params.get("imdbid", "")
                 if not imdb_id:
-                    artwork = self.server.artutils.get_tmdb_details("", "", title, year, media_type)
+                    artwork = self.server.metadatautils.get_tmdb_details("", "", title, year, media_type)
                     if artwork:
                         imdb_id = artwork.get("imdbnumber")
                         if not media_type:
                             media_type = artwork.get("media_type")
                 if imdb_id:
                     artwork = extend_dict(
-                        artwork, self.server.artutils.get_extended_artwork(
+                        artwork, self.server.metadatautils.get_extended_artwork(
                             imdb_id, "", "", media_type))
 
             # music art
@@ -199,7 +199,7 @@ class StoppableHttpRequestHandler (SimpleHTTPServer.SimpleHTTPRequestHandler):
                 artist = params.get("artist", "")
                 album = params.get("album", "")
                 track = params.get("track", "")
-                artwork = self.server.artutils.get_music_artwork(artist, album, track)
+                artwork = self.server.metadatautils.get_music_artwork(artist, album, track)
 
             # genre images
             elif "genreimages" in action and preferred_types:
@@ -208,7 +208,7 @@ class StoppableHttpRequestHandler (SimpleHTTPServer.SimpleHTTPRequestHandler):
                 randomize = "true" if "random" in action else "false"
                 lib_path = u"plugin://script.skin.helper.service/?action=genrebackground"\
                     "&genre=%s&arttype=%s&mediatype=%s&random=%s" % (title, arttype, mediatype, randomize)
-                for count, item in enumerate(self.server.artutils.kodidb.files(lib_path, limits=(0, 5))):
+                for count, item in enumerate(self.server.metadatautils.kodidb.files(lib_path, limits=(0, 5))):
                     artwork["%s.%s" % (arttype, count)] = item["file"]
 
             # image from variable

@@ -9,7 +9,7 @@
 '''
 
 from utils import kodi_json, log_msg, urlencode
-from artutils import detect_plugin_content
+from metadatautils import detect_plugin_content
 import xbmc
 import xbmcvfs
 import xbmcplugin
@@ -491,7 +491,7 @@ def extendedinfo_youtube_widgets():
 
 def set_skinshortcuts_property(property_name="", value="", label=""):
     '''set custom property in skinshortcuts menu editor'''
-    if value:
+    if value or label:
         wait_for_skinshortcuts_window()
         xbmc.sleep(250)
         xbmc.executebuiltin("SetProperty(customProperty,%s)" % property_name.encode("utf-8"))

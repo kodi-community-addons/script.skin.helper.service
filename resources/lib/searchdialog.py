@@ -11,7 +11,7 @@ import threading
 import thread
 import xbmc
 import xbmcgui
-from artutils import process_method_on_list, KodiDb
+from metadatautils import process_method_on_list, KodiDb
 
 
 class SearchDialog(xbmcgui.WindowXMLDialog):

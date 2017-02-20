@@ -265,7 +265,8 @@ def get_repo_addoninfo(addonid, simplecache=None):
                 info["author"] = ",".join(authors)
                 break
         except Exception as exc:
-            log_exception(__name__, exc)
+            if "HTTP Error 404" not in exc:  # ignore not found exceptions
+                log_exception(__name__, exc)
         if simplecache:
             cache.set(cachestr, info)
     return info

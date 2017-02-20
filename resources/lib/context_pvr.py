@@ -7,7 +7,7 @@
 
 import xbmc
 import xbmcgui
-from artutils import ArtUtils
+from metadatautils import MetadataUtils
 
 # Kodi contextmenu item to configure pvr artwork
 if __name__ == '__main__':
@@ -21,9 +21,9 @@ if __name__ == '__main__':
         title = xbmc.getInfoLabel("ListItem.Label").decode('utf-8')
     channel = xbmc.getInfoLabel("ListItem.ChannelName").decode('utf-8')
     genre = xbmc.getInfoLabel("ListItem.Genre").decode('utf-8')
-    artutils = ArtUtils()
-    artutils.pvr_artwork_options(title, channel, genre)
+    metadatautils = MetadataUtils()
+    metadatautils.pvr_artwork_options(title, channel, genre)
     xbmc.executebuiltin("Dialog.Close(busydialog)")
     win.clearProperty("SkinHelper.Artwork.ManualLookup")
-    artutils.close()
+    metadatautils.close()
     del win

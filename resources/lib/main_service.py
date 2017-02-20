@@ -13,7 +13,7 @@ from skinsettings import SkinSettings
 from listitem_monitor import ListItemMonitor
 from kodi_monitor import KodiMonitor
 from webservice import WebService
-from artutils import ArtUtils
+from metadatautils import MetadataUtils
 import xbmc
 import xbmcaddon
 import xbmcgui
@@ -26,13 +26,13 @@ class MainService:
     def __init__(self):
         self.win = xbmcgui.Window(10000)
         self.addon = xbmcaddon.Addon(ADDON_ID)
-        self.artutils = ArtUtils()
+        self.metadatautils = MetadataUtils()
         self.addonname = self.addon.getAddonInfo('name').decode("utf-8")
         self.addonversion = self.addon.getAddonInfo('version').decode("utf-8")
-        self.kodimonitor = KodiMonitor(artutils=self.artutils, win=self.win)
+        self.kodimonitor = KodiMonitor(metadatautils=self.metadatautils, win=self.win)
         listitem_monitor = ListItemMonitor(
-            artutils=self.artutils, win=self.win, monitor=self.kodimonitor)
-        webservice = WebService(artutils=self.artutils)
+            metadatautils=self.metadatautils, win=self.win, monitor=self.kodimonitor)
+        webservice = WebService(metadatautils=self.metadatautils)
 
         # start the extra threads
         listitem_monitor.start()
@@ -61,10 +61,10 @@ class MainService:
 
     def close(self):
         '''Cleanup Kodi Cpython instances'''
-        self.artutils.close()
+        self.metadatautils.close()
         del self.win
         del self.kodimonitor
-        del self.artutils
+        del self.metadatautils
         log_msg('%s version %s stopped' % (self.addonname, self.addonversion), xbmc.LOGNOTICE)
 
     def check_skin_version(self):

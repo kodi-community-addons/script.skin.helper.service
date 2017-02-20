@@ -18,7 +18,7 @@ from utils import log_msg, KODI_VERSION
 from utils import log_exception, get_current_content_type, ADDON_ID, recursive_delete_dir
 from dialogselect import DialogSelect
 from xml.dom.minidom import parse
-from artutils import KodiDb, process_method_on_list
+from metadatautils import KodiDb, process_method_on_list
 import urlparse
 import sys
 
