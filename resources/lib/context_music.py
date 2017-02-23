@@ -8,6 +8,7 @@
 import xbmc
 import xbmcgui
 from metadatautils import MetadataUtils
+import time
 
 # pylint: disable-msg=invalid-constant-name
 
@@ -23,6 +24,12 @@ if __name__ == '__main__':
     disc = xbmc.getInfoLabel("ListItem.DiscNumber").decode('utf-8')
     metadatautils.music_artwork_options(artist, album, track, disc)
     metadatautils.close()
+    # refresh music widgets
+    timestr = time.strftime("%Y%m%d%H%M%S", time.gmtime())
+    win.setProperty("widgetreload-music", timestr)
+    win.setProperty("widgetreloadmusic", timestr)
+    win.setProperty("widgetreload-albums", timestr)
+    win.setProperty("widgetreload-songs", timestr)
     win.clearProperty("SkinHelper.Artwork.ManualLookup")
     del win
     del metadatautils
