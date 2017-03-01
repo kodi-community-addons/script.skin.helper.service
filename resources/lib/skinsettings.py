@@ -312,6 +312,7 @@ class SkinSettings:
         skinconstants = {}
         for settingid, settingvalues in self.skinsettings.iteritems():
             curvalue = xbmc.getInfoLabel("Skin.String(%s)" % settingid).decode("utf-8")
+            curlabel = xbmc.getInfoLabel("Skin.String(%s.label)" % settingid).decode("utf-8")
             # first check if we have a sublevel
             if settingvalues and settingvalues[0]["value"].startswith("||SUBLEVEL||"):
                 sublevel = settingvalues[0]["value"].replace("||SUBLEVEL||", "")
@@ -329,18 +330,21 @@ class SkinSettings:
                         (settingid.encode("utf-8"), label.encode("utf-8")))
 
                 # set the default value if current value is empty
-                if not curvalue and settingvalue["default"] and xbmc.getCondVisibility(settingvalue["default"]):
-                    xbmc.executebuiltin(
-                        "Skin.SetString(%s.label,%s)" %
-                        (settingid.encode("utf-8"), label.encode("utf-8")))
-                    xbmc.executebuiltin("Skin.SetString(%s,%s)" % (settingid.encode("utf-8"), value.encode("utf-8")))
-                    # additional onselect actions
-                    for action in settingvalue["onselectactions"]:
-                        if action["condition"] and xbmc.getCondVisibility(action["condition"]):
-                            command = action["command"]
-                            if "$" in command:
-                                command = xbmc.getInfoLabel(command)
-                            xbmc.executebuiltin(command.encode("utf-8"))
+                if not (curvalue or curlabel):
+                    if settingvalue["default"] and xbmc.getCondVisibility(settingvalue["default"]):
+                        xbmc.executebuiltin(
+                            "Skin.SetString(%s.label,%s)" %
+                            (settingid.encode("utf-8"), label.encode("utf-8")))
+                        xbmc.executebuiltin(
+                            "Skin.SetString(%s,%s)" %
+                            (settingid.encode("utf-8"), value.encode("utf-8")))
+                        # additional onselect actions
+                        for action in settingvalue["onselectactions"]:
+                            if action["condition"] and xbmc.getCondVisibility(action["condition"]):
+                                command = action["command"]
+                                if "$" in command:
+                                    command = xbmc.getInfoLabel(command)
+                                xbmc.executebuiltin(command.encode("utf-8"))
 
                 # process any multiselects
                 for option in settingvalue["settingoptions"]:
@@ -508,10 +512,10 @@ class SkinSettings:
         if result:
             for item in result:
                 if item.isSelected():
-                    #option is enabled
+                    # option is enabled
                     xbmc.executebuiltin("Skin.SetBool(%s)" % item.getProperty("id"))
                 else:
-                    #option is disabled
+                    # option is disabled
                     xbmc.executebuiltin("Skin.Reset(%s)" % item.getProperty("id"))
             # always set additional prop to define the defaults
             xbmc.executebuiltin("Skin.SetString(defaultset_%s,defaultset)" % item.getProperty("id"))

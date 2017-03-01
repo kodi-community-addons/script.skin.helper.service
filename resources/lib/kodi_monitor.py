@@ -216,15 +216,16 @@ class KodiMonitor(xbmc.Monitor):
         li_disc = xbmc.getInfoLabel("MusicPlayer.DiscNumber").decode('utf-8')
         li_plot = xbmc.getInfoLabel("MusicPlayer.Comment").decode('utf-8')
 
-        if not li_artist:
-            # fix for internet streams
+        # fix for internet streams
+        if not li_artist and xbmc.getCondVisibility("Player.IsInternetStream"):
             for splitchar in [" - ", "-", ":", ";"]:
                 if splitchar in li_title:
                     li_artist = li_title.split(splitchar)[0].strip()
                     li_title = li_title.split(splitchar)[1].strip()
                     break
 
-        if xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnableMusicArt)") and li_artist:
+        if xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnableMusicArt)") and li_artist and(
+                li_title or li_album):
             result = self.metadatautils.get_music_artwork(li_artist, li_album, li_title, li_disc)
             if result.get("extendedplot") and li_plot:
                 li_plot = li_plot.replace('\n', ' ').replace('\r', '').rstrip()
