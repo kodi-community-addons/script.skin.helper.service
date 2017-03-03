@@ -304,6 +304,7 @@ class MainModule:
         if control:
             while not xbmc.getCondVisibility("Control.HasFocus(%s)" % control):
                 if xbmc.getCondVisibility("Window.IsActive(busydialog)"):
+                    xbmc.sleep(150)
                     continue
                 elif count == 20 or (xbmc.getCondVisibility(
                         "!Control.IsVisible(%s) | "
@@ -315,7 +316,6 @@ class MainModule:
                     xbmc.executebuiltin("Control.SetFocus(%s,%s)" % (control, position))
                     xbmc.sleep(50)
                     count += 1
-                    break
 
     def setwidgetcontainer(self):
         '''helper that reports the current selected widget container/control'''

@@ -229,3 +229,12 @@ def prepare_win_props(details, prefix=u"SkinHelper.ListItem."):
                     elif len(value) == 1 and isinstance(value[0], (str, unicode)):
                         items.append((key, value))
     return items
+
+
+def merge_dict(dict_a, dict_b):
+    '''append values to a dict without overwriting any existing values'''
+    result = dict_a.copy()
+    for key, value in dict_b.iteritems():
+        if not key in dict_a or not dict_a[key]:
+            result[key] = value
+    return result

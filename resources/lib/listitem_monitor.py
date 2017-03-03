@@ -9,7 +9,7 @@
 
 import threading
 import thread
-from utils import log_msg, log_exception, get_current_content_type, kodi_json, prepare_win_props
+from utils import log_msg, log_exception, get_current_content_type, kodi_json, prepare_win_props, merge_dict
 from metadatautils import extend_dict, process_method_on_list
 import xbmc
 from simplecache import SimpleCache
@@ -277,11 +277,12 @@ class ListItemMonitor(threading.Thread):
                     content_type = dbtype + "s"
 
                 # collect all details from listitem
-                listitem = self.get_listitem_details(content_type, prefix)
+                details = self.get_listitem_details(content_type, prefix)
 
                 if prefix and cur_listitem == self.last_listitem:
                     # for widgets we immediately set all normal properties as window prop
-                    self.set_win_props(prepare_win_props(listitem))
+                    self.set_win_props(prepare_win_props(details))
+                   
 
                 # if another lookup for the same listitem already in progress... wait for it to complete
                 while self.lookup_busy.get(cur_listitem):
@@ -292,77 +293,83 @@ class ListItemMonitor(threading.Thread):
 
                 # music content
                 if content_type in ["albums", "artists", "songs"] and self.enable_musicart:
-                    listitem = extend_dict(listitem, self.metadatautils.get_music_artwork(
-                        listitem["artist"], listitem["album"], listitem["title"], listitem["discnumber"]))
+                    details = extend_dict(details, self.metadatautils.get_music_artwork(
+                        details["artist"], details["album"], details["title"], details["discnumber"]))
 
                 # moviesets
-                elif listitem["path"].startswith("videodb://movies/sets/") and listitem["dbid"]:
-                    listitem = extend_dict(
-                        listitem, self.metadatautils.get_moviesetdetails(
-                            listitem["title"], listitem["dbid"]))
+                elif details["path"].startswith("videodb://movies/sets/") and details["dbid"]:
+                    details = extend_dict(
+                        details, self.metadatautils.get_moviesetdetails(
+                            details["title"], details["dbid"]))
                     content_type = "sets"
 
                 # video content
                 elif content_type in ["movies", "setmovies", "tvshows", "seasons", "episodes", "musicvideos"]:
-
+                    
                     # get imdb and tvdbid
-                    listitem["imdbnumber"], tvdbid = self.metadatautils.get_imdbtvdb_id(
-                        listitem["title"], content_type,
-                        listitem["year"], listitem["imdbnumber"], listitem["tvshowtitle"])
+                    details["imdbnumber"], tvdbid = self.metadatautils.get_imdbtvdb_id(
+                        details["title"], content_type,
+                        details["year"], details["imdbnumber"], details["tvshowtitle"])
 
                     # generic video properties (studio, streamdetails, omdb, top250)
-                    listitem = extend_dict(listitem,
-                                           self.get_directors_writers(listitem["director"], listitem["writer"]))
+                    details = merge_dict(details,
+                                           self.get_directors_writers(details["director"], details["writer"]))
                     if self.enable_extrafanart:
-                        if not listitem["filenameandpath"]:
-                            listitem["filenameandpath"] = listitem["path"]
-                        if "videodb://" not in listitem["filenameandpath"]:
-                            listitem = extend_dict(listitem,
-                                                   self.metadatautils.get_extrafanart(listitem["filenameandpath"]))
-                    listitem = extend_dict(listitem, self.get_genres(listitem["genre"]))
-                    listitem = extend_dict(listitem, self.metadatautils.get_duration(listitem["duration"]))
-                    listitem = extend_dict(listitem, self.metadatautils.get_studio_logo(listitem["studio"]))
-                    listitem = extend_dict(listitem, self.metadatautils.get_omdb_info(listitem["imdbnumber"]))
-                    listitem = extend_dict(
-                        listitem, self.get_streamdetails(
-                            listitem["dbid"], listitem["path"], content_type))
+                        if not details["filenameandpath"]:
+                            details["filenameandpath"] = details["path"]
+                        if "videodb://" not in details["filenameandpath"]:
+                            details = merge_dict(details,
+                                                   self.metadatautils.get_extrafanart(details["filenameandpath"]))
+                    
+                    details = merge_dict(details, self.metadatautils.get_duration(details["duration"]))
+                    details = merge_dict(details, self.get_genres(details["genre"]))
+                    details = merge_dict(details, self.metadatautils.get_studio_logo(details["studio"]))
+                    details = merge_dict(details, self.metadatautils.get_omdb_info(details["imdbnumber"]))
+                    details = merge_dict(details, self.get_streamdetails(details["dbid"], details["path"], content_type))
                     if self.exit:
                         return
-                    listitem = extend_dict(listitem, self.metadatautils.get_top250_rating(listitem["imdbnumber"]))
+                    details = merge_dict(details, self.metadatautils.get_top250_rating(details["imdbnumber"]))
 
                     if self.exit:
                         return
 
                     # tvshows-only properties (tvdb)
                     if content_type in ["tvshows", "seasons", "episodes"]:
-                        listitem = extend_dict(listitem,
-                                               self.metadatautils.get_tvdb_details(listitem["imdbnumber"], tvdbid))
+                        details = merge_dict(details, self.metadatautils.get_tvdb_details(details["imdbnumber"], tvdbid))
 
+                    if self.exit:
+                        return
+                        
                     # movies-only properties (tmdb, animated art)
                     if content_type in ["movies", "setmovies"]:
-                        listitem = extend_dict(listitem, self.metadatautils.get_tmdb_details(listitem["imdbnumber"]))
-                        if listitem["imdbnumber"] and self.enable_animatedart:
-                            listitem = extend_dict(
-                                listitem, self.metadatautils.get_animated_artwork(
-                                    listitem["imdbnumber"]))
+                        details = merge_dict(details, self.metadatautils.get_tmdb_details(details["imdbnumber"]))
+                        if details["imdbnumber"] and self.enable_animatedart:
+                            details = extend_dict(
+                                details, self.metadatautils.get_animated_artwork(
+                                    details["imdbnumber"]))
 
+                    if self.exit:
+                        return
+                        
                     # extended art
                     if self.enable_extendedart:
-                        tmdbid = listitem.get("tmdb_id", "")
-                        listitem = extend_dict(
-                            listitem, self.metadatautils.get_extended_artwork(
-                                listitem["imdbnumber"], tvdbid, tmdbid, content_type), [
+                        tmdbid = details.get("tmdb_id", "")
+                        details = extend_dict(
+                            details, self.metadatautils.get_extended_artwork(
+                                details["imdbnumber"], tvdbid, tmdbid, content_type), [
                                 "posters", "clearlogos", "banners"])
+                               
 
                 if self.exit:
                     return
 
                 # monitor listitem props when PVR is active
                 elif content_type in ["tvchannels", "tvrecordings", "channels", "recordings", "timers", "tvtimers"]:
-                    listitem = self.get_pvr_artwork(listitem, prefix)
+                    details = self.get_pvr_artwork(details, prefix)
+                    
 
                 # process all properties
-                all_props = prepare_win_props(listitem)
+                all_props = prepare_win_props(details)
                 if content_type not in ["weathers", "systeminfos", "sets"]:
                     self.listitem_details[cur_listitem] = all_props
 
@@ -471,10 +478,11 @@ class ListItemMonitor(threading.Thread):
                 self.win.setProperty("SkinHelper.ContentHeader", "%s %s" % (itemscount, headerprefix))
 
     @staticmethod
-    def get_genres(li_genre):
+    def get_genres(genres):
         '''get formatted genre string from actual genre'''
         details = {}
-        genres = li_genre.split(" / ")
+        if not isinstance(genres, list):
+            genres = genres.split(" / ")
         details['genres'] = "[CR]".join(genres)
         for count, genre in enumerate(genres):
             details["genre.%s" % count] = genre

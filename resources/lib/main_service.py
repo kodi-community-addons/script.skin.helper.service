@@ -74,10 +74,11 @@ class MainService:
             skin_addon = xbmcaddon.Addon(id=skin)
             skin_label = skin_addon.getAddonInfo('name').decode("utf-8")
             skin_version = skin_addon.getAddonInfo('version').decode("utf-8")
+            this_skin = "%s-%s" % (skin_label, skin_version)
             del skin_addon
-            if self.last_skin != skin_label + skin_version:
-                # auto correct skin settings
-                self.last_skin = skin_label + skin_version
+            if self.last_skin != this_skin:
+                # auto correct skin settings if needed
+                self.last_skin = this_skin
                 self.win.setProperty("SkinHelper.skinTitle", "%s - %s: %s"
                                      % (skin_label, xbmc.getLocalizedString(19114), skin_version))
                 self.win.setProperty("SkinHelper.skin_version", "%s: %s"
