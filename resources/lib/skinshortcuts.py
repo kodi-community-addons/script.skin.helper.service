@@ -8,7 +8,7 @@
     Methods to connect skinhelper to skinshortcuts for smartshortcuts, widgets and backgrounds
 '''
 
-from utils import kodi_json, log_msg, urlencode
+from utils import kodi_json, log_msg, urlencode, ADDON_ID
 from metadatautils import detect_plugin_content
 import xbmc
 import xbmcvfs
@@ -466,11 +466,13 @@ def favourites_widgets():
 def static_widgets():
     '''static widget nodes which are hardcoded in a skin'''
     widgets = []
-    widgets.append(["$LOCALIZE[8]", "$INCLUDE[WeatherWidget]", "static"])
-    widgets.append(["$LOCALIZE[130]", "$INCLUDE[SystemInfoWidget]", "static"])
-    widgets.append(["$LOCALIZE[31196]", "$INCLUDE[skinshortcuts-submenu]", "static"])
+    addon = xbmcaddon.Addon(ADDON_ID)
+    widgets.append([xbmc.getLocalizedString(8), "$INCLUDE[WeatherWidget]", "static"])
+    widgets.append([xbmc.getLocalizedString(130), "$INCLUDE[SystemInfoWidget]", "static"])
+    widgets.append([addon.getLocalizedString(32025), "$INCLUDE[skinshortcuts-submenu]", "static"])
     if xbmc.getCondVisibility("System.Hasaddon(script.games.rom.collection.browser)"):
-        widgets.append(["RCB Most played games", "$INCLUDE[RCBWidget]", "static"])
+        widgets.append([addon.getLocalizedString(32026), "$INCLUDE[RCBWidget]", "static"])
+    del addon
     return widgets
 
 
