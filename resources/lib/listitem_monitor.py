@@ -318,8 +318,9 @@ class ListItemMonitor(threading.Thread):
                         if not details["filenameandpath"]:
                             details["filenameandpath"] = details["path"]
                         if "videodb://" not in details["filenameandpath"]:
-                            details = merge_dict(details,
-                                                   self.metadatautils.get_extrafanart(details["filenameandpath"]))
+                            efa = self.metadatautils.get_extrafanart(details["filenameandpath"])
+                            if efa:
+                                details["art"] = merge_dict(details["art"], efa["art"])
                     
                     details = merge_dict(details, self.metadatautils.get_duration(details["duration"]))
                     details = merge_dict(details, self.get_genres(details["genre"]))
@@ -359,7 +360,6 @@ class ListItemMonitor(threading.Thread):
                                 details["imdbnumber"], tvdbid, tmdbid, content_type), [
                                 "posters", "clearlogos", "banners"])
                                
-
                 if self.exit:
                     return
 

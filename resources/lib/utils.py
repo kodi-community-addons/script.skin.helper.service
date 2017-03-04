@@ -231,10 +231,10 @@ def prepare_win_props(details, prefix=u"SkinHelper.ListItem."):
     return items
 
 
-def merge_dict(dict_a, dict_b):
+def merge_dict(dict_a, dict_b, allow_overwrite=False):
     '''append values to a dict without overwriting any existing values'''
     result = dict_a.copy()
     for key, value in dict_b.iteritems():
-        if not key in dict_a or not dict_a[key]:
+        if (allow_overwrite or not key in dict_a or not dict_a[key]) and value:
             result[key] = value
     return result
