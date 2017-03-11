@@ -80,7 +80,7 @@ def get_cur_listitem(cont_prefix):
     '''gets the current selected listitem details'''
     if xbmc.getCondVisibility("Window.IsActive(busydialog)"):
         xbmc.executebuiltin("Dialog.Close(busydialog)")
-        xbmc.sleep(1000)
+        xbmc.sleep(500)
     dbid = xbmc.getInfoLabel("%sListItem.DBID" % cont_prefix).decode('utf-8')
     if not dbid or dbid == "-1":
         dbid = xbmc.getInfoLabel("%sListItem.Property(DBID)" % cont_prefix).decode('utf-8')
@@ -147,6 +147,9 @@ def show_infodialog(dbid="", media_type=""):
     metadatautils.close()
     # proceed with infodialog if we have details
     if item_details:
+        widget_container = xbmc.getInfoLabel("Window(Home).Property(SkinHelper.WidgetContainer)")
         win = DialogVideoInfo("DialogVideoInfo.xml", "", listitem=item_details)
+        xbmc.executebuiltin("SetProperty(SkinHelper.WidgetContainer,50,Home)")
         win.doModal()
+        xbmc.executebuiltin("SetProperty(SkinHelper.WidgetContainer,%s,Home)" % widget_container)
         del win
