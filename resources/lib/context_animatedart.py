@@ -42,7 +42,7 @@ if __name__ == '__main__':
     imdb_id = get_imdb_id(WIN, ARTUTILS)
     WIN.setProperty("SkinHelper.Artwork.ManualLookup", "busy")
     log_msg("Animated Art: Query animated art by IMDBID: %s" % imdb_id, xbmc.LOGNOTICE)
-    artwork = ARTUTILS.get_animated_artwork(imdb_id, ignore_cache=True, manual_select=True)
+    artwork = ARTUTILS.get_animated_artwork(imdb_id, manual_select=True, ignore_cache=True)
     log_msg("Animated Art result: %s" % artwork, xbmc.LOGNOTICE)
     xbmc.executebuiltin("Dialog.Close(busydialog)")
     xbmc.executebuiltin("Container.Refresh")

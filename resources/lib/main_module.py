@@ -14,7 +14,7 @@ import xbmcgui
 import xbmcaddon
 from skinsettings import SkinSettings
 from simplecache import SimpleCache
-from utils import log_msg, KODI_VERSION
+from utils import log_msg, KODI_VERSION, kodi_json
 from utils import log_exception, get_current_content_type, ADDON_ID, recursive_delete_dir
 from dialogselect import DialogSelect
 from xml.dom.minidom import parse
@@ -396,14 +396,12 @@ class MainModule:
             del valueint
         except Exception:
             pass
-        if value.lower() == "true":
-            value = 'true'
-        elif value.lower() == "false":
-            value = 'false'
+        if value.lower() in ["true", "false"]:
+            value = value.lower()
         elif is_int:
             value = '"%s"' % value
-        xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"Settings.SetSettingValue",\
-            "params":{"setting":"%s","value":%s}}' % (settingname, value))
+        params = {"setting": settingname, "value": value}
+        kodi_json("Settings.SetSettingValue", params)
 
     def playtrailer(self):
         '''auto play windowed trailer inside video listing'''
