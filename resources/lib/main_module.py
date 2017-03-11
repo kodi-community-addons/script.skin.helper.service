@@ -329,7 +329,6 @@ class MainModule:
                         self.win.setProperty("SkinHelper.WidgetContainer", control)
                         return
                 xbmc.sleep(50)
-        self.win.clearProperty("SkinHelper.WidgetContainer")
 
     def saveskinimage(self):
         '''let the user select an image and save it to addon_data for easy backup'''

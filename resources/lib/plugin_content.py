@@ -148,8 +148,8 @@ class PluginContent:
         '''helper to display extrafanart in multiimage control in the skin'''
         fanarts = eval(self.params["fanarts"])
         # process extrafanarts
-        for item in fanarts:
-            listitem = xbmcgui.ListItem(item, path=item)
+        for count, item in enumerate(fanarts):
+            listitem = xbmcgui.ListItem("fanart%s" % count, path=item)
             listitem.setProperty('mimetype', 'image/jpeg')
             xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=item, listitem=listitem)
         xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))

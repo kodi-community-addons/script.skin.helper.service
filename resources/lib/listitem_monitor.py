@@ -300,7 +300,7 @@ class ListItemMonitor(threading.Thread):
                 elif details["path"].startswith("videodb://movies/sets/") and details["dbid"]:
                     details = extend_dict(
                         details, self.metadatautils.get_moviesetdetails(
-                            details["title"], details["dbid"]))
+                            details["title"], details["dbid"]),["year"])
                     content_type = "sets"
 
                 # video content
