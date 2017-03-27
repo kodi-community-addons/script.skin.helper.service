@@ -405,7 +405,7 @@ class MainModule:
 
     def playtrailer(self):
         '''auto play windowed trailer inside video listing'''
-        if not xbmc.getCondVisibility("Player.HasMedia | Container.Scrolling | Container.OnNext | "
+        if not xbmc.getCondVisibility("Container.Scrolling | Container.OnNext | "
                                       "Container.OnPrevious | !IsEmpty(Window(Home).Property(traileractionbusy))"):
             self.win.setProperty("traileractionbusy", "traileractionbusy")
             widget_container = self.params.get("widgetcontainer", "")

@@ -35,7 +35,6 @@ class ListItemMonitor(threading.Thread):
     enable_extrafanart = False
     enable_pvrart = False
     enable_forcedviews = False
-    bgtasks = 0
 
     def __init__(self, *args, **kwargs):
         self.cache = SimpleCache()
@@ -159,12 +158,11 @@ class ListItemMonitor(threading.Thread):
             (cont_prefix, cont_prefix)).decode('utf-8')
         cur_listitem = "%s--%s--%s--%s--%s" % (cur_folder, li_label, li_title, content_type, li_dbid)
 
-        if cur_listitem and content_type and cur_listitem != self.last_listitem and self.bgtasks < 6:
+        if cur_listitem and content_type and cur_listitem != self.last_listitem:
             self.last_listitem = cur_listitem
             # clear all window props first
-            self.reset_win_props()
+            self.reset_win_props(skipefa=True)
             self.set_win_prop(("curlistitem", cur_listitem))
-            self.set_forcedview(content_type)
             if not li_label == "..":
                 # set listitem details in background thread
                 thread.start_new_thread(
@@ -263,12 +261,18 @@ class ListItemMonitor(threading.Thread):
 
     def set_listitem_details(self, cur_listitem, content_type, prefix):
         '''set the window properties based on the current listitem'''
-        self.bgtasks += 1
         try:
             if cur_listitem in self.listitem_details:
                 # data already in memory
                 all_props = self.listitem_details[cur_listitem]
             else:
+                
+                # wait if we already have more than 2 items in the queue
+                while len(self.lookup_busy) > 2:
+                    xbmc.sleep(100)
+                    if self.exit:
+                        return
+                
                 # prefer listitem's contenttype over container's contenttype
                 dbtype = xbmc.getInfoLabel("%sListItem.DBTYPE" % prefix)
                 if not dbtype:
@@ -284,11 +288,9 @@ class ListItemMonitor(threading.Thread):
                     self.set_win_props(prepare_win_props(details))
                    
 
-                # if another lookup for the same listitem already in progress... wait for it to complete
-                while self.lookup_busy.get(cur_listitem):
-                    xbmc.sleep(250)
-                    if self.exit:
-                        return
+                # skip if another lookup for the same listitem is already in progress...
+                if self.lookup_busy.get(cur_listitem):
+                    return
                 self.lookup_busy[cur_listitem] = True
 
                 # music content
@@ -367,7 +369,6 @@ class ListItemMonitor(threading.Thread):
                 elif content_type in ["tvchannels", "tvrecordings", "channels", "recordings", "timers", "tvtimers"]:
                     details = self.get_pvr_artwork(details, prefix)
                     
-
                 # process all properties
                 all_props = prepare_win_props(details)
                 if content_type not in ["weathers", "systeminfos", "sets"]:
@@ -379,7 +380,7 @@ class ListItemMonitor(threading.Thread):
                 self.set_win_props(all_props)
         except Exception as exc:
             log_exception(__name__, exc)
-        self.bgtasks -= 1
+            self.lookup_busy.pop(cur_listitem, None)
 
     def do_background_work(self):
         '''stuff that's processed in the background'''
@@ -433,10 +434,12 @@ class ListItemMonitor(threading.Thread):
             radio_channels = kodi_json('PVR.GetChannels', {"channelgroupid": "allradio"})
             self.win.setProperty("SkinHelper.TotalRadioChannels", "%s" % len(radio_channels))
 
-    def reset_win_props(self):
+    def reset_win_props(self, skipefa=False):
         '''reset all window props set by the script...'''
         for prop in self.all_window_props:
-            self.win.clearProperty(prop)
+            if not (skipefa and "extrafanart" in prop.lower()):
+                # the extrafanart property is lazy refreshed to prevent flashings on the screen
+                self.win.clearProperty(prop)
         self.all_window_props = []
 
     def set_win_prop(self, prop_tuple):
