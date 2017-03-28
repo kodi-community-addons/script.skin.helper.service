@@ -506,7 +506,7 @@ class ListItemMonitor(threading.Thread):
         listitem_details = {"art": {}}
 
         # generic properties
-        props = ["label", "title", "filenameandpath", "year", "genre", "path", "folderpath",
+        props = ["label", "title", "filenameandpath", "year", "genre", "path", "folderpath", "fanart",
                  "fileextension", "duration", "plot", "plotoutline", "label2", "dbtype", "dbid", "icon", "thumb"]
         # properties for media items
         if content_type in ["movies", "tvshows", "seasons", "episodes", "musicvideos", "setmovies"]:
@@ -522,18 +522,18 @@ class ListItemMonitor(threading.Thread):
             props += ["channel", "startdatetime", "datetime", "date", "channelname",
                       "starttime", "startdate", "endtime", "enddate"]
         for prop in props:
-            propvalue = xbmc.getInfoLabel('%sListItem.%s' % (prefix, prop)).decode('utf-8')
+            propvalue = xbmc.getInfoLabel('$INFO[%sListItem.%s]' % (prefix, prop)).decode('utf-8')
             if not propvalue or propvalue == "-1":
-                propvalue = xbmc.getInfoLabel('%sListItem.Property(%s)' % (prefix, prop)).decode('utf-8')
+                propvalue = xbmc.getInfoLabel('$INFO[%sListItem.Property(%s)]' % (prefix, prop)).decode('utf-8')
             listitem_details[prop] = propvalue
 
         # artwork properties
         artprops = ["fanart", "poster", "clearlogo", "clearart",
                     "landscape", "thumb", "banner", "discart", "characterart"]
         for prop in artprops:
-            propvalue = xbmc.getInfoLabel('%sListItem.Art(%s)' % (prefix, prop)).decode('utf-8')
+            propvalue = xbmc.getInfoLabel('$INFO[%sListItem.Art(%s)]' % (prefix, prop)).decode('utf-8')
             if not propvalue:
-                propvalue = xbmc.getInfoLabel('%sListItem.Art(tvshow.%s)' % (prefix, prop)).decode('utf-8')
+                propvalue = xbmc.getInfoLabel('$INFO[%sListItem.Art(tvshow.%s)]' % (prefix, prop)).decode('utf-8')
             if propvalue:
                 listitem_details["art"][prop] = propvalue
 
@@ -543,6 +543,8 @@ class ListItemMonitor(threading.Thread):
         # fix for thumb
         if "thumb" not in listitem_details["art"] and "thumb" in listitem_details:
             listitem_details["art"]["thumb"] = listitem_details["thumb"]
+        if "fanart" not in listitem_details["art"] and "fanart" in listitem_details:
+            listitem_details["art"]["fanart"] = listitem_details["fanart"]
         return listitem_details
 
     def get_streamdetails(self, li_dbid, li_path, content_type):

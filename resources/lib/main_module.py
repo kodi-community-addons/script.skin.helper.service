@@ -580,6 +580,8 @@ class MainModule:
         '''helper to show an OK dialog with a message'''
         headertxt = self.params.get("header")
         bodytxt = self.params.get("message")
+        if bodytxt.startswith("'") or bodytxt.startswith('"'):
+            bodytxt = bodytxt[1:-1]
         if bodytxt.startswith(" "):
             bodytxt = bodytxt[1:]
         if headertxt.startswith(" "):
@@ -594,6 +596,8 @@ class MainModule:
         bodytxt = self.params.get("message")
         yesactions = self.params.get("yesaction", "").split("|")
         noactions = self.params.get("noaction", "").split("|")
+        if bodytxt.startswith("'") or bodytxt.startswith('"'):
+            bodytxt = bodytxt[1:-1]
         if bodytxt.startswith(" "):
             bodytxt = bodytxt[1:]
         if headertxt.startswith(" "):
