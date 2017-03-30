@@ -272,6 +272,11 @@ class ListItemMonitor(threading.Thread):
                     xbmc.sleep(100)
                     if self.exit:
                         return
+                        
+                # skip if another lookup for the same listitem is already in progress...
+                if self.lookup_busy.get(cur_listitem):
+                    return
+                self.lookup_busy[cur_listitem] = True
                 
                 # prefer listitem's contenttype over container's contenttype
                 dbtype = xbmc.getInfoLabel("%sListItem.DBTYPE" % prefix)
@@ -280,18 +285,8 @@ class ListItemMonitor(threading.Thread):
                 if dbtype:
                     content_type = dbtype + "s"
 
-                # collect all details from listitem
+                # collect details from listitem
                 details = self.get_listitem_details(content_type, prefix)
-
-                if prefix and cur_listitem == self.last_listitem:
-                    # for widgets we immediately set all normal properties as window prop
-                    self.set_win_props(prepare_win_props(details))
-                   
-
-                # skip if another lookup for the same listitem is already in progress...
-                if self.lookup_busy.get(cur_listitem):
-                    return
-                self.lookup_busy[cur_listitem] = True
 
                 # music content
                 if content_type in ["albums", "artists", "songs"] and self.enable_musicart:
@@ -329,8 +324,6 @@ class ListItemMonitor(threading.Thread):
                     details = merge_dict(details, self.metadatautils.get_studio_logo(details["studio"]))
                     details = merge_dict(details, self.metadatautils.get_omdb_info(details["imdbnumber"]))
                     details = merge_dict(details, self.get_streamdetails(details["dbid"], details["path"], content_type))
-                    if self.exit:
-                        return
                     details = merge_dict(details, self.metadatautils.get_top250_rating(details["imdbnumber"]))
 
                     if self.exit:
@@ -339,9 +332,6 @@ class ListItemMonitor(threading.Thread):
                     # tvshows-only properties (tvdb)
                     if content_type in ["tvshows", "seasons", "episodes"]:
                         details = merge_dict(details, self.metadatautils.get_tvdb_details(details["imdbnumber"], tvdbid))
-
-                    if self.exit:
-                        return
                         
                     # movies-only properties (tmdb, animated art)
                     if content_type in ["movies", "setmovies"]:
@@ -371,7 +361,7 @@ class ListItemMonitor(threading.Thread):
                     
                 # process all properties
                 all_props = prepare_win_props(details)
-                if content_type not in ["weathers", "systeminfos", "sets"]:
+                if "sets" not in content_type:
                     self.listitem_details[cur_listitem] = all_props
 
                 self.lookup_busy.pop(cur_listitem, None)
@@ -504,27 +494,30 @@ class ListItemMonitor(threading.Thread):
     def get_listitem_details(content_type, prefix):
         '''collect all listitem properties/values we need'''
         listitem_details = {"art": {}}
-
+        
+        #basic properties
+        for prop in ["dbtype", "dbid", "imdbnumber"]:
+            propvalue = xbmc.getInfoLabel('$INFO[%sListItem.%s]' % (prefix, prop)).decode('utf-8')
+            if not propvalue or propvalue == "-1":
+                propvalue = xbmc.getInfoLabel('$INFO[%sListItem.Property(%s)]' % (prefix, prop)).decode('utf-8')
+            listitem_details[prop] = propvalue
+        
         # generic properties
-        props = ["label", "title", "filenameandpath", "year", "genre", "path", "folderpath", "fanart",
-                 "fileextension", "duration", "plot", "plotoutline", "label2", "dbtype", "dbid", "icon", "thumb"]
+        props = ["label", "title", "filenameandpath", "year", "genre", "path", "folderpath",
+                 "duration", "plot", "plotoutline", "label2", "icon", "thumb"]
         # properties for media items
         if content_type in ["movies", "tvshows", "seasons", "episodes", "musicvideos", "setmovies"]:
             props += ["studio", "tvshowtitle", "premiered", "director", "writer",
-                      "firstaired", "videoresolution", "audiocodec", "audiochannels", "videocodec", "videoaspect",
-                      "subtitlelanguage", "audiolanguage", "mpaa", "isstereoscopic", "video3dformat",
-                      "tagline", "rating", "imdbnumber", "season", "episode"]
+                      "firstaired", "tagline", "rating", "season", "episode"]
         # properties for music items
         elif content_type in ["musicvideos", "artists", "albums", "songs"]:
             props += ["artist", "album", "rating", "albumartist", "discnumber"]
         # properties for pvr items
         elif content_type in ["tvchannels", "tvrecordings", "channels", "recordings", "timers", "tvtimers"]:
-            props += ["channel", "startdatetime", "datetime", "date", "channelname",
-                      "starttime", "startdate", "endtime", "enddate"]
+            props += ["channel", "channelname"]
+        
         for prop in props:
             propvalue = xbmc.getInfoLabel('$INFO[%sListItem.%s]' % (prefix, prop)).decode('utf-8')
-            if not propvalue or propvalue == "-1":
-                propvalue = xbmc.getInfoLabel('$INFO[%sListItem.Property(%s)]' % (prefix, prop)).decode('utf-8')
             listitem_details[prop] = propvalue
 
         # artwork properties

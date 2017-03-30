@@ -613,6 +613,8 @@ class MainModule:
         '''helper to show a textviewer dialog with a message'''
         headertxt = self.params.get("header", "")
         bodytxt = self.params.get("message", "")
+        if bodytxt.startswith("'") or bodytxt.startswith('"'):
+            bodytxt = bodytxt[1:-1]
         if bodytxt.startswith(" "):
             bodytxt = bodytxt[1:]
         if headertxt.startswith(" "):
