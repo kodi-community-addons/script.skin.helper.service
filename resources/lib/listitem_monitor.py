@@ -21,7 +21,7 @@ class ListItemMonitor(threading.Thread):
     exit = False
     delayed_task_interval = 1795
     listitem_details = {}
-    all_window_props = []
+    all_window_props = {}
     cur_listitem = ""
     last_folder = ""
     last_listitem = ""
@@ -133,37 +133,38 @@ class ListItemMonitor(threading.Thread):
         '''Monitor listitem details'''
 
         cur_folder, cont_prefix = self.get_folderandprefix()
-        li_label = xbmc.getInfoLabel("%sListItem.Label" % cont_prefix).decode('utf-8')
+        # identify current listitem - prefer parent folder (tvshows, music)
+        cur_listitem = xbmc.getInfoLabel(
+            "$INFO[%sListItem.TvshowTitle]$INFO[%sListItem.Artist]$INFO[%sListItem.Album]" %
+            (cont_prefix, cont_prefix, cont_prefix)).decode('utf-8')
+        if not cur_listitem:
+            # fallback to generic approach
+            cur_listitem = xbmc.getInfoLabel(
+                "$INFO[%sListItem.Label]$INFO[%sListItem.DBID]$INFO[%sListItem.Title]" %
+                (cont_prefix, cont_prefix, cont_prefix)).decode('utf-8')
 
         # perform actions if the container path has changed
-        if cur_folder != self.last_folder:
+        if cur_folder != self.last_folder and not (cur_listitem and cur_listitem == self.last_listitem):
             self.reset_win_props()
             self.get_settings()
             self.last_folder = cur_folder
-            content_type = self.get_content_type(cur_folder, li_label, cont_prefix)
+            self.last_listitem = None
+            content_type = self.get_content_type(cur_folder, cur_listitem, cont_prefix)
             # additional actions to perform when we have a valid contenttype and no widget container
             if not cont_prefix and content_type:
                 self.set_forcedview(content_type)
                 self.set_content_header(content_type)
         else:
-            content_type = self.get_content_type(cur_folder, li_label, cont_prefix)
+            content_type = self.get_content_type(cur_folder, cur_listitem, cont_prefix)
 
         if self.exit:
             return
 
         # only perform actions when the listitem has actually changed
-        li_title = xbmc.getInfoLabel("%sListItem.Title" % cont_prefix).decode('utf-8')
-        li_dbid = xbmc.getInfoLabel(
-            "$INFO[%sListItem.DBID]$INFO[%sListItem.Property(DBID)]" %
-            (cont_prefix, cont_prefix)).decode('utf-8')
-        cur_listitem = "%s--%s--%s--%s--%s" % (cur_folder, li_label, li_title, content_type, li_dbid)
-
-        if cur_listitem and content_type and cur_listitem != self.last_listitem:
+        if cur_listitem != self.last_listitem:
             self.last_listitem = cur_listitem
-            # clear all window props first
-            self.reset_win_props(skipefa=True)
-            self.set_win_prop(("curlistitem", cur_listitem))
-            if not li_label == "..":
+            self.win.setProperty("curlistitem", cur_listitem)
+            if cur_listitem and cur_listitem != "..":
                 # set listitem details in background thread
                 thread.start_new_thread(
                     self.set_listitem_details, (cur_listitem, content_type, cont_prefix))
@@ -196,12 +197,12 @@ class ListItemMonitor(threading.Thread):
             cont_prefix = ""
         return (cur_folder, cont_prefix)
 
-    def get_content_type(self, cur_folder, li_label, cont_prefix):
+    def get_content_type(self, cur_folder, cur_listitem, cont_prefix):
         '''get contenttype for current folder'''
         content_type = ""
         if cur_folder in self.foldercontent:
             content_type = self.foldercontent[cur_folder]
-        elif cur_folder and li_label:
+        elif cur_folder and cur_listitem:
             # always wait for the content_type because some listings can be slow
             for i in range(20):
                 content_type = get_current_content_type(cont_prefix)
@@ -266,18 +267,21 @@ class ListItemMonitor(threading.Thread):
                 # data already in memory
                 all_props = self.listitem_details[cur_listitem]
             else:
-                
-                # wait if we already have more than 2 items in the queue
-                while len(self.lookup_busy) > 2:
-                    xbmc.sleep(100)
-                    if self.exit:
-                        return
-                        
+
                 # skip if another lookup for the same listitem is already in progress...
                 if self.lookup_busy.get(cur_listitem):
                     return
                 self.lookup_busy[cur_listitem] = True
-                
+
+                # clear all window props, do this delayed to prevent flickering of the screen
+                thread.start_new_thread(self.delayed_flush, (cur_listitem,))
+
+                # wait if we already have more than 4 items in the queue
+                while len(self.lookup_busy) > 4:
+                    xbmc.sleep(100)
+                    if self.exit:
+                        return
+
                 # prefer listitem's contenttype over container's contenttype
                 dbtype = xbmc.getInfoLabel("%sListItem.DBTYPE" % prefix)
                 if not dbtype:
@@ -297,12 +301,12 @@ class ListItemMonitor(threading.Thread):
                 elif details["path"].startswith("videodb://movies/sets/") and details["dbid"]:
                     details = extend_dict(
                         details, self.metadatautils.get_moviesetdetails(
-                            details["title"], details["dbid"]),["year"])
+                            details["title"], details["dbid"]), ["year"])
                     content_type = "sets"
 
                 # video content
                 elif content_type in ["movies", "setmovies", "tvshows", "seasons", "episodes", "musicvideos"]:
-                    
+
                     # get imdb and tvdbid
                     details["imdbnumber"], tvdbid = self.metadatautils.get_imdbtvdb_id(
                         details["title"], content_type,
@@ -310,7 +314,7 @@ class ListItemMonitor(threading.Thread):
 
                     # generic video properties (studio, streamdetails, omdb, top250)
                     details = merge_dict(details,
-                                           self.get_directors_writers(details["director"], details["writer"]))
+                                         self.get_directors_writers(details["director"], details["writer"]))
                     if self.enable_extrafanart:
                         if not details["filenameandpath"]:
                             details["filenameandpath"] = details["path"]
@@ -318,12 +322,14 @@ class ListItemMonitor(threading.Thread):
                             efa = self.metadatautils.get_extrafanart(details["filenameandpath"])
                             if efa:
                                 details["art"] = merge_dict(details["art"], efa["art"])
-                    
+
                     details = merge_dict(details, self.metadatautils.get_duration(details["duration"]))
                     details = merge_dict(details, self.get_genres(details["genre"]))
                     details = merge_dict(details, self.metadatautils.get_studio_logo(details["studio"]))
                     details = merge_dict(details, self.metadatautils.get_omdb_info(details["imdbnumber"]))
-                    details = merge_dict(details, self.get_streamdetails(details["dbid"], details["path"], content_type))
+                    details = merge_dict(
+                        details, self.get_streamdetails(
+                            details["dbid"], details["path"], content_type))
                     details = merge_dict(details, self.metadatautils.get_top250_rating(details["imdbnumber"]))
 
                     if self.exit:
@@ -331,8 +337,10 @@ class ListItemMonitor(threading.Thread):
 
                     # tvshows-only properties (tvdb)
                     if content_type in ["tvshows", "seasons", "episodes"]:
-                        details = merge_dict(details, self.metadatautils.get_tvdb_details(details["imdbnumber"], tvdbid))
-                        
+                        details = merge_dict(
+                            details, self.metadatautils.get_tvdb_details(
+                                details["imdbnumber"], tvdbid))
+
                     # movies-only properties (tmdb, animated art)
                     if content_type in ["movies", "setmovies"]:
                         details = merge_dict(details, self.metadatautils.get_tmdb_details(details["imdbnumber"]))
@@ -343,7 +351,7 @@ class ListItemMonitor(threading.Thread):
 
                     if self.exit:
                         return
-                        
+
                     # extended art
                     if self.enable_extendedart:
                         tmdbid = details.get("tmdb_id", "")
@@ -351,14 +359,14 @@ class ListItemMonitor(threading.Thread):
                             details, self.metadatautils.get_extended_artwork(
                                 details["imdbnumber"], tvdbid, tmdbid, content_type), [
                                 "posters", "clearlogos", "banners"])
-                               
+
                 if self.exit:
                     return
 
                 # monitor listitem props when PVR is active
                 elif content_type in ["tvchannels", "tvrecordings", "channels", "recordings", "timers", "tvtimers"]:
                     details = self.get_pvr_artwork(details, prefix)
-                    
+
                 # process all properties
                 all_props = prepare_win_props(details)
                 if "sets" not in content_type:
@@ -371,6 +379,12 @@ class ListItemMonitor(threading.Thread):
         except Exception as exc:
             log_exception(__name__, exc)
             self.lookup_busy.pop(cur_listitem, None)
+
+    def delayed_flush(self, cur_listitem):
+        '''flushes existing properties when it takes too long to grab the new ones'''
+        xbmc.sleep(500)
+        if cur_listitem == self.last_listitem and cur_listitem in self.lookup_busy:
+            self.reset_win_props()
 
     def do_background_work(self):
         '''stuff that's processed in the background'''
@@ -424,23 +438,28 @@ class ListItemMonitor(threading.Thread):
             radio_channels = kodi_json('PVR.GetChannels', {"channelgroupid": "allradio"})
             self.win.setProperty("SkinHelper.TotalRadioChannels", "%s" % len(radio_channels))
 
-    def reset_win_props(self, skipefa=False):
+    def reset_win_props(self):
         '''reset all window props set by the script...'''
-        for prop in self.all_window_props:
-            if not (skipefa and "extrafanart" in prop.lower()):
-                # the extrafanart property is lazy refreshed to prevent flashings on the screen
-                self.win.clearProperty(prop)
-        self.all_window_props = []
+        process_method_on_list(self.win.clearProperty, self.all_window_props.iterkeys())
+        self.all_window_props = {}
 
     def set_win_prop(self, prop_tuple):
-        '''sets a window property based on the given tuple of key-value'''
-        if prop_tuple[1] and not prop_tuple[0] in self.all_window_props:
-            self.all_window_props.append(prop_tuple[0])
-            self.win.setProperty(prop_tuple[0], prop_tuple[1])
+        '''sets a window property based on the given key-value'''
+        key = prop_tuple[0]
+        value = prop_tuple[1]
+        if (key not in self.all_window_props) or (key in self.all_window_props and self.all_window_props[key] != value):
+            self.all_window_props[key] = value
+            self.win.setProperty(key, value)
 
     def set_win_props(self, prop_tuples):
         '''set multiple window properties from list of tuples'''
         process_method_on_list(self.set_win_prop, prop_tuples)
+        # cleanup remaining properties
+        new_keys = [item[0] for item in prop_tuples]
+        for key, value in self.all_window_props.iteritems():
+            if value and key not in new_keys:
+                self.all_window_props[key] = ""
+                self.win.clearProperty(key)
 
     def set_content_header(self, content_type):
         '''sets a window propery which can be used as headertitle'''
@@ -494,14 +513,14 @@ class ListItemMonitor(threading.Thread):
     def get_listitem_details(content_type, prefix):
         '''collect all listitem properties/values we need'''
         listitem_details = {"art": {}}
-        
-        #basic properties
+
+        # basic properties
         for prop in ["dbtype", "dbid", "imdbnumber"]:
             propvalue = xbmc.getInfoLabel('$INFO[%sListItem.%s]' % (prefix, prop)).decode('utf-8')
             if not propvalue or propvalue == "-1":
                 propvalue = xbmc.getInfoLabel('$INFO[%sListItem.Property(%s)]' % (prefix, prop)).decode('utf-8')
             listitem_details[prop] = propvalue
-        
+
         # generic properties
         props = ["label", "title", "filenameandpath", "year", "genre", "path", "folderpath",
                  "duration", "plot", "plotoutline", "label2", "icon", "thumb"]
@@ -515,7 +534,7 @@ class ListItemMonitor(threading.Thread):
         # properties for pvr items
         elif content_type in ["tvchannels", "tvrecordings", "channels", "recordings", "timers", "tvtimers"]:
             props += ["channel", "channelname"]
-        
+
         for prop in props:
             propvalue = xbmc.getInfoLabel('$INFO[%sListItem.%s]' % (prefix, prop)).decode('utf-8')
             listitem_details[prop] = propvalue
