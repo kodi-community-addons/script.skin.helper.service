@@ -14,7 +14,7 @@ import xbmcgui
 import xbmcaddon
 from skinsettings import SkinSettings
 from simplecache import SimpleCache
-from utils import log_msg, KODI_VERSION, kodi_json
+from utils import log_msg, KODI_VERSION, kodi_json, clean_string
 from utils import log_exception, get_current_content_type, ADDON_ID, recursive_delete_dir
 from dialogselect import DialogSelect
 from xml.dom.minidom import parse
@@ -578,30 +578,18 @@ class MainModule:
 
     def dialogok(self):
         '''helper to show an OK dialog with a message'''
-        headertxt = self.params.get("header")
-        bodytxt = self.params.get("message")
-        if bodytxt.startswith("'") or bodytxt.startswith('"'):
-            bodytxt = bodytxt[1:-1]
-        if bodytxt.startswith(" "):
-            bodytxt = bodytxt[1:]
-        if headertxt.startswith(" "):
-            headertxt = headertxt[1:]
+        headertxt = clean_string(self.params.get("header", ""))
+        bodytxt = clean_string(self.params.get("message", ""))
         dialog = xbmcgui.Dialog()
         dialog.ok(heading=headertxt, line1=bodytxt)
         del dialog
 
     def dialogyesno(self):
         '''helper to show a YES/NO dialog with a message'''
-        headertxt = self.params.get("header")
-        bodytxt = self.params.get("message")
+        headertxt = clean_string(self.params.get("header", ""))
+        bodytxt = clean_string(self.params.get("message", ""))
         yesactions = self.params.get("yesaction", "").split("|")
         noactions = self.params.get("noaction", "").split("|")
-        if bodytxt.startswith("'") or bodytxt.startswith('"'):
-            bodytxt = bodytxt[1:-1]
-        if bodytxt.startswith(" "):
-            bodytxt = bodytxt[1:]
-        if headertxt.startswith(" "):
-            headertxt = headertxt[1:]
         if xbmcgui.Dialog().yesno(heading=headertxt, line1=bodytxt):
             for action in yesactions:
                 xbmc.executebuiltin(action.encode("utf-8"))
@@ -611,15 +599,10 @@ class MainModule:
 
     def textviewer(self):
         '''helper to show a textviewer dialog with a message'''
-        headertxt = self.params.get("header", "")
-        bodytxt = self.params.get("message", "")
-        if bodytxt.startswith("'") or bodytxt.startswith('"'):
-            bodytxt = bodytxt[1:-1]
-        if bodytxt.startswith(" "):
-            bodytxt = bodytxt[1:]
-        if headertxt.startswith(" "):
-            headertxt = headertxt[1:]
+        headertxt = clean_string(self.params.get("header", ""))
+        bodytxt = clean_string(self.params.get("message", ""))
         xbmcgui.Dialog().textviewer(headertxt, bodytxt)
+        
 
     def fileexists(self):
         '''helper to let the skinner check if a file exists

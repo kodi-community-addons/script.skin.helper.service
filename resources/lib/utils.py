@@ -238,3 +238,10 @@ def merge_dict(dict_a, dict_b, allow_overwrite=False):
         if (allow_overwrite or not key in dict_a or not dict_a[key]) and value:
             result[key] = value
     return result
+
+
+def clean_string(text):
+    '''strip quotes and spaces from begin and end of a string'''
+    text = text.strip("'\"")
+    text = text.strip()
+    return text
