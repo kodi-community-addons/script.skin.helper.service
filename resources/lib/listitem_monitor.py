@@ -276,10 +276,11 @@ class ListItemMonitor(threading.Thread):
                 # clear all window props, do this delayed to prevent flickering of the screen
                 thread.start_new_thread(self.delayed_flush, (cur_listitem,))
 
-                # wait if we already have more than 4 items in the queue
-                while len(self.lookup_busy) > 4:
+                # wait if we already have more than 5 items in the queue
+                while len(self.lookup_busy) > 5:
                     xbmc.sleep(100)
-                    if self.exit:
+                    if self.exit or cur_listitem != self.last_listitem:
+                        self.lookup_busy.pop(cur_listitem, None)
                         return
 
                 # prefer listitem's contenttype over container's contenttype
