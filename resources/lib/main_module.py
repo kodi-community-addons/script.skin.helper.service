@@ -14,7 +14,7 @@ import xbmcgui
 import xbmcaddon
 from skinsettings import SkinSettings
 from simplecache import SimpleCache
-from utils import log_msg, KODI_VERSION, kodi_json, clean_string
+from utils import log_msg, KODI_VERSION, kodi_json, clean_string, getCondVisibility
 from utils import log_exception, get_current_content_type, ADDON_ID, recursive_delete_dir
 from dialogselect import DialogSelect
 from xml.dom.minidom import parse
@@ -80,7 +80,7 @@ class MainModule:
         paramstring = ""
         for key, value in self.params.iteritems():
             paramstring += ",%s=%s" % (key, value)
-        if xbmc.getCondVisibility("System.HasAddon(%s)" % newaddon):
+        if getCondVisibility("System.HasAddon(%s)" % newaddon):
             xbmc.executebuiltin("RunAddon(%s%s)" % (newaddon, paramstring))
         else:
             # trigger install of the addon
@@ -108,11 +108,11 @@ class MainModule:
         if view_id is not None:
             # also store forced view
             if (content_type and current_forced_view and current_forced_view != "None" and
-                    xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.ForcedViews.Enabled)")):
+                    getCondVisibility("Skin.HasSetting(SkinHelper.ForcedViews.Enabled)")):
                 xbmc.executebuiltin("Skin.SetString(SkinHelper.ForcedViews.%s,%s)" % (content_type, view_id))
                 xbmc.executebuiltin("Skin.SetString(SkinHelper.ForcedViews.%s.label,%s)" % (content_type, view_label))
                 self.win.setProperty("SkinHelper.ForcedView", view_id)
-                if not xbmc.getCondVisibility("Control.HasFocus(%s)" % current_forced_view):
+                if not getCondVisibility("Control.HasFocus(%s)" % current_forced_view):
                     xbmc.sleep(100)
                     xbmc.executebuiltin("Container.SetViewMode(%s)" % view_id)
                     xbmc.executebuiltin("SetFocus(%s)" % view_id)
@@ -146,7 +146,7 @@ class MainModule:
                         cur_view_select_id += 1
                 if (("all" in mediatypes or content_type.lower() in mediatypes) and
                     (not "!" + content_type.lower() in mediatypes) and not
-                        xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.view.Disabled.%s)" % viewid)):
+                        getCondVisibility("Skin.HasSetting(SkinHelper.view.Disabled.%s)" % viewid)):
                     image = "special://skin/extras/viewthumbs/%s.jpg" % viewid
                     listitem = xbmcgui.ListItem(label=label, iconImage=image)
                     listitem.setProperty("viewid", viewid)
@@ -182,7 +182,7 @@ class MainModule:
                 image = "special://skin/extras/viewthumbs/%s.jpg" % view_id
                 listitem = xbmcgui.ListItem(label=label, label2=desc, iconImage=image)
                 listitem.setProperty("viewid", view_id)
-                if not xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.view.Disabled.%s)" % view_id):
+                if not getCondVisibility("Skin.HasSetting(SkinHelper.view.Disabled.%s)" % view_id):
                     listitem.select(selected=True)
                 excludefromdisable = False
                 try:
@@ -256,7 +256,7 @@ class MainModule:
         result = dialog.result
         del dialog
         if result:
-            if xbmc.getCondVisibility(
+            if getCondVisibility(
                     "Window.IsActive(script-skin_helper_service-CustomInfo.xml) | "
                     "Window.IsActive(movieinformation)"):
                 xbmc.executebuiltin("Dialog.Close(movieinformation)")
@@ -286,7 +286,7 @@ class MainModule:
         result = dialog.result
         del dialog
         if result:
-            while xbmc.getCondVisibility("System.HasModalDialog"):
+            while getCondVisibility("System.HasModalDialog"):
                 xbmc.executebuiltin("Action(Back)")
                 xbmc.sleep(300)
             xbmc.executebuiltin(result.getfilename())
@@ -302,13 +302,13 @@ class MainModule:
             position = int(relativeposition) - 1
         count = 0
         if control:
-            while not xbmc.getCondVisibility("Control.HasFocus(%s)" % control):
-                if xbmc.getCondVisibility("Window.IsActive(busydialog)"):
+            while not getCondVisibility("Control.HasFocus(%s)" % control):
+                if getCondVisibility("Window.IsActive(busydialog)"):
                     xbmc.sleep(150)
                     continue
-                elif count == 20 or (xbmc.getCondVisibility(
+                elif count == 20 or (getCondVisibility(
                         "!Control.IsVisible(%s) | "
-                        "!IntegerGreaterThan(Container(%s).NumItems,0)" % (control, control))):
+                        "!Integer.IsGreater(Container(%s).NumItems,0)" % (control, control))):
                     if fallback:
                         xbmc.executebuiltin("Control.SetFocus(%s)" % fallback)
                     break
@@ -324,7 +324,7 @@ class MainModule:
             xbmc.sleep(50)
             for i in range(10):
                 for control in controls:
-                    if xbmc.getCondVisibility("Control.IsVisible(%s) + IntegerGreaterThan(Container(%s).NumItems,0)"
+                    if getCondVisibility("Control.IsVisible(%s) + Integer.IsGreater(Container(%s).NumItems,0)"
                                               % (control, control)):
                         self.win.setProperty("SkinHelper.WidgetContainer", control)
                         return
@@ -376,7 +376,7 @@ class MainModule:
     def togglekodisetting(self):
         '''toggle kodi setting'''
         settingname = self.params.get("setting", "")
-        cur_value = xbmc.getCondVisibility("system.getbool(%s)" % settingname)
+        cur_value = getCondVisibility("system.getbool(%s)" % settingname)
         if cur_value:
             new_value = "false"
         else:
@@ -405,7 +405,7 @@ class MainModule:
 
     def playtrailer(self):
         '''auto play windowed trailer inside video listing'''
-        if not xbmc.getCondVisibility("Container.Scrolling | Container.OnNext | "
+        if not getCondVisibility("Container.Scrolling | Container.OnNext | "
                                       "Container.OnPrevious | !IsEmpty(Window(Home).Property(traileractionbusy))"):
             self.win.setProperty("traileractionbusy", "traileractionbusy")
             widget_container = self.params.get("widgetcontainer", "")
@@ -484,7 +484,7 @@ class MainModule:
             # for video or audio we have to wait for the player to finish...
             xbmc.Player().play(splashfile, windowed=True)
             xbmc.sleep(500)
-            while xbmc.getCondVisibility("Player.HasMedia"):
+            while getCondVisibility("Player.HasMedia"):
                 xbmc.sleep(150)
         # replace startup window with home
         startupwindow = xbmc.getInfoLabel("System.StartupWindow")

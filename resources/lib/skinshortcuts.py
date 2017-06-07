@@ -8,7 +8,7 @@
     Methods to connect skinhelper to skinshortcuts for smartshortcuts, widgets and backgrounds
 '''
 
-from utils import kodi_json, log_msg, urlencode, ADDON_ID
+from utils import kodi_json, log_msg, urlencode, ADDON_ID, getCondVisibility
 from metadatautils import detect_plugin_content
 import xbmc
 import xbmcvfs
@@ -19,7 +19,7 @@ import sys
 
 # extendedinfo has some login-required widgets, these must not be probed without login details
 EXTINFO_CREDS = False
-if xbmc.getCondVisibility("System.Hasaddon(script.extendedinfo)"):
+if getCondVisibility("System.Hasaddon(script.extendedinfo)"):
     exinfoaddon = xbmcaddon.Addon(id="script.extendedinfo")
     if exinfoaddon.getSetting("tmdb_username") and exinfoaddon.getSetting("tmdb_password"):
         EXTINFO_CREDS = True
@@ -405,7 +405,7 @@ def plugin_widgetlisting(pluginpath, sublevel=""):
     if sublevel:
         media_array = kodi_json('Files.GetDirectory', {"directory": pluginpath, "media": "files"})
     else:
-        if not xbmc.getCondVisibility("System.HasAddon(%s)" % pluginpath):
+        if not getCondVisibility("System.HasAddon(%s)" % pluginpath):
             return []
         media_array = kodi_json('Files.GetDirectory', {"directory": "plugin://%s" % pluginpath, "media": "files"})
     for item in media_array:
@@ -470,7 +470,7 @@ def static_widgets():
     widgets.append([xbmc.getLocalizedString(8), "$INCLUDE[WeatherWidget]", "static"])
     widgets.append([xbmc.getLocalizedString(130), "$INCLUDE[SystemInfoWidget]", "static"])
     widgets.append([addon.getLocalizedString(32025), "$INCLUDE[skinshortcuts-submenu]", "static"])
-    if xbmc.getCondVisibility("System.Hasaddon(script.games.rom.collection.browser)"):
+    if getCondVisibility("System.Hasaddon(script.games.rom.collection.browser)"):
         widgets.append([addon.getLocalizedString(32026), "$INCLUDE[RCBWidget]", "static"])
     del addon
     return widgets
@@ -512,7 +512,7 @@ def set_skinshortcuts_property(property_name="", value="", label=""):
 def wait_for_skinshortcuts_window():
     '''wait untill skinshortcuts is active window (because of any animations that may have been applied)'''
     for i in range(40):
-        if not (xbmc.getCondVisibility(
+        if not (getCondVisibility(
                 "Window.IsActive(DialogSelect.xml) | "
                 "Window.IsActive(script-skin_helper_service-ColorPicker.xml) | "
                 "Window.IsActive(DialogKeyboard.xml)")):

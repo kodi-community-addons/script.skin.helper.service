@@ -12,7 +12,7 @@ import thread
 import xbmc
 import xbmcgui
 from metadatautils import process_method_on_list, KodiDb
-
+from utils import getCondVisibility
 
 class SearchDialog(xbmcgui.WindowXMLDialog):
     ''' Special window to search the Kodi video database'''
@@ -97,7 +97,7 @@ class SearchDialog(xbmcgui.WindowXMLDialog):
         if button == 0xF020:
             self.add_character(" ")
 
-        if xbmc.getCondVisibility("Window.IsVisible(10111)"):
+        if getCondVisibility("Window.IsVisible(10111)"):
             # close shutdown window if visible
             xbmc.executebuiltin("Dialog.close(10111)")
 

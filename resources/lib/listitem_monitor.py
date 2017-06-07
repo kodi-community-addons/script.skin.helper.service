@@ -9,7 +9,7 @@
 
 import threading
 import thread
-from utils import log_msg, log_exception, get_current_content_type, kodi_json, prepare_win_props, merge_dict
+from utils import log_msg, log_exception, get_current_content_type, kodi_json, prepare_win_props, merge_dict, getCondVisibility
 from metadatautils import extend_dict, process_method_on_list
 import xbmc
 from simplecache import SimpleCache
@@ -75,7 +75,7 @@ class ListItemMonitor(threading.Thread):
                 self.delayed_task_interval += 3
 
             # skip when modal dialogs are opened (e.g. textviewer in musicinfo dialog)
-            elif xbmc.getCondVisibility(
+            elif getCondVisibility(
                     "Window.IsActive(DialogSelect.xml) | Window.IsActive(progressdialog) | "
                     "Window.IsActive(contextmenu) | Window.IsActive(busydialog)"):
                 self.kodimonitor.waitForAbort(2)
@@ -83,14 +83,14 @@ class ListItemMonitor(threading.Thread):
                 self.last_listitem = ""
 
             # skip when container scrolling
-            elif xbmc.getCondVisibility(
+            elif getCondVisibility(
                     "Container.OnScrollNext | Container.OnScrollPrevious | Container.Scrolling"):
                 self.kodimonitor.waitForAbort(1)
                 self.delayed_task_interval += 1
                 self.last_listitem = ""
 
             # media window is opened or widgetcontainer set - start listitem monitoring!
-            elif xbmc.getCondVisibility("Window.IsMedia | "
+            elif getCondVisibility("Window.IsMedia | "
                                         "!IsEmpty(Window(Home).Property(SkinHelper.WidgetContainer))"):
                 self.monitor_listitem()
                 self.kodimonitor.waitForAbort(0.15)
@@ -111,20 +111,20 @@ class ListItemMonitor(threading.Thread):
 
     def get_settings(self):
         '''collect our skin settings that control the monitoring'''
-        self.enable_extendedart = xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnableExtendedArt)") == 1
-        self.enable_musicart = xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnableMusicArt)") == 1
-        self.enable_animatedart = xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnableAnimatedPosters)") == 1
-        self.enable_extrafanart = xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnableExtraFanart)") == 1
-        self.enable_pvrart = xbmc.getCondVisibility(
+        self.enable_extendedart = getCondVisibility("Skin.HasSetting(SkinHelper.EnableExtendedArt)") == 1
+        self.enable_musicart = getCondVisibility("Skin.HasSetting(SkinHelper.EnableMusicArt)") == 1
+        self.enable_animatedart = getCondVisibility("Skin.HasSetting(SkinHelper.EnableAnimatedPosters)") == 1
+        self.enable_extrafanart = getCondVisibility("Skin.HasSetting(SkinHelper.EnableExtraFanart)") == 1
+        self.enable_pvrart = getCondVisibility(
             "Skin.HasSetting(SkinHelper.EnablePVRThumbs) + PVR.HasTVChannels") == 1
-        self.enable_forcedviews = xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.ForcedViews.Enabled)") == 1
+        self.enable_forcedviews = getCondVisibility("Skin.HasSetting(SkinHelper.ForcedViews.Enabled)") == 1
         studiologos_path = xbmc.getInfoLabel("Skin.String(SkinHelper.StudioLogos.Path)").decode("utf-8")
         if studiologos_path != self.metadatautils.studiologos_path:
             self.listitem_details = {}
             self.metadatautils.studiologos_path = studiologos_path
         # set additional window props to control contextmenus as using the skinsetting gives unreliable results
         for skinsetting in ["EnableAnimatedPosters", "EnableMusicArt", "EnablePVRThumbs"]:
-            if xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.%s)" % skinsetting):
+            if getCondVisibility("Skin.HasSetting(SkinHelper.%s)" % skinsetting):
                 self.win.setProperty("SkinHelper.%s" % skinsetting, "enabled")
             else:
                 self.win.clearProperty("SkinHelper.%s" % skinsetting)
@@ -175,7 +175,7 @@ class ListItemMonitor(threading.Thread):
         cont_prefix = ""
         try:
             widget_container = self.win.getProperty("SkinHelper.WidgetContainer").decode('utf-8')
-            if xbmc.getCondVisibility("Window.IsActive(movieinformation)"):
+            if getCondVisibility("Window.IsActive(movieinformation)"):
                 cont_prefix = ""
                 cur_folder = xbmc.getInfoLabel(
                     "movieinfo-$INFO[Container.FolderPath]"
@@ -218,7 +218,7 @@ class ListItemMonitor(threading.Thread):
 
     def check_screensaver(self):
         '''Allow user to disable screensaver on fullscreen music playback'''
-        if xbmc.getCondVisibility(
+        if getCondVisibility(
                 "Window.IsActive(visualisation) + Skin.HasSetting(SkinHelper.DisableScreenSaverOnFullScreenMusic)"):
             if not self.screensaver_disabled:
                 # disable screensaver when fullscreen music active
@@ -242,20 +242,20 @@ class ListItemMonitor(threading.Thread):
     @staticmethod
     def check_osd():
         '''Allow user to set a default close timeout for the OSD panels'''
-        if xbmc.getCondVisibility("[Window.IsActive(videoosd) + Skin.String(SkinHelper.AutoCloseVideoOSD)] | "
+        if getCondVisibility("[Window.IsActive(videoosd) + Skin.String(SkinHelper.AutoCloseVideoOSD)] | "
                                   "[Window.IsActive(musicosd) + Skin.String(SkinHelper.AutoCloseMusicOSD)]"):
-            if xbmc.getCondVisibility("Window.IsActive(videoosd)"):
+            if getCondVisibility("Window.IsActive(videoosd)"):
                 seconds = xbmc.getInfoLabel("Skin.String(SkinHelper.AutoCloseVideoOSD)")
                 window = "videoosd"
-            elif xbmc.getCondVisibility("Window.IsActive(musicosd)"):
+            elif getCondVisibility("Window.IsActive(musicosd)"):
                 seconds = xbmc.getInfoLabel("Skin.String(SkinHelper.AutoCloseMusicOSD)")
                 window = "musicosd"
             else:
                 seconds = ""
             if seconds and seconds != "0":
-                while xbmc.getCondVisibility("Window.IsActive(%s)" % window):
-                    if xbmc.getCondVisibility("System.IdleTime(%s)" % seconds):
-                        if xbmc.getCondVisibility("Window.IsActive(%s)" % window):
+                while getCondVisibility("Window.IsActive(%s)" % window):
+                    if getCondVisibility("System.IdleTime(%s)" % seconds):
+                        if getCondVisibility("Window.IsActive(%s)" % window):
                             xbmc.executebuiltin("Dialog.Close(%s)" % window)
                     else:
                         xbmc.sleep(500)
@@ -421,7 +421,7 @@ class ListItemMonitor(threading.Thread):
             self.win.setProperty("SkinHelper.TotalFavourites", "%s" % len(favs))
 
         # GET TV CHANNELS COUNT
-        if xbmc.getCondVisibility("Pvr.HasTVChannels"):
+        if getCondVisibility("Pvr.HasTVChannels"):
             tv_channels = kodi_json('PVR.GetChannels', {"channelgroupid": "alltv"})
             self.win.setProperty("SkinHelper.TotalTVChannels", "%s" % len(tv_channels))
 
@@ -435,7 +435,7 @@ class ListItemMonitor(threading.Thread):
         self.win.setProperty("SkinHelper.TotalMoviesInSets", "%s" % movieset_movies_count)
 
         # GET RADIO CHANNELS COUNT
-        if xbmc.getCondVisibility("Pvr.HasRadioChannels"):
+        if getCondVisibility("Pvr.HasRadioChannels"):
             radio_channels = kodi_json('PVR.GetChannels', {"channelgroupid": "allradio"})
             self.win.setProperty("SkinHelper.TotalRadioChannels", "%s" % len(radio_channels))
 
@@ -572,15 +572,15 @@ class ListItemMonitor(threading.Thread):
         '''helper to force the view in certain conditions'''
         if self.enable_forcedviews:
             cur_forced_view = xbmc.getInfoLabel("Skin.String(SkinHelper.ForcedViews.%s)" % content_type)
-            if xbmc.getCondVisibility(
+            if getCondVisibility(
                     "Control.IsVisible(%s) | IsEmpty(Container.Viewmode) | System.HasModalDialog" % cur_forced_view):
                 # skip if the view is already visible or if we're not in an actual media window
                 return
             if (content_type and cur_forced_view and cur_forced_view != "None" and not
-                    xbmc.getCondVisibility("Window.IsActive(MyPvrGuide.xml)")):
+                    getCondVisibility("Window.IsActive(MyPvrGuide.xml)")):
                 self.win.setProperty("SkinHelper.ForcedView", cur_forced_view)
                 count = 0
-                while not xbmc.getCondVisibility("Control.HasFocus(%s)" % cur_forced_view):
+                while not getCondVisibility("Control.HasFocus(%s)" % cur_forced_view):
                     xbmc.sleep(100)
                     xbmc.executebuiltin("Container.SetViewMode(%s)" % cur_forced_view)
                     xbmc.executebuiltin("SetFocus(%s)" % cur_forced_view)
@@ -595,7 +595,7 @@ class ListItemMonitor(threading.Thread):
     def get_pvr_artwork(self, listitem, prefix):
         '''get pvr artwork from artwork module'''
         if self.enable_pvrart:
-            if xbmc.getCondVisibility("%sListItem.IsFolder" % prefix) and not listitem[
+            if getCondVisibility("%sListItem.IsFolder" % prefix) and not listitem[
                     "channelname"] and not listitem["title"]:
                 listitem["title"] = listitem["label"]
             listitem = extend_dict(

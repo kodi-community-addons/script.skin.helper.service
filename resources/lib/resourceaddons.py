@@ -12,7 +12,7 @@ import xbmc
 import xbmcvfs
 import xbmcgui
 import xbmcaddon
-from utils import KODI_VERSION, ADDON_ID, log_exception, kodi_json
+from utils import KODI_VERSION, ADDON_ID, log_exception, kodi_json, getCondVisibility
 from dialogselect import DialogSelect
 import urllib2
 import re
@@ -107,7 +107,7 @@ def downloadresourceaddons(addontype):
     listitems = []
     addon = xbmcaddon.Addon(ADDON_ID)
     for item in get_repo_resourceaddons(addontype):
-        if not xbmc.getCondVisibility("System.HasAddon(%s)" % item["addonid"]):
+        if not getCondVisibility("System.HasAddon(%s)" % item["addonid"]):
             label2 = "%s: %s" % (xbmc.getLocalizedString(21863), item["author"])
             listitem = xbmcgui.ListItem(label=item["name"],
                                         label2=label2, iconImage=item["thumbnail"])
@@ -140,7 +140,7 @@ def downloadresourceaddons(addontype):
             # wait (max 2 minutes) untill install is completed
             install_succes = False
             while not monitor.waitForAbort(1) and not install_succes and count < 120:
-                install_succes = xbmc.getCondVisibility("System.HasAddon(%s)" % addon_id)
+                install_succes = getCondVisibility("System.HasAddon(%s)" % addon_id)
             del monitor
             if install_succes:
                 return True
@@ -156,7 +156,7 @@ def checkresourceaddons(addonslist):
         addontypelabel = item.split(";")[2]
         skinsetting = xbmc.getInfoLabel("Skin.String(%s.path)" % setting).decode("utf-8")
         if not skinsetting or (skinsetting and
-                               xbmc.getCondVisibility("!System.HasAddon(%s)" %
+                               getCondVisibility("!System.HasAddon(%s)" %
                                                       skinsetting.replace("resource://", "").replace("/", ""))):
             # skin setting is empty or filled with non existing addon...
             if not checkresourceaddon(setting, addontype):

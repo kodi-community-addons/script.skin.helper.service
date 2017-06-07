@@ -12,7 +12,7 @@
 import xbmc
 import xbmcgui
 from metadatautils import MetadataUtils, extend_dict, KodiDb
-from utils import get_current_content_type
+from utils import get_current_content_type, getCondVisibility
 
 CANCEL_DIALOG = (9, 10, 92, 216, 247, 257, 275, 61467, 61448, )
 ACTION_SHOW_INFO = (11, )
@@ -78,7 +78,7 @@ class DialogVideoInfo(xbmcgui.WindowXMLDialog):
 
 def get_cur_listitem(cont_prefix):
     '''gets the current selected listitem details'''
-    if xbmc.getCondVisibility("Window.IsActive(busydialog)"):
+    if getCondVisibility("Window.IsActive(busydialog)"):
         xbmc.executebuiltin("Dialog.Close(busydialog)")
         xbmc.sleep(500)
     dbid = xbmc.getInfoLabel("%sListItem.DBID" % cont_prefix).decode('utf-8')

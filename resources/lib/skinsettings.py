@@ -12,13 +12,12 @@ import xbmc
 import xbmcvfs
 import xbmcgui
 import xbmcaddon
-from utils import ADDON_ID, try_decode
+from utils import ADDON_ID, try_decode, getCondVisibility
 from dialogselect import DialogSelect
 from xml.dom.minidom import parse
 import xml.etree.ElementTree as xmltree
 import os
 import time
-
 
 class SkinSettings:
     '''several helpers that allows skinners to have custom dialogs for their skin settings and constants'''
@@ -237,7 +236,7 @@ class SkinSettings:
         else:
             all_values = self.skinsettings.get(setting, [])
         for item in all_values:
-            if not item["condition"] or xbmc.getCondVisibility(item["condition"]):
+            if not item["condition"] or getCondVisibility(item["condition"]):
                 value = item["value"]
                 icon = item["icon"]
                 if icon:
@@ -301,7 +300,7 @@ class SkinSettings:
                 onselectactions = selected_item.getProperty("onselectactions")
                 if onselectactions:
                     for action in eval(onselectactions):
-                        if not action["condition"] or xbmc.getCondVisibility(action["condition"]):
+                        if not action["condition"] or getCondVisibility(action["condition"]):
                             xbmc.executebuiltin(action["command"])
                 return (value, label)
         else:
@@ -331,7 +330,7 @@ class SkinSettings:
 
                 # set the default value if current value is empty
                 if not (curvalue or curlabel):
-                    if settingvalue["default"] and xbmc.getCondVisibility(settingvalue["default"]):
+                    if settingvalue["default"] and getCondVisibility(settingvalue["default"]):
                         xbmc.executebuiltin(
                             "Skin.SetString(%s.label,%s)" %
                             (settingid.encode("utf-8"), label.encode("utf-8")))
@@ -340,7 +339,7 @@ class SkinSettings:
                             (settingid.encode("utf-8"), value.encode("utf-8")))
                         # additional onselect actions
                         for action in settingvalue["onselectactions"]:
-                            if action["condition"] and xbmc.getCondVisibility(action["condition"]):
+                            if action["condition"] and getCondVisibility(action["condition"]):
                                 command = action["command"]
                                 if "$" in command:
                                     command = xbmc.getInfoLabel(command)
@@ -350,13 +349,13 @@ class SkinSettings:
                 for option in settingvalue["settingoptions"]:
                     settingid = option["id"]
                     if (not xbmc.getInfoLabel("Skin.String(defaultset_%s)" % settingid) and option["default"] and
-                            xbmc.getCondVisibility(option["default"])):
+                            getCondVisibility(option["default"])):
                         xbmc.executebuiltin("Skin.SetBool(%s)" % settingid)
                     xbmc.executebuiltin("Skin.SetString(defaultset_%s,defaultset)" % settingid)
 
                 # set the default constant value if current value is empty
                 if (not curvalue and settingvalue["constantdefault"] and
-                        xbmc.getCondVisibility(settingvalue["constantdefault"])):
+                        getCondVisibility(settingvalue["constantdefault"])):
                     skinconstants[settingid] = value
 
         # update skin constants if needed only
@@ -439,7 +438,7 @@ class SkinSettings:
         skinimages = self.skinsettings
         if skinimages.get(skinstring):
             for item in skinimages[skinstring]:
-                if not item["condition"] or xbmc.getCondVisibility(item["condition"]):
+                if not item["condition"] or getCondVisibility(item["condition"]):
                     images.append((item["label"], item["value"], item["description"], item["icon"]))
 
         # backgrounds provided by skinhelper
@@ -498,11 +497,11 @@ class SkinSettings:
         '''allows the user to choose from multiple options'''
         listitems = []
         for option in options:
-            if not option["condition"] or xbmc.getCondVisibility(option["condition"]):
+            if not option["condition"] or getCondVisibility(option["condition"]):
                 listitem = xbmcgui.ListItem(label=option["label"], label2=option["description"])
                 listitem.setProperty("id", option["id"])
-                if xbmc.getCondVisibility("Skin.HasSetting(%s)" % option["id"]) or (not xbmc.getInfoLabel(
-                        "Skin.String(defaultset_%s)" % option["id"]) and xbmc.getCondVisibility(option["default"])):
+                if getCondVisibility("Skin.HasSetting(%s)" % option["id"]) or (not xbmc.getInfoLabel(
+                        "Skin.String(defaultset_%s)" % option["id"]) and getCondVisibility(option["default"])):
                     listitem.select(selected=True)
                 listitems.append(listitem)
         # show select dialog

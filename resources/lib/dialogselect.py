@@ -9,7 +9,7 @@
 
 import xbmcgui
 import xbmc
-
+from utils import getCondVisibility
 
 class DialogSelect(xbmcgui.WindowXMLDialog):
     '''Wrapper around Kodi dialogselect to use for the custom skin settings etc.'''
@@ -77,7 +77,7 @@ class DialogSelect(xbmcgui.WindowXMLDialog):
             self.close_dialog(True)
 
         # an item in the list is clicked
-        if (action.getId() == 7 or action.getId() == 100) and xbmc.getCondVisibility(
+        if (action.getId() == 7 or action.getId() == 100) and getCondVisibility(
                 "Control.HasFocus(3) | Control.HasFocus(6)"):
             if self.multiselect:
                 # select/deselect the item

@@ -13,7 +13,7 @@ import xbmcplugin
 import xbmcgui
 import xbmcaddon
 from simplecache import SimpleCache
-from utils import log_msg, KODI_VERSION, log_exception, urlencode
+from utils import log_msg, KODI_VERSION, log_exception, urlencode, getCondVisibility
 from metadatautils import KodiDb, Tmdb, get_clean_image, process_method_on_list
 import urlparse
 import sys
@@ -72,7 +72,7 @@ class PluginContent:
         paramstring = ""
         for key, value in self.params.iteritems():
             paramstring += ",%s=%s" % (key, value)
-        if xbmc.getCondVisibility("System.HasAddon(%s)" % newaddon):
+        if getCondVisibility("System.HasAddon(%s)" % newaddon):
             # TEMP !!! for backwards compatability reasons only - to be removed in the near future!!
             import imp
             addon = xbmcaddon.Addon(newaddon)
@@ -101,7 +101,7 @@ class PluginContent:
         # manually seek because passing resume to the player json cmd doesn't seem to work
         if recording["resume"].get("position"):
             for i in range(50):
-                if xbmc.getCondVisibility("Player.HasVideo"):
+                if getCondVisibility("Player.HasVideo"):
                     break
                 xbmc.sleep(50)
             xbmc.Player().seekTime(recording["resume"].get("position"))

@@ -7,7 +7,7 @@
     monitor all kodi events
 '''
 
-from utils import log_msg, json, prepare_win_props, log_exception
+from utils import log_msg, json, prepare_win_props, log_exception, getCondVisibility
 from metadatautils import process_method_on_list, extend_dict, get_clean_image
 import xbmc
 
@@ -23,7 +23,7 @@ class KodiMonitor(xbmc.Monitor):
         xbmc.Monitor.__init__(self)
         self.metadatautils = kwargs.get("metadatautils")
         self.win = kwargs.get("win")
-        self.enable_animatedart = xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnableAnimatedPosters)") == 1
+        self.enable_animatedart = getCondVisibility("Skin.HasSetting(SkinHelper.EnableAnimatedPosters)") == 1
 
     def onNotification(self, sender, method, data):
         '''builtin function for the xbmc.Monitor class'''
@@ -63,12 +63,12 @@ class KodiMonitor(xbmc.Monitor):
                 if not self.monitoring_stream:
                     self.reset_win_props()
                 if self.wait_for_player():
-                    if xbmc.getCondVisibility("Player.HasAudio"):
-                        if xbmc.getCondVisibility("Player.IsInternetStream"):
+                    if getCondVisibility("Player.HasAudio"):
+                        if getCondVisibility("Player.IsInternetStream"):
                             self.monitor_radiostream()
                         else:
                             self.set_music_properties()
-                    elif xbmc.getCondVisibility("VideoPlayer.Content(livetv)"):
+                    elif getCondVisibility("VideoPlayer.Content(livetv)"):
                         self.monitor_livetv()
                     else:
                         self.set_video_properties(mediatype, dbid)
@@ -135,7 +135,7 @@ class KodiMonitor(xbmc.Monitor):
     def wait_for_player():
         '''wait for player untill it's actually playing content'''
         count = 0
-        while not xbmc.getCondVisibility("Player.HasVideo | Player.HasAudio"):
+        while not getCondVisibility("Player.HasVideo | Player.HasAudio"):
             xbmc.sleep(100)
             if count == 50:
                 return False
@@ -154,14 +154,14 @@ class KodiMonitor(xbmc.Monitor):
             log_msg("Show OSD Infopanel - number of seconds: %s" % sec_to_display)
             self.infopanelshown = True
             if self.win.getProperty("VideoScreensaverRunning") != "true":
-                while retries != 50 and xbmc.getCondVisibility("!Player.ShowInfo"):
+                while retries != 50 and getCondVisibility("!Player.ShowInfo"):
                     xbmc.sleep(100)
-                    if xbmc.getCondVisibility("!Player.ShowInfo + Window.IsActive(fullscreenvideo)"):
+                    if getCondVisibility("!Player.ShowInfo + Window.IsActive(fullscreenvideo)"):
                         xbmc.executebuiltin('Action(info)')
                     retries += 1
                 # close info again after given amount of time
                 xbmc.Monitor().waitForAbort(sec_to_display)
-                if xbmc.getCondVisibility("Player.ShowInfo + Window.IsActive(fullscreenvideo)"):
+                if getCondVisibility("Player.ShowInfo + Window.IsActive(fullscreenvideo)"):
                     xbmc.executebuiltin('Action(info)')
 
     def set_video_properties(self, mediatype, li_dbid):
@@ -194,11 +194,11 @@ class KodiMonitor(xbmc.Monitor):
             # movies-only properties (tmdb, animated art)
             if mediatype == "movie":
                 details = extend_dict(details, self.metadatautils.get_tmdb_details(li_imdb))
-                if li_imdb and xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnableAnimatedPosters)"):
+                if li_imdb and getCondVisibility("Skin.HasSetting(SkinHelper.EnableAnimatedPosters)"):
                     details = extend_dict(details, self.metadatautils.get_animated_artwork(li_imdb))
 
             # extended art
-            if xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnableExtendedArt)"):
+            if getCondVisibility("Skin.HasSetting(SkinHelper.EnableExtendedArt)"):
                 tmdbid = details.get("tmdb_id", "")
                 details = extend_dict(details, self.metadatautils.get_extended_artwork(
                     li_imdb, li_tvdb, tmdbid, mediatype))
@@ -217,14 +217,14 @@ class KodiMonitor(xbmc.Monitor):
         li_plot = xbmc.getInfoLabel("MusicPlayer.Comment").decode('utf-8')
 
         # fix for internet streams
-        if not li_artist and xbmc.getCondVisibility("Player.IsInternetStream"):
+        if not li_artist and getCondVisibility("Player.IsInternetStream"):
             for splitchar in [" - ", "-", ":", ";"]:
                 if splitchar in li_title:
                     li_artist = li_title.split(splitchar)[0].strip()
                     li_title = li_title.split(splitchar)[1].strip()
                     break
 
-        if xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnableMusicArt)") and li_artist and(
+        if getCondVisibility("Skin.HasSetting(SkinHelper.EnableMusicArt)") and li_artist and(
                 li_title or li_album):
             result = self.metadatautils.get_music_artwork(li_artist, li_album, li_title, li_disc)
             if result.get("extendedplot") and li_plot:
@@ -236,7 +236,7 @@ class KodiMonitor(xbmc.Monitor):
 
     def artwork_downloader(self, media_type, dbid):
         '''trigger artwork scan with artwork downloader if enabled'''
-        if xbmc.getCondVisibility(
+        if getCondVisibility(
                 "System.HasAddon(script.artwork.downloader) + Skin.HasSetting(EnableArtworkDownloader)"):
             if media_type == "episode":
                 media_type = "tvshow"
@@ -253,7 +253,7 @@ class KodiMonitor(xbmc.Monitor):
             # another monitoring already in progress...
             return
         last_title = ""
-        while not self.abortRequested() and xbmc.getCondVisibility("Player.HasAudio"):
+        while not self.abortRequested() and getCondVisibility("Player.HasAudio"):
             self.monitoring_stream = True
             cur_title = xbmc.getInfoLabel("MusicPlayer.Title").decode('utf-8')
             if cur_title != last_title:
@@ -272,7 +272,7 @@ class KodiMonitor(xbmc.Monitor):
             # another monitoring already in progress...
             return
         last_title = ""
-        while not self.abortRequested() and xbmc.getCondVisibility("Player.HasVideo"):
+        while not self.abortRequested() and getCondVisibility("Player.HasVideo"):
             self.monitoring_stream = True
             li_title = xbmc.getInfoLabel("Player.Title").decode('utf-8')
             if li_title and li_title != last_title:
@@ -281,7 +281,7 @@ class KodiMonitor(xbmc.Monitor):
                 self.reset_win_props()
                 li_channel = xbmc.getInfoLabel("VideoPlayer.ChannelName").decode('utf-8')
                 # pvr artwork
-                if xbmc.getCondVisibility("Skin.HasSetting(SkinHelper.EnablePVRThumbs)"):
+                if getCondVisibility("Skin.HasSetting(SkinHelper.EnablePVRThumbs)"):
                     li_genre = xbmc.getInfoLabel("VideoPlayer.Genre").decode('utf-8')
                     pvrart = self.metadatautils.get_pvr_artwork(li_title, li_channel, li_genre)
                     all_props = prepare_win_props(pvrart, u"SkinHelper.Player.")
@@ -295,9 +295,9 @@ class KodiMonitor(xbmc.Monitor):
     @staticmethod
     def get_mediatype():
         '''get current content type'''
-        if xbmc.getCondVisibility("VideoPlayer.Content(movies)"):
+        if getCondVisibility("VideoPlayer.Content(movies)"):
             mediatype = "movie"
-        elif xbmc.getCondVisibility("VideoPlayer.Content(episodes) | !IsEmpty(VideoPlayer.TvShowTitle)"):
+        elif getCondVisibility("VideoPlayer.Content(episodes) | !IsEmpty(VideoPlayer.TvShowTitle)"):
             mediatype = "episode"
         elif xbmc.getInfoLabel("VideoPlayer.Content(musicvideos) | !IsEmpty(VideoPlayer.Artist)"):
             mediatype = "musicvideo"
