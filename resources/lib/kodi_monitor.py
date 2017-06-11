@@ -289,6 +289,8 @@ class KodiMonitor(xbmc.Monitor):
                 all_props.append(("SkinHelper.Player.ChannelLogo", self.metadatautils.get_channellogo(li_channel)))
                 if last_title == li_title:
                     process_method_on_list(self.set_win_prop, all_props)
+                # show infopanel if needed
+                self.show_info_panel()
             self.waitForAbort(2)
         self.monitoring_stream = False
 
