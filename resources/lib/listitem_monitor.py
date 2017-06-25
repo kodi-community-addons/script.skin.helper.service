@@ -359,7 +359,7 @@ class ListItemMonitor(threading.Thread):
                         details = extend_dict(
                             details, self.metadatautils.get_extended_artwork(
                                 details["imdbnumber"], tvdbid, tmdbid, content_type), [
-                                "posters", "clearlogos", "banners"])
+                                "posters", "clearlogos", "banners", "discarts", "cleararts", "characterarts"])
 
                 if self.exit:
                     return
