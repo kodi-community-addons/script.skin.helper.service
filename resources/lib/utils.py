@@ -110,7 +110,7 @@ def get_current_content_type(containerprefix=""):
             content_type = "sets"
         elif getCondVisibility("String.Contains(Container.FolderPath,setid=)"):
             content_type = "setmovies"
-        elif getCondVisibility("!IsEmpty(Container.Content) + !String.IsEqual(Container.Content,pvr)"):
+        elif getCondVisibility("!String.IsEmpty(Container.Content) + !String.IsEqual(Container.Content,pvr)"):
             content_type = xbmc.getInfoLabel("Container.Content")
         elif getCondVisibility("Container.Content(tvshows)"):
             content_type = "tvshows"
@@ -141,9 +141,9 @@ def get_current_content_type(containerprefix=""):
             content_type = "files"
     # last resort: try to determine type by the listitem properties
     if not content_type and (containerprefix or getCondVisibility("Window.IsActive(movieinformation)")):
-        if getCondVisibility("!IsEmpty(%sListItem.DBTYPE)" % containerprefix):
+        if getCondVisibility("!String.IsEmpty(%sListItem.DBTYPE)" % containerprefix):
             content_type = xbmc.getInfoLabel("%sListItem.DBTYPE" % containerprefix) + "s"
-        elif getCondVisibility("!IsEmpty(%sListItem.Property(DBTYPE))" % containerprefix):
+        elif getCondVisibility("!String.IsEmpty(%sListItem.Property(DBTYPE))" % containerprefix):
             content_type = xbmc.getInfoLabel("%sListItem.Property(DBTYPE)" % containerprefix) + "s"
         elif getCondVisibility("String.Contains(%sListItem.FileNameAndPath,playrecording) | "
                                     "String.Contains(%sListItem.FileNameAndPath,tvtimer)"
@@ -158,25 +158,25 @@ def get_current_content_type(containerprefix=""):
             content_type = "tvshows"
         elif getCondVisibility("String.Contains(%sListItem.FolderPath,flix2kodi)" % (containerprefix)):
             content_type = "movies"
-        elif getCondVisibility("!IsEmpty(%sListItem.Artist) + String.IsEqual(%sListItem.Label,%sListItem.Artist)"
+        elif getCondVisibility("!String.IsEmpty(%sListItem.Artist) + String.IsEqual(%sListItem.Label,%sListItem.Artist)"
                                     % (containerprefix, containerprefix, containerprefix)):
             content_type = "artists"
-        elif getCondVisibility("!IsEmpty(%sListItem.Album) + String.IsEqual(%sListItem.Label,%sListItem.Album)"
+        elif getCondVisibility("!String.IsEmpty(%sListItem.Album) + String.IsEqual(%sListItem.Label,%sListItem.Album)"
                                     % (containerprefix, containerprefix, containerprefix)):
             content_type = "albums"
-        elif getCondVisibility("!IsEmpty(%sListItem.Artist) + !IsEmpty(%sListItem.Album)"
+        elif getCondVisibility("!String.IsEmpty(%sListItem.Artist) + !String.IsEmpty(%sListItem.Album)"
                                     % (containerprefix, containerprefix)):
             content_type = "songs"
-        elif getCondVisibility("!IsEmpty(%sListItem.TvShowTitle) + "
+        elif getCondVisibility("!String.IsEmpty(%sListItem.TvShowTitle) + "
                                     "String.IsEqual(%sListItem.Title,%sListItem.TvShowTitle)"
                                     % (containerprefix, containerprefix, containerprefix)):
             content_type = "tvshows"
-        elif getCondVisibility("!IsEmpty(%sListItem.Property(TotalEpisodes))" % (containerprefix)):
+        elif getCondVisibility("!String.IsEmpty(%sListItem.Property(TotalEpisodes))" % (containerprefix)):
             content_type = "tvshows"
-        elif getCondVisibility("!IsEmpty(%sListItem.TvshowTitle) + !IsEmpty(%sListItem.Season)"
+        elif getCondVisibility("!String.IsEmpty(%sListItem.TvshowTitle) + !String.IsEmpty(%sListItem.Season)"
                                     % (containerprefix, containerprefix)):
             content_type = "episodes"
-        elif getCondVisibility("IsEmpty(%sListItem.TvshowTitle) + !IsEmpty(%sListItem.Year)"
+        elif getCondVisibility("String.IsEmpty(%sListItem.TvshowTitle) + !String.IsEmpty(%sListItem.Year)"
                                     % (containerprefix, containerprefix)):
             content_type = "movies"
         elif getCondVisibility("String.Contains(%sListItem.FolderPath,movies)" % containerprefix):
@@ -185,7 +185,7 @@ def get_current_content_type(containerprefix=""):
             content_type = "tvshows"
         elif getCondVisibility("String.Contains(%sListItem.FolderPath,episodes)" % containerprefix):
             content_type = "episodes"
-        elif getCondVisibility("!IsEmpty(%sListItem.Property(ChannelLogo))" % (containerprefix)):
+        elif getCondVisibility("!String.IsEmpty(%sListItem.Property(ChannelLogo))" % (containerprefix)):
             content_type = "tvchannels"
     return content_type
 
