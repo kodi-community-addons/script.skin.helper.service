@@ -48,7 +48,10 @@ class ListItemMonitor(threading.Thread):
         '''called when the thread has to stop working'''
         log_msg("ListItemMonitor - stop called")
         self.exit = True
+        self.cache.close()
         self.event.set()
+        self.event.clear()
+        self.join(1)
 
     def run(self):
         '''our main loop monitoring the listitem and folderpath changes'''
@@ -142,6 +145,9 @@ class ListItemMonitor(threading.Thread):
             cur_listitem = xbmc.getInfoLabel(
                 "$INFO[%sListItem.Label]$INFO[%sListItem.DBID]$INFO[%sListItem.Title]" %
                 (cont_prefix, cont_prefix, cont_prefix)).decode('utf-8')
+                
+        if self.exit:
+            return
 
         # perform actions if the container path has changed
         if cur_folder != self.last_folder and not (cur_listitem and cur_listitem == self.last_listitem):
@@ -304,6 +310,9 @@ class ListItemMonitor(threading.Thread):
                         details, self.metadatautils.get_moviesetdetails(
                             details["title"], details["dbid"]), ["year"])
                     content_type = "sets"
+                    
+                if self.exit:
+                    return
 
                 # video content
                 elif content_type in ["movies", "setmovies", "tvshows", "seasons", "episodes", "musicvideos"]:
@@ -312,6 +321,9 @@ class ListItemMonitor(threading.Thread):
                     details["imdbnumber"], tvdbid = self.metadatautils.get_imdbtvdb_id(
                         details["title"], content_type,
                         details["year"], details["imdbnumber"], details["tvshowtitle"])
+                        
+                    if self.exit:
+                        return
 
                     # generic video properties (studio, streamdetails, omdb, top250)
                     details = merge_dict(details,
@@ -323,6 +335,9 @@ class ListItemMonitor(threading.Thread):
                             efa = self.metadatautils.get_extrafanart(details["filenameandpath"])
                             if efa:
                                 details["art"] = merge_dict(details["art"], efa["art"])
+                                
+                    if self.exit:
+                        return
 
                     details = merge_dict(details, self.metadatautils.get_duration(details["duration"]))
                     details = merge_dict(details, self.get_genres(details["genre"]))
@@ -395,6 +410,8 @@ class ListItemMonitor(threading.Thread):
             log_msg("Started Background worker...")
             self.set_generic_props()
             self.listitem_details = {}
+            if self.exit:
+                return
             self.cache.check_cleanup()
             log_msg("Ended Background worker...")
         except Exception as exc:
@@ -419,11 +436,17 @@ class ListItemMonitor(threading.Thread):
         favs = kodi_json('Favourites.GetFavourites')
         if favs:
             self.win.setProperty("SkinHelper.TotalFavourites", "%s" % len(favs))
+            
+        if self.exit:
+            return
 
         # GET TV CHANNELS COUNT
         if getCondVisibility("Pvr.HasTVChannels"):
             tv_channels = kodi_json('PVR.GetChannels', {"channelgroupid": "alltv"})
             self.win.setProperty("SkinHelper.TotalTVChannels", "%s" % len(tv_channels))
+            
+        if self.exit:
+            return
 
         # GET MOVIE SETS COUNT
         movieset_movies_count = 0
@@ -433,6 +456,9 @@ class ListItemMonitor(threading.Thread):
                 movieset_movies_count += 1
         self.win.setProperty("SkinHelper.TotalMovieSets", "%s" % len(moviesets))
         self.win.setProperty("SkinHelper.TotalMoviesInSets", "%s" % movieset_movies_count)
+        
+        if self.exit:
+            return
 
         # GET RADIO CHANNELS COUNT
         if getCondVisibility("Pvr.HasRadioChannels"):
@@ -510,8 +536,7 @@ class ListItemMonitor(threading.Thread):
             'Directors': "[CR]".join(directors),
             'Writers': "[CR]".join(writers)}
 
-    @staticmethod
-    def get_listitem_details(content_type, prefix):
+    def get_listitem_details(self, content_type, prefix):
         '''collect all listitem properties/values we need'''
         listitem_details = {"art": {}}
 
@@ -537,6 +562,8 @@ class ListItemMonitor(threading.Thread):
             props += ["channel", "channelname"]
 
         for prop in props:
+            if self.exit:
+                break
             propvalue = xbmc.getInfoLabel('$INFO[%sListItem.%s]' % (prefix, prop)).decode('utf-8')
             listitem_details[prop] = propvalue
 
@@ -544,6 +571,8 @@ class ListItemMonitor(threading.Thread):
         artprops = ["fanart", "poster", "clearlogo", "clearart",
                     "landscape", "thumb", "banner", "discart", "characterart"]
         for prop in artprops:
+            if self.exit:
+                break
             propvalue = xbmc.getInfoLabel('$INFO[%sListItem.Art(%s)]' % (prefix, prop)).decode('utf-8')
             if not propvalue:
                 propvalue = xbmc.getInfoLabel('$INFO[%sListItem.Art(tvshow.%s)]' % (prefix, prop)).decode('utf-8')
@@ -585,7 +614,7 @@ class ListItemMonitor(threading.Thread):
                     xbmc.executebuiltin("Container.SetViewMode(%s)" % cur_forced_view)
                     xbmc.executebuiltin("SetFocus(%s)" % cur_forced_view)
                     count += 1
-                    if count == 50:
+                    if count == 50 or self.exit:
                         break
             else:
                 self.win.clearProperty("SkinHelper.ForcedView")

@@ -30,14 +30,15 @@ class MainService:
         self.addonname = self.addon.getAddonInfo('name').decode("utf-8")
         self.addonversion = self.addon.getAddonInfo('version').decode("utf-8")
         self.kodimonitor = KodiMonitor(metadatautils=self.metadatautils, win=self.win)
-        listitem_monitor = ListItemMonitor(
+        self.listitem_monitor = ListItemMonitor(
             metadatautils=self.metadatautils, win=self.win, monitor=self.kodimonitor)
-        webservice = WebService(metadatautils=self.metadatautils)
+        self.webservice = WebService(self.metadatautils)
+        self.win.clearProperty("SkinHelperShutdownRequested")
 
         # start the extra threads
-        listitem_monitor.start()
-        webservice.start()
-        self.win.clearProperty("SkinHelperShutdownRequested")
+        self.listitem_monitor.start()
+        self.webservice.start()
+        
         log_msg('%s version %s started' % (self.addonname, self.addonversion), xbmc.LOGNOTICE)
 
         # run as service, check skin every 10 seconds and keep the other threads alive
@@ -50,21 +51,19 @@ class MainService:
             self.kodimonitor.waitForAbort(10)
 
         # Abort was requested while waiting. We should exit
-        self.win.setProperty("SkinHelperShutdownRequested", "shutdown")
-        log_msg('Shutdown requested !', xbmc.LOGNOTICE)
-        # stop the extra threads
-        listitem_monitor.stop()
-        webservice.stop()
-
-        # cleanup objects
         self.close()
 
     def close(self):
         '''Cleanup Kodi Cpython instances'''
+        self.win.setProperty("SkinHelperShutdownRequested", "shutdown")
+        log_msg('Shutdown requested !', xbmc.LOGNOTICE)
+        self.listitem_monitor.stop()
         self.metadatautils.close()
+        self.webservice.stop()
         del self.win
         del self.kodimonitor
-        del self.metadatautils
+        #del self.metadatautils
+        #del self.webservice
         log_msg('%s version %s stopped' % (self.addonname, self.addonversion), xbmc.LOGNOTICE)
 
     def check_skin_version(self):
