@@ -198,7 +198,6 @@ class PluginContent:
         cache_str = ""
         download_thumbs = self.params.get("downloadthumbs", "") == "true"
         extended_cast_action = self.params.get("castaction", "") == "extendedinfo"
-        tmdb = Tmdb()
         movie = self.params.get("movie")
         tvshow = self.params.get("tvshow")
         episode = self.params.get("episode")
@@ -261,15 +260,15 @@ class PluginContent:
                     if cast.get("thumbnail"):
                         cast["thumbnail"] = self.mutils.get_clean_image(cast.get("thumbnail"))
                     if not cast.get("thumbnail"):
-                        artwork = tmdb.get_actor(cast["name"])
+                        artwork = self.mutils.tmdb.get_actor(cast["name"])
                         cast["thumbnail"] = artwork.get("thumb", "")
             # lookup tmdb if item is requested that is not in local db
             if not all_cast:
                 tmdbdetails = {}
                 if movie and not db_id:
-                    tmdbdetails = tmdb.search_movie(movie)
+                    tmdbdetails = self.mutils.tmdb.search_movie(movie)
                 elif tvshow and not db_id:
-                    tmdbdetails = tmdb.search_tvshow(tvshow)
+                    tmdbdetails = self.mutils.tmdb.search_tvshow(tvshow)
                 if tmdbdetails.get("cast"):
                     all_cast = tmdbdetails["cast"]
             # save to cache
