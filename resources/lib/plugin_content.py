@@ -14,7 +14,7 @@ import xbmcgui
 import xbmcaddon
 from simplecache import SimpleCache
 from utils import log_msg, KODI_VERSION, log_exception, urlencode, getCondVisibility
-from metadatautils import KodiDb, Tmdb, get_clean_image, process_method_on_list
+from metadatautils import MetadataUtils
 import urlparse
 import sys
 import os
@@ -27,7 +27,7 @@ class PluginContent:
 
     def __init__(self):
         self.cache = SimpleCache()
-        self.kodi_db = KodiDb()
+        self.mutils = MetadataUtils()
         self.win = xbmcgui.Window(10000)
         try:
             self.params = dict(urlparse.parse_qsl(sys.argv[2].replace('?', '').lower().decode("utf-8")))
@@ -43,6 +43,8 @@ class PluginContent:
     def close(self):
         '''Cleanup Kodi Cpython instances'''
         self.cache.close()
+        self.mutils.close()
+        del self.mutils
         del self.win
 
     def main(self):
@@ -91,13 +93,13 @@ class PluginContent:
     def playchannel(self):
         '''play channel from widget helper'''
         params = {"item": {"channelid": int(self.params["channelid"])}}
-        self.kodi_db.set_json("Player.Open", params)
+        self.mutils.kodidb.set_json("Player.Open", params)
 
     def playrecording(self):
         '''retrieve the recording and play to get resume working'''
-        recording = self.kodi_db.recording(self.params["recordingid"])
+        recording = self.mutils.kodidb.recording(self.params["recordingid"])
         params = {"item": {"recordingid": recording["recordingid"]}}
-        self.kodi_db.set_json("Player.Open", params)
+        self.mutils.kodidb.set_json("Player.Open", params)
         # manually seek because passing resume to the player json cmd doesn't seem to work
         if recording["resume"].get("position"):
             for i in range(50):
@@ -166,13 +168,13 @@ class PluginContent:
                 sort = {"method": "random", "order": "descending"}
             else:
                 sort = {"method": "sorttitle", "order": "ascending"}
-            items = getattr(self.kodi_db, mediatype)(
+            items = getattr(self.mutils.kodidb, mediatype)(
                 sort=sort,
                 filters=filters, limits=(0, 50))
             for item in items:
-                image = get_clean_image(item["art"].get(arttype, ""))
+                image = self.mutils.get_clean_image(item["art"].get(arttype, ""))
                 if image:
-                    image = get_clean_image(item["art"][arttype])
+                    image = self.mutils.get_clean_image(item["art"][arttype])
                     listitem = xbmcgui.ListItem(image, path=image)
                     listitem.setProperty('mimetype', 'image/jpeg')
                     xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=image, listitem=listitem)
@@ -182,9 +184,9 @@ class PluginContent:
         '''helper to display get all media for a specific actor'''
         name = self.params.get("name")
         if name:
-            all_items = self.kodi_db.castmedia(name)
-            all_items = process_method_on_list(self.kodi_db.prepare_listitem, all_items)
-            all_items = process_method_on_list(self.kodi_db.create_listitem, all_items)
+            all_items = self.mutils.kodidb.castmedia(name)
+            all_items = self.mutils.process_method_on_list(self.mutils.kodidb.prepare_listitem, all_items)
+            all_items = self.mutils.process_method_on_list(self.mutils.kodidb.create_listitem, all_items)
             xbmcplugin.addDirectoryItems(int(sys.argv[1]), all_items, len(all_items))
         xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
 
@@ -225,30 +227,30 @@ class PluginContent:
         else:
             # retrieve data from json api...
             if movie and db_id:
-                all_cast = self.kodi_db.movie(db_id)["cast"]
+                all_cast = self.mutils.kodidb.movie(db_id)["cast"]
             elif movie and not db_id:
                 filters = [{"operator": "is", "field": "title", "value": movie}]
-                result = self.kodi_db.movies(filters=filters)
+                result = self.mutils.kodidb.movies(filters=filters)
                 all_cast = result[0]["cast"] if result else []
             elif tvshow and db_id:
-                all_cast = self.kodi_db.tvshow(db_id)["cast"]
+                all_cast = self.mutils.kodidb.tvshow(db_id)["cast"]
             elif tvshow and not db_id:
                 filters = [{"operator": "is", "field": "title", "value": tvshow}]
-                result = self.kodi_db.tvshows(filters=filters)
+                result = self.mutils.kodidb.tvshows(filters=filters)
                 all_cast = result[0]["cast"] if result else []
             elif episode and db_id:
-                all_cast = self.kodi_db.episode(db_id)["cast"]
+                all_cast = self.mutils.kodidb.episode(db_id)["cast"]
             elif episode and not db_id:
                 filters = [{"operator": "is", "field": "title", "value": episode}]
-                result = self.kodi_db.episodes(filters=filters)
+                result = self.mutils.kodidb.episodes(filters=filters)
                 all_cast = result[0]["cast"] if result else []
             elif movieset:
                 if not db_id:
-                    for item in self.kodi_db.moviesets():
+                    for item in self.mutils.kodidb.moviesets():
                         if item["title"].lower() == movieset.lower():
                             db_id = item["setid"]
                 if db_id:
-                    json_result = self.kodi_db.movieset(db_id, include_set_movies_fields=["cast"])
+                    json_result = self.mutils.kodidb.movieset(db_id, include_set_movies_fields=["cast"])
                     if "movies" in json_result:
                         for movie in json_result['movies']:
                             all_cast += movie['cast']
@@ -257,7 +259,7 @@ class PluginContent:
             if all_cast and download_thumbs:
                 for cast in all_cast:
                     if cast.get("thumbnail"):
-                        cast["thumbnail"] = get_clean_image(cast.get("thumbnail"))
+                        cast["thumbnail"] = self.mutils.get_clean_image(cast.get("thumbnail"))
                     if not cast.get("thumbnail"):
                         artwork = tmdb.get_actor(cast["name"])
                         cast["thumbnail"] = artwork.get("thumb", "")

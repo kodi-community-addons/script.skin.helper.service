@@ -11,7 +11,7 @@ import threading
 import thread
 import xbmc
 import xbmcgui
-from metadatautils import process_method_on_list, KodiDb
+from metadatautils import MetaDataUtils
 from utils import getCondVisibility
 
 class SearchDialog(xbmcgui.WindowXMLDialog):
@@ -20,6 +20,7 @@ class SearchDialog(xbmcgui.WindowXMLDialog):
     search_string = ""
 
     def __init__(self, *args, **kwargs):
+        self.mutils = MetaDataUtils()
         xbmcgui.WindowXMLDialog.__init__(self, *args, **kwargs)
 
     def onInit(self):
@@ -49,6 +50,7 @@ class SearchDialog(xbmcgui.WindowXMLDialog):
     def close_dialog(self):
         '''stop background thread and close the dialog'''
         self.search_thread.stop_running()
+        self.mutils.close()
         self.close()
 
     def remove_char(self):
@@ -239,16 +241,15 @@ class SearchDialog(xbmcgui.WindowXMLDialog):
             xbmc.executebuiltin("ActivateWindow(busydialog)")
             from dialogselect import DialogSelect
             results = []
-            kodidb = KodiDb()
             name = listitem.getLabel().decode("utf-8")
-            items = kodidb.castmedia(name)
-            items = process_method_on_list(kodidb.prepare_listitem, items)
+            items = self.mutils.kodidb.castmedia(name)
+            items = self.mutils.process_method_on_list(self.mutils.kodidb.prepare_listitem, items)
             for item in items:
                 if item["file"].startswith("videodb://"):
                     item["file"] = "ActivateWindow(Videos,%s,return)" % item["file"]
                 else:
                     item["file"] = 'PlayMedia("%s")' % item["file"]
-                results.append(kodidb.create_listitem(item, False))
+                results.append(self.mutils.kodidb.create_listitem(item, False))
             # finished lookup - display listing with results
             xbmc.executebuiltin("dialog.Close(busydialog)")
             dialog = DialogSelect("DialogSelect.xml", "", listing=results, windowtitle=name, richlayout=True)
@@ -274,7 +275,6 @@ class SearchBackgroundThread(threading.Thread):
     def __init__(self, *args):
         xbmc.log("SearchBackgroundThread Init")
         threading.Thread.__init__(self, *args)
-        self.kodidb = KodiDb()
         self.actors = []
         thread.start_new_thread(self.set_actors, ())
 
@@ -292,7 +292,7 @@ class SearchBackgroundThread(threading.Thread):
 
     def set_actors(self):
         '''fill list with all actors'''
-        self.actors = self.kodidb.actors()
+        self.actors = self.dialog.mutils.kodidb.actors()
 
     def run(self):
         '''Main run loop for the background thread'''
@@ -323,28 +323,28 @@ class SearchBackgroundThread(threading.Thread):
         filters = [{"operator": "contains", "field": "title", "value": search_term}]
 
         # Process movies
-        items = self.kodidb.movies(filters=filters)
-        items = process_method_on_list(self.kodidb.prepare_listitem, items)
+        items = self.dialog.mutils.kodidb.movies(filters=filters)
+        items = process_method_on_list(self.dialog.mutils.kodidb.prepare_listitem, items)
         result = []
         for item in items:
-            result.append(self.kodidb.create_listitem(item, False))
+            result.append(self.dialog.mutils.kodidb.create_listitem(item, False))
         movies_list.addItems(result)
 
         # Process tvshows
-        items = self.kodidb.tvshows(filters=filters)
-        items = process_method_on_list(self.kodidb.prepare_listitem, items)
+        items = self.dialog.mutils.kodidb.tvshows(filters=filters)
+        items = process_method_on_list(self.dialog.mutils.kodidb.prepare_listitem, items)
         result = []
         for item in items:
             item["file"] = 'videodb://tvshows/titles/%s' % item['tvshowid']
             item["isFolder"] = True
-            result.append(self.kodidb.create_listitem(item, False))
+            result.append(self.dialog.mutils.kodidb.create_listitem(item, False))
         series_list.addItems(result)
 
         # Process cast
         result = []
         for item in self.actors:
             if search_term.lower() in item["label"].lower():
-                item = self.kodidb.prepare_listitem(item)
+                item = self.dialog.mutils.kodidb.prepare_listitem(item)
                 item["file"] = "RunScript(script.skin.helper.service,action=getcastmedia,name=%s)" % item["label"]
-                result.append(self.kodidb.create_listitem(item, False))
+                result.append(self.dialog.mutils.kodidb.create_listitem(item, False))
         cast_list.addItems(result)

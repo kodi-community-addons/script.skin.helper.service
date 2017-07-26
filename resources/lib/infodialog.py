@@ -11,7 +11,7 @@
 
 import xbmc
 import xbmcgui
-from metadatautils import MetadataUtils, extend_dict, KodiDb
+from metadatautils import MetadataUtils
 from utils import get_current_content_type, getCondVisibility
 
 CANCEL_DIALOG = (9, 10, 92, 216, 247, 257, 275, 61467, 61448, )
@@ -30,11 +30,11 @@ class DialogVideoInfo(xbmcgui.WindowXMLDialog):
         '''triggered when the dialog is drawn'''
         if self.listitem:
             self.clearList()
-            kodidb = KodiDb()
+            mutils = MetadataUtils()
             if isinstance(self.listitem, dict):
-                self.listitem = kodidb.prepare_listitem(self.listitem)
-                self.listitem = kodidb.create_listitem(self.listitem, False)
-            del kodidb
+                self.listitem = mutils.kodidb.prepare_listitem(self.listitem)
+                self.listitem = mutils.kodidb.create_listitem(self.listitem, False)
+            del mutils
             self.addItem(self.listitem)
 
         # disable some controls if existing
@@ -133,16 +133,16 @@ def show_infodialog(dbid="", media_type=""):
             album = xbmc.getInfoLabel("%sListItem.Album" % cont_prefix).decode('utf-8')
             disc = xbmc.getInfoLabel("%sListItem.DiscNumber" % cont_prefix).decode('utf-8')
             if artist:
-                item_details = extend_dict(item_details, metadatautils.get_music_artwork(artist, album, title, disc))
+                item_details = metadatautils.extend_dict(item_details, metadatautils.get_music_artwork(artist, album, title, disc))
         # movieset
         elif media_type == "movieset" and dbid:
-            item_details = extend_dict(item_details, metadatautils.get_moviesetdetails(dbid))
+            item_details = metadatautils.extend_dict(item_details, metadatautils.get_moviesetdetails(dbid))
         # pvr item
         elif media_type in ["tvchannel", "tvrecording", "channel", "recording"]:
             channel = xbmc.getInfoLabel("%sListItem.ChannelName" % cont_prefix).decode('utf-8')
             genre = xbmc.getInfoLabel("%sListItem.Genre" % cont_prefix)
             item_details["type"] = media_type
-            item_details = extend_dict(item_details, metadatautils.get_pvr_artwork(title, channel, genre))
+            item_details = metadatautils.extend_dict(item_details, metadatautils.get_pvr_artwork(title, channel, genre))
 
     metadatautils.close()
     # proceed with infodialog if we have details

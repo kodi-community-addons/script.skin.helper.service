@@ -16,7 +16,6 @@ import xbmc
 import xbmcvfs
 import urlparse
 import urllib
-from metadatautils import extend_dict
 import sys
 
 # port is hardcoded as there is no way in Kodi to pass a INFO-label inside a panel,
@@ -67,7 +66,7 @@ class Root:
                 if not media_type:
                     media_type = artwork.get("media_type")
         if imdb_id:
-            artwork = extend_dict(
+            artwork = self.__mutils.extend_dict(
                 artwork, self.__mutils.get_extended_artwork(
                     imdb_id, "", "", media_type))
         return self.handle_artwork(artwork, kwargs)

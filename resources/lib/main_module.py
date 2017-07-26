@@ -18,7 +18,7 @@ from utils import log_msg, KODI_VERSION, kodi_json, clean_string, getCondVisibil
 from utils import log_exception, get_current_content_type, ADDON_ID, recursive_delete_dir
 from dialogselect import DialogSelect
 from xml.dom.minidom import parse
-from metadatautils import KodiDb, process_method_on_list
+from metadatautils import MetadataUtils
 import urlparse
 import sys
 
@@ -30,8 +30,8 @@ class MainModule:
         '''Initialization and main code run'''
         self.win = xbmcgui.Window(10000)
         self.addon = xbmcaddon.Addon(ADDON_ID)
-        self.kodidb = KodiDb()
-        self.cache = SimpleCache()
+        self.mutils = MetadataUtils()
+        self.cache = self.mutils.cache
 
         self.params = self.get_params()
         log_msg("MainModule called with parameters: %s" % self.params)
@@ -51,10 +51,9 @@ class MainModule:
 
     def close(self):
         '''Cleanup Kodi Cpython instances on exit'''
-        self.cache.close()
+        self.mutils.close()
         del self.win
         del self.addon
-        del self.kodidb
         log_msg("MainModule exited")
 
     @classmethod
@@ -271,14 +270,14 @@ class MainModule:
         name = self.params.get("name", "")
         window_header = self.params.get("name", "")
         results = []
-        items = self.kodidb.castmedia(name)
-        items = process_method_on_list(self.kodidb.prepare_listitem, items)
+        items = self.mutils.kodidb.castmedia(name)
+        items = self.mutils.process_method_on_list(self.mutils.kodidb.prepare_listitem, items)
         for item in items:
             if item["file"].startswith("videodb://"):
                 item["file"] = "ActivateWindow(Videos,%s,return)" % item["file"]
             else:
                 item["file"] = 'PlayMedia("%s")' % item["file"]
-            results.append(self.kodidb.create_listitem(item, False))
+            results.append(self.mutils.kodidb.create_listitem(item, False))
         # finished lookup - display listing with results
         xbmc.executebuiltin("dialog.Close(busydialog)")
         dialog = DialogSelect("DialogSelect.xml", "", listing=results, windowtitle=window_header, richlayout=True)

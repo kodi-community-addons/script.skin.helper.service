@@ -10,7 +10,6 @@
 import threading
 import thread
 from utils import log_msg, log_exception, get_current_content_type, kodi_json, prepare_win_props, merge_dict, getCondVisibility
-from metadatautils import extend_dict, process_method_on_list
 import xbmc
 from simplecache import SimpleCache
 
@@ -301,12 +300,12 @@ class ListItemMonitor(threading.Thread):
 
                 # music content
                 if content_type in ["albums", "artists", "songs"] and self.enable_musicart:
-                    details = extend_dict(details, self.metadatautils.get_music_artwork(
+                    details = self.metadatautils.extend_dict(details, self.metadatautils.get_music_artwork(
                         details["artist"], details["album"], details["title"], details["discnumber"]))
 
                 # moviesets
                 elif details["path"].startswith("videodb://movies/sets/") and details["dbid"]:
-                    details = extend_dict(
+                    details = self.metadatautils.extend_dict(
                         details, self.metadatautils.get_moviesetdetails(
                             details["title"], details["dbid"]), ["year"])
                     content_type = "sets"
@@ -361,7 +360,7 @@ class ListItemMonitor(threading.Thread):
                     if content_type in ["movies", "setmovies"]:
                         details = merge_dict(details, self.metadatautils.get_tmdb_details(details["imdbnumber"]))
                         if details["imdbnumber"] and self.enable_animatedart:
-                            details = extend_dict(
+                            details = self.metadatautils.extend_dict(
                                 details, self.metadatautils.get_animated_artwork(
                                     details["imdbnumber"]))
 
@@ -371,7 +370,7 @@ class ListItemMonitor(threading.Thread):
                     # extended art
                     if self.enable_extendedart:
                         tmdbid = details.get("tmdb_id", "")
-                        details = extend_dict(
+                        details = self.metadatautils.extend_dict(
                             details, self.metadatautils.get_extended_artwork(
                                 details["imdbnumber"], tvdbid, tmdbid, content_type), [
                                 "posters", "clearlogos", "banners", "discarts", "cleararts", "characterarts"])
@@ -467,7 +466,7 @@ class ListItemMonitor(threading.Thread):
 
     def reset_win_props(self):
         '''reset all window props set by the script...'''
-        process_method_on_list(self.win.clearProperty, self.all_window_props.iterkeys())
+        self.metadatautils.process_method_on_list(self.win.clearProperty, self.all_window_props.iterkeys())
         self.all_window_props = {}
 
     def set_win_prop(self, prop_tuple):
@@ -480,7 +479,7 @@ class ListItemMonitor(threading.Thread):
 
     def set_win_props(self, prop_tuples):
         '''set multiple window properties from list of tuples'''
-        process_method_on_list(self.set_win_prop, prop_tuples)
+        self.metadatautils.process_method_on_list(self.set_win_prop, prop_tuples)
         # cleanup remaining properties
         new_keys = [item[0] for item in prop_tuples]
         for key, value in self.all_window_props.iteritems():
@@ -627,7 +626,7 @@ class ListItemMonitor(threading.Thread):
             if getCondVisibility("%sListItem.IsFolder" % prefix) and not listitem[
                     "channelname"] and not listitem["title"]:
                 listitem["title"] = listitem["label"]
-            listitem = extend_dict(
+            listitem = self.metadatautils.extend_dict(
                 listitem, self.metadatautils.get_pvr_artwork(
                     listitem["title"],
                     listitem["channelname"],

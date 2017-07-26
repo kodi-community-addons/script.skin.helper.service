@@ -8,7 +8,6 @@
 '''
 
 from utils import log_msg, json, prepare_win_props, log_exception, getCondVisibility
-from metadatautils import process_method_on_list, extend_dict, get_clean_image
 import xbmc
 
 
@@ -122,7 +121,7 @@ class KodiMonitor(xbmc.Monitor):
 
     def reset_win_props(self):
         '''reset all window props set by the script...'''
-        process_method_on_list(self.win.clearProperty, self.all_window_props)
+        self.metadatautils.process_method_on_list(self.win.clearProperty, self.all_window_props)
         self.all_window_props = []
 
     def set_win_prop(self, prop_tuple):
@@ -182,30 +181,30 @@ class KodiMonitor(xbmc.Monitor):
             li_imdb, li_tvdb = self.metadatautils.get_imdbtvdb_id(li_title, mediatype, li_year, li_imdb, li_showtitle)
 
             # generic video properties (studio, streamdetails, omdb, top250)
-            details = extend_dict(details, self.metadatautils.get_omdb_info(li_imdb))
+            details = self.metadatautils.extend_dict(details, self.metadatautils.get_omdb_info(li_imdb))
             if li_dbid:
-                details = extend_dict(details, self.metadatautils.get_streamdetails(li_dbid, mediatype))
-            details = extend_dict(details, self.metadatautils.get_top250_rating(li_imdb))
+                details = self.metadatautils.extend_dict(details, self.metadatautils.get_streamdetails(li_dbid, mediatype))
+            details = self.metadatautils.extend_dict(details, self.metadatautils.get_top250_rating(li_imdb))
 
             # tvshows-only properties (tvdb)
             if mediatype == "episode":
-                details = extend_dict(details, self.metadatautils.get_tvdb_details(li_imdb, li_tvdb))
+                details = self.metadatautils.extend_dict(details, self.metadatautils.get_tvdb_details(li_imdb, li_tvdb))
 
             # movies-only properties (tmdb, animated art)
             if mediatype == "movie":
-                details = extend_dict(details, self.metadatautils.get_tmdb_details(li_imdb))
+                details = self.metadatautils.extend_dict(details, self.metadatautils.get_tmdb_details(li_imdb))
                 if li_imdb and getCondVisibility("Skin.HasSetting(SkinHelper.EnableAnimatedPosters)"):
-                    details = extend_dict(details, self.metadatautils.get_animated_artwork(li_imdb))
+                    details = self.metadatautils.extend_dict(details, self.metadatautils.get_animated_artwork(li_imdb))
 
             # extended art
             if getCondVisibility("Skin.HasSetting(SkinHelper.EnableExtendedArt)"):
                 tmdbid = details.get("tmdb_id", "")
-                details = extend_dict(details, self.metadatautils.get_extended_artwork(
+                details = self.metadatautils.extend_dict(details, self.metadatautils.get_extended_artwork(
                     li_imdb, li_tvdb, tmdbid, mediatype))
 
         if li_title == xbmc.getInfoLabel("Player.Title").decode('utf-8'):
             all_props = prepare_win_props(details, u"SkinHelper.Player.")
-            process_method_on_list(self.set_win_prop, all_props)
+            self.metadatautils.process_method_on_list(self.set_win_prop, all_props)
 
     def set_music_properties(self):
         '''sets the window props for a playing song'''
@@ -232,7 +231,7 @@ class KodiMonitor(xbmc.Monitor):
                 result["extendedplot"] = "%s -- %s" % (result["extendedplot"], li_plot)
             all_props = prepare_win_props(result, u"SkinHelper.Player.")
             if li_title_org == xbmc.getInfoLabel("MusicPlayer.Title").decode('utf-8'):
-                process_method_on_list(self.set_win_prop, all_props)
+                self.metadatautils.process_method_on_list(self.set_win_prop, all_props)
 
     def artwork_downloader(self, media_type, dbid):
         '''trigger artwork scan with artwork downloader if enabled'''
@@ -288,7 +287,7 @@ class KodiMonitor(xbmc.Monitor):
                 # pvr channellogo
                 all_props.append(("SkinHelper.Player.ChannelLogo", self.metadatautils.get_channellogo(li_channel)))
                 if last_title == li_title:
-                    process_method_on_list(self.set_win_prop, all_props)
+                    self.metadatautils.process_method_on_list(self.set_win_prop, all_props)
                 # show infopanel if needed
                 self.show_info_panel()
             self.waitForAbort(2)
@@ -329,6 +328,6 @@ class KodiMonitor(xbmc.Monitor):
             propvalue = xbmc.getInfoLabel('Player.Art(%s)' % prop).decode('utf-8')
             if propvalue:
                 prop = prop.replace("tvshow.", "")
-                propvalue = get_clean_image(propvalue)
+                propvalue = self.metadatautils.get_clean_image(propvalue)
                 details["art"][prop] = propvalue
         return details
