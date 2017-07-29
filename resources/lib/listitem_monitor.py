@@ -180,13 +180,7 @@ class ListItemMonitor(threading.Thread):
         cont_prefix = ""
         try:
             widget_container = self.win.getProperty("SkinHelper.WidgetContainer").decode('utf-8')
-            if getCondVisibility("Window.IsActive(movieinformation)"):
-                cont_prefix = ""
-                cur_folder = xbmc.getInfoLabel(
-                    "movieinfo-$INFO[Container.FolderPath]"
-                    "$INFO[Container.NumItems]"
-                    "$INFO[Container.Content]").decode('utf-8')
-            elif widget_container:
+            if widget_container:
                 cont_prefix = "Container(%s)." % widget_container
                 cur_folder = xbmc.getInfoLabel(
                     "widget-%s-$INFO[Container(%s).NumItems]-$INFO[Container(%s).ListItemAbsolute(1).Label]" %
@@ -194,7 +188,7 @@ class ListItemMonitor(threading.Thread):
             else:
                 cont_prefix = ""
                 cur_folder = xbmc.getInfoLabel(
-                    "$INFO[Container.FolderPath]$INFO[Container.NumItems]$INFO[Container.Content]").decode(
+                    "$INFO[Window.Property(xmlfile)]$INFO[Container.FolderPath]$INFO[Container.NumItems]$INFO[Container.Content]").decode(
                     'utf-8')
         except Exception as exc:
             log_exception(__name__, exc)
@@ -272,7 +266,6 @@ class ListItemMonitor(threading.Thread):
                 # data already in memory
                 all_props = self.listitem_details[cur_listitem]
             else:
-
                 # skip if another lookup for the same listitem is already in progress...
                 if self.lookup_busy.get(cur_listitem):
                     return
@@ -374,7 +367,6 @@ class ListItemMonitor(threading.Thread):
                             details, self.metadatautils.get_extended_artwork(
                                 details["imdbnumber"], tvdbid, tmdbid, content_type), [
                                 "posters", "clearlogos", "banners", "discarts", "cleararts", "characterarts"])
-
                 if self.exit:
                     return
 

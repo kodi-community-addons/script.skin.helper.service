@@ -306,8 +306,7 @@ class KodiMonitor(xbmc.Monitor):
             mediatype = "file"
         return mediatype
 
-    @staticmethod
-    def get_player_infolabels():
+    def get_player_infolabels(self):
         '''collect basic infolabels for the current item in the videoplayer'''
         details = {"art": {}}
         # normal properties
