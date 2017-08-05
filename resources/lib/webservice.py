@@ -9,13 +9,10 @@
 '''
 
 import cherrypy
-from cherrypy._cpnative_server import CPHTTPServer
 import threading
 from utils import log_msg, log_exception, json
 import xbmc
 import xbmcvfs
-import urlparse
-import urllib
 import sys
 
 # port is hardcoded as there is no way in Kodi to pass a INFO-label inside a panel,
@@ -30,23 +27,9 @@ class Root:
         self.__mutils = mutils
 
     @cherrypy.expose
-    def default(self, path, **kwargs):
+    def default(self, path):
         '''all other requests go here'''
-        if "&" in path and not "?" in path:
-            # compatability with wrongly formatted params, missing the ?
-            path = path.replace("&amp;", "&")
-            action = path.split("&")[0]
-            params = {}
-            for key, value in urlparse.parse_qs(path[1:]).iteritems():
-                if value:
-                    value = value[0]
-                    if "%" in value:
-                        value = urllib.unquote(value)
-                    params[key] = value.decode("utf-8")
-            try:
-                return eval("self.%s" % action)(**params)
-            except Exception as exc:
-                log_exception(__name__, exc)
+        log_msg("Webservice: Unknown method called ! (%s)" % path, xbmc.LOGWARNING)
         raise cherrypy.HTTPError(404, "Unknown method called")
 
     @cherrypy.expose
@@ -248,36 +231,26 @@ class Root:
 
 
 class WebService(threading.Thread):
-    __server = None
     __root = None
+
     def __init__(self, metadatautils):
         self.__root = Root(metadatautils)
         log = cherrypy.log
-        log.access_file = ''
-        log.error_file = ''
         log.screen = False
-        cherrypy.config.update({
-            'server.socket_host': '0.0.0.0',
-            'server.socket_port': PORT,
-            'engine.timeout_monitor.frequency': 5,
-            'server.shutdown_timeout': 1
-        })
-        self.__server = cherrypy.server.httpserver = CPHTTPServer(cherrypy.server)
         threading.Thread.__init__(self)
 
     def run(self):
         log_msg("Starting WebService on port %s" % PORT, xbmc.LOGNOTICE)
-        conf = { '/': {}}
+        conf = {
+            'global': {
+                'server.socket_host': '0.0.0.0',
+                'server.socket_port': PORT
+            }, '/': {}
+        }
         cherrypy.quickstart(self.__root, '/', conf)
-
-    def get_port(self):
-        return self.__server.bind_addr[1]
-
-    def get_host(self):
-        return self.__server.bind_addr[0]
 
     def stop(self):
         cherrypy.engine.exit()
         self.join(1)
         del self.__root
-        del self.__server
+ 
