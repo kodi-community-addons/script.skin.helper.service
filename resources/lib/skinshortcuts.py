@@ -438,7 +438,7 @@ def plugin_widgetlisting(pluginpath, sublevel=""):
                 reloadstr = "&reload=$INFO[Window(Home).Property(widgetreload-tvshows)]"
             elif "musicvideos" in content:
                 reloadstr = "&reload=$INFO[Window(Home).Property(widgetreload-musicvideos)]"
-            if "albums" in content or "songs" in content or "artists" in content:
+            elif "albums" in content or "songs" in content or "artists" in content:
                 reloadstr = "&reload=$INFO[Window(Home).Property(widgetreload-music)]"
             else:
                 reloadstr = "&reload=$INFO[Window(Home).Property(widgetreload)]"\
