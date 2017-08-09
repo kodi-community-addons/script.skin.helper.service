@@ -180,7 +180,12 @@ class ListItemMonitor(threading.Thread):
         cont_prefix = ""
         try:
             widget_container = self.win.getProperty("SkinHelper.WidgetContainer").decode('utf-8')
-            if widget_container:
+            if getCondVisibility("Window.IsActive(movieinformation)"):
+                cont_prefix = ""
+                cur_folder = xbmc.getInfoLabel(
+                    "$INFO[Window.Property(xmlfile)]$INFO[Container.FolderPath]"
+                    "$INFO[Container.NumItems]$INFO[Container.Content]").decode('utf-8')
+            elif widget_container:
                 cont_prefix = "Container(%s)." % widget_container
                 cur_folder = xbmc.getInfoLabel(
                     "widget-%s-$INFO[Container(%s).NumItems]-$INFO[Container(%s).ListItemAbsolute(1).Label]" %
@@ -267,7 +272,7 @@ class ListItemMonitor(threading.Thread):
                 all_props = self.listitem_details[cur_listitem]
             else:
                 # skip if another lookup for the same listitem is already in progress...
-                if self.lookup_busy.get(cur_listitem):
+                if self.lookup_busy.get(cur_listitem) or self.exit:
                     return
                 self.lookup_busy[cur_listitem] = True
 
@@ -290,22 +295,20 @@ class ListItemMonitor(threading.Thread):
 
                 # collect details from listitem
                 details = self.get_listitem_details(content_type, prefix)
+                
+                if self.exit:
+                    return
 
                 # music content
                 if content_type in ["albums", "artists", "songs"] and self.enable_musicart:
                     details = self.metadatautils.extend_dict(details, self.metadatautils.get_music_artwork(
                         details["artist"], details["album"], details["title"], details["discnumber"]))
-
                 # moviesets
                 elif details["path"].startswith("videodb://movies/sets/") and details["dbid"]:
                     details = self.metadatautils.extend_dict(
                         details, self.metadatautils.get_moviesetdetails(
                             details["title"], details["dbid"]), ["year"])
                     content_type = "sets"
-                    
-                if self.exit:
-                    return
-
                 # video content
                 elif content_type in ["movies", "setmovies", "tvshows", "seasons", "episodes", "musicvideos"]:
 
@@ -367,9 +370,6 @@ class ListItemMonitor(threading.Thread):
                             details, self.metadatautils.get_extended_artwork(
                                 details["imdbnumber"], tvdbid, tmdbid, content_type), [
                                 "posters", "clearlogos", "banners", "discarts", "cleararts", "characterarts"])
-                if self.exit:
-                    return
-
                 # monitor listitem props when PVR is active
                 elif content_type in ["tvchannels", "tvrecordings", "channels", "recordings", "timers", "tvtimers"]:
                     details = self.get_pvr_artwork(details, prefix)

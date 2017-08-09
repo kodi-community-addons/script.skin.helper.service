@@ -213,8 +213,10 @@ def prepare_win_props(details, prefix=u"SkinHelper.ListItem."):
                 key = key.lower()
                 if isinstance(value, (str, unicode)):
                     items.append((key, value))
-                elif isinstance(value, (int, float)):
+                elif isinstance(value, int):
                     items.append((key, "%s" % value))
+                elif isinstance(value, float):
+                    items.append((key, "%.1f" % value))
                 elif isinstance(value, dict):
                     for key2, value2 in value.iteritems():
                         if isinstance(value2, (str, unicode)):

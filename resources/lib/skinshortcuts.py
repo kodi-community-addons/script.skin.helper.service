@@ -428,16 +428,21 @@ def plugin_widgetlisting(pluginpath, sublevel=""):
         if media_type == "folder":
             content = "plugin://script.skin.helper.service?action=widgets&path=%s&sublevel=%s" % (
                 urlencode(item["file"]), label)
-        # add reload param for skinhelper and libraryprovider widgets
-        if "reload=" not in content and (
-                "script.skin.helper" in pluginpath or pluginpath == "service.library.data.provider"):
+        # add reload param for widgets
+        if "reload=" not in content:
+            if "movies" in content:
+                reloadstr = "&reload=$INFO[Window(Home).Property(widgetreload-movies)]"
+            elif "episodes" in content:
+                reloadstr = "&reload=$INFO[Window(Home).Property(widgetreload-episodes)]"
+            elif "tvshows" in content:
+                reloadstr = "&reload=$INFO[Window(Home).Property(widgetreload-tvshows)]"
+            elif "musicvideos" in content:
+                reloadstr = "&reload=$INFO[Window(Home).Property(widgetreload-musicvideos)]"
             if "albums" in content or "songs" in content or "artists" in content:
-                reloadstr = "&reload=$INFO[Window(Home).Property(widgetreloadmusic)]"
-            elif ("pvr" in content or "media" in content or "favourite" in content) and "progress" not in content:
+                reloadstr = "&reload=$INFO[Window(Home).Property(widgetreload-music)]"
+            else:
                 reloadstr = "&reload=$INFO[Window(Home).Property(widgetreload)]"\
                     "$INFO[Window(Home).Property(widgetreload2)]"
-            else:
-                reloadstr = "&reload=$INFO[Window(Home).Property(widgetreload)]"
             content = content + reloadstr
         content = content.replace("&limit=100", "&limit=25")
         widgets.append([label, content, media_type])
