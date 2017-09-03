@@ -32,6 +32,7 @@ class ListItemMonitor(threading.Thread):
     enable_musicart = False
     enable_animatedart = False
     enable_extrafanart = False
+    enable_extraposter = False
     enable_pvrart = False
     enable_forcedviews = False
 
@@ -117,6 +118,7 @@ class ListItemMonitor(threading.Thread):
         self.enable_musicart = getCondVisibility("Skin.HasSetting(SkinHelper.EnableMusicArt)") == 1
         self.enable_animatedart = getCondVisibility("Skin.HasSetting(SkinHelper.EnableAnimatedPosters)") == 1
         self.enable_extrafanart = getCondVisibility("Skin.HasSetting(SkinHelper.EnableExtraFanart)") == 1
+        self.enable_extraposter = getCondVisibility("Skin.HasSetting(SkinHelper.EnableExtraPoster)") == 1
         self.enable_pvrart = getCondVisibility(
             "Skin.HasSetting(SkinHelper.EnablePVRThumbs) + PVR.HasTVChannels") == 1
         self.enable_forcedviews = getCondVisibility("Skin.HasSetting(SkinHelper.ForcedViews.Enabled)") == 1
@@ -330,7 +332,13 @@ class ListItemMonitor(threading.Thread):
                             efa = self.metadatautils.get_extrafanart(details["filenameandpath"])
                             if efa:
                                 details["art"] = merge_dict(details["art"], efa["art"])
-                                
+                    if self.enable_extraposter:
+                        if not details["filenameandpath"]:
+                            details["filenameandpath"] = details["path"]
+                        if "videodb://" not in details["filenameandpath"]:
+                            efa = self.metadatautils.get_extraposter(details["filenameandpath"])
+                            if efa:
+                                details["art"] = merge_dict(details["art"], efa["art"])
                     if self.exit:
                         return
 
