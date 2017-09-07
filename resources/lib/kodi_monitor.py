@@ -67,7 +67,7 @@ class KodiMonitor(xbmc.Monitor):
                             self.monitor_radiostream()
                         else:
                             self.set_music_properties()
-                    elif getCondVisibility("VideoPlayer.Content(livetv)"):
+                    elif getCondVisibility("VideoPlayer.Content(livetv) | String.StartsWith(Player.FileNameAndPath,pvr://)"):
                         self.monitor_livetv()
                     else:
                         self.set_video_properties(mediatype, dbid)
@@ -285,7 +285,9 @@ class KodiMonitor(xbmc.Monitor):
                     pvrart = self.metadatautils.get_pvr_artwork(li_title, li_channel, li_genre)
                     all_props = prepare_win_props(pvrart, u"SkinHelper.Player.")
                 # pvr channellogo
-                all_props.append(("SkinHelper.Player.ChannelLogo", self.metadatautils.get_channellogo(li_channel)))
+                channellogo = self.metadatautils.get_channellogo(li_channel)
+                all_props.append(("SkinHelper.Player.ChannelLogo", channellogo))
+                all_props.append(("SkinHelper.Player.Art.ChannelLogo", channellogo))
                 if last_title == li_title:
                     self.metadatautils.process_method_on_list(self.set_win_prop, all_props)
                 # show infopanel if needed
