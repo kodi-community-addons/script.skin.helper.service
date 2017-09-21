@@ -156,6 +156,16 @@ class PluginContent:
             xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=item, listitem=listitem)
         xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
 
+    def extraposter(self):
+        '''helper to display extraposter in multiimage control in the skin'''
+        posters = eval(self.params["posters"])
+        # process extraposters
+        for count, item in enumerate(posters):
+            listitem = xbmcgui.ListItem("poster%s" % count, path=item)
+            listitem.setProperty('mimetype', 'image/jpeg')
+            xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=item, listitem=listitem)
+        xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
+
     def genrebackground(self):
         '''helper to display images for a specific genre in multiimage control in the skin'''
         genre = self.params.get("genre").split(".")[0]
