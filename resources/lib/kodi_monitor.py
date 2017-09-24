@@ -234,8 +234,8 @@ class KodiMonitor(xbmc.Monitor):
                 if splitchar in li_title:
                     li_artist = li_title.split(splitchar)[0].strip()
                     li_title = li_title.split(splitchar)[1].strip()
-                    break				
-					
+                    break
+
         if getCondVisibility("Skin.HasSetting(SkinHelper.EnableMusicArt)") and li_artist and(
                 li_title or li_album):
             result = self.metadatautils.get_music_artwork(li_artist, li_album, li_title, li_disc)
