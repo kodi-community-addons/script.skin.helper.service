@@ -228,7 +228,9 @@ class MainModule:
         '''get items from youtube plugin by query'''
         lib_path = u"plugin://plugin.video.youtube/kodion/search/query/?q=%s" % searchquery
         metadatautils = MetadataUtils()
-        return metadatautils.kodidb.files(lib_path)
+        files = metadatautils.kodidb.files(lib_path)
+        del metadatautils
+        return files
 
     def searchyoutube(self):
         '''helper to search youtube for the given title'''
