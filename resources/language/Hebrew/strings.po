@@ -1,0 +1,130 @@
+# Kodi language file
+# Addon Name: Skin Helper Service
+# Addon id: script.skin.helper.service
+# Addon Provider: marcelveldt
+msgid ""
+msgstr ""
+"Project-Id-Version: plugin.program.autocompletion\n"
+"Report-Msgid-Bugs-To: alanwww1@xbmc.org\n"
+"POT-Creation-Date: 2014-10-26 17:05+0000\n"
+"PO-Revision-Date: 2017-09-25 09:35+0300\n"
+"Last-Translator: A. Dambledore\n"
+"Language-Team: Eng2Heb\n"
+"Language: he_IL\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+
+msgctxt "#32000"
+msgid "Custom Image"
+msgstr "תמונה מותאמת אישית"
+
+msgctxt "#32001"
+msgid "None"
+msgstr "ללא"
+
+msgctxt "#32002"
+msgid "Background overlay texture"
+msgstr "מרקם שכבת הרקע"
+
+msgctxt "#32003"
+msgid "Browse custom image for background overlay"
+msgstr "עיין בתמונה מותאמת אישית עבור שכבת הרקע"
+
+msgctxt "#32004"
+msgid "Custom single image"
+msgstr "תמונה בודדת מותאם אישית"
+
+msgctxt "#32005"
+msgid "Custom multi image (folder)"
+msgstr "תמונות מרובות מותאמות אישית (תיקיה)"
+
+msgctxt "#32006"
+msgid "Select busy spinner"
+msgstr "שינוי סמליל - עסוק"
+
+msgctxt "#32007"
+msgid "%s missing!"
+msgstr "%s חסר!"
+
+msgctxt "#32008"
+msgid ""
+"To get the most out of this skin, it is suggested to install a image resource addon for %s. \n"
+" Do you want to select and install this image resource addon now ?"
+msgstr ""
+"כדי להפיק את המירב מהמעטפת הזו, מומלץ להתקין הרחבה למשאבי תמונה %s. \n"
+" האם ברצונך לבחור ולהתקין הרחבה למשאבי תמונה עכשיו?"
+
+msgctxt "#32009"
+msgid "Custom path"
+msgstr "נתיב מותאם אישית"
+
+msgctxt "#32010"
+msgid "Select resource addon or custom folder"
+msgstr "בחר הרחבת משאבים או תיקייה מותאמת אישית"
+
+msgctxt "#32011"
+msgid "Not installed"
+msgstr "לא מותקן"
+
+msgctxt "#32012"
+msgid "Select view"
+msgstr "בחר תצוגה"
+
+msgctxt "#32013"
+msgid "Enable/disable views"
+msgstr "אפשר \\ נטרל תצוגות"
+
+msgctxt "#32014"
+msgid "The action completed sucesfully"
+msgstr "הפעולה הושלמה בהצלחה"
+
+msgctxt "#32015"
+msgid "The action completed with errors"
+msgstr "הפעולה הושלמה עם שגיאות"
+
+msgctxt "#32016"
+msgid "Do you want to setup a single background or a folder with multiple backgrounds ?"
+msgstr "האם ברצונך להגדיר רקע יחיד או תיקיה עם תמונות רקע מרובות?"
+
+msgctxt "#32017"
+msgid "Single"
+msgstr "יחיד"
+
+msgctxt "#32018"
+msgid "Multiple"
+msgstr "בחירה מרובה"
+
+msgctxt "#32019"
+msgid "Random fanart from movie with genre"
+msgstr "פאנארט אקראי מתוך הסרט עם סגנון"
+
+msgctxt "#32020"
+msgid "Select image"
+msgstr "בחר תמונה"
+
+msgctxt "#32021"
+msgid "Available image resource addons"
+msgstr "הרחבת משאבי תמונה זמינה"
+
+msgctxt "#32022"
+msgid "There are no (more) resource addons available for this type"
+msgstr "אין הרחבת משאבי תמונה זמינים עבור הסוג הזה"
+
+msgctxt "#32023"
+msgid "Artwork options"
+msgstr "אפשרויות גרפיקה"
+
+msgctxt "#32024"
+msgid "Select Animated Art"
+msgstr "בחר גרפיקת הנפשה"
+
+msgctxt "#32025"
+msgid "Use submenu as widget"
+msgstr "תשתמש בתפריט המשנה בתור יישומון"
+
+msgctxt "#32025"
+msgid "RCB Most played games"
+msgstr "המשחקים ששוחקו הכי הרבה RCB"
