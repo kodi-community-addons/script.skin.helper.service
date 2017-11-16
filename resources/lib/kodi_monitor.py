@@ -67,6 +67,11 @@ class KodiMonitor(xbmc.Monitor):
                             self.monitor_radiostream()
                         else:
                             self.set_music_properties()
+                    if getCondVisibility("Pvr.IsPlayingRadio"):
+                        if getCondVisibility("!Player.IsInternetStream"):
+                            self.monitor_radiostream()
+                        else:
+                            self.set_music_properties()
                     elif getCondVisibility("VideoPlayer.Content(livetv) | String.StartsWith(Player.FileNameAndPath,pvr://)"):
                         self.monitor_livetv()
                     else:
@@ -223,6 +228,14 @@ class KodiMonitor(xbmc.Monitor):
                     li_title = li_title.split(splitchar)[1].strip()
                     break
 
+        # fix for pvr.radio
+        if not li_artist and getCondVisibility("Pvr.IsPlayingRadio"):
+            for splitchar in [" - ", "-", ":", ";"]:
+                if splitchar in li_title:
+                    li_artist = li_title.split(splitchar)[0].strip()
+                    li_title = li_title.split(splitchar)[1].strip()
+                    break
+
         if getCondVisibility("Skin.HasSetting(SkinHelper.EnableMusicArt)") and li_artist and(
                 li_title or li_album):
             result = self.metadatautils.get_music_artwork(li_artist, li_album, li_title, li_disc)
@@ -300,9 +313,9 @@ class KodiMonitor(xbmc.Monitor):
         '''get current content type'''
         if getCondVisibility("VideoPlayer.Content(movies)"):
             mediatype = "movie"
-        elif getCondVisibility("VideoPlayer.Content(episodes) | !IsEmpty(VideoPlayer.TvShowTitle)"):
+        elif getCondVisibility("VideoPlayer.Content(episodes) | !String.IsEmpty(VideoPlayer.TvShowTitle)"):
             mediatype = "episode"
-        elif xbmc.getInfoLabel("VideoPlayer.Content(musicvideos) | !IsEmpty(VideoPlayer.Artist)"):
+        elif xbmc.getInfoLabel("VideoPlayer.Content(musicvideos) | !String.IsEmpty(VideoPlayer.Artist)"):
             mediatype = "musicvideo"
         else:
             mediatype = "file"
