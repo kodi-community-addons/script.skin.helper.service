@@ -265,7 +265,7 @@ class KodiMonitor(xbmc.Monitor):
             # another monitoring already in progress...
             return
         last_title = ""
-        while not self.abortRequested():
+        while not self.abortRequested() and getCondVisibility("Player.HasAudio"):
             self.monitoring_stream = True
             cur_title = xbmc.getInfoLabel("MusicPlayer.Title").decode('utf-8')
             if cur_title != last_title:
