@@ -601,7 +601,7 @@ class ListItemMonitor(threading.Thread):
         if self.enable_forcedviews:
             cur_forced_view = xbmc.getInfoLabel("Skin.String(SkinHelper.ForcedViews.%s)" % content_type)
             if getCondVisibility(
-                    "Control.IsVisible(%s) | IsEmpty(Container.Viewmode) | System.HasModalDialog" % cur_forced_view):
+                    "Control.IsVisible(%s) | IsEmpty(Container.Viewmode) | System.HasModalDialog | System.HasVisibleModalDialog" % cur_forced_view):
                 # skip if the view is already visible or if we're not in an actual media window
                 return
             if (content_type and cur_forced_view and cur_forced_view != "None" and not

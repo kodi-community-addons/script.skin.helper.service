@@ -234,8 +234,12 @@ class WebService(threading.Thread):
 
     def __init__(self, metadatautils):
         self.__root = Root(metadatautils)
-        log = cherrypy.log
-        log.screen = False
+        cherrypy.config.update({
+            'engine.autoreload.on' : False,
+            'log.screen': False,
+            'engine.timeout_monitor.frequency': 5,
+            'server.shutdown_timeout': 1,
+        })
         threading.Thread.__init__(self)
 
     def run(self):
@@ -250,6 +254,6 @@ class WebService(threading.Thread):
 
     def stop(self):
         cherrypy.engine.exit()
-        self.join(1)
+        self.join(0)
         del self.__root
  

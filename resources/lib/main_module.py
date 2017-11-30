@@ -288,7 +288,7 @@ class MainModule:
         result = dialog.result
         del dialog
         if result:
-            while getCondVisibility("System.HasModalDialog"):
+            while getCondVisibility("System.HasModalDialog | System.HasVisibleModalDialog"):
                 xbmc.executebuiltin("Action(Back)")
                 xbmc.sleep(300)
             xbmc.executebuiltin(result.getfilename())

@@ -55,11 +55,11 @@ class MainService:
 
     def close(self):
         '''Cleanup Kodi Cpython instances'''
+        self.webservice.stop()
         self.win.setProperty("SkinHelperShutdownRequested", "shutdown")
         log_msg('Shutdown requested !', xbmc.LOGNOTICE)
         self.listitem_monitor.stop()
         self.metadatautils.close()
-        self.webservice.stop()
         del self.win
         del self.kodimonitor
         #del self.metadatautils
