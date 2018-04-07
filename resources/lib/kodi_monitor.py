@@ -58,7 +58,7 @@ class KodiMonitor(xbmc.Monitor):
                 self.win.clearProperty("TrailerPlaying")
                 self.reset_win_props()
 
-            if method == "Player.OnPlay":
+            if method == "Player.OnPlay" and not getCondVisibility("Player.DisplayAfterSeek"):
                 if not self.monitoring_stream:
                     self.reset_win_props()
                 if self.wait_for_player():
