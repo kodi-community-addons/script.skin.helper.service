@@ -9,7 +9,7 @@ ________________________________________________________________________________
 ## Documentation
 All documentation for this addon can be found in the online wiki:
 
-https://github.com/marcelveldt/script.skin.helper.service/wiki
+https://github.com/kodi-community-addons/script.skin.helper.service/wiki
 
 
 ## Help needed with maintaining !
