@@ -1,0 +1,128 @@
+# Kodi language file
+# Addon Name: Skin Helper Service
+# Addon id: script.skin.helper.service
+# Addon Provider: marcelveldt
+msgid ""
+msgstr ""
+"Project-Id-Version: XBMC-Addons\n"
+"Report-Msgid-Bugs-To: alanwww1@xbmc.org\n"
+"POT-Creation-Date: 2014-10-26 17:05+0000\n"
+"PO-Revision-Date: 2019-06-20 08:22+0200\n"
+"Language-Team: Czech\n"
+"Language: cs_CZ\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n>=2 && n<=4 ? 1 : 2);\n"
+"Last-Translator: \n"
+"X-Generator: Poedit 2.2.3\n"
+
+msgctxt "#32000"
+msgid "Custom Image"
+msgstr "Vlastní obrázek"
+
+msgctxt "#32001"
+msgid "None"
+msgstr "Žádný"
+
+msgctxt "#32002"
+msgid "Background overlay texture"
+msgstr ""
+
+msgctxt "#32003"
+msgid "Browse custom image for background overlay"
+msgstr ""
+
+msgctxt "#32004"
+msgid "Custom single image"
+msgstr "Vlastní jednotlivý obrázek"
+
+msgctxt "#32005"
+msgid "Custom multi image (folder)"
+msgstr "Vlastní vícenásobný obrázek (složka)"
+
+msgctxt "#32006"
+msgid "Select busy spinner"
+msgstr ""
+
+msgctxt "#32007"
+msgid "%s missing!"
+msgstr "%s chybí!"
+
+msgctxt "#32008"
+msgid ""
+"To get the most out of this skin, it is suggested to install a image resource addon for %s. \n"
+" Do you want to select and install this image resource addon now ?"
+msgstr ""
+
+msgctxt "#32009"
+msgid "Custom path"
+msgstr "Vlastní cesta"
+
+msgctxt "#32010"
+msgid "Select resource addon or custom folder"
+msgstr ""
+
+msgctxt "#32011"
+msgid "Not installed"
+msgstr "Neinstalováno"
+
+msgctxt "#32012"
+msgid "Select view"
+msgstr "Vyberte zobrazení"
+
+msgctxt "#32013"
+msgid "Enable/disable views"
+msgstr ""
+
+msgctxt "#32014"
+msgid "The action completed sucesfully"
+msgstr "Akce úspěšně dokončena"
+
+msgctxt "#32015"
+msgid "The action completed with errors"
+msgstr "Akce dokončena s chybami"
+
+msgctxt "#32016"
+msgid "Do you want to setup a single background or a folder with multiple backgrounds ?"
+msgstr ""
+
+msgctxt "#32017"
+msgid "Single"
+msgstr "Jednotlivý"
+
+msgctxt "#32018"
+msgid "Multiple"
+msgstr "Vícenásobný"
+
+msgctxt "#32019"
+msgid "Random fanart from movie with genre"
+msgstr ""
+
+msgctxt "#32020"
+msgid "Select image"
+msgstr "Vybrat animovaný obrázek"
+
+msgctxt "#32021"
+msgid "Available image resource addons"
+msgstr ""
+
+msgctxt "#32022"
+msgid "There are no (more) resource addons available for this type"
+msgstr ""
+
+msgctxt "#32023"
+msgid "Artwork options"
+msgstr ""
+
+msgctxt "#32024"
+msgid "Select Animated Art"
+msgstr "Vybrat animovaný obrázek"
+
+msgctxt "#32025"
+msgid "Use submenu as widget"
+msgstr ""
+
+msgctxt "#32025"
+msgid "RCB Most played games"
+msgstr ""
