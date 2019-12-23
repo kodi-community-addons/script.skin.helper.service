@@ -8,12 +8,15 @@
     Simple webservice to directly retrieve metadata from artwork module
 '''
 
+import os, sys
 import cherrypy
 import threading
-from utils import log_msg, log_exception, json
+if sys.version_info.major == 3:
+    from resources.lib.utils import log_msg, log_exception, json
+else:
+    from utils import log_msg, log_exception, json
 import xbmc
 import xbmcvfs
-import sys
 
 # port is hardcoded as there is no way in Kodi to pass a INFO-label inside a panel,
 # otherwise the portnumber could be passed to the skin through a skin setting or window prop
@@ -61,8 +64,12 @@ class Root:
         mediatype = params["mediatype"]
         randomize = params["randomize"]
         artwork = {}
-        lib_path = u"plugin://script.skin.helper.service/?action=genrebackground"\
-            "&genre=%s&arttype=%s&mediatype=%s&random=%s" % (genre, arttype, mediatype, randomize)
+        if sys.version_info.major == 3:
+            lib_path = "plugin://script.skin.helper.service/?action=genrebackground"\
+                "&genre=%s&arttype=%s&mediatype=%s&random=%s" % (genre, arttype, mediatype, randomize)
+        else:
+            lib_path = u"plugin://script.skin.helper.service/?action=genrebackground"\
+                "&genre=%s&arttype=%s&mediatype=%s&random=%s" % (genre, arttype, mediatype, randomize)
         for count, item in enumerate(self.__mutils.kodidb.files(lib_path, limits=(0, 5))):
             artwork["%s.%s" % (arttype, count)] = item["file"]
         return self.handle_artwork(artwork, params)

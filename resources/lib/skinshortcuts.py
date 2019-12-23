@@ -8,14 +8,17 @@
     Methods to connect skinhelper to skinshortcuts for smartshortcuts, widgets and backgrounds
 '''
 
-from utils import kodi_json, log_msg, urlencode, ADDON_ID, getCondVisibility
+import os, sys
+if sys.version_info.major == 3:
+    from resources.lib.utils import kodi_json, log_msg, urlencode, ADDON_ID, getCondVisibility
+else:
+    from utils import kodi_json, log_msg, urlencode, ADDON_ID, getCondVisibility
 from metadatautils import MetadataUtils
 import xbmc
 import xbmcvfs
 import xbmcplugin
 import xbmcgui
 import xbmcaddon
-import sys
 
 # extendedinfo has some login-required widgets, these must not be probed without login details
 EXTINFO_CREDS = False
@@ -378,9 +381,14 @@ def playlists_widgets():
                 if item["file"].endswith(".xsp"):
                     playlist = item["file"]
                     contents = xbmcvfs.File(item["file"], 'r')
-                    contents_data = contents.read().decode('utf-8')
-                    contents.close()
-                    xmldata = xmltree.fromstring(contents_data.encode('utf-8'))
+                    if sys.version_info.major == 3:
+                        contents_data = contents.read()
+                        contents.close()
+                        xmldata = xmltree.fromstring(contents_data)
+                    else:
+                        contents_data = contents.read().decode('utf-8')
+                        contents.close()
+                        xmldata = xmltree.fromstring(contents_data.encode('utf-8'))
                     media_type = ""
                     label = item["label"]
                     for line in xmldata.getiterator():
@@ -507,18 +515,29 @@ def set_skinshortcuts_property(property_name="", value="", label=""):
     if value or label:
         wait_for_skinshortcuts_window()
         xbmc.sleep(250)
-        xbmc.executebuiltin("SetProperty(customProperty,%s)" % property_name.encode("utf-8"))
-        xbmc.executebuiltin("SetProperty(customValue,%s)" % value.encode("utf-8"))
+        if sys.version_info.major == 3:
+            xbmc.executebuiltin("SetProperty(customProperty,%s)" % property_name)
+            xbmc.executebuiltin("SetProperty(customValue,%s)" % value)
+        else:
+            xbmc.executebuiltin("SetProperty(customProperty,%s)" % property_name.encode("utf-8"))
+            xbmc.executebuiltin("SetProperty(customValue,%s)" % value.encode("utf-8"))
         xbmc.executebuiltin("SendClick(404)")
         xbmc.sleep(250)
-        xbmc.executebuiltin("SetProperty(customProperty,%s.name)" % property_name.encode("utf-8"))
-        xbmc.executebuiltin("SetProperty(customValue,%s)" % label.encode("utf-8"))
+        if sys.version_info.major == 3:
+            xbmc.executebuiltin("SetProperty(customProperty,%s.name)" % property_name)
+            xbmc.executebuiltin("SetProperty(customValue,%s)" % label)
+        else:
+            xbmc.executebuiltin("SetProperty(customProperty,%s.name)" % property_name.encode("utf-8"))
+            xbmc.executebuiltin("SetProperty(customValue,%s)" % label.encode("utf-8"))
         xbmc.executebuiltin("SendClick(404)")
         xbmc.sleep(250)
-        xbmc.executebuiltin("SetProperty(customProperty,%sName)" % property_name.encode("utf-8"))
-        xbmc.executebuiltin("SetProperty(customValue,%s)" % label.encode("utf-8"))
+        if sys.version_info.major == 3:
+            xbmc.executebuiltin("SetProperty(customProperty,%sName)" % property_name)
+            xbmc.executebuiltin("SetProperty(customValue,%s)" % label)
+        else:
+            xbmc.executebuiltin("SetProperty(customProperty,%sName)" % property_name.encode("utf-8"))
+            xbmc.executebuiltin("SetProperty(customValue,%s)" % label.encode("utf-8"))
         xbmc.executebuiltin("SendClick(404)")
-
 
 def wait_for_skinshortcuts_window():
     '''wait untill skinshortcuts is active window (because of any animations that may have been applied)'''

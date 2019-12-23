@@ -7,21 +7,26 @@
     mainmodule.py
     All script methods provided by the addon
 '''
-
+import os, sys
 import xbmc
 import xbmcvfs
 import xbmcgui
 import xbmcaddon
-from skinsettings import SkinSettings
+if sys.version_info.major == 3:
+    from .skinsettings import SkinSettings
+    import urllib.parse
+    from resources.lib.utils import log_msg, KODI_VERSION, kodi_json, clean_string, getCondVisibility
+    from resources.lib.utils import log_exception, get_current_content_type, ADDON_ID, recursive_delete_dir
+    from .dialogselect import DialogSelect
+else:
+    from skinsettings import SkinSettings
+    import urlparse
+    from utils import log_msg, KODI_VERSION, kodi_json, clean_string, getCondVisibility
+    from utils import log_exception, get_current_content_type, ADDON_ID, recursive_delete_dir
+    from dialogselect import DialogSelect
 from simplecache import SimpleCache
-from utils import log_msg, KODI_VERSION, kodi_json, clean_string, getCondVisibility
-from utils import log_exception, get_current_content_type, ADDON_ID, recursive_delete_dir
-from dialogselect import DialogSelect
 from xml.dom.minidom import parse
 from metadatautils import MetadataUtils
-import urlparse
-import sys
-
 
 class MainModule:
     '''mainmodule provides the script methods for the skinhelper addon'''
@@ -77,8 +82,12 @@ class MainModule:
         action = self.params.get("action")
         log_msg("Deprecated method: %s. Please call %s directly" % (action, newaddon), xbmc.LOGWARNING)
         paramstring = ""
-        for key, value in self.params.iteritems():
-            paramstring += ",%s=%s" % (key, value)
+        if sys.version_info.major == 3:
+            for key, value in self.params.items():
+                paramstring += ",%s=%s" % (key, value)
+        else:
+            for key, value in self.params.iteritems():
+                paramstring += ",%s=%s" % (key, value)
         if getCondVisibility("System.HasAddon(%s)" % newaddon):
             xbmc.executebuiltin("RunAddon(%s%s)" % (newaddon, paramstring))
         else:
@@ -100,7 +109,10 @@ class MainModule:
         content_type = get_current_content_type()
         if not content_type:
             content_type = "files"
-        current_view = xbmc.getInfoLabel("Container.Viewmode").decode("utf-8")
+        if sys.version_info.major == 3:
+            current_view = xbmc.getInfoLabel("Container.Viewmode")
+        else:
+            current_view = xbmc.getInfoLabel("Container.Viewmode").decode("utf-8")
         view_id, view_label = self.selectview(content_type, current_view)
         current_forced_view = xbmc.getInfoLabel("Skin.String(SkinHelper.ForcedViews.%s)" % content_type)
 
@@ -130,7 +142,10 @@ class MainModule:
             listitem.setProperty("id", "None")
             all_views.append(listitem)
         # read the special skin views file
-        views_file = xbmc.translatePath('special://skin/extras/views.xml').decode("utf-8")
+        if sys.version_info.major == 3:
+            views_file = xbmc.translatePath('special://skin/extras/views.xml')
+        else:
+            views_file = xbmc.translatePath('special://skin/extras/views.xml').decode("utf-8")
         if xbmcvfs.exists(views_file):
             doc = parse(views_file)
             listing = doc.documentElement.getElementsByTagName('view')
@@ -160,7 +175,10 @@ class MainModule:
         del dialog
         if result:
             viewid = result.getProperty("viewid")
-            label = result.getLabel().decode("utf-8")
+            if sys.version_info.major == 3:
+                label = result.getLabel()
+            else:
+                label = result.getLabel().decode("utf-8")
             return (viewid, label)
         else:
             return (None, None)
@@ -169,7 +187,10 @@ class MainModule:
     def enableviews(self):
         '''show select dialog to enable/disable views'''
         all_views = []
-        views_file = xbmc.translatePath('special://skin/extras/views.xml').decode("utf-8")
+        if sys.version_info.major == 3:
+            views_file = xbmc.translatePath('special://skin/extras/views.xml')
+        else:
+            views_file = xbmc.translatePath('special://skin/extras/views.xml').decode("utf-8")
         richlayout = self.params.get("richlayout", "") == "true"
         if xbmcvfs.exists(views_file):
             doc = parse(views_file)
@@ -226,7 +247,7 @@ class MainModule:
     @staticmethod
     def get_youtube_listing(searchquery):
         '''get items from youtube plugin by query'''
-        lib_path = u"plugin://plugin.video.youtube/kodion/search/query/?q=%s" % searchquery
+        lib_path = "plugin://plugin.video.youtube/kodion/search/query/?q=%s" % searchquery
         metadatautils = MetadataUtils()
         files = metadatautils.kodidb.files(lib_path)
         del metadatautils
@@ -351,7 +372,10 @@ class MainModule:
         setting = self.params.get("setting", "")
         org_id = self.params.get("id", "")
         if "$" in org_id:
-            org_id = xbmc.getInfoLabel(org_id).decode("utf-8")
+            if sys.version_info.major == 3:
+                org_id = xbmc.getInfoLabel(org_id)
+            else:
+                org_id = xbmc.getInfoLabel(org_id).decode("utf-8")
         header = self.params.get("header", "")
         SkinSettings().set_skin_setting(setting=setting, window_header=header, original_id=org_id)
 
@@ -420,8 +444,8 @@ class MainModule:
             else:
                 widget_container_prefix = ""
 
-            li_title = xbmc.getInfoLabel("%sListItem.Title" % widget_container_prefix).decode('utf-8')
-            li_trailer = xbmc.getInfoLabel("%sListItem.Trailer" % widget_container_prefix).decode('utf-8')
+            li_title = xbmc.getInfoLabel("%sListItem.Title" % widget_container_prefix)
+            li_trailer = xbmc.getInfoLabel("%sListItem.Trailer" % widget_container_prefix)
             if not li_trailer and allow_youtube:
                 youtube_result = self.get_youtube_listing("%s Trailer" % li_title)
                 if youtube_result:
@@ -429,7 +453,7 @@ class MainModule:
             # always wait a bit to prevent trailer start playing when we're scrolling the list
             xbmc.Monitor().waitForAbort(3)
             if li_trailer and (li_title == xbmc.getInfoLabel("%sListItem.Title"
-                                                             % widget_container_prefix).decode('utf-8')):
+                                                             % widget_container_prefix)):
                 if trailer_mode == "fullscreen" and li_trailer:
                     xbmc.executebuiltin('PlayMedia("%s")' % li_trailer)
                 else:
@@ -499,7 +523,11 @@ class MainModule:
         '''show the special search dialog'''
         xbmc.executebuiltin("ActivateWindow(busydialog)")
         from resources.lib.searchdialog import SearchDialog
-        search_dialog = SearchDialog("script-skin_helper_service-CustomSearch.xml",
+        if sys.version_info.major == 3:
+            search_dialog = SearchDialog("script-skin_helper_service-CustomSearch.xml",
+                                     self.addon.getAddonInfo('path'), "Default", "1080i")
+        else:
+            search_dialog = SearchDialog("script-skin_helper_service-CustomSearch.xml",
                                      self.addon.getAddonInfo('path').decode("utf-8"), "Default", "1080i")
         search_dialog.doModal()
         del search_dialog
@@ -508,7 +536,7 @@ class MainModule:
         '''shows our special videoinfo dialog'''
         dbid = self.params.get("dbid", "")
         dbtype = self.params.get("dbtype", "")
-        from infodialog import show_infodialog
+        from .infodialog import show_infodialog
         show_infodialog(dbid, dbtype)
 
     def deletedir(self):
@@ -516,7 +544,7 @@ class MainModule:
         del_path = self.params.get("path")
         if del_path:
             ret = xbmcgui.Dialog().yesno(heading=xbmc.getLocalizedString(122),
-                                         line1=u"%s[CR]%s" % (xbmc.getLocalizedString(125), del_path))
+                                         line1="%s[CR]%s" % (xbmc.getLocalizedString(125), del_path))
             if ret:
                 success = recursive_delete_dir(del_path)
                 if success:
@@ -562,7 +590,7 @@ class MainModule:
         if label:
             if skinshortcutsprop:
                 # write value to skinshortcuts prop
-                from skinshortcuts import set_skinshortcuts_property
+                from .skinshortcuts import set_skinshortcuts_property
                 set_skinshortcuts_property(skinshortcutsprop, value, label)
             else:
                 # write the values to skin strings
@@ -633,7 +661,8 @@ class MainModule:
             skinstring = self.params.get("skinstring")
         output = self.params.get("output")
         index = self.params.get("index", 0)
-        skinstring = skinstring.split(splitchar)[int(index)]
+        if skinstring is not None:
+            skinstring = skinstring.split(splitchar)[int(index)]
         self.win.setProperty(output, skinstring)
 
     def getfilename(self, filename=""):
@@ -644,7 +673,7 @@ class MainModule:
         if not filename:
             filename = xbmc.getInfoLabel("ListItem.FileName")
         if "filename=" in filename:
-            url_params = dict(urlparse.parse_qsl(filename))
+            url_params = dict(urllib.parse.parse_qsl(filename))
             filename = url_params.get("filename")
         self.win.setProperty(output, filename)
 
@@ -669,14 +698,14 @@ class MainModule:
 
     def setresourceaddon(self):
         '''helper to let the user choose a resource addon and set that as skin string'''
-        from resourceaddons import setresourceaddon
+        from .resourceaddons import setresourceaddon
         addontype = self.params.get("addontype", "")
         skinstring = self.params.get("skinstring", "")
         setresourceaddon(addontype, skinstring)
 
     def checkresourceaddons(self):
         '''allow the skinner to perform a basic check if some required resource addons are available'''
-        from resourceaddons import checkresourceaddons
+        from .resourceaddons import checkresourceaddons
         addonslist = self.params.get("addonslist", [])
         if addonslist:
             addonslist = addonslist.split("|")

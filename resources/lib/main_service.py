@@ -7,12 +7,19 @@
     main_service.py
     Background service running the various threads
 '''
-
-from utils import log_msg, ADDON_ID, log_exception
-from skinsettings import SkinSettings
-from listitem_monitor import ListItemMonitor
-from kodi_monitor import KodiMonitor
-from webservice import WebService
+import os, sys
+if sys.version_info.major == 3:
+    from resources.lib.utils import log_msg, ADDON_ID, log_exception
+    from resources.lib.skinsettings import SkinSettings
+    from resources.lib.listitem_monitor import ListItemMonitor
+    from resources.lib.kodi_monitor import KodiMonitor
+    from resources.lib.webservice import WebService
+else:
+    from utils import log_msg, ADDON_ID, log_exception
+    from skinsettings import SkinSettings
+    from listitem_monitor import ListItemMonitor
+    from kodi_monitor import KodiMonitor
+    from webservice import WebService
 from metadatautils import MetadataUtils
 import xbmc
 import xbmcaddon
@@ -27,8 +34,12 @@ class MainService:
         self.win = xbmcgui.Window(10000)
         self.addon = xbmcaddon.Addon(ADDON_ID)
         self.metadatautils = MetadataUtils()
-        self.addonname = self.addon.getAddonInfo('name').decode("utf-8")
-        self.addonversion = self.addon.getAddonInfo('version').decode("utf-8")
+        if sys.version_info.major == 3:
+            self.addonname = self.addon.getAddonInfo('name')
+            self.addonversion = self.addon.getAddonInfo('version')
+        else:
+            self.addonname = self.addon.getAddonInfo('name').decode("utf-8")
+            self.addonversion = self.addon.getAddonInfo('version').decode("utf-8")
         self.kodimonitor = KodiMonitor(metadatautils=self.metadatautils, win=self.win)
         self.listitem_monitor = ListItemMonitor(
             metadatautils=self.metadatautils, win=self.win, monitor=self.kodimonitor)
@@ -71,8 +82,12 @@ class MainService:
         try:
             skin = xbmc.getSkinDir()
             skin_addon = xbmcaddon.Addon(id=skin)
-            skin_label = skin_addon.getAddonInfo('name').decode("utf-8")
-            skin_version = skin_addon.getAddonInfo('version').decode("utf-8")
+            if sys.version_info.major == 3:
+                skin_label = skin_addon.getAddonInfo('name')
+                skin_version = skin_addon.getAddonInfo('version')
+            else:
+                skin_label = skin_addon.getAddonInfo('name').decode("utf-8")
+                skin_version = skin_addon.getAddonInfo('version').decode("utf-8")
             this_skin = "%s-%s" % (skin_label, skin_version)
             del skin_addon
             if self.last_skin != this_skin:

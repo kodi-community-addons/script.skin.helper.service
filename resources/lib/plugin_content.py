@@ -8,16 +8,20 @@
     Hidden plugin entry point providing some helper features
 '''
 
+import os, sys
 import xbmc
 import xbmcplugin
 import xbmcgui
 import xbmcaddon
 from simplecache import SimpleCache
-from utils import log_msg, KODI_VERSION, log_exception, urlencode, getCondVisibility
+if sys.version_info.major == 3:
+    from resources.lib.utils import log_msg, KODI_VERSION, log_exception, urlencode, getCondVisibility
+    import urllib.parse
+else:
+    from utils import log_msg, KODI_VERSION, log_exception, urlencode, getCondVisibility
+    import urlparse
 from metadatautils import MetadataUtils
-import urlparse
-import sys
-import os
+
 
 
 class PluginContent:
@@ -30,7 +34,10 @@ class PluginContent:
         self.mutils = MetadataUtils()
         self.win = xbmcgui.Window(10000)
         try:
-            self.params = dict(urlparse.parse_qsl(sys.argv[2].replace('?', '').lower().decode("utf-8")))
+            if sys.version_info.major == 3:
+                self.params = dict(urllib.parse.parse_qsl(sys.argv[2].replace('?', '').lower()))
+            else:
+                self.params = dict(urlparse.parse_qsl(sys.argv[2].replace('?', '').lower().decode("utf-8")))
             log_msg("plugin called with parameters: %s" % self.params)
             self.main()
         except Exception as exc:
@@ -72,13 +79,20 @@ class PluginContent:
         log_msg("Deprecated method: %s. Please reassign your widgets to get rid of this message. -"
                 "This automatic redirect will be removed in the future" % (action), xbmc.LOGWARNING)
         paramstring = ""
-        for key, value in self.params.iteritems():
-            paramstring += ",%s=%s" % (key, value)
+        if sys.version_info.major == 3:
+            for key, value in self.params.items():
+                paramstring += ",%s=%s" % (key, value)
+        else:
+            for key, value in self.params.iteritems():
+                paramstring += ",%s=%s" % (key, value)
         if getCondVisibility("System.HasAddon(%s)" % newaddon):
             # TEMP !!! for backwards compatability reasons only - to be removed in the near future!!
             import imp
             addon = xbmcaddon.Addon(newaddon)
-            addon_path = addon.getAddonInfo('path').decode("utf-8")
+            if sys.version_info.major == 3:
+                addon_path = addon.getAddonInfo('path')
+            else:
+                addon_path = addon.getAddonInfo('path').decode("utf-8")
             imp.load_source('plugin', os.path.join(addon_path, "plugin.py"))
             from plugin import main
             main.Main()
@@ -122,23 +136,35 @@ class PluginContent:
 
     def smartshortcuts(self):
         '''called from skinshortcuts to retrieve listing of all smart shortcuts'''
-        import skinshortcuts
+        if sys.version_info.major == 3:
+            from . import skinshortcuts
+        else:
+            import skinshortcuts
         skinshortcuts.get_smartshortcuts(self.params.get("path", ""))
 
     @staticmethod
     def backgrounds():
         '''called from skinshortcuts to retrieve listing of all backgrounds'''
-        import skinshortcuts
+        if sys.version_info.major == 3:
+            from . import skinshortcuts
+        else:
+            import skinshortcuts
         skinshortcuts.get_backgrounds()
 
     def widgets(self):
         '''called from skinshortcuts to retrieve listing of all widgetss'''
-        import skinshortcuts
+        if sys.version_info.major == 3:
+            from . import skinshortcuts
+        else:
+            import skinshortcuts
         skinshortcuts.get_widgets(self.params.get("path", ""), self.params.get("sublevel", ""))
 
     def resourceimages(self):
         '''retrieve listing of specific resource addon images'''
-        from resourceaddons import get_resourceimages
+        if sys.version_info.major == 3:
+            from .resourceaddons import get_resourceimages
+        else:
+            from resourceaddons import get_resourceimages
         addontype = self.params.get("addontype", "")
         for item in get_resourceimages(addontype, True):
             listitem = xbmcgui.ListItem(item[0], label2=item[2], path=item[1], iconImage=item[3])

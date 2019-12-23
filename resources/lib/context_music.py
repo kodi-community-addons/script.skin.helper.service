@@ -5,6 +5,7 @@
     Contextmenu for Music art
 '''
 
+import os, sys
 import xbmc
 import xbmcgui
 from metadatautils import MetadataUtils
@@ -18,10 +19,16 @@ if __name__ == '__main__':
     win = xbmcgui.Window(10000)
     metadatautils = MetadataUtils()
     win.setProperty("SkinHelper.Artwork.ManualLookup", "busy")
-    track = xbmc.getInfoLabel("ListItem.Title").decode('utf-8')
-    album = xbmc.getInfoLabel("ListItem.Album").decode('utf-8')
-    artist = xbmc.getInfoLabel("ListItem.Artist").decode('utf-8')
-    disc = xbmc.getInfoLabel("ListItem.DiscNumber").decode('utf-8')
+    if sys.version_info.major == 3:
+        track = xbmc.getInfoLabel("ListItem.Title")
+        album = xbmc.getInfoLabel("ListItem.Album")
+        artist = xbmc.getInfoLabel("ListItem.Artist")
+        disc = xbmc.getInfoLabel("ListItem.DiscNumber")
+    else:
+        track = xbmc.getInfoLabel("ListItem.Title").decode('utf-8')
+        album = xbmc.getInfoLabel("ListItem.Album").decode('utf-8')
+        artist = xbmc.getInfoLabel("ListItem.Artist").decode('utf-8')
+        disc = xbmc.getInfoLabel("ListItem.DiscNumber").decode('utf-8')
     metadatautils.music_artwork_options(artist, album, track, disc)
     metadatautils.close()
     # refresh music widgets

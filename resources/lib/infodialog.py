@@ -9,10 +9,15 @@
     only used for Kodi Jarvis because as of Kodi Krypton this is handled by Kodi natively
 '''
 
+import os, sys
 import xbmc
 import xbmcgui
 from metadatautils import MetadataUtils
-from utils import get_current_content_type, getCondVisibility
+if sys.version_info.major == 3:
+    from resources.lib.utils import get_current_content_type, getCondVisibility
+else:
+    from utils import get_current_content_type, getCondVisibility
+
 
 CANCEL_DIALOG = (9, 10, 92, 216, 247, 257, 275, 61467, 61448, )
 ACTION_SHOW_INFO = (11, )
@@ -81,14 +86,26 @@ def get_cur_listitem(cont_prefix):
     if getCondVisibility("Window.IsActive(busydialog)"):
         xbmc.executebuiltin("Dialog.Close(busydialog)")
         xbmc.sleep(500)
-    dbid = xbmc.getInfoLabel("%sListItem.DBID" % cont_prefix).decode('utf-8')
+    if sys.version_info.major == 3:
+        dbid = xbmc.getInfoLabel("%sListItem.DBID" % cont_prefix)
+    else:
+        dbid = xbmc.getInfoLabel("%sListItem.DBID" % cont_prefix).decode('utf-8')
     if not dbid or dbid == "-1":
-        dbid = xbmc.getInfoLabel("%sListItem.Property(DBID)" % cont_prefix).decode('utf-8')
+        if sys.version_info.major == 3:
+            dbid = xbmc.getInfoLabel("%sListItem.Property(DBID)" % cont_prefix)
+        else:
+            dbid = xbmc.getInfoLabel("%sListItem.Property(DBID)" % cont_prefix).decode('utf-8')
         if dbid == "-1":
             dbid = ""
-    dbtype = xbmc.getInfoLabel("%sListItem.DBTYPE" % cont_prefix).decode('utf-8')
+    if sys.version_info.major == 3:
+        dbtype = xbmc.getInfoLabel("%sListItem.DBTYPE" % cont_prefix)
+    else:
+        dbtype = xbmc.getInfoLabel("%sListItem.DBTYPE" % cont_prefix).decode('utf-8')
     if not dbtype:
-        dbtype = xbmc.getInfoLabel("%sListItem.Property(DBTYPE)" % cont_prefix).decode('utf-8')
+        if sys.version_info.major == 3:
+            dbtype = xbmc.getInfoLabel("%sListItem.Property(DBTYPE)" % cont_prefix)
+        else:
+            dbtype = xbmc.getInfoLabel("%sListItem.Property(DBTYPE)" % cont_prefix).decode('utf-8')
     if not dbtype:
         dbtype = get_current_content_type(cont_prefix)
     return (dbid, dbtype)
@@ -124,13 +141,26 @@ def show_infodialog(dbid="", media_type=""):
 
     # only proceed if we have a media_type
     if media_type:
-        title = xbmc.getInfoLabel("%sListItem.Title" % cont_prefix).decode('utf-8')
+        if sys.version_info.major == 3:
+            title = xbmc.getInfoLabel("%sListItem.Title" % cont_prefix)
+        else:
+            title = xbmc.getInfoLabel("%sListItem.Title" % cont_prefix).decode('utf-8')
         # music content
         if media_type in ["album", "artist", "song"]:
-            artist = xbmc.getInfoLabel("%sListItem.AlbumArtist" % cont_prefix).decode('utf-8')
+            if sys.version_info.major == 3:
+                artist = xbmc.getInfoLabel("%sListItem.AlbumArtist" % cont_prefix)
+            else:
+                artist = xbmc.getInfoLabel("%sListItem.AlbumArtist" % cont_prefix).decode('utf-8')
             if not artist:
-                artist = xbmc.getInfoLabel("%sListItem.Artist" % cont_prefix).decode('utf-8')
-            album = xbmc.getInfoLabel("%sListItem.Album" % cont_prefix).decode('utf-8')
+                if sys.version_info.major == 3:
+                    artist = xbmc.getInfoLabel("%sListItem.Artist" % cont_prefix)
+                else:
+                    artist = xbmc.getInfoLabel("%sListItem.Artist" % cont_prefix).decode('utf-8')
+            if sys.version_info.major == 3:
+                album = xbmc.getInfoLabel("%sListItem.Album" % cont_prefix)
+                disc = xbmc.getInfoLabel("%sListItem.DiscNumber" % cont_prefix)
+            else:
+                album = xbmc.getInfoLabel("%sListItem.Album" % cont_prefix).decode('utf-8')
             disc = xbmc.getInfoLabel("%sListItem.DiscNumber" % cont_prefix).decode('utf-8')
             if artist:
                 item_details = metadatautils.extend_dict(item_details, metadatautils.get_music_artwork(artist, album, title, disc))
@@ -139,7 +169,10 @@ def show_infodialog(dbid="", media_type=""):
             item_details = metadatautils.extend_dict(item_details, metadatautils.get_moviesetdetails(dbid))
         # pvr item
         elif media_type in ["tvchannel", "tvrecording", "channel", "recording"]:
-            channel = xbmc.getInfoLabel("%sListItem.ChannelName" % cont_prefix).decode('utf-8')
+            if sys.version_info.major == 3:
+                channel = xbmc.getInfoLabel("%sListItem.ChannelName" % cont_prefix)
+            else:
+                channel = xbmc.getInfoLabel("%sListItem.ChannelName" % cont_prefix).decode('utf-8')
             genre = xbmc.getInfoLabel("%sListItem.Genre" % cont_prefix)
             item_details["type"] = media_type
             item_details = metadatautils.extend_dict(item_details, metadatautils.get_pvr_artwork(title, channel, genre))

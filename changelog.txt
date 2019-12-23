@@ -1,0 +1,8 @@
+Version 1.1.25
+* fix module load issues in *.py
+* fix import thread to import _thread as thread in listitem_monitor.py 
+* remove encode/decode from *.py
+* replace urlparse with urllib.parse in plugin_content.py
+* change exception logging
+* apply fixes from Feb 19, 2019 https://github.com/kodi-community-addons/script.skin.helper.service/commits/master
+* fix 'NoneType' object has no attribute 'split' in stripstring function (main_module) line 636
