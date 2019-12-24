@@ -1,4 +1,5 @@
 Version 1.1.25
+* replace iconImage/setThumbnailImage in ListItems
 * fix module load issues in *.py
 * fix import thread to import _thread as thread in listitem_monitor.py 
 * remove encode/decode from *.py

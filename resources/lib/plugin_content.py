@@ -324,7 +324,7 @@ class PluginContent:
                     url = "plugin://script.skin.helper.service/?action=launch&path=%s" % urlencode(url)
                     is_folder = False
                 all_cast_names.append(cast.get("name"))
-                liz.setThumbnailImage(cast.get("thumbnail"))
+                liz.setArt({"thumb":cast.get("thumbnail")})
                 xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=url, listitem=liz, isFolder=is_folder)
         xbmcplugin.endOfDirectory(int(sys.argv[1]))
 

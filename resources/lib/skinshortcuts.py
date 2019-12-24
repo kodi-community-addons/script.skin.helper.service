@@ -40,7 +40,7 @@ def add_directoryitem(entry, is_folder=True, widget=None, widget2=None):
     if is_folder:
         path = sys.argv[0] + "?action=SMARTSHORTCUTS&path=" + entry
         listitem = xbmcgui.ListItem(label, path=path)
-        listitem.setIconImage("DefaultFolder.png")
+        listitem.setArt({"icon": 'DefaultFolder.png'})
     else:
         listitem = xbmcgui.ListItem(label, path=path)
         props = {}
@@ -51,8 +51,7 @@ def add_directoryitem(entry, is_folder=True, widget=None, widget2=None):
         props["background"] = "$INFO[Window(Home).Property(%s.image)]" % entry
         props["backgroundName"] = "$INFO[Window(Home).Property(%s.title)]" % entry
         listitem.setInfo(type="Video", infoLabels={"Title": "smartshortcut"})
-        listitem.setThumbnailImage(image)
-        listitem.setIconImage("special://home/addons/script.skin.helper.service/fanart.jpg")
+        listitem.setArt({"icon": "special://home/addons/script.skin.helper.service/fanart.jpg", "thumb": image})
 
         if widget:
             widget_type = "$INFO[Window(Home).Property(%s.type)]" % widget
@@ -294,7 +293,7 @@ def get_widgets(item_filter="", sublevel=""):
 
                 if is_folder:
                     listitem = xbmcgui.ListItem(widget[0])
-                    listitem.setIconImage("DefaultFolder.png")
+                    listitem.setArt({"icon": "DefaultFolder.png"})
                     xbmcplugin.addDirectoryItem(
                         handle=int(sys.argv[1]),
                         url=widget[1],
@@ -312,8 +311,7 @@ def get_widgets(item_filter="", sublevel=""):
                     props["widgetName"] = widget[0]
                     props["widget"] = item_filter
                     listitem.setInfo(type="Video", infoLabels={"Title": "smartshortcut"})
-                    listitem.setThumbnailImage(image)
-                    listitem.setArt({"fanart": image})
+                    listitem.setArt({"fanart": image, "thumb": image})
                     # we use the mpaa property to pass all properties to skinshortcuts
                     listitem.setInfo(type="Video", infoLabels={"mpaa": repr(props)})
                     xbmcplugin.addDirectoryItem(
@@ -362,8 +360,7 @@ def get_backgrounds():
     xbmcplugin.setContent(int(sys.argv[1]), 'files')
     for label, image in get_skinhelper_backgrounds():
         listitem = xbmcgui.ListItem(label, path=image)
-        listitem.setArt({"fanart": image})
-        listitem.setThumbnailImage(image)
+        listitem.setArt({"fanart": image, "thumb": image})
         xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=image, listitem=listitem, isFolder=False)
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
