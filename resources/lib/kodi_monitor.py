@@ -7,10 +7,7 @@
     monitor all kodi events
 '''
 import os,sys
-if sys.version_info.major == 3:
-    from resources.lib.utils import log_msg, json, prepare_win_props, log_exception, getCondVisibility
-else:
-    from utils import log_msg, json, prepare_win_props, log_exception, getCondVisibility
+from resources.lib.utils import log_msg, json, prepare_win_props, log_exception, getCondVisibility, try_decode
 import xbmc
 
 
@@ -31,10 +28,7 @@ class KodiMonitor(xbmc.Monitor):
         '''builtin function for the xbmc.Monitor class'''
         try:
             log_msg("Kodi_Monitor: sender %s - method: %s  - data: %s" % (sender, method, data))
-            if sys.version_info.major == 3:
-                data = json.loads(data)
-            else:
-                data = json.loads(data.decode('utf-8'))
+            data = json.loads(try_decode(data))
             mediatype = ""
             dbid = 0
             transaction = False
@@ -213,31 +207,21 @@ class KodiMonitor(xbmc.Monitor):
                 details = self.metadatautils.extend_dict(details, self.metadatautils.get_extended_artwork(
                     li_imdb, li_tvdb, tmdbid, mediatype))
 
-        if sys.version_info.major == 3:
-            if li_title == xbmc.getInfoLabel("Player.Title"):
+        if li_title == try_decode(xbmc.getInfoLabel("Player.Title")):
+            if sys.version_info.major == 3:
                 all_props = prepare_win_props(details, "SkinHelper.Player.")
-                self.metadatautils.process_method_on_list(self.set_win_prop, all_props)
-        else:
-            if li_title == xbmc.getInfoLabel("Player.Title").decode('utf-8'):
+            else:
                 all_props = prepare_win_props(details, u"SkinHelper.Player.")
-                self.metadatautils.process_method_on_list(self.set_win_prop, all_props)
+            self.metadatautils.process_method_on_list(self.set_win_prop, all_props)
 
     def set_music_properties(self):
         '''sets the window props for a playing song'''
-        if sys.version_info.major == 3:
-            li_title = xbmc.getInfoLabel("MusicPlayer.Title")
-            li_title_org = li_title
-            li_artist = xbmc.getInfoLabel("MusicPlayer.Artist")
-            li_album = xbmc.getInfoLabel("MusicPlayer.Album")
-            li_disc = xbmc.getInfoLabel("MusicPlayer.DiscNumber")
-            li_plot = xbmc.getInfoLabel("MusicPlayer.Comment")
-        else:
-            li_title = xbmc.getInfoLabel("MusicPlayer.Title").decode('utf-8')
-            li_title_org = li_title
-            li_artist = xbmc.getInfoLabel("MusicPlayer.Artist").decode('utf-8')
-            li_album = xbmc.getInfoLabel("MusicPlayer.Album").decode('utf-8')
-            li_disc = xbmc.getInfoLabel("MusicPlayer.DiscNumber").decode('utf-8')
-            li_plot = xbmc.getInfoLabel("MusicPlayer.Comment").decode('utf-8')
+        li_title = try_decode(xbmc.getInfoLabel("MusicPlayer.Title"))
+        li_title_org = li_title
+        li_artist = try_decode(xbmc.getInfoLabel("MusicPlayer.Artist"))
+        li_album = try_decode(xbmc.getInfoLabel("MusicPlayer.Album"))
+        li_disc = try_decode(xbmc.getInfoLabel("MusicPlayer.DiscNumber"))
+        li_plot = try_decode(xbmc.getInfoLabel("MusicPlayer.Comment"))
         
         # fix for internet streams
         if not li_artist and getCondVisibility("Player.IsInternetStream"):
@@ -263,12 +247,10 @@ class KodiMonitor(xbmc.Monitor):
                 result["extendedplot"] = "%s -- %s" % (result["extendedplot"], li_plot)
             if sys.version_info.major == 3:
                 all_props = prepare_win_props(result, "SkinHelper.Player.")
-                if li_title_org == xbmc.getInfoLabel("MusicPlayer.Title"):
-                    self.metadatautils.process_method_on_list(self.set_win_prop, all_props)
-            else:    
+            else:
                 all_props = prepare_win_props(result, u"SkinHelper.Player.")
-                if li_title_org == xbmc.getInfoLabel("MusicPlayer.Title").decode('utf-8'):
-                    self.metadatautils.process_method_on_list(self.set_win_prop, all_props)
+            if li_title_org == try_decode(xbmc.getInfoLabel("MusicPlayer.Title")):
+                self.metadatautils.process_method_on_list(self.set_win_prop, all_props)
 
     def artwork_downloader(self, media_type, dbid):
         '''trigger artwork scan with artwork downloader if enabled'''
@@ -291,10 +273,7 @@ class KodiMonitor(xbmc.Monitor):
         last_title = ""
         while not self.abortRequested() and getCondVisibility("Player.HasAudio"):
             self.monitoring_stream = True
-            if sys.version_info.major == 3:
-                cur_title = xbmc.getInfoLabel("MusicPlayer.Title")
-            else:
-                cur_title = xbmc.getInfoLabel("MusicPlayer.Title").decode('utf-8')
+            cur_title = try_decode(xbmc.getInfoLabel("MusicPlayer.Title"))
             if cur_title != last_title:
                 last_title = cur_title
                 self.reset_win_props()
@@ -313,24 +292,15 @@ class KodiMonitor(xbmc.Monitor):
         last_title = ""
         while not self.abortRequested() and getCondVisibility("Player.HasVideo"):
             self.monitoring_stream = True
-            if sys.version_info.major == 3:
-                li_title = xbmc.getInfoLabel("Player.Title")
-            else:
-                li_title = xbmc.getInfoLabel("Player.Title").decode('utf-8')
+            li_title = try_decode(xbmc.getInfoLabel("Player.Title"))
             if li_title and li_title != last_title:
                 all_props = []
                 last_title = li_title
                 self.reset_win_props()
-                if sys.version_info.major == 3:
-                    li_channel = xbmc.getInfoLabel("VideoPlayer.ChannelName")
-                else:
-                    li_channel = xbmc.getInfoLabel("VideoPlayer.ChannelName").decode('utf-8')
+                li_channel = try_decode(xbmc.getInfoLabel("VideoPlayer.ChannelName"))
                 # pvr artwork
                 if getCondVisibility("Skin.HasSetting(SkinHelper.EnablePVRThumbs)"):
-                    if sys.version_info.major == 3:
-                        li_genre = xbmc.getInfoLabel("VideoPlayer.Genre")
-                    else:
-                        li_genre = xbmc.getInfoLabel("VideoPlayer.Genre").decode('utf-8')
+                    li_genre = try_decode(xbmc.getInfoLabel("VideoPlayer.Genre"))
                     pvrart = self.metadatautils.get_pvr_artwork(li_title, li_channel, li_genre)
                     if sys.version_info.major == 3:
                         all_props = prepare_win_props(pvrart, "SkinHelper.Player.")
@@ -370,10 +340,7 @@ class KodiMonitor(xbmc.Monitor):
                  "firstaired", "mpaa", "tagline", "rating", "imdbnumber"
                  ]
         for prop in props:
-            if sys.version_info.major == 3:
-                propvalue = xbmc.getInfoLabel('VideoPlayer.%s' % prop)
-            else:
-                propvalue = xbmc.getInfoLabel('VideoPlayer.%s' % prop).decode('utf-8')
+            propvalue = try_decode(xbmc.getInfoLabel('VideoPlayer.%s' % prop))
             details[prop] = propvalue
         # art properties
         props = ["fanart", "poster", "clearlogo", "clearart", "landscape",
@@ -381,10 +348,7 @@ class KodiMonitor(xbmc.Monitor):
                  "tvshow.clearlogo", "tvshow.poster", "tvshow.fanart", "tvshow.banner"
                  ]
         for prop in props:
-            if sys.version_info.major == 3:
-                propvalue = xbmc.getInfoLabel('Player.Art(%s)' % prop)
-            else:
-                propvalue = xbmc.getInfoLabel('Player.Art(%s)' % prop).decode('utf-8')
+            propvalue = try_decode(xbmc.getInfoLabel('Player.Art(%s)' % prop))
             if propvalue:
                 prop = prop.replace("tvshow.", "")
                 propvalue = self.metadatautils.get_clean_image(propvalue)

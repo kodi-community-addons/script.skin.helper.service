@@ -15,15 +15,13 @@ import xbmcaddon
 if sys.version_info.major == 3:
     from .skinsettings import SkinSettings
     import urllib.parse
-    from resources.lib.utils import log_msg, KODI_VERSION, kodi_json, clean_string, getCondVisibility
-    from resources.lib.utils import log_exception, get_current_content_type, ADDON_ID, recursive_delete_dir
     from .dialogselect import DialogSelect
 else:
     from skinsettings import SkinSettings
     import urlparse
-    from utils import log_msg, KODI_VERSION, kodi_json, clean_string, getCondVisibility
-    from utils import log_exception, get_current_content_type, ADDON_ID, recursive_delete_dir
     from dialogselect import DialogSelect
+from resources.lib.utils import log_msg, KODI_VERSION, kodi_json, clean_string, getCondVisibility
+from resources.lib.utils import log_exception, get_current_content_type, ADDON_ID, recursive_delete_dir, try_decode
 from simplecache import SimpleCache
 from xml.dom.minidom import parse
 from metadatautils import MetadataUtils
@@ -109,10 +107,7 @@ class MainModule:
         content_type = get_current_content_type()
         if not content_type:
             content_type = "files"
-        if sys.version_info.major == 3:
-            current_view = xbmc.getInfoLabel("Container.Viewmode")
-        else:
-            current_view = xbmc.getInfoLabel("Container.Viewmode").decode("utf-8")
+        current_view = try_decode(xbmc.getInfoLabel("Container.Viewmode"))
         view_id, view_label = self.selectview(content_type, current_view)
         current_forced_view = xbmc.getInfoLabel("Skin.String(SkinHelper.ForcedViews.%s)" % content_type)
 
@@ -142,10 +137,7 @@ class MainModule:
             listitem.setProperty("id", "None")
             all_views.append(listitem)
         # read the special skin views file
-        if sys.version_info.major == 3:
-            views_file = xbmc.translatePath('special://skin/extras/views.xml')
-        else:
-            views_file = xbmc.translatePath('special://skin/extras/views.xml').decode("utf-8")
+        views_file = try_decode(xbmc.translatePath('special://skin/extras/views.xml'))
         if xbmcvfs.exists(views_file):
             doc = parse(views_file)
             listing = doc.documentElement.getElementsByTagName('view')
@@ -175,10 +167,7 @@ class MainModule:
         del dialog
         if result:
             viewid = result.getProperty("viewid")
-            if sys.version_info.major == 3:
-                label = result.getLabel()
-            else:
-                label = result.getLabel().decode("utf-8")
+            label = try_decode(result.getLabel())
             return (viewid, label)
         else:
             return (None, None)
@@ -187,10 +176,7 @@ class MainModule:
     def enableviews(self):
         '''show select dialog to enable/disable views'''
         all_views = []
-        if sys.version_info.major == 3:
-            views_file = xbmc.translatePath('special://skin/extras/views.xml')
-        else:
-            views_file = xbmc.translatePath('special://skin/extras/views.xml').decode("utf-8")
+        views_file = try_decode(xbmc.translatePath('special://skin/extras/views.xml'))
         richlayout = self.params.get("richlayout", "") == "true"
         if xbmcvfs.exists(views_file):
             doc = parse(views_file)
@@ -372,10 +358,7 @@ class MainModule:
         setting = self.params.get("setting", "")
         org_id = self.params.get("id", "")
         if "$" in org_id:
-            if sys.version_info.major == 3:
-                org_id = xbmc.getInfoLabel(org_id)
-            else:
-                org_id = xbmc.getInfoLabel(org_id).decode("utf-8")
+            org_id = try_decode(xbmc.getInfoLabel(org_id))
         header = self.params.get("header", "")
         SkinSettings().set_skin_setting(setting=setting, window_header=header, original_id=org_id)
 
@@ -523,12 +506,8 @@ class MainModule:
         '''show the special search dialog'''
         xbmc.executebuiltin("ActivateWindow(busydialog)")
         from resources.lib.searchdialog import SearchDialog
-        if sys.version_info.major == 3:
-            search_dialog = SearchDialog("script-skin_helper_service-CustomSearch.xml",
-                                     self.addon.getAddonInfo('path'), "Default", "1080i")
-        else:
-            search_dialog = SearchDialog("script-skin_helper_service-CustomSearch.xml",
-                                     self.addon.getAddonInfo('path').decode("utf-8"), "Default", "1080i")
+        search_dialog = SearchDialog("script-skin_helper_service-CustomSearch.xml",
+                                 try_decode(self.addon.getAddonInfo('path')), "Default", "1080i")
         search_dialog.doModal()
         del search_dialog
 

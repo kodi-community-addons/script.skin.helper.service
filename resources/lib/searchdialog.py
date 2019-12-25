@@ -11,10 +11,9 @@ import os, sys
 import threading
 if sys.version_info.major == 3:
     import _thread as thread
-    from resources.lib.utils import getCondVisibility
 else
     import thread
-    from utils import getCondVisibility
+from resources.lib.utils import getCondVisibility, try_decode
 import xbmc
 import xbmcgui
 from metadatautils import MetaDataUtils
@@ -246,12 +245,10 @@ class SearchDialog(xbmcgui.WindowXMLDialog):
             xbmc.executebuiltin("ActivateWindow(busydialog)")
             if sys.version_info.major == 3:
                 from .dialogselect import DialogSelect
-                results = []
-                name = listitem.getLabel()
             else:
                 from dialogselect import DialogSelect
-                results = []
-                name = listitem.getLabel().decode("utf-8")
+            results = []
+            name = try_decode(listitem.getLabel())
             items = self.mutils.kodidb.castmedia(name)
             items = self.mutils.process_method_on_list(self.mutils.kodidb.prepare_listitem, items)
             for item in items:

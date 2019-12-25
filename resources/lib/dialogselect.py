@@ -10,10 +10,7 @@
 import os, sys
 import xbmcgui
 import xbmc
-if sys.version_info.major == 3:
-    from resources.lib.utils import getCondVisibility
-else:
-    from utils import getCondVisibility
+from resources.lib.utils import getCondVisibility, try_decode
 
 
 class DialogSelect(xbmcgui.WindowXMLDialog):
@@ -71,12 +68,8 @@ class DialogSelect(xbmcgui.WindowXMLDialog):
         if self.autofocus_label:
             try:
                 for count, item in enumerate(self.listing):
-                    if sys.version_info.major == 3:
-                        if item.getLabel() == self.autofocus_label:
-                            self.list_control.selectItem(count)
-                    else:
-                        if item.getLabel().decode("utf-8") == self.autofocus_label:
-                            self.list_control.selectItem(count)
+                    if try_decode(item.getLabel()) == self.autofocus_label:
+                        self.list_control.selectItem(count)
             except Exception:
                 self.list_control.selectItem(0)
 

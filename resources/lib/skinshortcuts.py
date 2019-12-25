@@ -9,10 +9,7 @@
 '''
 
 import os, sys
-if sys.version_info.major == 3:
-    from resources.lib.utils import kodi_json, log_msg, urlencode, ADDON_ID, getCondVisibility
-else:
-    from utils import kodi_json, log_msg, urlencode, ADDON_ID, getCondVisibility
+from resources.lib.utils import kodi_json, log_msg, urlencode, ADDON_ID, getCondVisibility, try_encode, try_decode
 from metadatautils import MetadataUtils
 import xbmc
 import xbmcvfs
@@ -378,14 +375,9 @@ def playlists_widgets():
                 if item["file"].endswith(".xsp"):
                     playlist = item["file"]
                     contents = xbmcvfs.File(item["file"], 'r')
-                    if sys.version_info.major == 3:
-                        contents_data = contents.read()
-                        contents.close()
-                        xmldata = xmltree.fromstring(contents_data)
-                    else:
-                        contents_data = contents.read().decode('utf-8')
-                        contents.close()
-                        xmldata = xmltree.fromstring(contents_data.encode('utf-8'))
+                    contents_data = try_decode(contents.read())
+                    contents.close()
+                    xmldata = xmltree.fromstring(try_encode(contents_data))
                     media_type = ""
                     label = item["label"]
                     for line in xmldata.getiterator():
@@ -512,28 +504,16 @@ def set_skinshortcuts_property(property_name="", value="", label=""):
     if value or label:
         wait_for_skinshortcuts_window()
         xbmc.sleep(250)
-        if sys.version_info.major == 3:
-            xbmc.executebuiltin("SetProperty(customProperty,%s)" % property_name)
-            xbmc.executebuiltin("SetProperty(customValue,%s)" % value)
-        else:
-            xbmc.executebuiltin("SetProperty(customProperty,%s)" % property_name.encode("utf-8"))
-            xbmc.executebuiltin("SetProperty(customValue,%s)" % value.encode("utf-8"))
+        xbmc.executebuiltin("SetProperty(customProperty,%s)" % try_encode(property_name))
+        xbmc.executebuiltin("SetProperty(customValue,%s)" % try_encode(value))
         xbmc.executebuiltin("SendClick(404)")
         xbmc.sleep(250)
-        if sys.version_info.major == 3:
-            xbmc.executebuiltin("SetProperty(customProperty,%s.name)" % property_name)
-            xbmc.executebuiltin("SetProperty(customValue,%s)" % label)
-        else:
-            xbmc.executebuiltin("SetProperty(customProperty,%s.name)" % property_name.encode("utf-8"))
-            xbmc.executebuiltin("SetProperty(customValue,%s)" % label.encode("utf-8"))
+        xbmc.executebuiltin("SetProperty(customProperty,%s.name)" % try_encode(property_name))
+        xbmc.executebuiltin("SetProperty(customValue,%s)" % try_encode(label))
         xbmc.executebuiltin("SendClick(404)")
         xbmc.sleep(250)
-        if sys.version_info.major == 3:
-            xbmc.executebuiltin("SetProperty(customProperty,%sName)" % property_name)
-            xbmc.executebuiltin("SetProperty(customValue,%s)" % label)
-        else:
-            xbmc.executebuiltin("SetProperty(customProperty,%sName)" % property_name.encode("utf-8"))
-            xbmc.executebuiltin("SetProperty(customValue,%s)" % label.encode("utf-8"))
+        xbmc.executebuiltin("SetProperty(customProperty,%sName)" % try_encode(property_name))
+        xbmc.executebuiltin("SetProperty(customValue,%s)" % try_encode(label))
         xbmc.executebuiltin("SendClick(404)")
 
 def wait_for_skinshortcuts_window():

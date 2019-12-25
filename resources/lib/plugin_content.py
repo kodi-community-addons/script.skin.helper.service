@@ -15,11 +15,10 @@ import xbmcgui
 import xbmcaddon
 from simplecache import SimpleCache
 if sys.version_info.major == 3:
-    from resources.lib.utils import log_msg, KODI_VERSION, log_exception, urlencode, getCondVisibility
     import urllib.parse
 else:
-    from utils import log_msg, KODI_VERSION, log_exception, urlencode, getCondVisibility
     import urlparse
+from resources.lib.utils import log_msg, KODI_VERSION, log_exception, urlencode, getCondVisibility, try_decode
 from metadatautils import MetadataUtils
 
 
@@ -89,10 +88,7 @@ class PluginContent:
             # TEMP !!! for backwards compatability reasons only - to be removed in the near future!!
             import imp
             addon = xbmcaddon.Addon(newaddon)
-            if sys.version_info.major == 3:
-                addon_path = addon.getAddonInfo('path')
-            else:
-                addon_path = addon.getAddonInfo('path').decode("utf-8")
+            addon_path = try_decode(addon.getAddonInfo('path'))
             imp.load_source('plugin', os.path.join(addon_path, "plugin.py"))
             from plugin import main
             main.Main()

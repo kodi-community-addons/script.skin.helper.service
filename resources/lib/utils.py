@@ -57,10 +57,7 @@ def kodi_json(jsonmethod, params=None, returntype=None):
     kodi_json["params"] = params
     kodi_json["id"] = 1
     json_response = xbmc.executeJSONRPC(try_encode(json.dumps(kodi_json)))
-    if sys.version_info.major == 3:
-        json_object = json.loads(json_response)
-    else:
-        json_object = json.loads(json_response.decode('utf-8', 'replace'))
+    json_object = json.loads(try_decode(json_response))
 
     # set the default returntype to prevent errors
     if "details" in jsonmethod.lower():

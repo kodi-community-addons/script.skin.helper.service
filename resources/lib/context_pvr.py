@@ -9,6 +9,7 @@ import os, sys
 import xbmc
 import xbmcgui
 from metadatautils import MetadataUtils
+from resources.lib.utils import try_decode
 
 # pylint: disable-msg=invalid-constant-name
 
@@ -19,21 +20,11 @@ if __name__ == '__main__':
     win = xbmcgui.Window(10000)
     win.setProperty("SkinHelper.Artwork.ManualLookup", "busy")
     xbmc.executebuiltin("ActivateWindow(busydialog)")
-    if sys.version_info.major == 3:
-        title = xbmc.getInfoLabel("ListItem.Title")
-    else:
-        title = xbmc.getInfoLabel("ListItem.Title").decode('utf-8')
+    title = try_decode(xbmc.getInfoLabel("ListItem.Title"))
     if not title:
-        if sys.version_info.major == 3:
-            title = xbmc.getInfoLabel("ListItem.Label")
-        else:
-            title = xbmc.getInfoLabel("ListItem.Label").decode('utf-8')
-    if sys.version_info.major == 3:
-        channel = xbmc.getInfoLabel("ListItem.ChannelName")
-        genre = xbmc.getInfoLabel("ListItem.Genre")
-    else:
-        channel = xbmc.getInfoLabel("ListItem.ChannelName").decode('utf-8')
-        genre = xbmc.getInfoLabel("ListItem.Genre").decode('utf-8')
+        title = try_decode(xbmc.getInfoLabel("ListItem.Label"))
+    channel = try_decode(xbmc.getInfoLabel("ListItem.ChannelName"))
+    genre = try_decode(xbmc.getInfoLabel("ListItem.Genre"))
     metadatautils = MetadataUtils()
     metadatautils.pvr_artwork_options(title, channel, genre)
     xbmc.executebuiltin("Dialog.Close(busydialog)")

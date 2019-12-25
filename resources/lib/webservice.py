@@ -11,10 +11,7 @@
 import os, sys
 import cherrypy
 import threading
-if sys.version_info.major == 3:
-    from resources.lib.utils import log_msg, log_exception, json
-else:
-    from utils import log_msg, log_exception, json
+from resources.lib.utils import log_msg, log_exception, json
 import xbmc
 import xbmcvfs
 

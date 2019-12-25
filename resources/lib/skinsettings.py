@@ -13,12 +13,8 @@ import xbmc
 import xbmcvfs
 import xbmcgui
 import xbmcaddon
-if sys.version_info.major == 3:
-    from resources.lib.utils import ADDON_ID, try_decode, getCondVisibility
-    from resources.lib.dialogselect import DialogSelect
-else:
-    from utils import ADDON_ID, try_decode, getCondVisibility
-    from dialogselect import DialogSelect
+from resources.lib.utils import ADDON_ID, getCondVisibility, try_decode, try_encode
+from resources.lib.dialogselect import DialogSelect
 from xml.dom.minidom import parse
 import xml.etree.ElementTree as xmltree
 import time
@@ -43,30 +39,19 @@ class SkinSettings:
 
     def write_skin_constants(self, constants=None, variables=None):
         '''writes the list of all skin constants'''
-        if sys.version_info.major == 3:
-            addonpath = xbmc.translatePath(os.path.join("special://skin/", 'addon.xml'))
-        else:
-            addonpath = xbmc.translatePath(os.path.join("special://skin/", 'addon.xml').encode("utf-8")).decode("utf-8")
+        addonpath = try_decode(xbmc.translatePath(try_encode(os.path.join("special://skin/", 'addon.xml'))))
         addon = xmltree.parse(addonpath)
         extensionpoints = addon.findall("extension")
         for extensionpoint in extensionpoints:
             if extensionpoint.attrib.get("point") == "xbmc.gui.skin":
                 resolutions = extensionpoint.findall("res")
                 for resolution in resolutions:
-                    if sys.version_info.major == 3:
-                        includes_file = xbmc.translatePath(
-                            os.path.join(
-                                "special://skin/",
-                                try_decode(
-                                    resolution.attrib.get("folder")),
-                                "script-skin_helper_service-includes.xml"))
-                    else:
-                        includes_file = xbmc.translatePath(
-                            os.path.join(
-                                "special://skin/",
-                                try_decode(
-                                    resolution.attrib.get("folder")),
-                                "script-skin_helper_service-includes.xml").encode("utf-8")).decode('utf-8')
+                    includes_file = try_decode(xbmc.translatePath(
+                        try_encode(os.path.join(
+                            "special://skin/",
+                            try_decode(
+                                resolution.attrib.get("folder")),
+                            "script-skin_helper_service-includes.xml"))))
                     tree = xmltree.ElementTree(xmltree.Element("includes"))
                     root = tree.getroot()
                     if constants:
@@ -76,14 +61,9 @@ class SkinSettings:
                                 child.text = value
                                 child.attrib["name"] = key
                                 # also write to skin strings
-                                if sys.version_info.major == 3:
-                                    xbmc.executebuiltin(
-                                        "Skin.SetString(%s,%s)" %
-                                        (key, value))
-                                else:
-                                    xbmc.executebuiltin(
-                                        "Skin.SetString(%s,%s)" %
-                                        (key.encode("utf-8"), value.encode("utf-8")))
+                                xbmc.executebuiltin(
+                                    "Skin.SetString(%s,%s)" %
+                                    (try_encode(key), try_encode(value)))
                     if variables:
                         for key, value in list(variables.items()):
                             if value:
@@ -103,30 +83,19 @@ class SkinSettings:
         '''gets a list of all skin constants as set in the special xml file'''
         all_constants = {}
         all_variables = {}
-        if sys.version_info.major == 3:
-            addonpath = xbmc.translatePath(os.path.join("special://skin/", 'addon.xml'))
-        else:
-            addonpath = xbmc.translatePath(os.path.join("special://skin/", 'addon.xml').encode("utf-8")).decode("utf-8")
+        addonpath = try_decode(xbmc.translatePath(try_encode(os.path.join("special://skin/", 'addon.xml'))))
         addon = xmltree.parse(addonpath)
         extensionpoints = addon.findall("extension")
         for extensionpoint in extensionpoints:
             if extensionpoint.attrib.get("point") == "xbmc.gui.skin":
                 resolutions = extensionpoint.findall("res")
                 for resolution in resolutions:
-                    if sys.version_info.major == 3:
-                        includes_file = xbmc.translatePath(
-                            os.path.join(
-                                "special://skin/",
-                                try_decode(
-                                    resolution.attrib.get("folder")),
-                                "script-skin_helper_service-includes.xml"))
-                    else:
-                        includes_file = xbmc.translatePath(
-                            os.path.join(
-                                "special://skin/",
-                                try_decode(
-                                    resolution.attrib.get("folder")),
-                                "script-skin_helper_service-includes.xml").encode("utf-8")).decode('utf-8')
+                    includes_file = try_decode(xbmc.translatePath(
+                        try_encode(os.path.join(
+                            "special://skin/",
+                            try_decode(
+                                resolution.attrib.get("folder")),
+                            "script-skin_helper_service-includes.xml"))))
                     if xbmcvfs.exists(includes_file):
                         doc = parse(includes_file)
                         listing = doc.documentElement.getElementsByTagName('constant')
@@ -185,42 +154,27 @@ class SkinSettings:
     def get_skin_settings():
         '''get the complete list of all settings defined in the special skinsettings file'''
         all_skinsettings = {}
-        if sys.version_info.major == 3:
-            settings_file = xbmc.translatePath('special://skin/extras/skinsettings.xml')
-        else:
-            settings_file = xbmc.translatePath('special://skin/extras/skinsettings.xml').decode("utf-8")
+        settings_file = try_decode(xbmc.translatePath('special://skin/extras/skinsettings.xml'))
         if xbmcvfs.exists(settings_file):
             doc = parse(settings_file)
             listing = doc.documentElement.getElementsByTagName('setting')
             for item in listing:
-                if sys.version_info.major == 3:
-                    skinsetting_id = item.attributes["id"].nodeValue
-                else:
-                    skinsetting_id = item.attributes["id"].nodeValue.decode("utf-8")
+                skinsetting_id = try_decode(item.attributes["id"].nodeValue)
                 if "$" in skinsetting_id:
-                    if sys.version_info.major == 3:
-                        skinsetting_id = xbmc.getInfoLabel(skinsetting_id)
-                    else:
-                        skinsetting_id = xbmc.getInfoLabel(skinsetting_id).decode("utf-8")
+                    skinsetting_id = try_decode(xbmc.getInfoLabel(skinsetting_id))
                 if all_skinsettings.get(skinsetting_id):
                     skinsetting_values = all_skinsettings[skinsetting_id]
                 else:
                     skinsetting_values = []
                 skinsettingvalue = {}
-                if sys.version_info.major == 3:
-                    skinsettingvalue["value"] = item.attributes["value"].nodeValue
-                else:
-                    skinsettingvalue["value"] = item.attributes["value"].nodeValue.decode("utf-8")
+                skinsettingvalue["value"] = try_decode(item.attributes["value"].nodeValue)
                 # optional attributes
                 for key in ["label", "condition", "description", "default", "icon", "constantdefault"]:
                     value = ""
                     try:
                         value = item.attributes[key].nodeValue
                         if "$" in value:
-                            if sys.version_info.major == 3:
-                                value = xbmc.getInfoLabel(value)
-                            else:
-                                value = xbmc.getInfoLabel(value).decode("utf-8")
+                            value = try_decode(xbmc.getInfoLabel(value))
                         else:
                             value = value
                     except Exception:
@@ -231,19 +185,12 @@ class SkinSettings:
                 onselectactions = []
                 for action in item.getElementsByTagName('onselect'):
                     selectaction = {}
-                    if sys.version_info.major == 3:
-                        selectaction["condition"] = action.attributes['condition'].nodeValue
-                    else:
-                        selectaction["condition"] = action.attributes['condition'].nodeValue.decode("utf-8")
+                    selectaction["condition"] = try_decode(action.attributes['condition'].nodeValue)
                     command = action.firstChild.nodeValue
                     if "$" in command:
-                        if sys.version_info.major == 3:
-                            command = xbmc.getInfoLabel(command)
-                        else:
-                            command = xbmc.getInfoLabel(command).decode("utf-8")
+                        command = try_decode(xbmc.getInfoLabel(command))
                     else:
-                        if sys.version_info.major < 3:
-                            command = command.decode("utf-8")
+                        command = try_decode(command)
                     selectaction["command"] = command
                     onselectactions.append(selectaction)
                 skinsettingvalue["onselectactions"] = onselectactions
@@ -257,13 +204,9 @@ class SkinSettings:
                         try:
                             value = option.attributes[key].nodeValue
                             if value.startswith("$"):
-                                if sys.version_info.major == 3:
-                                    value = xbmc.getInfoLabel(value)
-                                else:
-                                    value = xbmc.getInfoLabel(value).decode("utf-8")
+                                value = try_decode(xbmc.getInfoLabel(value))
                             else:
-                                if sys.version_info.major < 3:
-                                    value = value.decode("utf-8")
+                                value = try_decode(value)
                         except Exception:
                             pass
                         settingoption[key] = value
@@ -277,16 +220,10 @@ class SkinSettings:
     def set_skin_setting(self, setting="", window_header="", sublevel="",
                          cur_value_label="", skip_skin_string=False, original_id="", cur_value=""):
         '''allows the skinner to use a select dialog to set all kind of skin settings'''
-        if sys.version_info.major == 3:
-            if not cur_value_label:
-                cur_value_label = xbmc.getInfoLabel("Skin.String(%s.label)" % setting)
-            if not cur_value:
-                cur_value = xbmc.getInfoLabel("Skin.String(%s)" % setting)
-        else:
-            if not cur_value_label:
-                cur_value_label = xbmc.getInfoLabel("Skin.String(%s.label)" % setting).decode("utf-8")
-            if not cur_value:
-                cur_value = xbmc.getInfoLabel("Skin.String(%s)" % setting).decode("utf-8")
+        if not cur_value_label:
+            cur_value_label = try_decode(xbmc.getInfoLabel("Skin.String(%s.label)" % setting))
+        if not cur_value:
+            cur_value = try_decode(xbmc.getInfoLabel("Skin.String(%s)" % setting))
         rich_layout = False
         listitems = []
         if sublevel:
@@ -325,12 +262,8 @@ class SkinSettings:
         del dialog
         # process the results
         if selected_item:
-            if sys.version_info.major == 3:
-                value = selected_item.getProperty("value")
-                label = selected_item.getLabel()
-            else:
-                value = selected_item.getProperty("value").decode("utf-8")
-                label = selected_item.getLabel().decode("utf-8")
+            value = try_decode(selected_item.getProperty("value"))
+            label = try_decode(selected_item.getLabel())
             if value.startswith("||SUBLEVEL||"):
                 sublevel = value.replace("||SUBLEVEL||", "")
                 self.set_skin_setting(setting, window_header, sublevel)
@@ -343,24 +276,15 @@ class SkinSettings:
                     value = self.save_skin_image(setting, False, label)
                 if value == "||BROWSEMULTIIMAGE||":
                     value = self.save_skin_image(setting, True, label)
-                if sys.version_info.major == 3:
-                    if value == "||PROMPTNUMERIC||":
-                        value = xbmcgui.Dialog().input(label, cur_value, 1)
-                    if value == "||PROMPTSTRING||":
-                        value = xbmcgui.Dialog().input(label, cur_value, 0)
-                else:
-                    if value == "||PROMPTNUMERIC||":
-                        value = xbmcgui.Dialog().input(label, cur_value, 1).decode("utf-8")
-                    if value == "||PROMPTSTRING||":
-                        value = xbmcgui.Dialog().input(label, cur_value, 0).decode("utf-8")
+                if value == "||PROMPTNUMERIC||":
+                    value = try_decode(xbmcgui.Dialog().input(label, cur_value, 1))
+                if value == "||PROMPTSTRING||":
+                    value = try_decode(xbmcgui.Dialog().input(label, cur_value, 0))
                 if value == "||PROMPTSTRINGASNUMERIC||":
                     validinput = False
                     while not validinput:
                         try:
-                            if sys.version_info.major == 3:
-                                value = xbmcgui.Dialog().input(label, cur_value, 0)
-                            else:
-                                value = xbmcgui.Dialog().input(label, cur_value, 0).decode("utf-8")
+                            value = try_decode(xbmcgui.Dialog().input(label, cur_value, 0))
                             valueint = int(value)
                             validinput = True
                             del valueint
@@ -369,16 +293,10 @@ class SkinSettings:
 
                 # write skin strings
                 if not skip_skin_string and value != "||SKIPSTRING||":
-                    if sys.version_info.major == 3:
-                        xbmc.executebuiltin("Skin.SetString(%s,%s)" %
-                                        (setting, value))
-                        xbmc.executebuiltin("Skin.SetString(%s.label,%s)" %
-                                        (setting, label))
-                    else:
-                        xbmc.executebuiltin("Skin.SetString(%s,%s)" %
-                                        (setting.encode("utf-8"), value.encode("utf-8")))
-                        xbmc.executebuiltin("Skin.SetString(%s.label,%s)" %
-                                        (setting.encode("utf-8"), label.encode("utf-8")))                                        
+                    xbmc.executebuiltin("Skin.SetString(%s,%s)" %
+                                    (try_encode(setting), try_encode(value)))
+                    xbmc.executebuiltin("Skin.SetString(%s.label,%s)" %
+                                    (try_encode(setting), try_encode(label)))
                 # process additional actions
                 onselectactions = selected_item.getProperty("onselectactions")
                 if onselectactions:
@@ -393,12 +311,8 @@ class SkinSettings:
         '''correct any special skin settings'''
         skinconstants = {}
         for settingid, settingvalues in list(self.skinsettings.items()):
-            if sys.version_info.major == 3:
-                curvalue = xbmc.getInfoLabel("Skin.String(%s)" % settingid)
-                curlabel = xbmc.getInfoLabel("Skin.String(%s.label)" % settingid)
-            else:
-                curvalue = xbmc.getInfoLabel("Skin.String(%s)" % settingid).decode("utf-8")
-                curlabel = xbmc.getInfoLabel("Skin.String(%s.label)" % settingid).decode("utf-8")
+            curvalue = try_decode(xbmc.getInfoLabel("Skin.String(%s)" % settingid))
+            curlabel = try_decode(xbmc.getInfoLabel("Skin.String(%s.label)" % settingid))
             # first check if we have a sublevel
             if settingvalues and settingvalues[0]["value"].startswith("||SUBLEVEL||"):
                 sublevel = settingvalues[0]["value"].replace("||SUBLEVEL||", "")
@@ -411,42 +325,26 @@ class SkinSettings:
 
                 # only correct the label if value already set
                 if value and value == curvalue:
-                    if sys.version_info.major == 3:
-                        xbmc.executebuiltin(
-                            "Skin.SetString(%s.label,%s)" %
-                            (settingid, label))
-                    else:
-                        xbmc.executebuiltin(
-                            "Skin.SetString(%s.label,%s)" %
-                            (settingid.encode("utf-8"), label.encode("utf-8")))
+                    xbmc.executebuiltin(
+                        "Skin.SetString(%s.label,%s)" %
+                        (try_encode(settingid), try_encode(label)))
 
                 # set the default value if current value is empty
                 if not (curvalue or curlabel):
                     if settingvalue["default"] and getCondVisibility(settingvalue["default"]):
-                        if sys.version_info.major == 3:
-                            xbmc.executebuiltin(
-                                "Skin.SetString(%s.label,%s)" %
-                                (settingid, label))
-                            xbmc.executebuiltin(
-                                "Skin.SetString(%s,%s)" %
-                                (settingid, value))
-                        else:
-                            xbmc.executebuiltin(
-                                "Skin.SetString(%s.label,%s)" %
-                                (settingid.encode("utf-8"), label.encode("utf-8")))
-                            xbmc.executebuiltin(
-                                "Skin.SetString(%s,%s)" %
-                                (settingid.encode("utf-8"), value.encode("utf-8")))
+                        xbmc.executebuiltin(
+                            "Skin.SetString(%s.label,%s)" %
+                            (try_encode(settingid), try_encode(label)))
+                        xbmc.executebuiltin(
+                            "Skin.SetString(%s,%s)" %
+                            (try_encode(settingid), try_encode(value)))
                         # additional onselect actions
                         for action in settingvalue["onselectactions"]:
                             if action["condition"] and getCondVisibility(action["condition"]):
                                 command = action["command"]
                                 if "$" in command:
                                     command = xbmc.getInfoLabel(command)
-                                if sys.version_info.major == 3:
-                                    xbmc.executebuiltin(command)
-                                else:
-                                    xbmc.executebuiltin(command.encode("utf-8"))
+                                xbmc.executebuiltin(try_encode(command))
 
 
                 # process any multiselects
@@ -468,19 +366,12 @@ class SkinSettings:
 
     def save_skin_image(self, skinstring="", multi_image=False, header=""):
         '''let the user select an image and save it to addon_data for easy backup'''
-        if sys.version_info.major == 3:
-            cur_value = xbmc.getInfoLabel("Skin.String(%s)" % skinstring)
-            cur_value_org = xbmc.getInfoLabel("Skin.String(%s.org)" % skinstring)
-        else:
-            cur_value = xbmc.getInfoLabel("Skin.String(%s)" % skinstring).decode("utf-8")
-            cur_value_org = xbmc.getInfoLabel("Skin.String(%s.org)" % skinstring).decode("utf-8")
+        cur_value = try_decode(xbmc.getInfoLabel("Skin.String(%s)" % skinstring))
+        cur_value_org = try_decode(xbmc.getInfoLabel("Skin.String(%s.org)" % skinstring))
 
         if not multi_image:
             # single image (allow copy to addon_data)
-            if sys.version_info.major == 3:
-                value = xbmcgui.Dialog().browse(2, header, 'files', '', True, True, cur_value_org)
-            else:
-                value = xbmcgui.Dialog().browse(2, header, 'files', '', True, True, cur_value_org).decode("utf-8")
+            value = try_decode(xbmcgui.Dialog().browse(2, header, 'files', '', True, True, cur_value_org))
             if value:
                 ext = value.split(".")[-1]
                 newfile = ("special://profile/addon_data/%s/custom_images/%s.%s"
@@ -488,10 +379,7 @@ class SkinSettings:
                 if "special://profile/addon_data/%s/custom_images/" % xbmc.getSkinDir() in cur_value:
                     xbmcvfs.delete(cur_value)
                 xbmcvfs.copy(value, newfile)
-                if sys.version_info.major == 3:
-                    xbmc.executebuiltin("Skin.SetString(%s.org,%s)" % (skinstring, value))
-                else:
-                    xbmc.executebuiltin("Skin.SetString(%s.org,%s)" % (skinstring.encode("utf-8"), value.encode("utf-8")))
+                xbmc.executebuiltin("Skin.SetString(%s.org,%s)" % (try_encode(skinstring), try_encode(value)))
                 value = newfile
         else:
             # multi image
@@ -500,31 +388,19 @@ class SkinSettings:
                 curdir = cur_value_org.rsplit(delim, 1)[0] + delim
             else:
                 curdir = ""
-            if sys.version_info.major == 3:
-                value = xbmcgui.Dialog().browse(0, self.addon.getLocalizedString(32005),
-                                            'files', '', True, True, curdir)
-            else:
-                value = xbmcgui.Dialog().browse(0, self.addon.getLocalizedString(32005),
-                                            'files', '', True, True, curdir).decode("utf-8")
+            value = try_decode(xbmcgui.Dialog().browse(0, self.addon.getLocalizedString(32005),
+                                        'files', '', True, True, curdir))
                                             
         return value
 
     def set_skinshortcuts_property(self, setting="", window_header="", property_name=""):
         '''allows the user to make a setting for skinshortcuts using the special skinsettings dialogs'''
-        if sys.version_info.major == 3:
-            cur_value = xbmc.getInfoLabel(
-                "$INFO[Container(211).ListItem.Property(%s)]" %
-                property_name)
-            cur_value_label = xbmc.getInfoLabel(
-                "$INFO[Container(211).ListItem.Property(%s.name)]" %
-                property_name)
-        else:
-            cur_value = xbmc.getInfoLabel(
-                "$INFO[Container(211).ListItem.Property(%s)]" %
-                property_name).decode("utf-8")
-            cur_value_label = xbmc.getInfoLabel(
-                "$INFO[Container(211).ListItem.Property(%s.name)]" %
-                property_name).decode("utf-8")            
+        cur_value = try_decode(xbmc.getInfoLabel(
+            "$INFO[Container(211).ListItem.Property(%s)]" %
+            property_name))
+        cur_value_label = try_decode(xbmc.getInfoLabel(
+            "$INFO[Container(211).ListItem.Property(%s.name)]" %
+            property_name))
         if setting == "||IMAGE||":
             # select image
             label, value = self.select_image(setting, allow_multi=True, windowheader=windowheader)
@@ -537,10 +413,7 @@ class SkinSettings:
             # manually input string
             if not cur_value:
                 cur_value = "None"
-            if sys.version_info.major == 3:
-                value = xbmcgui.Dialog().input(window_header, cur_value, type=xbmcgui.INPUT_ALPHANUM)
-            else:
-                value = xbmcgui.Dialog().input(window_header, cur_value, type=xbmcgui.INPUT_ALPHANUM).decode("utf-8")
+            value = try_decode(xbmcgui.Dialog().input(window_header, cur_value, type=xbmcgui.INPUT_ALPHANUM))
             label = value
         if label:
             from .skinshortcuts import set_skinshortcuts_property
@@ -554,10 +427,7 @@ class SkinSettings:
         if not windowheader:
             windowheader = self.addon.getLocalizedString(32020)
         if not current_value:
-            if sys.version_info.major == 3:
-                current_value = xbmc.getInfoLabel("Skin.String(%s.label)" % skinstring)
-            else:
-                current_value = xbmc.getInfoLabel("Skin.String(%s.label)" % skinstring).decode("utf-8")
+            current_value = try_decode(xbmc.getInfoLabel("Skin.String(%s.label)" % skinstring))
 
         # none option
         images.append((self.addon.getLocalizedString(32001), "", "", "DefaultAddonNone.png"))
@@ -611,10 +481,7 @@ class SkinSettings:
                 return self.select_image(skinstring, allow_multi, windowheader,
                                          resource_addon, skinhelper_backgrounds, current_value)
         elif result:
-            if sys.version_info.major == 3:
-                label = result.getLabel()
-            else:
-                label = result.getLabel().decode("utf-8")
+            label = try_decode(result.getLabel())
             if label == self.addon.getLocalizedString(32004):
                 # browse for single image
                 custom_image = SkinSettings().save_skin_image(skinstring, False, self.addon.getLocalizedString(32004))
@@ -630,10 +497,7 @@ class SkinSettings:
                 else:
                     return self.selectimage()
             # return values
-            if sys.version_info.major == 3:
-                return (result.getLabel(), result.getfilename())
-            else:
-                return (result.getLabel().decode("utf-8"), result.getfilename().decode("utf-8"))
+            return (try_decode(result.getLabel()), try_decode(result.getfilename()))
         # return empty values
         return ("", "")
 
