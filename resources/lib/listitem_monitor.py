@@ -329,6 +329,7 @@ class ListItemMonitor(threading.Thread):
                     details = merge_dict(details,
                                          self.get_directors_writers(details["director"], details["writer"]))
                     if self.enable_extrafanart:
+                        log_msg("skin.helper.service: extrafanart", xbmc.LOGNOTICE)
                         if not details["filenameandpath"]:
                             details["filenameandpath"] = details["path"]
                         if "videodb://" not in details["filenameandpath"]:

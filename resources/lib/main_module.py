@@ -407,7 +407,7 @@ class MainModule:
             pass
         if value.lower() in ["true", "false"]:
             value = value.lower()
-        elif is_int:
+        elif not is_int:
             value = '"%s"' % value
         params = {"setting": settingname, "value": value}
         kodi_json("Settings.SetSettingValue", params)
