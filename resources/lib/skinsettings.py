@@ -39,19 +39,30 @@ class SkinSettings:
 
     def write_skin_constants(self, constants=None, variables=None):
         '''writes the list of all skin constants'''
-        addonpath = try_decode(xbmc.translatePath(try_encode(os.path.join("special://skin/", 'addon.xml'))))
+        if sys.version_info.major == 3:
+            addonpath = try_decode(xbmcvfs.translatePath(try_encode(os.path.join("special://skin/", 'addon.xml'))))
+        else:
+            addonpath = try_decode(xbmc.translatePath(try_encode(os.path.join("special://skin/", 'addon.xml'))))
         addon = xmltree.parse(addonpath)
         extensionpoints = addon.findall("extension")
         for extensionpoint in extensionpoints:
             if extensionpoint.attrib.get("point") == "xbmc.gui.skin":
                 resolutions = extensionpoint.findall("res")
                 for resolution in resolutions:
-                    includes_file = try_decode(xbmc.translatePath(
-                        try_encode(os.path.join(
-                            "special://skin/",
-                            try_decode(
-                                resolution.attrib.get("folder")),
-                            "script-skin_helper_service-includes.xml"))))
+                    if sys.version_info.major == 3:
+                        includes_file = try_decode(xbmcvfs.translatePath(
+                            try_encode(os.path.join(
+                                "special://skin/",
+                                try_decode(
+                                    resolution.attrib.get("folder")),
+                                "script-skin_helper_service-includes.xml"))))
+                    else:
+                        includes_file = try_decode(xbmc.translatePath(
+                            try_encode(os.path.join(
+                                "special://skin/",
+                                try_decode(
+                                    resolution.attrib.get("folder")),
+                                "script-skin_helper_service-includes.xml"))))
                     tree = xmltree.ElementTree(xmltree.Element("includes"))
                     root = tree.getroot()
                     if constants:
@@ -83,19 +94,32 @@ class SkinSettings:
         '''gets a list of all skin constants as set in the special xml file'''
         all_constants = {}
         all_variables = {}
-        addonpath = try_decode(xbmc.translatePath(try_encode(os.path.join("special://skin/", 'addon.xml'))))
+        if sys.version_info.major == 3:
+            addonpath = try_decode(xbmcvfs.translatePath(try_encode(os.path.join("special://skin/", 'addon.xml'))))
+        else:
+            addonpath = try_decode(xbmc.translatePath(try_encode(os.path.join("special://skin/", 'addon.xml'))))
+
         addon = xmltree.parse(addonpath)
         extensionpoints = addon.findall("extension")
         for extensionpoint in extensionpoints:
             if extensionpoint.attrib.get("point") == "xbmc.gui.skin":
                 resolutions = extensionpoint.findall("res")
                 for resolution in resolutions:
-                    includes_file = try_decode(xbmc.translatePath(
-                        try_encode(os.path.join(
-                            "special://skin/",
-                            try_decode(
-                                resolution.attrib.get("folder")),
-                            "script-skin_helper_service-includes.xml"))))
+                    if sys.version_info.major == 3:
+                        includes_file = try_decode(xbmcvfs.translatePath(
+                            try_encode(os.path.join(
+                                "special://skin/",
+                                try_decode(
+                                    resolution.attrib.get("folder")),
+                                "script-skin_helper_service-includes.xml"))))
+                    else:
+                        includes_file = try_decode(xbmc.translatePath(
+                            try_encode(os.path.join(
+                                "special://skin/",
+                                try_decode(
+                                    resolution.attrib.get("folder")),
+                                "script-skin_helper_service-includes.xml"))))
+
                     if xbmcvfs.exists(includes_file):
                         doc = parse(includes_file)
                         listing = doc.documentElement.getElementsByTagName('constant')
@@ -154,7 +178,10 @@ class SkinSettings:
     def get_skin_settings():
         '''get the complete list of all settings defined in the special skinsettings file'''
         all_skinsettings = {}
-        settings_file = try_decode(xbmc.translatePath('special://skin/extras/skinsettings.xml'))
+        if sys.version_info.major == 3:
+            settings_file = try_decode(xbmcvfs.translatePath('special://skin/extras/skinsettings.xml'))
+        else:
+            settings_file = try_decode(xbmc.translatePath('special://skin/extras/skinsettings.xml'))
         if xbmcvfs.exists(settings_file):
             doc = parse(settings_file)
             listing = doc.documentElement.getElementsByTagName('setting')

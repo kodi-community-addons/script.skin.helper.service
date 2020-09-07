@@ -137,7 +137,10 @@ class MainModule:
             listitem.setProperty("id", "None")
             all_views.append(listitem)
         # read the special skin views file
-        views_file = try_decode(xbmc.translatePath('special://skin/extras/views.xml'))
+        if sys.version_info.major == 3:
+            views_file = try_decode(xbmcvfs.translatePath('special://skin/extras/views.xml'))
+        else:
+            views_file = try_decode(xbmc.translatePath('special://skin/extras/views.xml'))
         if xbmcvfs.exists(views_file):
             doc = parse(views_file)
             listing = doc.documentElement.getElementsByTagName('view')
@@ -176,7 +179,10 @@ class MainModule:
     def enableviews(self):
         '''show select dialog to enable/disable views'''
         all_views = []
-        views_file = try_decode(xbmc.translatePath('special://skin/extras/views.xml'))
+        if sys.version_info.major == 3:
+            views_file = try_decode(xbmcvfs.translatePath('special://skin/extras/views.xml'))
+        else:
+            views_file = try_decode(xbmc.translatePath('special://skin/extras/views.xml'))
         richlayout = self.params.get("richlayout", "") == "true"
         if xbmcvfs.exists(views_file):
             doc = parse(views_file)
