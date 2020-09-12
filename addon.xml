@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-    <addon id="script.skin.helper.service" name="Skin Helper Service" version="1.1.27" provider-name="marcelveldt, wuff">
+    <addon id="script.skin.helper.service" name="Skin Helper Service" version="1.1.28" provider-name="marcelveldt, wuff">
     <requires>
 	<!-- <import addon="xbmc.python" version="3.0.0"/> -->
         <import addon="xbmc.addon" version="12.0.0"/>
@@ -44,6 +44,9 @@
         <summary lang="en">Helper service for Kodi skins</summary>
         <description>Helper service for Kodi skins</description>
         <news>
+v1.1.28
+- replace xbmc.LOGNOTICE with xbmc.LOGINFO as LOGNOTICE was removed
+
 v1.1.27
 - Replace xbmc.translatePath with xbmcvfs.translatePath for Kodi 19 compat
 

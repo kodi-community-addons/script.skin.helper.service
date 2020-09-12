@@ -238,7 +238,7 @@ class ListItemMonitor(threading.Thread):
                     kodi_json('Settings.SetSettingValue', {"setting": "screensaver.mode", "value": None})
                     log_msg(
                         "Disabled screensaver while fullscreen music playback - previous setting: %s" %
-                        self.screensaver_setting, xbmc.LOGNOTICE)
+                        self.screensaver_setting, xbmc.LOGINFO)
         elif self.screensaver_disabled and self.screensaver_setting:
             # enable screensaver again after fullscreen music playback was ended
             kodi_json('Settings.SetSettingValue', {"setting": "screensaver.mode", "value": self.screensaver_setting})
@@ -246,7 +246,7 @@ class ListItemMonitor(threading.Thread):
             self.screensaver_setting = None
             log_msg(
                 "fullscreen music playback ended - restoring screensaver: %s" %
-                self.screensaver_setting, xbmc.LOGNOTICE)
+                self.screensaver_setting, xbmc.LOGINFO)
 
     @staticmethod
     def check_osd():
@@ -329,7 +329,7 @@ class ListItemMonitor(threading.Thread):
                     details = merge_dict(details,
                                          self.get_directors_writers(details["director"], details["writer"]))
                     if self.enable_extrafanart:
-                        log_msg("skin.helper.service: extrafanart", xbmc.LOGNOTICE)
+                        log_msg("skin.helper.service: extrafanart", xbmc.LOGINFO)
                         if not details["filenameandpath"]:
                             details["filenameandpath"] = details["path"]
                         if "videodb://" not in details["filenameandpath"]:

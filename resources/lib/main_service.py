@@ -39,7 +39,7 @@ class MainService:
         self.listitem_monitor.start()
         self.webservice.start()
         
-        log_msg('%s version %s started' % (self.addonname, self.addonversion), xbmc.LOGNOTICE)
+        log_msg('%s version %s started' % (self.addonname, self.addonversion), xbmc.LOGINFO)
 
         # run as service, check skin every 10 seconds and keep the other threads alive
         while not self.kodimonitor.abortRequested():
@@ -57,14 +57,14 @@ class MainService:
         '''Cleanup Kodi Cpython instances'''
         self.webservice.stop()
         self.win.setProperty("SkinHelperShutdownRequested", "shutdown")
-        log_msg('Shutdown requested !', xbmc.LOGNOTICE)
+        log_msg('Shutdown requested !', xbmc.LOGINFO)
         self.listitem_monitor.stop()
         self.metadatautils.close()
         del self.win
         del self.kodimonitor
         #del self.metadatautils
         #del self.webservice
-        log_msg('%s version %s stopped' % (self.addonname, self.addonversion), xbmc.LOGNOTICE)
+        log_msg('%s version %s stopped' % (self.addonname, self.addonversion), xbmc.LOGINFO)
 
     def check_skin_version(self):
         '''check if skin changed'''

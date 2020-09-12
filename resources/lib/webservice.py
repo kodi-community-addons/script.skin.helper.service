@@ -247,7 +247,7 @@ class WebService(threading.Thread):
         threading.Thread.__init__(self)
 
     def run(self):
-        log_msg("Starting WebService on port %s" % PORT, xbmc.LOGNOTICE)
+        log_msg("Starting WebService on port %s" % PORT, xbmc.LOGINFO)
         conf = {
             'global': {
                 'server.socket_host': '0.0.0.0',
