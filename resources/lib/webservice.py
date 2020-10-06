@@ -238,10 +238,11 @@ class WebService(threading.Thread):
 
     def __init__(self, metadatautils):
         self.__root = Root(metadatautils)
+        #engine.timeout_monitor removed from cherrypy
         cherrypy.config.update({
             'engine.autoreload.on' : False,
             'log.screen': False,
-            'engine.timeout_monitor.frequency': 5,
+            #'engine.timeout_monitor.frequency': 5,
             'server.shutdown_timeout': 1,
         })
         threading.Thread.__init__(self)
