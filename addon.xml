@@ -6,7 +6,7 @@
         <import addon="script.module.simplejson" version="3.3.0"/>
         <import addon="script.module.simplecache" version="1.0.0"/>
         <import addon="script.module.metadatautils" version="1.0.0"/>
-        <import addon="script.module.cherrypy" version="11.0.0"/>
+        <import addon="script.module.cherrypy" version="17.0.0"/>
     </requires>
 
     <extension point="kodi.context.item">
@@ -45,7 +45,7 @@
         <description>Helper service for Kodi skins</description>
         <news>
 v1.1.29
-- compatibility change for CherryPy 17.4.2
+- compatibility change for CherryPy 17.4.2 and bump version requirement
 
 v1.1.28
 - replace xbmc.LOGNOTICE with xbmc.LOGINFO as LOGNOTICE was removed
