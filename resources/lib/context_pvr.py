@@ -9,7 +9,7 @@ import os, sys
 import xbmc
 import xbmcgui
 from metadatautils import MetadataUtils
-from resources.lib.utils import try_decode
+from utils import try_decode
 
 # pylint: disable-msg=invalid-constant-name
 
