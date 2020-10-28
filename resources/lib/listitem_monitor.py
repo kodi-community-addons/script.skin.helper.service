@@ -186,7 +186,7 @@ class ListItemMonitor(threading.Thread):
         cont_prefix = ""
         try:
             widget_container = try_decode(self.win.getProperty("SkinHelper.WidgetContainer"))
-            if getCondVisibility("Window.IsActive(movieinformation)"):
+            if getCondVisibility("Window.IsActive(movieinformation)|Window.IsActive(DialogPVRInfo.xml)|Window.IsActive(DialogMusicInfo.xml)"):
                 cont_prefix = ""
                 cur_folder = try_decode(xbmc.getInfoLabel(
                     "$INFO[Window.Property(xmlfile)]$INFO[Container.FolderPath]"
