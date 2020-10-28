@@ -421,7 +421,7 @@ class MainModule:
     def playtrailer(self):
         '''auto play windowed trailer inside video listing'''
         if not getCondVisibility("Container.Scrolling | Container.OnNext | "
-                                      "Container.OnPrevious | !IsEmpty(Window(Home).Property(traileractionbusy))"):
+                                      "Container.OnPrevious | !String.IsEmpty(Window(Home).Property(traileractionbusy))"):
             self.win.setProperty("traileractionbusy", "traileractionbusy")
             widget_container = self.params.get("widgetcontainer", "")
             trailer_mode = self.params.get("mode", "").replace("auto_", "")
