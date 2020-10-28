@@ -112,7 +112,10 @@ def try_decode(text, encoding="utf-8"):
 
 def urlencode(text):
     '''urlencode a string'''
-    blah = urllib.parse.urlencode({'blahblahblah': try_encode(text)})
+    if sys.version_info.major == 3:
+        blah = urllib.parse.urlencode({'blahblahblah': try_encode(text)})
+    else:
+        blah = urlparse.urlencode({'blahblahblah': try_encode(text)})
     blah = blah[13:]
     return blah
 
