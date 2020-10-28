@@ -62,7 +62,7 @@ class KodiMonitor(xbmc.Monitor):
                 if not self.monitoring_stream and not getCondVisibility("Player.DisplayAfterSeek"):
                     self.reset_win_props()
                 if self.wait_for_player():
-                    if getCondVisibility("Player.HasAudio"):
+                    if getCondVisibility("Player.HasVideo | Player.HasAudio"):
                         if getCondVisibility("Player.IsInternetStream"):
                             self.monitor_radiostream()
                         else:
