@@ -115,7 +115,7 @@ def urlencode(text):
     if sys.version_info.major == 3:
         blah = urllib.parse.urlencode({'blahblahblah': try_encode(text)})
     else:
-        blah = urlparse.urlencode({'blahblahblah': try_encode(text)})
+        blah = urllib.urlencode({'blahblahblah': try_encode(text)})
     blah = blah[13:]
     return blah
 
