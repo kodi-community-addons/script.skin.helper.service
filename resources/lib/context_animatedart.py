@@ -5,10 +5,12 @@
     Contextmenu for Animated art
 '''
 
+import os, sys
 import xbmc
 import xbmcgui
 from metadatautils import MetadataUtils
-from utils import log_msg
+from utils import log_msg, try_decode
+    
 
 # pylint: disable-msg=invalid-constant-name
 
@@ -16,18 +18,18 @@ from utils import log_msg
 def get_imdb_id(win, metadatautils):
     '''get imdbnumber for listitem'''
     content_type = win.getProperty("contenttype")
-    imdb_id = xbmc.getInfoLabel("ListItem.IMDBNumber").decode('utf-8')
+    imdb_id = try_decode(xbmc.getInfoLabel("ListItem.IMDBNumber"))
     if not imdb_id:
-        imdb_id = xbmc.getInfoLabel("ListItem.Property(IMDBNumber)").decode('utf-8')
+        imdb_id = try_decode(xbmc.getInfoLabel("ListItem.Property(IMDBNumber)"))
     if imdb_id and not imdb_id.startswith("tt"):
         imdb_id = ""
     if not imdb_id:
-        year = xbmc.getInfoLabel("ListItem.Year").decode('utf-8')
-        title = xbmc.getInfoLabel("ListItem.Title").decode('utf-8').split(",")[0].split("(")[0]
+        year = try_decode(xbmc.getInfoLabel("ListItem.Year"))
+        title = try_decode(xbmc.getInfoLabel("ListItem.Title")).split(",")[0].split("(")[0]
         if content_type in ["episodes", "seasons"]:
-            title = xbmc.getInfoLabel("ListItem.TvShowTitle").decode('utf-8')
+            title = try_decode(xbmc.getInfoLabel("ListItem.TvShowTitle"))
         if title:
-            log_msg("Animated Art: lookup imdbid by title and year: (%s - %s)" % (title, year), xbmc.LOGNOTICE)
+            log_msg("Animated Art: lookup imdbid by title and year: (%s - %s)" % (title, year), xbmc.LOGINFO)
             imdb_id = metadatautils.get_omdb_info("", title, year, content_type).get("imdbnumber", "")
         if not imdb_id:
             return title
@@ -36,14 +38,14 @@ def get_imdb_id(win, metadatautils):
 # Kodi contextmenu item to configure the artwork
 if __name__ == '__main__':
     xbmc.executebuiltin("ActivateWindow(busydialog)")
-    log_msg("Contextmenu for Animated Art opened", xbmc.LOGNOTICE)
+    log_msg("Contextmenu for Animated Art opened", xbmc.LOGINFO)
     ARTUTILS = MetadataUtils()
     WIN = xbmcgui.Window(10000)
     imdb_id = get_imdb_id(WIN, ARTUTILS)
     WIN.setProperty("SkinHelper.Artwork.ManualLookup", "busy")
-    log_msg("Animated Art: Query animated art by IMDBID: %s" % imdb_id, xbmc.LOGNOTICE)
+    log_msg("Animated Art: Query animated art by IMDBID: %s" % imdb_id, xbmc.LOGINFO)
     artwork = ARTUTILS.get_animated_artwork(imdb_id, manual_select=True, ignore_cache=True)
-    log_msg("Animated Art result: %s" % artwork, xbmc.LOGNOTICE)
+    log_msg("Animated Art result: %s" % artwork, xbmc.LOGINFO)
     xbmc.executebuiltin("Dialog.Close(busydialog)")
     xbmc.executebuiltin("Container.Refresh")
     WIN.clearProperty("SkinHelper.Artwork.ManualLookup")

@@ -7,9 +7,13 @@
     monitor the kodi listitems and providing additional information
 '''
 
+import os, sys
 import threading
-import thread
-from utils import log_msg, log_exception, get_current_content_type, kodi_json, prepare_win_props, merge_dict, getCondVisibility
+if sys.version_info.major == 3:
+    import _thread as thread
+else:
+    import thread
+from resources.lib.utils import log_msg, log_exception, get_current_content_type, kodi_json, prepare_win_props, merge_dict, getCondVisibility, try_decode
 import xbmc
 from simplecache import SimpleCache
 
@@ -122,7 +126,7 @@ class ListItemMonitor(threading.Thread):
         self.enable_pvrart = getCondVisibility(
             "Skin.HasSetting(SkinHelper.EnablePVRThumbs) + PVR.HasTVChannels") == 1
         self.enable_forcedviews = getCondVisibility("Skin.HasSetting(SkinHelper.ForcedViews.Enabled)") == 1
-        studiologos_path = xbmc.getInfoLabel("Skin.String(SkinHelper.StudioLogos.Path)").decode("utf-8")
+        studiologos_path = xbmc.getInfoLabel("Skin.String(SkinHelper.StudioLogos.Path)")
         if studiologos_path != self.metadatautils.studiologos_path:
             self.listitem_details = {}
             self.metadatautils.studiologos_path = studiologos_path
@@ -138,15 +142,15 @@ class ListItemMonitor(threading.Thread):
 
         cur_folder, cont_prefix = self.get_folderandprefix()
         # identify current listitem - prefer parent folder (tvshows, music)
-        cur_listitem = xbmc.getInfoLabel(
+        cur_listitem = try_decode(xbmc.getInfoLabel(
             "$INFO[%sListItem.TvshowTitle]$INFO[%sListItem.Artist]$INFO[%sListItem.Album]" %
-            (cont_prefix, cont_prefix, cont_prefix)).decode('utf-8')
+            (cont_prefix, cont_prefix, cont_prefix)))
         if not cur_listitem:
             # fallback to generic approach
-            cur_listitem = xbmc.getInfoLabel(
+            cur_listitem = try_decode(xbmc.getInfoLabel(
                 "$INFO[%sListItem.Label]$INFO[%sListItem.DBID]$INFO[%sListItem.Title]" %
-                (cont_prefix, cont_prefix, cont_prefix)).decode('utf-8')
-                
+                (cont_prefix, cont_prefix, cont_prefix)))
+                        
         if self.exit:
             return
 
@@ -181,22 +185,21 @@ class ListItemMonitor(threading.Thread):
         cur_folder = ""
         cont_prefix = ""
         try:
-            widget_container = self.win.getProperty("SkinHelper.WidgetContainer").decode('utf-8')
-            if getCondVisibility("Window.IsActive(movieinformation)"):
+            widget_container = try_decode(self.win.getProperty("SkinHelper.WidgetContainer"))
+            if getCondVisibility("Window.IsActive(movieinformation)|Window.IsActive(DialogPVRInfo.xml)|Window.IsActive(DialogMusicInfo.xml)"):
                 cont_prefix = ""
-                cur_folder = xbmc.getInfoLabel(
+                cur_folder = try_decode(xbmc.getInfoLabel(
                     "$INFO[Window.Property(xmlfile)]$INFO[Container.FolderPath]"
-                    "$INFO[Container.NumItems]$INFO[Container.Content]").decode('utf-8')
+                    "$INFO[Container.NumItems]$INFO[Container.Content]"))
             elif widget_container:
                 cont_prefix = "Container(%s)." % widget_container
-                cur_folder = xbmc.getInfoLabel(
-                    "widget-%s-$INFO[Container(%s).NumItems]-$INFO[Container(%s).ListItemAbsolute(1).Label]" %
-                    (widget_container, widget_container, widget_container)).decode('utf-8')
+                cur_folder = try_decode(xbmc.getInfoLabel(
+                        "widget-%s-$INFO[Container(%s).NumItems]-$INFO[Container(%s).ListItemAbsolute(1).Label]" %
+                        (widget_container, widget_container, widget_container)))
             else:
                 cont_prefix = ""
-                cur_folder = xbmc.getInfoLabel(
-                    "$INFO[Window.Property(xmlfile)]$INFO[Container.FolderPath]$INFO[Container.NumItems]$INFO[Container.Content]").decode(
-                    'utf-8')
+                cur_folder = try_decode(xbmc.getInfoLabel(
+                    "$INFO[Window.Property(xmlfile)]$INFO[Container.FolderPath]$INFO[Container.NumItems]$INFO[Container.Content]"))
         except Exception as exc:
             log_exception(__name__, exc)
             cur_folder = ""
@@ -235,7 +238,7 @@ class ListItemMonitor(threading.Thread):
                     kodi_json('Settings.SetSettingValue', {"setting": "screensaver.mode", "value": None})
                     log_msg(
                         "Disabled screensaver while fullscreen music playback - previous setting: %s" %
-                        self.screensaver_setting, xbmc.LOGNOTICE)
+                        self.screensaver_setting, xbmc.LOGINFO)
         elif self.screensaver_disabled and self.screensaver_setting:
             # enable screensaver again after fullscreen music playback was ended
             kodi_json('Settings.SetSettingValue', {"setting": "screensaver.mode", "value": self.screensaver_setting})
@@ -243,7 +246,7 @@ class ListItemMonitor(threading.Thread):
             self.screensaver_setting = None
             log_msg(
                 "fullscreen music playback ended - restoring screensaver: %s" %
-                self.screensaver_setting, xbmc.LOGNOTICE)
+                self.screensaver_setting, xbmc.LOGINFO)
 
     @staticmethod
     def check_osd():
@@ -326,6 +329,7 @@ class ListItemMonitor(threading.Thread):
                     details = merge_dict(details,
                                          self.get_directors_writers(details["director"], details["writer"]))
                     if self.enable_extrafanart:
+                        log_msg("skin.helper.service: extrafanart", xbmc.LOGINFO)
                         if not details["filenameandpath"]:
                             details["filenameandpath"] = details["path"]
                         if "videodb://" not in details["filenameandpath"]:
@@ -466,7 +470,7 @@ class ListItemMonitor(threading.Thread):
 
     def reset_win_props(self):
         '''reset all window props set by the script...'''
-        self.metadatautils.process_method_on_list(self.win.clearProperty, self.all_window_props.iterkeys())
+        self.metadatautils.process_method_on_list(self.win.clearProperty, iter(list(self.all_window_props.keys())))
         self.all_window_props = {}
 
     def set_win_prop(self, prop_tuple):
@@ -482,7 +486,7 @@ class ListItemMonitor(threading.Thread):
         self.metadatautils.process_method_on_list(self.set_win_prop, prop_tuples)
         # cleanup remaining properties
         new_keys = [item[0] for item in prop_tuples]
-        for key, value in self.all_window_props.iteritems():
+        for key, value in list(self.all_window_props.items()):
             if value and key not in new_keys:
                 self.all_window_props[key] = ""
                 self.win.clearProperty(key)
@@ -541,9 +545,9 @@ class ListItemMonitor(threading.Thread):
 
         # basic properties
         for prop in ["dbtype", "dbid", "imdbnumber"]:
-            propvalue = xbmc.getInfoLabel('$INFO[%sListItem.%s]' % (prefix, prop)).decode('utf-8')
+            propvalue = try_decode(xbmc.getInfoLabel('$INFO[%sListItem.%s]' % (prefix, prop)))
             if not propvalue or propvalue == "-1":
-                propvalue = xbmc.getInfoLabel('$INFO[%sListItem.Property(%s)]' % (prefix, prop)).decode('utf-8')
+                propvalue = try_decode(xbmc.getInfoLabel('$INFO[%sListItem.Property(%s)]' % (prefix, prop)))
             listitem_details[prop] = propvalue
 
         # generic properties
@@ -563,7 +567,7 @@ class ListItemMonitor(threading.Thread):
         for prop in props:
             if self.exit:
                 break
-            propvalue = xbmc.getInfoLabel('$INFO[%sListItem.%s]' % (prefix, prop)).decode('utf-8')
+            propvalue = try_decode(xbmc.getInfoLabel('$INFO[%sListItem.%s]' % (prefix, prop)))
             listitem_details[prop] = propvalue
 
         # artwork properties
@@ -572,9 +576,9 @@ class ListItemMonitor(threading.Thread):
         for prop in artprops:
             if self.exit:
                 break
-            propvalue = xbmc.getInfoLabel('$INFO[%sListItem.Art(%s)]' % (prefix, prop)).decode('utf-8')
+            propvalue = try_decode(xbmc.getInfoLabel('$INFO[%sListItem.Art(%s)]' % (prefix, prop)))
             if not propvalue:
-                propvalue = xbmc.getInfoLabel('$INFO[%sListItem.Art(tvshow.%s)]' % (prefix, prop)).decode('utf-8')
+                propvalue = try_decode(xbmc.getInfoLabel('$INFO[%sListItem.Art(tvshow.%s)]' % (prefix, prop)))
             if propvalue:
                 listitem_details["art"][prop] = propvalue
 
@@ -601,7 +605,7 @@ class ListItemMonitor(threading.Thread):
         if self.enable_forcedviews:
             cur_forced_view = xbmc.getInfoLabel("Skin.String(SkinHelper.ForcedViews.%s)" % content_type)
             if getCondVisibility(
-                    "Control.IsVisible(%s) | IsEmpty(Container.Viewmode) | System.HasModalDialog | System.HasVisibleModalDialog" % cur_forced_view):
+                    "Control.IsVisible(%s) | String.IsEmpty(Container.Viewmode) | System.HasModalDialog | System.HasVisibleModalDialog" % cur_forced_view):
                 # skip if the view is already visible or if we're not in an actual media window
                 return
             if (content_type and cur_forced_view and cur_forced_view != "None" and not

@@ -8,14 +8,14 @@
     Methods to connect skinhelper to skinshortcuts for smartshortcuts, widgets and backgrounds
 '''
 
-from utils import kodi_json, log_msg, urlencode, ADDON_ID, getCondVisibility
+import os, sys
+from resources.lib.utils import kodi_json, log_msg, urlencode, ADDON_ID, getCondVisibility, try_encode, try_decode
 from metadatautils import MetadataUtils
 import xbmc
 import xbmcvfs
 import xbmcplugin
 import xbmcgui
 import xbmcaddon
-import sys
 
 # extendedinfo has some login-required widgets, these must not be probed without login details
 EXTINFO_CREDS = False
@@ -37,7 +37,7 @@ def add_directoryitem(entry, is_folder=True, widget=None, widget2=None):
     if is_folder:
         path = sys.argv[0] + "?action=SMARTSHORTCUTS&path=" + entry
         listitem = xbmcgui.ListItem(label, path=path)
-        listitem.setIconImage("DefaultFolder.png")
+        listitem.setArt({"icon": 'DefaultFolder.png'})
     else:
         listitem = xbmcgui.ListItem(label, path=path)
         props = {}
@@ -48,8 +48,7 @@ def add_directoryitem(entry, is_folder=True, widget=None, widget2=None):
         props["background"] = "$INFO[Window(Home).Property(%s.image)]" % entry
         props["backgroundName"] = "$INFO[Window(Home).Property(%s.title)]" % entry
         listitem.setInfo(type="Video", infoLabels={"Title": "smartshortcut"})
-        listitem.setThumbnailImage(image)
-        listitem.setIconImage("special://home/addons/script.skin.helper.service/fanart.jpg")
+        listitem.setArt({"icon": "special://home/addons/script.skin.helper.service/fanart.jpg", "thumb": image})
 
         if widget:
             widget_type = "$INFO[Window(Home).Property(%s.type)]" % widget
@@ -291,7 +290,7 @@ def get_widgets(item_filter="", sublevel=""):
 
                 if is_folder:
                     listitem = xbmcgui.ListItem(widget[0])
-                    listitem.setIconImage("DefaultFolder.png")
+                    listitem.setArt({"icon": "DefaultFolder.png"})
                     xbmcplugin.addDirectoryItem(
                         handle=int(sys.argv[1]),
                         url=widget[1],
@@ -309,8 +308,7 @@ def get_widgets(item_filter="", sublevel=""):
                     props["widgetName"] = widget[0]
                     props["widget"] = item_filter
                     listitem.setInfo(type="Video", infoLabels={"Title": "smartshortcut"})
-                    listitem.setThumbnailImage(image)
-                    listitem.setArt({"fanart": image})
+                    listitem.setArt({"fanart": image, "thumb": image})
                     # we use the mpaa property to pass all properties to skinshortcuts
                     listitem.setInfo(type="Video", infoLabels={"mpaa": repr(props)})
                     xbmcplugin.addDirectoryItem(
@@ -359,8 +357,7 @@ def get_backgrounds():
     xbmcplugin.setContent(int(sys.argv[1]), 'files')
     for label, image in get_skinhelper_backgrounds():
         listitem = xbmcgui.ListItem(label, path=image)
-        listitem.setArt({"fanart": image})
-        listitem.setThumbnailImage(image)
+        listitem.setArt({"fanart": image, "thumb": image})
         xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=image, listitem=listitem, isFolder=False)
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
@@ -378,9 +375,9 @@ def playlists_widgets():
                 if item["file"].endswith(".xsp"):
                     playlist = item["file"]
                     contents = xbmcvfs.File(item["file"], 'r')
-                    contents_data = contents.read().decode('utf-8')
+                    contents_data = try_decode(contents.read())
                     contents.close()
-                    xmldata = xmltree.fromstring(contents_data.encode('utf-8'))
+                    xmldata = xmltree.fromstring(try_encode(contents_data))
                     media_type = ""
                     label = item["label"]
                     for line in xmldata.getiterator():
@@ -507,18 +504,17 @@ def set_skinshortcuts_property(property_name="", value="", label=""):
     if value or label:
         wait_for_skinshortcuts_window()
         xbmc.sleep(250)
-        xbmc.executebuiltin("SetProperty(customProperty,%s)" % property_name.encode("utf-8"))
-        xbmc.executebuiltin("SetProperty(customValue,%s)" % value.encode("utf-8"))
+        xbmc.executebuiltin("SetProperty(customProperty,%s)" % try_encode(property_name))
+        xbmc.executebuiltin("SetProperty(customValue,%s)" % try_encode(value))
         xbmc.executebuiltin("SendClick(404)")
         xbmc.sleep(250)
-        xbmc.executebuiltin("SetProperty(customProperty,%s.name)" % property_name.encode("utf-8"))
-        xbmc.executebuiltin("SetProperty(customValue,%s)" % label.encode("utf-8"))
+        xbmc.executebuiltin("SetProperty(customProperty,%s.name)" % try_encode(property_name))
+        xbmc.executebuiltin("SetProperty(customValue,%s)" % try_encode(label))
         xbmc.executebuiltin("SendClick(404)")
         xbmc.sleep(250)
-        xbmc.executebuiltin("SetProperty(customProperty,%sName)" % property_name.encode("utf-8"))
-        xbmc.executebuiltin("SetProperty(customValue,%s)" % label.encode("utf-8"))
+        xbmc.executebuiltin("SetProperty(customProperty,%sName)" % try_encode(property_name))
+        xbmc.executebuiltin("SetProperty(customValue,%s)" % try_encode(label))
         xbmc.executebuiltin("SendClick(404)")
-
 
 def wait_for_skinshortcuts_window():
     '''wait untill skinshortcuts is active window (because of any animations that may have been applied)'''

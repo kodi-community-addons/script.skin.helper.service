@@ -8,12 +8,15 @@
     Various helper methods
 '''
 
+import os, sys
 import xbmc
 import xbmcvfs
-import os
-import sys
-import urllib
-from traceback import format_exc
+if sys.version_info.major == 3:
+    import urllib.request, urllib.parse, urllib.error
+    import traceback
+else:
+    import urllib
+    from traceback import format_exc
 
 try:
     import simplejson as json
@@ -27,14 +30,20 @@ KODILANGUAGE = xbmc.getLanguage(xbmc.ISO_639_1)
 
 def log_msg(msg, loglevel=xbmc.LOGDEBUG):
     '''log message to kodi log'''
-    if isinstance(msg, unicode):
-        msg = msg.encode('utf-8')
+    if sys.version_info.major < 3:
+        if isinstance(msg, unicode):
+            msg = msg.encode('utf-8')
     xbmc.log("Skin Helper Service --> %s" % msg, level=loglevel)
 
 
 def log_exception(modulename, exceptiondetails):
     '''helper to properly log an exception'''
-    log_msg(format_exc(sys.exc_info()), xbmc.LOGWARNING)
+    if sys.version_info.major == 3:
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
+        log_msg("Exception details: Type: %s Value: %s Traceback: %s" % (exc_type.__name__, exc_value, ''.join(line for line in lines)), xbmc.LOGWARNING)
+    else:
+        log_msg(format_exc(sys.exc_info()), xbmc.LOGWARNING)
     log_msg("Exception in %s ! --> %s" % (modulename, exceptiondetails), xbmc.LOGERROR)
 
 
@@ -48,7 +57,8 @@ def kodi_json(jsonmethod, params=None, returntype=None):
     kodi_json["params"] = params
     kodi_json["id"] = 1
     json_response = xbmc.executeJSONRPC(try_encode(json.dumps(kodi_json)))
-    json_object = json.loads(json_response.decode('utf-8', 'replace'))
+    json_object = json.loads(try_decode(json_response))
+
     # set the default returntype to prevent errors
     if "details" in jsonmethod.lower():
         result = {}
@@ -61,10 +71,16 @@ def kodi_json(jsonmethod, params=None, returntype=None):
         else:
             # no returntype specified, we'll have to look for it
             if isinstance(json_object['result'], dict):
-                for key, value in json_object['result'].iteritems():
-                    if not key == "limits":
-                        result = value
-                        break
+                if sys.version_info.major == 3:
+                    for key, value in list(json_object['result'].items()):
+                        if not key == "limits":
+                            result = value
+                            break
+                else:
+                    for key, value in json_object['result'].iteritems():
+                        if not key == "limits":
+                            result = value
+                            break
             else:
                 return json_object['result']
     else:
@@ -75,23 +91,31 @@ def kodi_json(jsonmethod, params=None, returntype=None):
 
 def try_encode(text, encoding="utf-8"):
     '''helper to encode a string to utf-8'''
-    try:
-        return text.encode(encoding, "ignore")
-    except Exception:
+    if sys.version_info.major == 3:
         return text
+    else:
+        try:
+            return text.encode(encoding, "ignore")
+        except Exception:
+            return text
 
 
 def try_decode(text, encoding="utf-8"):
     '''helper to decode a string into unicode'''
-    try:
-        return text.decode(encoding, "ignore")
-    except Exception:
+    if sys.version_info.major == 3:
         return text
-
+    else:
+        try:
+            return text.decode(encoding, "ignore")
+        except Exception:
+            return text
 
 def urlencode(text):
     '''urlencode a string'''
-    blah = urllib.urlencode({'blahblahblah': try_encode(text)})
+    if sys.version_info.major == 3:
+        blah = urllib.parse.urlencode({'blahblahblah': try_encode(text)})
+    else:
+        blah = urllib.urlencode({'blahblahblah': try_encode(text)})
     blah = blah[13:]
     return blah
 
@@ -202,36 +226,64 @@ def recursive_delete_dir(path):
     success = xbmcvfs.rmdir(path)
     return success
 
-
-def prepare_win_props(details, prefix=u"SkinHelper.ListItem."):
-    '''helper to pretty string-format a dict with details to key/value pairs so it can be used as window props'''
-    items = []
-    if details:
-        for key, value in details.iteritems():
-            if value or value == 0:
-                key = u"%s%s" % (prefix, key)
-                key = key.lower()
-                if isinstance(value, (str, unicode)):
-                    items.append((key, value))
-                elif isinstance(value, int):
-                    items.append((key, "%s" % value))
-                elif isinstance(value, float):
-                    items.append((key, "%.1f" % value))
-                elif isinstance(value, dict):
-                    for key2, value2 in value.iteritems():
-                        if isinstance(value2, (str, unicode)):
-                            items.append((u"%s.%s" % (key, key2), value2))
-                elif isinstance(value, list):
-                    list_strings = []
-                    for listvalue in value:
-                        if isinstance(listvalue, (str, unicode)):
-                            list_strings.append(listvalue)
-                    if list_strings:
-                        items.append((key, u" / ".join(list_strings)))
-                    elif len(value) == 1 and isinstance(value[0], (str, unicode)):
+if sys.version_info.major == 3:
+    def prepare_win_props(details, prefix="SkinHelper.ListItem."):
+        '''helper to pretty string-format a dict with details to key/value pairs so it can be used as window props'''
+        items = []
+        if details:
+            for key, value in list(details.items()):
+                if value or value == 0:
+                    key = "%s%s" % (prefix, key)
+                    key = key.lower()
+                    if isinstance(value, (bytes, str)):
                         items.append((key, value))
-    return items
-
+                    elif isinstance(value, int):
+                        items.append((key, "%s" % value))
+                    elif isinstance(value, float):
+                        items.append((key, "%.1f" % value))
+                    elif isinstance(value, dict):
+                        for key2, value2 in list(value.items()):
+                            if isinstance(value2, (bytes, str)):
+                                items.append(("%s.%s" % (key, key2), value2))
+                    elif isinstance(value, list):
+                        list_strings = []
+                        for listvalue in value:
+                            if isinstance(listvalue, (bytes, str)):
+                                list_strings.append(listvalue)
+                        if list_strings:
+                            items.append((key, " / ".join(list_strings)))
+                        elif len(value) == 1 and isinstance(value[0], (bytes, str)):
+                            items.append((key, value))
+        return items
+else:
+    def prepare_win_props(details, prefix=u"SkinHelper.ListItem."):
+        '''helper to pretty string-format a dict with details to key/value pairs so it can be used as window props'''
+        items = []
+        if details:
+            for key, value in details.iteritems():
+                if value or value == 0:
+                    key = u"%s%s" % (prefix, key)
+                    key = key.lower()
+                    if isinstance(value, (str, unicode)):
+                        items.append((key, value))
+                    elif isinstance(value, int):
+                        items.append((key, "%s" % value))
+                    elif isinstance(value, float):
+                        items.append((key, "%.1f" % value))
+                    elif isinstance(value, dict):
+                        for key2, value2 in value.iteritems():
+                            if isinstance(value2, (str, unicode)):
+                                items.append((u"%s.%s" % (key, key2), value2))
+                    elif isinstance(value, list):
+                        list_strings = []
+                        for listvalue in value:
+                            if isinstance(listvalue, (str, unicode)):
+                                list_strings.append(listvalue)
+                        if list_strings:
+                            items.append((key, u" / ".join(list_strings)))
+                        elif len(value) == 1 and isinstance(value[0], (str, unicode)):
+                            items.append((key, value))
+        return items
 
 def merge_dict(dict_a, dict_b, allow_overwrite=False):
     '''append values to a dict without overwriting any existing values'''
@@ -240,9 +292,14 @@ def merge_dict(dict_a, dict_b, allow_overwrite=False):
     if not dict_b:
         return dict_a
     result = dict_a.copy()
-    for key, value in dict_b.iteritems():
-        if (allow_overwrite or not key in dict_a or not dict_a[key]) and value:
-            result[key] = value
+    if sys.version_info.major == 3:
+        for key, value in list(dict_b.items()):
+            if (allow_overwrite or not key in dict_a or not dict_a[key]) and value:
+                result[key] = value
+    else:
+        for key, value in dict_b.iteritems():
+            if (allow_overwrite or not key in dict_a or not dict_a[key]) and value:
+                result[key] = value
     return result
 
 

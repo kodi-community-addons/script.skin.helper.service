@@ -1,0 +1,29 @@
+v1.1.31
+* fix urllib.parse vs urlparse in utils for Kodi 18
+* add commits from Angelinas1
+
+v1.1.30
+* fix module import of context menu items
+
+v1.1.29
+* compatibility change for CherryPy 17.4.2 and bump version requirement
+
+v1.1.28
+* replace xbmc.LOGNOTICE with xbmc.LOGINFO as LOGNOTICE was removed
+
+v1.1.27
+* Replace xbmc.translatePath with xbmcvfs.translatePath for Kodi 19 compat
+
+v1.1.26
+* Remove python dependency for Kodi18/19 compatibility
+* apply fix from Jun 10, 2018 https://github.com/kodi-community-addons/script.skin.helper.service/issues/125
+
+v1.1.25
+* replace iconImage/setThumbnailImage in ListItems
+* fix module load issues in *.py
+* fix import thread to import _thread as thread in listitem_monitor.py 
+* remove encode/decode from *.py
+* replace urlparse with urllib.parse in plugin_content.py
+* change exception logging
+* apply fixes from Feb 19, 2019 https://github.com/kodi-community-addons/script.skin.helper.service/commits/master
+* fix 'NoneType' object has no attribute 'split' in stripstring function (main_module) line 636
