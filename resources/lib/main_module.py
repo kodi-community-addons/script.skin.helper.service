@@ -403,20 +403,14 @@ class MainModule:
     def setkodisetting(self):
         '''set kodi setting'''
         settingname = self.params.get("setting", "")
-        value = self.params.get("value", "")
-        is_int = False
-        try:
-            valueint = int(value)
-            is_int = True
-            del valueint
-        except Exception:
-            pass
-        if value.lower() in ["true", "false"]:
-            value = value.lower()
-        elif not is_int:
-            value = '"%s"' % value
-        params = {"setting": settingname, "value": value}
-        kodi_json("Settings.SetSettingValue", params)
+        value = self.params.get("value", '')
+        numvalue = self.params.get("numvalue", '')
+        if numvalue:
+            value = '%s' % numvalue 
+        else:
+            value = '"%s"' % value   
+        xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"Settings.SetSettingValue",\
+            "params":{"setting":"%s","value":%s}}' % (settingname, value))
 
     def playtrailer(self):
         '''auto play windowed trailer inside video listing'''
