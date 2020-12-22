@@ -278,7 +278,7 @@ else:
                         list_strings = []
                         for listvalue in value:
                             if isinstance(listvalue, (str, unicode)):
-                                list_strings.append(listvalue)
+                                list_strings.append(try_decode(listvalue))
                         if list_strings:
                             items.append((key, u" / ".join(list_strings)))
                         elif len(value) == 1 and isinstance(value[0], (str, unicode)):
