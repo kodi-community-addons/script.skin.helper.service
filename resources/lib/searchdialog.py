@@ -11,12 +11,12 @@ import os, sys
 import threading
 if sys.version_info.major == 3:
     import _thread as thread
-else
+else:
     import thread
 from resources.lib.utils import getCondVisibility, try_decode
 import xbmc
 import xbmcgui
-from metadatautils import MetaDataUtils
+from metadatautils import MetadataUtils
 
 class SearchDialog(xbmcgui.WindowXMLDialog):
     ''' Special window to search the Kodi video database'''
@@ -24,7 +24,7 @@ class SearchDialog(xbmcgui.WindowXMLDialog):
     search_string = ""
 
     def __init__(self, *args, **kwargs):
-        self.mutils = MetaDataUtils()
+        self.mutils = MetadataUtils()
         xbmcgui.WindowXMLDialog.__init__(self, *args, **kwargs)
 
     def onInit(self):
@@ -236,9 +236,9 @@ class SearchDialog(xbmcgui.WindowXMLDialog):
         '''open selected item'''
         control_id = self.getFocusId()
         listitem = self.getControl(control_id).getSelectedItem()
-        if "videodb:" in listitem.getfilename():
+        if "videodb:" in listitem.getLabel():
             # tvshow: open path
-            xbmc.executebuiltin('ReplaceWindow(Videos,"%s")' % self.listitem.getfilename())
+            xbmc.executebuiltin('ReplaceWindow(Videos,"%s")' % self.listitem.getLabel())
             self.close_dialog()
         elif "actor" in listitem.getProperty("DBTYPE"):
             # cast dialog
@@ -264,11 +264,11 @@ class SearchDialog(xbmcgui.WindowXMLDialog):
             result = dialog.result
             del dialog
             if result:
-                xbmc.executebuiltin(result.getfilename())
+                xbmc.executebuiltin(result.getLabel())
                 self.close_dialog()
         else:
             # video file: start playback
-            xbmc.executebuiltin('PlayMedia("%s")' % listitem.getfilename())
+            xbmc.executebuiltin('PlayMedia("%s")' % listitem.getLabel())
             self.close_dialog()
 
 
@@ -282,6 +282,7 @@ class SearchBackgroundThread(threading.Thread):
     def __init__(self, *args):
         xbmc.log("SearchBackgroundThread Init")
         threading.Thread.__init__(self, *args)
+        self.mutils = MetadataUtils()
         self.actors = []
         thread.start_new_thread(self.set_actors, ())
 
@@ -331,7 +332,7 @@ class SearchBackgroundThread(threading.Thread):
 
         # Process movies
         items = self.dialog.mutils.kodidb.movies(filters=filters)
-        items = process_method_on_list(self.dialog.mutils.kodidb.prepare_listitem, items)
+        items = self.mutils.process_method_on_list(self.dialog.mutils.kodidb.prepare_listitem, items)
         result = []
         for item in items:
             result.append(self.dialog.mutils.kodidb.create_listitem(item, False))
@@ -339,7 +340,7 @@ class SearchBackgroundThread(threading.Thread):
 
         # Process tvshows
         items = self.dialog.mutils.kodidb.tvshows(filters=filters)
-        items = process_method_on_list(self.dialog.mutils.kodidb.prepare_listitem, items)
+        items = self.mutils.process_method_on_list(self.dialog.mutils.kodidb.prepare_listitem, items)
         result = []
         for item in items:
             item["file"] = 'videodb://tvshows/titles/%s' % item['tvshowid']

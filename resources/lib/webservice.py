@@ -44,13 +44,13 @@ class Root:
         if not kwargs.get("type"):
             kwargs["json"] = "true"
         if not imdb_id:
-            omdb_details = self.__mutils.get_omdb_info(imdb_id, title, year, media_type)
-            if omdb_details:
-                imdb_id = omdb_details.get("imdbnumber")
+            tmdb_details = self.__mutils.get_tmdb_details("", "", title, year, media_type)
+            if tmdb_details:
+                imdb_id = tmdb_details.get("imdbnumber")
                 if not media_type:
-                    media_type = omdb_details.get("media_type","")
+                    media_type = tmdb_details.get("media_type","")
         if imdb_id:
-            artwork = self.__mutils.get_extended_artwork(imdb_id, "", "", media_type)
+            artwork = self.__mutils.get_tmdb_details(imdb_id, "", "", "", media_type)
         return self.handle_artwork(artwork, kwargs)
 
     def genreimages(self, params):
@@ -244,7 +244,8 @@ class WebService(threading.Thread):
             'log.screen': False,
             #'engine.timeout_monitor.frequency': 5,
             'server.shutdown_timeout': 1,
-        })
+            'tools.encode.text_only': False
+            })
         threading.Thread.__init__(self)
 
     def run(self):

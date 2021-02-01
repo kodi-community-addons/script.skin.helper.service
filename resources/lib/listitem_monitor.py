@@ -186,7 +186,7 @@ class ListItemMonitor(threading.Thread):
         cont_prefix = ""
         try:
             widget_container = try_decode(self.win.getProperty("SkinHelper.WidgetContainer"))
-            if getCondVisibility("Window.IsActive(movieinformation)|Window.IsActive(DialogPVRInfo.xml)|Window.IsActive(DialogMusicInfo.xml)"):
+            if getCondVisibility("Window.IsActive(movieinformation)|Window.IsActive(DialogPVRInfo.xml)|Window.IsActive(DialogMusicInfo.xml)|Window.IsActive(script-script.extendedinfo-DialogVideoInfo.xml)"):
                 cont_prefix = ""
                 cur_folder = try_decode(xbmc.getInfoLabel(
                     "$INFO[Window.Property(xmlfile)]$INFO[Container.FolderPath]"
@@ -365,7 +365,7 @@ class ListItemMonitor(threading.Thread):
                                 details["imdbnumber"], tvdbid))
 
                     # movies-only properties (tmdb, animated art)
-                    if content_type in ["movies", "setmovies"]:
+                    if content_type in ["movies", "setmovies", "tvshows"]:
                         details = merge_dict(details, self.metadatautils.get_tmdb_details(details["imdbnumber"]))
                         if details["imdbnumber"] and self.enable_animatedart:
                             details = self.metadatautils.extend_dict(

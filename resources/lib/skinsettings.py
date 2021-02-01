@@ -274,7 +274,8 @@ class SkinSettings:
                     label = label % value
                 if value == "||MULTISELECT||" or item["settingoptions"]:
                     return self.multi_select(item["settingoptions"], window_header)
-                listitem = xbmcgui.ListItem(label, iconImage=icon, label2=item["description"])
+                listitem = xbmcgui.ListItem(label, label2=item["description"])
+                listitem.setArt({'icon': icon})
                 listitem.setProperty("value", value)
                 listitem.setProperty("icon", icon)
                 listitem.setProperty("description", item["description"])

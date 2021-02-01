@@ -313,8 +313,8 @@ class PluginContent:
         # process listing with the results...
         for cast in all_cast:
             if cast.get("name") not in all_cast_names:
-                liz = xbmcgui.ListItem(label=cast.get("name"), label2=cast.get("role"),
-                                       iconImage=cast.get("thumbnail"))
+                liz = xbmcgui.ListItem(label=cast.get("name"), label2=cast.get("role"))
+                liz.setArt({"thumb":cast.get("thumbnail")})
                 if extended_cast_action:
                     url = "RunScript(script.extendedinfo,info=extendedactorinfo,name=%s)" % cast.get("name")
                     url = "plugin://script.skin.helper.service/?action=launch&path=%s" % url

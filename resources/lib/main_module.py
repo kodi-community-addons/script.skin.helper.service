@@ -157,7 +157,8 @@ class MainModule:
                     (not "!" + content_type.lower() in mediatypes) and not
                         getCondVisibility("Skin.HasSetting(SkinHelper.view.Disabled.%s)" % viewid)):
                     image = "special://skin/extras/viewthumbs/%s.jpg" % viewid
-                    listitem = xbmcgui.ListItem(label=label, iconImage=image)
+                    listitem = xbmcgui.ListItem(label=label)
+                    listitem.setArt({'icon': image})
                     listitem.setProperty("viewid", viewid)
                     listitem.setProperty("icon", image)
                     all_views.append(listitem)
@@ -192,7 +193,8 @@ class MainModule:
                 label = xbmc.getLocalizedString(int(view.attributes['languageid'].nodeValue))
                 desc = label + " (" + str(view_id) + ")"
                 image = "special://skin/extras/viewthumbs/%s.jpg" % view_id
-                listitem = xbmcgui.ListItem(label=label, label2=desc, iconImage=image)
+                listitem = xbmcgui.ListItem(label=label, label2=desc)
+                listitem.setArt({'icon': image})
                 listitem.setProperty("viewid", view_id)
                 if not getCondVisibility("Skin.HasSetting(SkinHelper.view.Disabled.%s)" % view_id):
                     listitem.select(selected=True)
@@ -259,7 +261,8 @@ class MainModule:
                 if media.get('art'):
                     if media['art'].get('thumb'):
                         image = (media['art']['thumb'])
-                listitem = xbmcgui.ListItem(label=label, label2=label2, iconImage=image)
+                listitem = xbmcgui.ListItem(label=label, label2=label2)
+                listitem.setArt({'icon': image})
                 listitem.setProperty("path", media["file"])
                 results.append(listitem)
 
@@ -504,7 +507,6 @@ class MainModule:
 
     def videosearch(self):
         '''show the special search dialog'''
-        xbmc.executebuiltin("ActivateWindow(busydialog)")
         from resources.lib.searchdialog import SearchDialog
         search_dialog = SearchDialog("script-skin_helper_service-CustomSearch.xml",
                                  try_decode(self.addon.getAddonInfo('path')), "Default", "1080i")
@@ -522,16 +524,16 @@ class MainModule:
         '''helper to delete a directory, input can be normal filesystem path or vfs'''
         del_path = self.params.get("path")
         if del_path:
-            ret = xbmcgui.Dialog().yesno(heading=xbmc.getLocalizedString(122),
-                                         line1="%s[CR]%s" % (xbmc.getLocalizedString(125), del_path))
+            ret = xbmcgui.Dialog().yesno(heading=xbmc.getLocalizedString(122), 
+                                         line1="%s[CR]%s" % (xbmc.getLocalizedString(125), del_path), line2="yes")
             if ret:
                 success = recursive_delete_dir(del_path)
                 if success:
                     xbmcgui.Dialog().ok(heading=xbmc.getLocalizedString(19179),
-                                        line1=self.addon.getLocalizedString(32014))
+                                        line1=self.addon.getLocalizedString(32014), line2=self.addon.getLocalizedString(32014))
                 else:
                     xbmcgui.Dialog().ok(heading=xbmc.getLocalizedString(16205),
-                                        line1=xbmc.getLocalizedString(32015))
+                                        line1=xbmc.getLocalizedString(32015), line2=self.addon.getLocalizedString(32014))
 
     def overlaytexture(self):
         '''legacy: helper to let the user choose a background overlay from a skin defined folder'''
