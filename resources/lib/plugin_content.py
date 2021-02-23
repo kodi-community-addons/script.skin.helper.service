@@ -149,7 +149,7 @@ class PluginContent:
 
     def widgets(self):
         '''called from skinshortcuts to retrieve listing of all widgetss'''
-        log_msg("skinhelperservice plugin allwidgets function", xbmc.LOGWARNING)
+        log_msg("skinhelperservice plugin allwidgets function", xbmc.LOGINFO)
         if sys.version_info.major == 3:
             from . import skinshortcuts
         else:
@@ -158,7 +158,7 @@ class PluginContent:
 
     def resourceimages(self):
         '''retrieve listing of specific resource addon images'''
-        log_msg("skinhelperservice plugin resourceimages function", xbmc.LOGWARNING)
+        log_msg("skinhelperservice plugin resourceimages function", xbmc.LOGWINFO)
         if sys.version_info.major == 3:
             from .resourceaddons import get_resourceimages
         else:
@@ -172,7 +172,7 @@ class PluginContent:
 
     def extrafanart(self):
         '''helper to display extrafanart in multiimage control in the skin'''
-        log_msg("skinhelperservice plugin extrafanart function", xbmc.LOGWARNING)
+        log_msg("skinhelperservice plugin extrafanart function", xbmc.LOGINFO)
         fanarts = eval(self.params["fanarts"])
         # process extrafanarts
         for count, item in enumerate(fanarts):
@@ -183,7 +183,7 @@ class PluginContent:
 
     def extraposter(self):
         '''helper to display extraposter in multiimage control in the skin'''
-        log_msg("skinhelperservice plugin extraposter function", xbmc.LOGWARNING)
+        log_msg("skinhelperservice plugin extraposter function", xbmc.LOGINFO)
         posters = eval(self.params["posters"])
         # process extraposters
         for count, item in enumerate(posters):

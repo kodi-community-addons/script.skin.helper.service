@@ -33,19 +33,22 @@ def setresourceaddon(addontype, skinstring="", header=""):
         header = addon.getLocalizedString(32010)
 
     # none option
-    listitem = xbmcgui.ListItem(label=addon.getLocalizedString(32001), iconImage="DefaultAddonNone.png")
+    listitem = xbmcgui.ListItem(label=addon.getLocalizedString(32001))
+    listitem.setArt({"icon": 'DefaultAddonNone.png'})
     listitem.setProperty("addonid", "none")
     listing.append(listitem)
 
     # custom path
-    listitem = xbmcgui.ListItem(label=addon.getLocalizedString(32009), iconImage="DefaultFolder.png")
+    listitem = xbmcgui.ListItem(label=addon.getLocalizedString(32009))
+    listitem.setArt({"icon": 'DefaultFolder.png'})
     listitem.setProperty("addonid", "custom")
     listing.append(listitem)
 
     # available resource addons
     for item in get_resourceaddons(addontype):
         label2 = "%s: %s" % (xbmc.getLocalizedString(21863), item["author"])
-        listitem = xbmcgui.ListItem(label=item["name"], label2=label2, iconImage=item["thumbnail"])
+        listitem = xbmcgui.ListItem(label=item["name"], label2=label2)
+        listitem.setArt(item["thumbnail"])
         listitem.setPath(item["path"])
         listitem.setProperty("addonid", item["addonid"])
         listing.append(listitem)
@@ -53,9 +56,8 @@ def setresourceaddon(addontype, skinstring="", header=""):
     # special skinhelper paths
     if addontype == "resource.images.moviegenrefanart":
         label = addon.getLocalizedString(32019)
-        listitem = xbmcgui.ListItem(
-            label=label, label2="Skin Helper Service",
-            iconImage="special://home/addons/script.skin.helper.service/icon.png")
+        listitem = xbmcgui.ListItem(label=label, label2="Skin Helper Service")
+        listitem.setArt({"icon": 'special://home/addons/script.skin.helper.service/icon.png'})
         listitem.setPath("plugin://script.skin.helper.service/?action=moviegenrebackground&genre=")
         listitem.setProperty("addonid", "skinhelper.forgenre")
         listing.append(listitem)
@@ -74,7 +76,7 @@ def setresourceaddon(addontype, skinstring="", header=""):
         return setresourceaddon(addontype, skinstring)
     elif result:
         addon_id = result.getProperty("addonid")
-        addon_name = try_decode(result.getLabel())
+        addon_name = result.getLabel()
         if addon_id == "none" and skinstring:
             # None
             xbmc.executebuiltin('Skin.Reset(%s)' % skinstring)
@@ -90,7 +92,7 @@ def setresourceaddon(addontype, skinstring="", header=""):
                 custom_path = dialog.browse(0, addon.getLocalizedString(32005), 'files')
                 del dialog
                 result.setPath(custom_path)
-            addonpath = try_decode(result.getfilename())
+            addonpath = result.getLabel()
             if addonpath:
                 is_multi, extension = get_multi_extension(addonpath)
                 xbmc.executebuiltin('Skin.SetString(%s,%s)' % (skinstring, addonpath))
@@ -166,7 +168,7 @@ def checkresourceaddons(addonslist):
             if not checkresourceaddon(setting, addontype):
                 ret = xbmcgui.Dialog().yesno(
                     heading=addon.getLocalizedString(32007) % addontypelabel,
-                    line1=addon.getLocalizedString(32008) % addontypelabel)
+                    message=addon.getLocalizedString(32008) % addontypelabel)
                 xbmc.executebuiltin("Skin.Reset(%s.path)" % setting)
                 if ret:
                     downloadresourceaddons(addontype)

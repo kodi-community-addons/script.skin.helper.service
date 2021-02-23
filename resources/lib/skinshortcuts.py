@@ -240,7 +240,8 @@ def get_widgets(item_filter="", sublevel=""):
             # only show main listing for this category...
             if widgets:
                 label = get_item_filter_label(item_filter)
-                listitem = xbmcgui.ListItem(label, iconImage="DefaultFolder.png")
+                listitem = xbmcgui.ListItem(label)
+                listitem.setArt({"icon": 'DefaultFolder.png'})
                 url = "plugin://script.skin.helper.service?action=widgets&path=%s" % item_filter
                 xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=url, listitem=listitem, isFolder=True)
         else:

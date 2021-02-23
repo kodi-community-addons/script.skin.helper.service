@@ -19,9 +19,9 @@
         <!--Header-->
         <control type="label">
             <posx>61</posx>
-            <posy>60</posy>
+            <posy>40</posy>
             <width min="80" max="1400">auto</width>
-            <height>100</height>
+            <height>120</height>
             <font>font16</font>
 			<label>19140</label>
             <align>left</align>
@@ -503,7 +503,6 @@
 					<control type="button" id="3056">
 						<width>170</width>
 						<font>font10</font>
-						<width>80</width>
 						<height>90</height>
 						<label>20181</label>
 						<onleft>noop</onleft>
@@ -515,7 +514,6 @@
 					<control type="button" id="3057">
 						<width>170</width>
 						<font>font10</font>
-						<width>80</width>
 						<height>90</height>
 						<label>20182</label>
 						<onleft>3056</onleft>
@@ -527,7 +525,6 @@
 					<control type="button" id="3058">
 						<width>170</width>
 						<font>font10</font>
-						<width>80</width>
 						<height>90</height>
 						<label>192</label>
 						<onleft>3057</onleft>

@@ -77,7 +77,7 @@ def kodi_json(jsonmethod, params=None, returntype=None):
                             result = value
                             break
                 else:
-                    for key, value in json_object['result'].iteritems():
+                    for key, value in json_object['result'].items():
                         if not key == "limits":
                             result = value
                             break
@@ -260,7 +260,7 @@ else:
         '''helper to pretty string-format a dict with details to key/value pairs so it can be used as window props'''
         items = []
         if details:
-            for key, value in details.iteritems():
+            for key, value in details.items():
                 if value or value == 0:
                     key = u"%s%s" % (prefix, key)
                     key = key.lower()
@@ -271,7 +271,7 @@ else:
                     elif isinstance(value, float):
                         items.append((key, "%.1f" % value))
                     elif isinstance(value, dict):
-                        for key2, value2 in value.iteritems():
+                        for key2, value2 in value.items():
                             if isinstance(value2, (str, unicode)):
                                 items.append((u"%s.%s" % (key, key2), value2))
                     elif isinstance(value, list):
@@ -297,7 +297,7 @@ def merge_dict(dict_a, dict_b, allow_overwrite=False):
             if (allow_overwrite or not key in dict_a or not dict_a[key]) and value:
                 result[key] = value
     else:
-        for key, value in dict_b.iteritems():
+        for key, value in dict_b.items():
             if (allow_overwrite or not key in dict_a or not dict_a[key]) and value:
                 result[key] = value
     return result
