@@ -25,7 +25,6 @@ from simplecache import SimpleCache
 
 def setresourceaddon(addontype, skinstring="", header=""):
     '''helper to let the user choose a resource addon and set that as skin string'''
-    xbmc.executebuiltin("ActivateWindow(busydialog)")
     cur_value = try_decode(xbmc.getInfoLabel("Skin.String(%s.name)" % skinstring))
     listing = []
     addon = xbmcaddon.Addon(ADDON_ID)
@@ -48,7 +47,7 @@ def setresourceaddon(addontype, skinstring="", header=""):
     for item in get_resourceaddons(addontype):
         label2 = "%s: %s" % (xbmc.getLocalizedString(21863), item["author"])
         listitem = xbmcgui.ListItem(label=item["name"], label2=label2)
-        listitem.setArt(item["thumbnail"])
+        listitem.setArt({"icon": item["thumbnail"]})
         listitem.setPath(item["path"])
         listitem.setProperty("addonid", item["addonid"])
         listing.append(listitem)
@@ -92,7 +91,7 @@ def setresourceaddon(addontype, skinstring="", header=""):
                 custom_path = dialog.browse(0, addon.getLocalizedString(32005), 'files')
                 del dialog
                 result.setPath(custom_path)
-            addonpath = result.getLabel()
+            addonpath = result.getPath()
             if addonpath:
                 is_multi, extension = get_multi_extension(addonpath)
                 xbmc.executebuiltin('Skin.SetString(%s,%s)' % (skinstring, addonpath))
@@ -116,7 +115,8 @@ def downloadresourceaddons(addontype):
         if not getCondVisibility("System.HasAddon(%s)" % item["addonid"]):
             label2 = "%s: %s" % (xbmc.getLocalizedString(21863), item["author"])
             listitem = xbmcgui.ListItem(label=item["name"],
-                                        label2=label2, iconImage=item["thumbnail"])
+                                        label2=label2)
+            listitem.setArt({"icon": item["thumbnail"]})                          
             listitem.setPath(item["path"])
             listitem.setProperty("addonid", item["addonid"])
             listitems.append(listitem)
