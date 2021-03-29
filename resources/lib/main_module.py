@@ -367,7 +367,7 @@ class MainModule:
         setting = self.params.get("setting", "")
         org_id = self.params.get("id", "")
         if "$" in org_id:
-            org_id = try_decode(xbmc.getInfoLabel(org_id))
+            org_id = xbmc.getInfoLabel(org_id)
         header = self.params.get("header", "")
         SkinSettings().set_skin_setting(setting=setting, window_header=header, original_id=org_id)
 
@@ -580,8 +580,8 @@ class MainModule:
                     # we got an dynamic image from window property
                     skinsettings.set_skin_variable(skinstring, value)
                     value = "$VAR[%s]" % skinstring
-                skinstring = skinstring.encode("utf-8")
-                label = label.encode("utf-8")
+                skinstring = skinstring
+                label = label
                 xbmc.executebuiltin("Skin.SetString(%s.label,%s)" % (skinstring, label))
                 xbmc.executebuiltin("Skin.SetString(%s.name,%s)" % (skinstring, label))
                 xbmc.executebuiltin("Skin.SetString(%s,%s)" % (skinstring, value))
