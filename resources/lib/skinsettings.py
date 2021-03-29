@@ -356,24 +356,24 @@ class SkinSettings:
                 if value and value == curvalue:
                     xbmc.executebuiltin(
                         "Skin.SetString(%s.label,%s)" %
-                        (settingid.encode("utf-8"), label.encode("utf-8")))
+                        (settingid, label))
 
                 # set the default value if current value is empty
                 if not (curvalue or curlabel):
                     if settingvalue["default"] and getCondVisibility(settingvalue["default"]):
                         xbmc.executebuiltin(
                             "Skin.SetString(%s.label,%s)" %
-                            (settingid.encode("utf-8"), label.encode("utf-8")))
+                            (settingid, label))
                         xbmc.executebuiltin(
                             "Skin.SetString(%s,%s)" %
-                            (settingid.encode("utf-8"), value.encode("utf-8")))
+                            (settingid, value))
                         # additional onselect actions
                         for action in settingvalue["onselectactions"]:
                             if action["condition"] and getCondVisibility(action["condition"]):
                                 command = action["command"]
                                 if "$" in command:
                                     command = xbmc.getInfoLabel(command)
-                                xbmc.executebuiltin(command.encode("utf-8"))
+                                xbmc.executebuiltin(command)
 
                 # process any multiselects
                 for option in settingvalue["settingoptions"]:
