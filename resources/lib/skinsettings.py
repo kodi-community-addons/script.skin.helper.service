@@ -50,14 +50,14 @@ class SkinSettings:
                 resolutions = extensionpoint.findall("res")
                 for resolution in resolutions:
                     if sys.version_info.major == 3:
-                        includes_file = xbmc.translatePath(
+                        includes_file = xbmcvfs.translatePath(
                         os.path.join(
                             "special://skin/",
                             try_decode(
                                 resolution.attrib.get("folder")),
                             "script-skin_helper_service-includes.xml").encode("utf-8"))
                     else:
-                        includes_file = try_decode(xbmc.translatePath(
+                        includes_file = try_decode(xbmcvfs.translatePath(
                             try_encode(os.path.join(
                                 "special://skin/",
                                 try_decode(
@@ -74,7 +74,7 @@ class SkinSettings:
                                 # also write to skin strings
                                 xbmc.executebuiltin(
                                     "Skin.SetString(%s,%s)" %
-                                    (key.encode("utf-8"), value.encode("utf-8")))
+                                    (key, value))
                     if variables:
                         for key, value in list(variables.items()):
                             if value:
@@ -83,7 +83,7 @@ class SkinSettings:
                                 child2 = xmltree.SubElement(child, "value")
                                 child2.text = value
                     self.indent_xml(tree.getroot())
-                    xmlstring = xmltree.tostring(tree.getroot(), encoding="utf-8")
+                    xmlstring = xmltree.tostring(tree.getroot())
                     fileobj = xbmcvfs.File(includes_file, 'w')
                     fileobj.write(xmlstring)
                     fileobj.close()
@@ -95,7 +95,7 @@ class SkinSettings:
         all_constants = {}
         all_variables = {}
         if sys.version_info.major == 3:
-            addonpath = xbmc.translatePath(os.path.join("special://skin/", 'addon.xml').encode("utf-8"))
+            addonpath = xbmcvfs.translatePath(os.path.join("special://skin/", 'addon.xml').encode("utf-8"))
         else:
             addonpath = try_decode(xbmc.translatePath(try_encode(os.path.join("special://skin/", 'addon.xml'))))
 
