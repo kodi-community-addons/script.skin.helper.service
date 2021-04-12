@@ -165,7 +165,8 @@ class PluginContent:
             from resourceaddons import get_resourceimages
         addontype = self.params.get("addontype", "")
         for item in get_resourceimages(addontype, True):
-            listitem = xbmcgui.ListItem(item[0], label2=item[2], path=item[1], iconImage=item[3])
+            listitem = xbmcgui.ListItem(item[0], label2=item[2], path=item[1])
+            listitem.setArt({"icon":item[3]})
             xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),
                                         url=item[1], listitem=listitem, isFolder=False)
         xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))

@@ -232,7 +232,7 @@ def get_repo_resourceaddons(filterstr=""):
             addoninfo = get_repo_addoninfo(item, simplecache)
             if not addoninfo.get("name"):
                 addoninfo = {"addonid": item, "name": item, "author": ""}
-                addoninfo["thumbnail"] = "http://mirrors.kodi.tv/addons/krypton/%s/icon.png" % item
+                addoninfo["thumbnail"] = "http://mirrors.kodi.tv/addons//%s/icon.png" % item
             addoninfo["path"] = "resource://%s/" % item
             result.append(addoninfo)
     simplecache.close()
@@ -247,10 +247,10 @@ def get_repo_addoninfo(addonid, simplecache=None):
         info = simplecache.get(cachestr)
     if not info:
         info = {"addonid": addonid, "name": "", "thumbnail": "", "author": ""}
-        mirrorurl = "http://addons.kodi.tv/show/%s/" % addonid
+        mirrorurl = "http://addons.kodi.tv/addon/%s/" % addonid
         try:
             if sys.version_info.major == 3:
-                req = urllib.request.Request(mirrorurl)
+                req = urllib.request.Request(mirrorurl, data=None, headers={}, origin_req_host=None, unverifiable=False, method=None)
                 req.add_header('User-Agent',
                            'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3')
                 response = urllib.request.urlopen(req)
