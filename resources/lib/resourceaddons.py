@@ -108,7 +108,6 @@ def setresourceaddon(addontype, skinstring="", header=""):
 
 def downloadresourceaddons(addontype):
     '''show dialog with all available resource addons on the repo so the user can install one'''
-    xbmc.executebuiltin("ActivateWindow(busydialog)")
     listitems = []
     addon = xbmcaddon.Addon(ADDON_ID)
     for item in get_repo_resourceaddons(addontype):
@@ -231,8 +230,8 @@ def get_repo_resourceaddons(filterstr=""):
         if not filterstr or item.lower().startswith(filterstr.lower()):
             addoninfo = get_repo_addoninfo(item, simplecache)
             if not addoninfo.get("name"):
-                addoninfo = {"addonid": item, "name": item, "author": ""}
-                addoninfo["thumbnail"] = "http://mirrors.kodi.tv/addons//%s/icon.png" % item
+                addoninfo = {"addonid": item, "name": item, "author": "Kodi"}
+                addoninfo["thumbnail"] = "http://mirrors.kodi.tv/addons/matrix/%s/icon.png" % item
             addoninfo["path"] = "resource://%s/" % item
             result.append(addoninfo)
     simplecache.close()
@@ -246,39 +245,7 @@ def get_repo_addoninfo(addonid, simplecache=None):
         cachestr = "skinhelper.addoninfo.%s" % addonid
         info = simplecache.get(cachestr)
     if not info:
-        info = {"addonid": addonid, "name": "", "thumbnail": "", "author": ""}
-        mirrorurl = "http://addons.kodi.tv/addon/%s/" % addonid
-        try:
-            if sys.version_info.major == 3:
-                req = urllib.request.Request(mirrorurl, data=None, headers={}, origin_req_host=None, unverifiable=False, method=None)
-                req.add_header('User-Agent',
-                           'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3')
-                response = urllib.request.urlopen(req)
-            else:
-                req = urllib2.Request(mirrorurl)
-                req.add_header('User-Agent',
-                           'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3')
-                response = urllib2.urlopen(req)
-            body = response.read()
-            response.close()
-            body = body.replace('\r', '').replace('\n', '').replace('\t', '')
-            for addondetail in re.compile('<div id="addonDetail">(.*?)</div>').findall(body):
-                for h2_item in re.compile('<h2>(.*?)</h2>').findall(addondetail):
-                    info["name"] = h2_item
-                    break
-                for thumbnail in re.compile('src="(.*?)"').findall(addondetail):
-                    icon = "http://addons.kodi.tv/%s" % thumbnail
-                    info["thumbnail"] = icon
-                    break
-                authors = []
-                for addonmetadata in re.compile('<div id="addonMetaData">(.*?)</div>').findall(body):
-                    for author in re.compile('<a href="(.*?)">(.*?)</a>').findall(addonmetadata):
-                        authors.append(author[1])
-                info["author"] = ",".join(authors)
-                break
-        except Exception as exc:
-            if "HTTP Error 404" not in exc:  # ignore not found exceptions
-                log_exception(__name__, exc)
+        info = {"addonid": addonid, "name": "", "thumbnail": "", "author": "Kodi"}
         if simplecache:
             cache.set(cachestr, info)
     return info
