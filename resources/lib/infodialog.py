@@ -58,7 +58,7 @@ class DialogVideoInfo(xbmcgui.WindowXMLDialog):
 
     def onClick(self, controlid):
         '''triggers if one of the controls is clicked'''
-        if controlid == 8:
+        if controlid == 9999:
             # play button
             self.result = True
             self.close()
