@@ -350,7 +350,7 @@ class MainModule:
         header = self.params.get("header", "")
         value = SkinSettings().save_skin_image(skinstring, allow_multi, header)
         if value:
-            xbmc.executebuiltin("Skin.SetString(%s,%s)" % (skinstring.encode("utf-8"), value.encode("utf-8")))
+            xbmc.executebuiltin("Skin.SetString(%s,%s)" % (skinstring, value))
 
     @staticmethod
     def checkskinsettings():
