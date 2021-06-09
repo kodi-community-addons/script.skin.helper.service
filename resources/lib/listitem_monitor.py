@@ -327,7 +327,7 @@ class ListItemMonitor(threading.Thread):
 
                     # generic video properties (studio, streamdetails, omdb, top250)
                     details = merge_dict(details,
-                                         self.get_directors_writers(details["director"], details["writer"]))
+                                         self.get_directors_writers_cast(details["director"], details["writer"], details["cast"]))
                     if self.enable_extrafanart:
                         log_msg("skin.helper.service: extrafanart", xbmc.LOGINFO)
                         if not details["filenameandpath"]:
@@ -531,13 +531,15 @@ class ListItemMonitor(threading.Thread):
         return details
 
     @staticmethod
-    def get_directors_writers(director, writer):
-        '''get a formatted string with directors/writers from the actual string'''
+    def get_directors_writers_cast(director, writer, cast):
+        '''get a formatted string with directors/writers/cast from the actual string'''
         directors = director.split(" / ")
         writers = writer.split(" / ")
+        cast_list = cast.replace("\n", ", ")                                    
         return {
             'Directors': "[CR]".join(directors),
-            'Writers': "[CR]".join(writers)}
+            'Writers': "[CR]".join(writers),
+            'CastListing': cast_list}                        
 
     def get_listitem_details(self, content_type, prefix):
         '''collect all listitem properties/values we need'''
@@ -556,7 +558,7 @@ class ListItemMonitor(threading.Thread):
         # properties for media items
         if content_type in ["movies", "tvshows", "seasons", "episodes", "musicvideos", "setmovies"]:
             props += ["studio", "tvshowtitle", "premiered", "director", "writer",
-                      "firstaired", "tagline", "rating", "season", "episode"]
+                      "firstaired", "tagline", "rating", "season", "episode", "cast"]
         # properties for music items
         elif content_type in ["musicvideos", "artists", "albums", "songs"]:
             props += ["artist", "album", "rating", "albumartist", "discnumber"]
