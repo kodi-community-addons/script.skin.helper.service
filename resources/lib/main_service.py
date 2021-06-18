@@ -12,7 +12,7 @@ from resources.lib.utils import log_msg, ADDON_ID, log_exception, try_decode
 from resources.lib.skinsettings import SkinSettings
 from resources.lib.listitem_monitor import ListItemMonitor
 from resources.lib.kodi_monitor import KodiMonitor
-from resources.lib.webservice import WebService
+# from resources.lib.webservice import WebService
 from metadatautils import MetadataUtils
 import xbmc
 import xbmcaddon
@@ -32,12 +32,12 @@ class MainService:
         self.kodimonitor = KodiMonitor(metadatautils=self.metadatautils, win=self.win)
         self.listitem_monitor = ListItemMonitor(
             metadatautils=self.metadatautils, win=self.win, monitor=self.kodimonitor)
-        self.webservice = WebService(self.metadatautils)
+        # self.webservice = WebService(self.metadatautils)
         self.win.clearProperty("SkinHelperShutdownRequested")
 
         # start the extra threads
         self.listitem_monitor.start()
-        self.webservice.start()
+        # self.webservice.start()
         
         log_msg('%s version %s started' % (self.addonname, self.addonversion), xbmc.LOGINFO)
 

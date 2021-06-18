@@ -1,12 +1,38 @@
+v1.1.38
+- removed webservice(removed dependency of module "script.module.cherrypy")
+
+v1.1.37
+- fix for saveskinimage
+- Update listitem_monitor.py
+
+v1.1.36
+- Hungarian lang created
+- remove get_repo_addoninfo
+- Fix for "Resume" in dialog
+
+v1.1.35
+- fix setskinconstant
+
+v1.1.34
+- fix correct skin settings
+- Fix for skinstring, selectimage, and overlayertexture
+- Fix for resourceaddons
+- Matrix Py3 changes
+
+v1.1.32
+- fix for search dialog
+- add TMDB for TVShow
+- fix for webservice (now use just TMDB Art-Poster and fanart)
+
 v1.1.31
-* fix urllib.parse vs urlparse in utils for Kodi 18
-* add commits from Angelinas1
+- fix urllib.parse vs urlparse in utils for Kodi 18
+- add commits from Angelinas1
 
 v1.1.30
-* fix module import of context menu items
+- fix module import of context menu items
 
 v1.1.29
-* compatibility change for CherryPy 17.4.2 and bump version requirement
+- compatibility change for CherryPy 17.4.2 and bump version requirement
 
 v1.1.28
 * replace xbmc.LOGNOTICE with xbmc.LOGINFO as LOGNOTICE was removed
