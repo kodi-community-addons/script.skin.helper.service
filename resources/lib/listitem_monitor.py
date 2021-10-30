@@ -97,8 +97,8 @@ class ListItemMonitor(threading.Thread):
                 self.last_listitem = ""
 
             # media window is opened or widgetcontainer set - start listitem monitoring!
-            elif getCondVisibility("Window.IsMedia | "
-                                        "!IsEmpty(Window(Home).Property(SkinHelper.WidgetContainer))"):
+            elif getCondVisibility("[Window.IsMedia | !String.IsEmpty(Window(Home).Property(SkinHelper.WidgetContainer))] + "
+                                                                            "!ListItem.IsParentFolder"):
                 self.monitor_listitem()
                 self.kodimonitor.waitForAbort(0.15)
                 self.delayed_task_interval += 0.15
