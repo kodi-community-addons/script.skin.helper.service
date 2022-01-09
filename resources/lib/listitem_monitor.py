@@ -637,6 +637,10 @@ class ListItemMonitor(threading.Thread):
                     listitem["title"],
                     listitem["channelname"],
                     listitem["genre"]), ["title", "genre", "genres", "thumb"])
+        if listitem["channelname"]:
+            next_listitem = try_decode(xbmc.getInfoLabel(
+                "$INFO[%sListItem.NextTitle]" % prefix))
+            listitem["art"]["NextTitle"] = self.metadatautils.google.search_image(next_listitem)    
         # pvr channellogo
         if listitem["channelname"]:
             listitem["art"]["ChannelLogo"] = self.metadatautils.get_channellogo(listitem["channelname"])
