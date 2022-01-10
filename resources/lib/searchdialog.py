@@ -9,10 +9,6 @@
 
 import os, sys
 import threading
-if sys.version_info.major == 3:
-    import _thread as thread
-else:
-    import thread
 from resources.lib.utils import getCondVisibility, try_decode
 import xbmc
 import xbmcgui
@@ -282,7 +278,7 @@ class SearchBackgroundThread(threading.Thread):
         threading.Thread.__init__(self, *args)
         self.mutils = MetadataUtils()
         self.actors = []
-        thread.start_new_thread(self.set_actors, ())
+        threading.Thread(target=self.set_actors)
 
     def set_search(self, searchstr):
         '''set search query'''
