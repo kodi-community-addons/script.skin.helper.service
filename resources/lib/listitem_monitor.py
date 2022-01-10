@@ -9,10 +9,6 @@
 
 import os, sys
 import threading
-if sys.version_info.major == 3:
-    import _thread as thread
-else:
-    import thread
 from resources.lib.utils import log_msg, log_exception, get_current_content_type, kodi_json, prepare_win_props, merge_dict, getCondVisibility, try_decode
 import xbmc
 from simplecache import SimpleCache
@@ -70,7 +66,7 @@ class ListItemMonitor(threading.Thread):
 
             # do some background stuff every 30 minutes
             if (self.delayed_task_interval >= 1800) and not self.exit:
-                thread.start_new_thread(self.do_background_work, ())
+                threading.thread(target=self.do_background_work).start()
                 self.delayed_task_interval = 0
 
             # skip if any of the artwork context menus is opened
@@ -177,8 +173,10 @@ class ListItemMonitor(threading.Thread):
             self.win.setProperty("curlistitem", cur_listitem)
             if cur_listitem and cur_listitem != "..":
                 # set listitem details in background thread
-                thread.start_new_thread(
-                    self.set_listitem_details, (cur_listitem, content_type, cont_prefix))
+                threading.thread(
+                    target=self.set_listitem_details, 
+                    args=(cur_listitem, content_type, cont_prefix)
+                ).start()
 
     def get_folderandprefix(self):
         '''get the current folder and prefix'''
@@ -282,7 +280,10 @@ class ListItemMonitor(threading.Thread):
                 self.lookup_busy[cur_listitem] = True
 
                 # clear all window props, do this delayed to prevent flickering of the screen
-                thread.start_new_thread(self.delayed_flush, (cur_listitem,))
+                threading.thread(
+                    target=self.delayed_flush, 
+                    args=(cur_listitem,)
+                ).start()
 
                 # wait if we already have more than 5 items in the queue
                 while len(self.lookup_busy) > 5:
@@ -637,10 +638,6 @@ class ListItemMonitor(threading.Thread):
                     listitem["title"],
                     listitem["channelname"],
                     listitem["genre"]), ["title", "genre", "genres", "thumb"])
-        if listitem["channelname"]:
-            next_listitem = try_decode(xbmc.getInfoLabel(
-                "$INFO[%sListItem.NextTitle]" % prefix))
-            listitem["art"]["NextTitle"] = self.metadatautils.google.search_image(next_listitem)    
         # pvr channellogo
         if listitem["channelname"]:
             listitem["art"]["ChannelLogo"] = self.metadatautils.get_channellogo(listitem["channelname"])
