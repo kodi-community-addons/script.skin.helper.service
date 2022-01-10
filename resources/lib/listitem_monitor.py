@@ -66,7 +66,7 @@ class ListItemMonitor(threading.Thread):
 
             # do some background stuff every 30 minutes
             if (self.delayed_task_interval >= 1800) and not self.exit:
-                threading.thread(target=self.do_background_work).start()
+                threading.Thread(target=self.do_background_work).start()
                 self.delayed_task_interval = 0
 
             # skip if any of the artwork context menus is opened
@@ -173,7 +173,7 @@ class ListItemMonitor(threading.Thread):
             self.win.setProperty("curlistitem", cur_listitem)
             if cur_listitem and cur_listitem != "..":
                 # set listitem details in background thread
-                threading.thread(
+                threading.Thread(
                     target=self.set_listitem_details, 
                     args=(cur_listitem, content_type, cont_prefix)
                 ).start()
@@ -280,7 +280,7 @@ class ListItemMonitor(threading.Thread):
                 self.lookup_busy[cur_listitem] = True
 
                 # clear all window props, do this delayed to prevent flickering of the screen
-                threading.thread(
+                threading.Thread(
                     target=self.delayed_flush, 
                     args=(cur_listitem,)
                 ).start()
