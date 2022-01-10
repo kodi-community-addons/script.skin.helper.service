@@ -278,7 +278,7 @@ class SearchBackgroundThread(threading.Thread):
         threading.Thread.__init__(self, *args)
         self.mutils = MetadataUtils()
         self.actors = []
-        threading.Thread(target=self.set_actors)
+        threading.Thread(target=self.set_actors).start()
 
     def set_search(self, searchstr):
         '''set search query'''
