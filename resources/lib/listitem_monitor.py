@@ -350,6 +350,7 @@ class ListItemMonitor(threading.Thread):
                     details = merge_dict(details, self.get_genres(details["genre"]))
                     details = merge_dict(details, self.metadatautils.get_studio_logo(details["studio"]))
                     details = merge_dict(details, self.metadatautils.get_omdb_info(details["imdbnumber"]))
+                    details = merge_dict(details, self.metadatautils.get_trakt_info(details["imdbnumber"]))
                     details = merge_dict(
                         details, self.get_streamdetails(
                             details["dbid"], details["path"], content_type))

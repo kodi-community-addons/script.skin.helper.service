@@ -187,6 +187,7 @@ class KodiMonitor(xbmc.Monitor):
 
             # generic video properties (studio, streamdetails, omdb, top250)
             details = self.metadatautils.extend_dict(details, self.metadatautils.get_omdb_info(li_imdb))
+            details = self.metadatautils.extend_dict(details, self.metadatautils.get_trakt_info(li_imdb))
             if li_dbid:
                 details = self.metadatautils.extend_dict(details, self.metadatautils.get_streamdetails(li_dbid, mediatype))
             details = self.metadatautils.extend_dict(details, self.metadatautils.get_top250_rating(li_imdb))
