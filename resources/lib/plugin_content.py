@@ -33,10 +33,7 @@ class PluginContent:
         self.mutils = MetadataUtils()
         self.win = xbmcgui.Window(10000)
         try:
-            if sys.version_info.major == 3:
-                self.params = dict(urllib.parse.parse_qsl(sys.argv[2].replace('?', '').lower()))
-            else:
-                self.params = dict(urlparse.parse_qsl(sys.argv[2].replace('?', '').lower().decode("utf-8")))
+            self.params = dict(urllib.parse.parse_qsl(sys.argv[2].replace('?', '').lower()))
             log_msg("plugin called with parameters: %s" % self.params)
             self.main()
         except Exception as exc:

@@ -663,8 +663,8 @@ class MainModule:
 
     def getpercentage(self):
         '''helper to calculate the percentage of 2 numbers and write results to a skinstring'''
-        total = int(params.get("total"))
-        count = int(params.get("count"))
+        total = int(self.params.get("total"))
+        count = int(self.params.get("count"))
         roundsteps = self.params.get("roundsteps")
         skinstring = self.params.get("skinstring")
         percentage = int(round((1.0 * count / total) * 100))
