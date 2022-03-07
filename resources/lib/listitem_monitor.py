@@ -330,17 +330,28 @@ class ListItemMonitor(threading.Thread):
                                          self.get_directors_writers_cast(details["director"], details["writer"], details["cast"]))
                     if self.enable_extrafanart:
                         log_msg("skin.helper.service: extrafanart", xbmc.LOGINFO)
+                        log_msg("get_extrafanart_all - data from json %s - %s" %  ((details["path"], details["filenameandpath"])))
                         if not details["filenameandpath"]:
                             details["filenameandpath"] = details["path"]
-                        if "videodb://" not in details["filenameandpath"]:
-                            efa = self.metadatautils.get_extrafanart(details["filenameandpath"])
+                        if "plugin://" in details["path"]:
+                            efa = self.metadatautils.get_extrafanart(details["path"])
+                        if "plugin://" not in details["path"]:
+                            if "movies" in content_type:
+                                efa = self.metadatautils.get_extrafanart(details["path"])
+                            if "tvshows" in content_type:
+                                efa = self.metadatautils.get_extrafanart(details["filenameandpath"])
                             if efa:
                                 details["art"] = merge_dict(details["art"], efa["art"])
                     if self.enable_extraposter:
                         if not details["filenameandpath"]:
                             details["filenameandpath"] = details["path"]
-                        if "videodb://" not in details["filenameandpath"]:
-                            efa = self.metadatautils.get_extraposter(details["filenameandpath"])
+                        if "plugin://" in details["path"]:
+                            efa = self.metadatautils.get_extrafanart(details["path"])
+                        if "plugin://" not in details["path"]:
+                            if "movies" in content_type:
+                                efa = self.metadatautils.get_extrafanart(details["path"])
+                            if "tvshows" in content_type:
+                                efa = self.metadatautils.get_extrafanart(details["filenameandpath"])
                             if efa:
                                 details["art"] = merge_dict(details["art"], efa["art"])
                     if self.exit:
@@ -366,10 +377,10 @@ class ListItemMonitor(threading.Thread):
                             details, self.metadatautils.get_tvdb_details(
                                 details["imdbnumber"], tvdbid))
                     # movie-rating properties (rt)             
-                    if content_type in ["movie", "movies"]:
-                        details = merge_dict(details, self.metadatautils.get_rt_ratings((details["title"]), content_type))         
-                     # tvshows-only properties (metacritic)           
-                    if content_type in ["tvshows", "tvshow"]:
+                    if content_type in ["movie", "movies", "tvshow", "tvshows"]:
+                        details = merge_dict(details, self.metadatautils.get_rt_ratings((details["title"]), content_type)) 
+                     # tvshows-only properties (metacritic)
+                    if content_type in ["movie", "movies", "tvshow", "tvshows"]:
                         details = merge_dict(details, self.metadatautils.get_metacritic_info((details["title"]), content_type))
                     # movies-only properties (tmdb, animated art)
                     if content_type in ["movies", "setmovies", "tvshows"]:
