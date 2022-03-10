@@ -330,15 +330,14 @@ class ListItemMonitor(threading.Thread):
                                          self.get_directors_writers_cast(details["director"], details["writer"], details["cast"]))
                     if self.enable_extrafanart:
                         log_msg("skin.helper.service: extrafanart", xbmc.LOGINFO)
-                        log_msg("get_extrafanart_all - data from json %s - %s" %  ((details["path"], details["filenameandpath"])))
                         if not details["filenameandpath"]:
                             details["filenameandpath"] = details["path"]
                         if "plugin://" in details["path"]:
                             efa = self.metadatautils.get_extrafanart(details["path"])
                         if "plugin://" not in details["path"]:
-                            if "movies" in content_type:
+                            if content_type in ["movie", "movies", "episodes", "episode", "musicvideos"]:
                                 efa = self.metadatautils.get_extrafanart(details["path"])
-                            if "tvshows" in content_type:
+                            if content_type in ["tvshows", "tvshow", "seasons", "season"]:
                                 efa = self.metadatautils.get_extrafanart(details["filenameandpath"])
                             if efa:
                                 details["art"] = merge_dict(details["art"], efa["art"])
@@ -346,12 +345,12 @@ class ListItemMonitor(threading.Thread):
                         if not details["filenameandpath"]:
                             details["filenameandpath"] = details["path"]
                         if "plugin://" in details["path"]:
-                            efa = self.metadatautils.get_extrafanart(details["path"])
+                            efa = self.metadatautils.get_extraposter(details["path"])
                         if "plugin://" not in details["path"]:
-                            if "movies" in content_type:
-                                efa = self.metadatautils.get_extrafanart(details["path"])
-                            if "tvshows" in content_type:
-                                efa = self.metadatautils.get_extrafanart(details["filenameandpath"])
+                            if content_type in ["movie", "movies", "episodes", "episode", "musicvideos"]:
+                                efa = self.metadatautils.get_extraposter(details["path"])
+                            if content_type in ["tvshows", "tvshow", "seasons", "season"]:
+                                efa = self.metadatautils.get_extraposter(details["filenameandpath"])
                             if efa:
                                 details["art"] = merge_dict(details["art"], efa["art"])
                     if self.exit:
