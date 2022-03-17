@@ -352,7 +352,7 @@ class ListItemMonitor(threading.Thread):
                             if content_type in ["tvshows", "tvshow", "seasons", "season"]:
                                 efa = self.metadatautils.get_extraposter(details["filenameandpath"])
                         if efa:
-                                details["art"] = merge_dict(details["art"], efa["art"])
+                           details["art"] = merge_dict(details["art"], efa["art"])
                     if self.exit:
                         return
 
