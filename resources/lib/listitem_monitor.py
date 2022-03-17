@@ -339,8 +339,8 @@ class ListItemMonitor(threading.Thread):
                                 efa = self.metadatautils.get_extrafanart(details["path"])
                             if content_type in ["tvshows", "tvshow", "seasons", "season"]:
                                 efa = self.metadatautils.get_extrafanart(details["filenameandpath"])
-                            if efa:
-                                details["art"] = merge_dict(details["art"], efa["art"])
+                        if efa:
+                            details["art"] = merge_dict(details["art"], efa["art"])
                     if self.enable_extraposter:
                         if not details["filenameandpath"]:
                             details["filenameandpath"] = details["path"]
@@ -351,7 +351,7 @@ class ListItemMonitor(threading.Thread):
                                 efa = self.metadatautils.get_extraposter(details["path"])
                             if content_type in ["tvshows", "tvshow", "seasons", "season"]:
                                 efa = self.metadatautils.get_extraposter(details["filenameandpath"])
-                            if efa:
+                        if efa:
                                 details["art"] = merge_dict(details["art"], efa["art"])
                     if self.exit:
                         return
