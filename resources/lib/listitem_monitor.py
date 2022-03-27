@@ -352,7 +352,7 @@ class ListItemMonitor(threading.Thread):
                             if content_type in ["tvshows", "tvshow", "seasons", "season"]:
                                 efa = self.metadatautils.get_extraposter(details["filenameandpath"])
                         if efa:
-                           details["art"] = merge_dict(details["art"], efa["art"])
+                            details["art"] = merge_dict(details["art"], efa["art"])
                     if self.exit:
                         return
 
@@ -361,7 +361,6 @@ class ListItemMonitor(threading.Thread):
                     details = merge_dict(details, self.metadatautils.get_studio_logo(details["studio"]))
                     details = merge_dict(details, self.metadatautils.get_omdb_info(details["imdbnumber"]))
                     details = merge_dict(details, self.metadatautils.get_trakt_info(details["imdbnumber"]))
-                    details = merge_dict(details, self.metadatautils.get_rt_info((details["title"]), content_type))
                     details = merge_dict(
                         details, self.get_streamdetails(
                             details["dbid"], details["path"], content_type))
@@ -375,12 +374,11 @@ class ListItemMonitor(threading.Thread):
                         details = merge_dict(
                             details, self.metadatautils.get_tvdb_details(
                                 details["imdbnumber"], tvdbid))
-                    # movie-rating properties (rt)             
-                    if content_type in ["movie", "movies", "tvshow", "tvshows"]:
-                        details = merge_dict(details, self.metadatautils.get_rt_ratings((details["title"]), content_type)) 
                      # tvshows-only properties (metacritic)
                     if content_type in ["movie", "movies", "tvshow", "tvshows"]:
                         details = merge_dict(details, self.metadatautils.get_metacritic_info((details["title"]), content_type))
+                    if content_type in ["movie", "movies", "tvshow", "tvshows"]:
+                        details = merge_dict(details, self.metadatautils.get_tunes_info((details["title"]), content_type, details["year"]))
                     # movies-only properties (tmdb, animated art)
                     if content_type in ["movies", "setmovies", "tvshows"]:
                         details = merge_dict(details, self.metadatautils.get_tmdb_details(details["imdbnumber"]))

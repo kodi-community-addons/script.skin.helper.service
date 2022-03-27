@@ -43,6 +43,9 @@
         <summary lang="en">Helper service for Kodi skins</summary>
         <description>Helper service for Kodi skins</description>
         <news>
+v1.1.43
+- removed rt ratings 
+- Add tunefind
 v1.1.42
 - fixed rt ratings for tvshow
 - fixed extrafanart (look first in folder path)
