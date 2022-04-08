@@ -124,7 +124,7 @@ class ListItemMonitor(threading.Thread):
         self.enable_extrafanart = getCondVisibility("Skin.HasSetting(SkinHelper.EnableExtraFanart)") == 1
         self.enable_extraposter = getCondVisibility("Skin.HasSetting(SkinHelper.EnableExtraPoster)") == 1
         self.enable_pvrart = getCondVisibility(
-            "Skin.HasSetting(SkinHelper.EnablePVRThumbs) + PVR.HasTVChannels") == 1
+            "Skin.HasSetting(SkinHelper.EnablePVRThumbs) + PVR.HasTVChannels + !String.Contains(Container.FolderPath,pvr://channels/radio/)") == 1
         self.enable_forcedviews = getCondVisibility("Skin.HasSetting(SkinHelper.ForcedViews.Enabled)") == 1
         studiologos_path = xbmc.getInfoLabel("Skin.String(SkinHelper.StudioLogos.Path)")
         if studiologos_path != self.metadatautils.studiologos_path:
