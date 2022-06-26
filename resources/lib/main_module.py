@@ -673,6 +673,28 @@ class MainModule:
             percentage = percentage + (roundsteps - percentage) % roundsteps
         xbmc.executebuiltin("Skin.SetString(%s,%s)" % (skinstring, percentage))
 
+    def increasecount(self):
+        '''helper to increase a counter value and write result to a window prop or skinstring'''
+        value = int(self.params.get("value"))
+        skinstring = self.params.get("skinstring")
+        windowprop = self.params.get("winprop")
+        value += 1
+        if windowprop:
+            self.win.setProperty(windowprop, str(value))
+        if skinstring:
+            xbmc.executebuiltin("Skin.SetString(%s,%s)" % (skinstring, value))
+
+    def decreasecount(self):
+        '''helper to decrease a counter value and write result to a window prop or skinstring'''
+        value = int(self.params.get("value"))
+        skinstring = self.params.get("skinstring")
+        windowprop = self.params.get("winprop")
+        value -= 1
+        if windowprop:
+            self.win.setProperty(windowprop, str(value))
+        if skinstring:
+            xbmc.executebuiltin("Skin.SetString(%s,%s)" % (skinstring, value))
+
     def setresourceaddon(self):
         '''helper to let the user choose a resource addon and set that as skin string'''
         from .resourceaddons import setresourceaddon
