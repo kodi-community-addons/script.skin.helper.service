@@ -209,10 +209,7 @@ class KodiMonitor(xbmc.Monitor):
                     li_imdb, li_tvdb, tmdbid, mediatype))
 
         if li_title == try_decode(xbmc.getInfoLabel("Player.Title")):
-            if sys.version_info.major == 3:
-                all_props = prepare_win_props(details, "SkinHelper.Player.")
-            else:
-                all_props = prepare_win_props(details, u"SkinHelper.Player.")
+            all_props = prepare_win_props(details, "SkinHelper.Player.")
             self.metadatautils.process_method_on_list(self.set_win_prop, all_props)
 
     def set_music_properties(self):
@@ -246,10 +243,7 @@ class KodiMonitor(xbmc.Monitor):
             if result.get("extendedplot") and li_plot:
                 li_plot = li_plot.replace('\n', ' ').replace('\r', '').rstrip()
                 result["extendedplot"] = "%s -- %s" % (result["extendedplot"], li_plot)
-            if sys.version_info.major == 3:
-                all_props = prepare_win_props(result, "SkinHelper.Player.")
-            else:
-                all_props = prepare_win_props(result, u"SkinHelper.Player.")
+            all_props = prepare_win_props(result, "SkinHelper.Player.")
             if li_title_org == try_decode(xbmc.getInfoLabel("MusicPlayer.Title")):
                 self.metadatautils.process_method_on_list(self.set_win_prop, all_props)
 
@@ -303,10 +297,7 @@ class KodiMonitor(xbmc.Monitor):
                 if getCondVisibility("Skin.HasSetting(SkinHelper.EnablePVRThumbs)"):
                     li_genre = try_decode(xbmc.getInfoLabel("VideoPlayer.Genre"))
                     pvrart = self.metadatautils.get_pvr_artwork(li_title, li_channel, li_genre)
-                    if sys.version_info.major == 3:
-                        all_props = prepare_win_props(pvrart, "SkinHelper.Player.")
-                    else:
-                        all_props = prepare_win_props(pvrart, u"SkinHelper.Player.")
+                    all_props = prepare_win_props(pvrart, "SkinHelper.Player.")
                 # pvr channellogo
                 channellogo = self.metadatautils.get_channellogo(li_channel)
                 all_props.append(("SkinHelper.Player.ChannelLogo", channellogo))

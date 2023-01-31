@@ -14,10 +14,7 @@ import xbmcplugin
 import xbmcgui
 import xbmcaddon
 from simplecache import SimpleCache
-if sys.version_info.major == 3:
-    import urllib.parse
-else:
-    import urlparse
+import urllib.parse
 from resources.lib.utils import log_msg, KODI_VERSION, log_exception, urlencode, getCondVisibility, try_decode
 from metadatautils import MetadataUtils
 
@@ -75,12 +72,8 @@ class PluginContent:
         log_msg("Deprecated method: %s. Please reassign your widgets to get rid of this message. -"
                 "This automatic redirect will be removed in the future" % (action), xbmc.LOGWARNING)
         paramstring = ""
-        if sys.version_info.major == 3:
-            for key, value in self.params.items():
-                paramstring += ",%s=%s" % (key, value)
-        else:
-            for key, value in self.params.iteritems():
-                paramstring += ",%s=%s" % (key, value)
+        for key, value in self.params.items():
+            paramstring += ",%s=%s" % (key, value)
         if getCondVisibility("System.HasAddon(%s)" % newaddon):
             # TEMP !!! for backwards compatability reasons only - to be removed in the near future!!
             import imp
@@ -129,37 +122,25 @@ class PluginContent:
 
     def smartshortcuts(self):
         '''called from skinshortcuts to retrieve listing of all smart shortcuts'''
-        if sys.version_info.major == 3:
-            from . import skinshortcuts
-        else:
-            import skinshortcuts
+        from . import skinshortcuts
         skinshortcuts.get_smartshortcuts(self.params.get("path", ""))
 
     @staticmethod
     def backgrounds():
         '''called from skinshortcuts to retrieve listing of all backgrounds'''
-        if sys.version_info.major == 3:
-            from . import skinshortcuts
-        else:
-            import skinshortcuts
+        from . import skinshortcuts
         skinshortcuts.get_backgrounds()
 
     def widgets(self):
         '''called from skinshortcuts to retrieve listing of all widgetss'''
         log_msg("skinhelperservice plugin allwidgets function", xbmc.LOGINFO)
-        if sys.version_info.major == 3:
-            from . import skinshortcuts
-        else:
-            import skinshortcuts
+        from . import skinshortcuts
         skinshortcuts.get_widgets(self.params.get("path", ""), self.params.get("sublevel", ""))
 
     def resourceimages(self):
         '''retrieve listing of specific resource addon images'''
         log_msg("skinhelperservice plugin resourceimages function", xbmc.LOGWINFO)
-        if sys.version_info.major == 3:
-            from .resourceaddons import get_resourceimages
-        else:
-            from resourceaddons import get_resourceimages
+        from .resourceaddons import get_resourceimages
         addontype = self.params.get("addontype", "")
         for item in get_resourceimages(addontype, True):
             listitem = xbmcgui.ListItem(item[0], label2=item[2], path=item[1])

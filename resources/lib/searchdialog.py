@@ -9,10 +9,7 @@
 
 import os, sys
 import threading
-if sys.version_info.major == 3:
-    import _thread as thread
-else:
-    import thread
+import _thread as thread
 from resources.lib.utils import getCondVisibility, try_decode
 import xbmc
 import xbmcgui
@@ -242,10 +239,7 @@ class SearchDialog(xbmcgui.WindowXMLDialog):
             self.close_dialog()
         elif "actor" in listitem.getProperty("DBTYPE"):
             # cast dialog
-            if sys.version_info.major == 3:
-                from .dialogselect import DialogSelect
-            else:
-                from dialogselect import DialogSelect
+            from .dialogselect import DialogSelect
             results = []
             name = try_decode(listitem.getLabel())
             items = self.mutils.kodidb.castmedia(name)

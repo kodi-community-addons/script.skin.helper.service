@@ -39,10 +39,7 @@ class SkinSettings:
 
     def write_skin_constants(self, constants=None, variables=None):
         '''writes the list of all skin constants'''
-        if sys.version_info.major == 3:
-            addonpath = try_decode(xbmcvfs.translatePath(try_encode(os.path.join("special://skin/", 'addon.xml'))))
-        else:
-            addonpath = try_decode(xbmc.translatePath(try_encode(os.path.join("special://skin/", 'addon.xml'))))
+        addonpath = try_decode(xbmcvfs.translatePath(try_encode(os.path.join("special://skin/", 'addon.xml'))))
         addon = xmltree.parse(addonpath)
         extensionpoints = addon.findall("extension")
         for extensionpoint in extensionpoints:
@@ -56,13 +53,6 @@ class SkinSettings:
                             try_decode(
                                 resolution.attrib.get("folder")),
                             "script-skin_helper_service-includes.xml").encode("utf-8"))
-                    else:
-                        includes_file = try_decode(xbmcvfs.translatePath(
-                            try_encode(os.path.join(
-                                "special://skin/",
-                                try_decode(
-                                    resolution.attrib.get("folder")),
-                                "script-skin_helper_service-includes.xml"))))
                     tree = xmltree.ElementTree(xmltree.Element("includes"))
                     root = tree.getroot()
                     if constants:
@@ -94,10 +84,7 @@ class SkinSettings:
         '''gets a list of all skin constants as set in the special xml file'''
         all_constants = {}
         all_variables = {}
-        if sys.version_info.major == 3:
-            addonpath = xbmcvfs.translatePath(os.path.join("special://skin/", 'addon.xml').encode("utf-8"))
-        else:
-            addonpath = try_decode(xbmc.translatePath(try_encode(os.path.join("special://skin/", 'addon.xml'))))
+        addonpath = xbmcvfs.translatePath(os.path.join("special://skin/", 'addon.xml').encode("utf-8"))
 
         addon = xmltree.parse(addonpath)
         extensionpoints = addon.findall("extension")
@@ -107,13 +94,6 @@ class SkinSettings:
                 for resolution in resolutions:
                     if sys.version_info.major == 3:
                         includes_file = try_decode(xbmcvfs.translatePath(
-                            try_encode(os.path.join(
-                                "special://skin/",
-                                try_decode(
-                                    resolution.attrib.get("folder")),
-                                "script-skin_helper_service-includes.xml"))))
-                    else:
-                        includes_file = try_decode(xbmc.translatePath(
                             try_encode(os.path.join(
                                 "special://skin/",
                                 try_decode(
@@ -178,10 +158,7 @@ class SkinSettings:
     def get_skin_settings():
         '''get the complete list of all settings defined in the special skinsettings file'''
         all_skinsettings = {}
-        if sys.version_info.major == 3:
-            settings_file = try_decode(xbmcvfs.translatePath('special://skin/extras/skinsettings.xml'))
-        else:
-            settings_file = try_decode(xbmc.translatePath('special://skin/extras/skinsettings.xml'))
+        settings_file = try_decode(xbmcvfs.translatePath('special://skin/extras/skinsettings.xml'))
         if xbmcvfs.exists(settings_file):
             doc = parse(settings_file)
             listing = doc.documentElement.getElementsByTagName('setting')
@@ -473,19 +450,13 @@ class SkinSettings:
 
         # backgrounds provided by skinhelper
         if skinhelper_backgrounds:
-            if sys.version_info.major == 3:
-                from .skinshortcuts import get_skinhelper_backgrounds
-            else:
-                from skinshortcuts import get_skinhelper_backgrounds
+            from .skinshortcuts import get_skinhelper_backgrounds
             for label, image in get_skinhelper_backgrounds():
                 images.append((label, image, "Skin Helper Backgrounds", xbmc.getInfoLabel(image)))
 
         # resource addon images
         if resource_addon:
-            if sys.version_info.major == 3:
-                from .resourceaddons import get_resourceimages
-            else:
-                from resourceaddons import get_resourceimages
+            from .resourceaddons import get_resourceimages
             images += get_resourceimages(resource_addon)
 
         # create listitems

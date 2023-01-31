@@ -9,10 +9,7 @@
 
 import os, sys
 import threading
-if sys.version_info.major == 3:
-    import _thread as thread
-else:
-    import thread
+import _thread as thread
 from resources.lib.utils import log_msg, log_exception, get_current_content_type, kodi_json, prepare_win_props, merge_dict, getCondVisibility, try_decode
 import xbmc
 from simplecache import SimpleCache
@@ -379,6 +376,8 @@ class ListItemMonitor(threading.Thread):
                         details = merge_dict(details, self.metadatautils.get_metacritic_info((details["title"]), content_type))
                     if content_type in ["movie", "movies", "tvshow", "tvshows"]:
                         details = merge_dict(details, self.metadatautils.get_tunes_info((details["title"]), content_type, details["year"]))
+                    if content_type in ["tvshow", "tvshows"]:
+                        details = merge_dict(details, self.metadatautils.get_tvmaze_info(details["imdbnumber"]))
                     # movies-only properties (tmdb, animated art)
                     if content_type in ["movies", "setmovies", "tvshows"]:
                         details = merge_dict(details, self.metadatautils.get_tmdb_details(details["imdbnumber"]))

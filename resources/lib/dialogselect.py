@@ -104,10 +104,7 @@ class DialogSelect(xbmcgui.WindowXMLDialog):
                 self.close_dialog()
             else:
                 # OK button
-                if sys.version_info.major == 3:
-                    from .resourceaddons import downloadresourceaddons
-                else:
-                    from resourceaddons import downloadresourceaddons
+                from .resourceaddons import downloadresourceaddons
                 downloadresourceaddons(self.getmorebutton)
                 self.result = True
                 self.close()
