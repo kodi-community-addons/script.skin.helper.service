@@ -23,6 +23,8 @@ if __name__ == '__main__':
     if not title:
         title = try_decode(xbmc.getInfoLabel("ListItem.Label"))
     channel = try_decode(xbmc.getInfoLabel("ListItem.ChannelName"))
+    if not channel:
+        channel = try_decode(xbmc.getInfoLabel("ListItem.Label"))
     genre = try_decode(xbmc.getInfoLabel("ListItem.Genre"))
     metadatautils = MetadataUtils()
     metadatautils.pvr_artwork_options(title, channel, genre)

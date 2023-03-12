@@ -85,10 +85,7 @@ class PluginContent:
             del addon
         else:
             # trigger install of the addon
-            if KODI_VERSION > 16:
-                xbmc.executebuiltin("InstallAddon(%s)" % newaddon)
-            else:
-                xbmc.executebuiltin("RunPlugin(plugin://%s)" % newaddon)
+            xbmc.executebuiltin("InstallAddon(%s)" % newaddon)
 
     def playchannel(self):
         '''play channel from widget helper'''

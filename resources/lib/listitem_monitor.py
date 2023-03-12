@@ -326,7 +326,7 @@ class ListItemMonitor(threading.Thread):
                     details = merge_dict(details,
                                          self.get_directors_writers_cast(details["director"], details["writer"], details["cast"]))
                     if self.enable_extrafanart:
-                        log_msg("skin.helper.service: extrafanart", xbmc.LOGINFO)
+                        #log_msg("skin.helper.service: extrafanart", xbmc.LOGINFO)
                         if not details["filenameandpath"]:
                             details["filenameandpath"] = details["path"]
                         if "plugin://" in details["path"]:
