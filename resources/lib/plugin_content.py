@@ -326,6 +326,7 @@ class PluginContent:
                 if letter not in all_letters:
                     lipath = "noop"
                     listitem.setProperty("NotAvailable", "true")
+                    continue
                 else:
                     lipath = "plugin://script.skin.helper.service/?action=alphabetletter&letter=%s" % letter
                 xbmcplugin.addDirectoryItem(int(sys.argv[1]), lipath, listitem, isFolder=False)
